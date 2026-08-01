@@ -11,6 +11,7 @@ import {
 import { useRouter } from 'next/navigation';
 import { memberApiFetch } from '../member-api';
 import { useMemberSession } from '../member-session-provider';
+import { resolveLocalAssetByBasename } from '../lib/local-asset-by-basename';
 import { openMemberProviderGame } from './game/member-provider-game-launch';
 import { REFERENCE_GAMES, REFERENCE_PROVIDERS } from './reference-asset-catalog';
 import styles from './member-search-overlay.module.css';
@@ -25,6 +26,7 @@ type SearchGame = {
   providerName: string;
   providerCode: string;
   providerUrl: string;
+  providerLandscapeUrl: string;
   category: string;
   isNew: boolean;
   isHot: boolean;
@@ -33,17 +35,21 @@ type SearchGame = {
 type CatalogGame = {
   id?: string | null;
   providerGameCode?: string | null;
+  code?: string | null;
   name?: string | null;
   category?: string | null;
   imageUrl?: string | null;
   iconUrl?: string | null;
   isNew?: boolean | null;
   isPopular?: boolean | null;
+  isFeatured?: boolean | null;
+  providerId?: string | null;
   provider?: {
     name?: string | null;
     code?: string | null;
     logoUrl?: string | null;
-  } | null;
+  } | string | null;
+  providerLogoUrl?: string | null;
   media?: Array<{
     sourceUrl?: string | null;
     cachedUrl?: string | null;
@@ -52,27 +58,37 @@ type CatalogGame = {
 
 type CatalogPayload = {
   items?: CatalogGame[] | null;
+  data?: CatalogGame[] | { items?: CatalogGame[] | null } | null;
 };
 
+const DESKTOP_QUERY = '(min-width: 901px)';
 const SEARCH_HISTORY_KEY = 'member_game_search_history_v1';
 const RECENT_GAMES_KEY = 'member_game_search_recent_v1';
 const FAVORITES_KEY = 'member_public_browse_favorite_games_v1';
-const SEARCH_TRIGGER_SELECTOR = '[aria-label="ค้นหาเกม"], [aria-label="Search games"]';
+const SEARCH_TRIGGER_SELECTOR = [
+  '[aria-label="ค้นหาเกม"]',
+  '[aria-label="Search games"]',
+  '[data-member-search-trigger="true"]',
+].join(', ');
 const CATALOG_ROUTE = '/games/catalog?platform=pc&page=1&limit=250';
+const NEW_SECTION_LIMIT = 7;
+const HOT_SECTION_LIMIT = 6;
 
 const FALLBACK_SEARCH_GAMES: SearchGame[] = REFERENCE_GAMES.map((game, index) => {
   const provider = REFERENCE_PROVIDERS[index % REFERENCE_PROVIDERS.length]!;
+  const providerUrl = resolvePcAsset(provider.url);
   return {
     id: `reference-${index + 1}`,
     providerGameCode: `reference-${index + 1}`,
     name: game.name,
-    imageUrl: game.url,
+    imageUrl: resolvePcAsset(game.url),
     providerName: provider.name,
     providerCode: normalizeProviderCode(provider.name),
-    providerUrl: provider.url,
+    providerUrl,
+    providerLandscapeUrl: resolveProviderLandscape(provider.url) || providerUrl,
     category: 'slot',
-    isNew: index < 7 || index % 5 === 0,
-    isHot: index < 8 || index % 4 === 0,
+    isNew: index < NEW_SECTION_LIMIT,
+    isHot: index < HOT_SECTION_LIMIT,
   };
 });
 
@@ -97,7 +113,6 @@ export default function MemberSearchOverlay() {
   const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
   const [games, setGames] = useState<SearchGame[]>(FALLBACK_SEARCH_GAMES);
   const [catalogLoading, setCatalogLoading] = useState(false);
-  const [catalogMessage, setCatalogMessage] = useState('');
   const [launchingGameId, setLaunchingGameId] = useState('');
   const [launchMessage, setLaunchMessage] = useState('');
   const launchInFlightRef = useRef(false);
@@ -105,20 +120,25 @@ export default function MemberSearchOverlay() {
   const deferredQuery = useDeferredValue(query.trim().toLocaleLowerCase('th'));
 
   useEffect(() => {
+    const desktop = window.matchMedia(DESKTOP_QUERY);
+
     const interceptSearchButton = (event: MouseEvent) => {
+      if (!desktop.matches) return;
+      if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
       const target = event.target instanceof Element
         ? event.target.closest<HTMLElement>(SEARCH_TRIGGER_SELECTOR)
         : null;
       if (!target) return;
+
       event.preventDefault();
-      event.stopPropagation();
+      event.stopImmediatePropagation();
       setOpen(true);
       setActiveTab('search');
       setLaunchMessage('');
     };
 
-    document.addEventListener('click', interceptSearchButton, true);
-    return () => document.removeEventListener('click', interceptSearchButton, true);
+    window.addEventListener('click', interceptSearchButton, true);
+    return () => window.removeEventListener('click', interceptSearchButton, true);
   }, []);
 
   useEffect(() => {
@@ -128,14 +148,12 @@ export default function MemberSearchOverlay() {
     setHistory(readStoredList(SEARCH_HISTORY_KEY));
     setRecentIds(readStoredList(RECENT_GAMES_KEY));
     setFavoriteIds(readStoredList(FAVORITES_KEY));
+    setGames(FALLBACK_SEARCH_GAMES);
     setCatalogLoading(true);
-    setCatalogMessage('');
 
     void getCatalogGames()
       .then((items) => {
-        if (cancelled) return;
-        setGames(items);
-        if (items === FALLBACK_SEARCH_GAMES) setCatalogMessage('กำลังใช้รายการเกมสำรอง');
+        if (!cancelled && items.length) setGames(items);
       })
       .finally(() => {
         if (!cancelled) setCatalogLoading(false);
@@ -144,8 +162,10 @@ export default function MemberSearchOverlay() {
     const focusFrame = window.requestAnimationFrame(() => searchInputRef.current?.focus());
     const previousBodyOverflow = document.body.style.overflow;
     const previousHtmlOverflow = document.documentElement.style.overflow;
+    const previousBodyOverscroll = document.body.style.overscrollBehavior;
     document.body.style.overflow = 'hidden';
     document.documentElement.style.overflow = 'hidden';
+    document.body.style.overscrollBehavior = 'none';
 
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape' && !launchInFlightRef.current) setOpen(false);
@@ -157,6 +177,7 @@ export default function MemberSearchOverlay() {
       window.cancelAnimationFrame(focusFrame);
       document.body.style.overflow = previousBodyOverflow;
       document.documentElement.style.overflow = previousHtmlOverflow;
+      document.body.style.overscrollBehavior = previousBodyOverscroll;
       window.removeEventListener('keydown', onKeyDown);
     };
   }, [open]);
@@ -179,19 +200,18 @@ export default function MemberSearchOverlay() {
     }
 
     if (!deferredQuery) return visibleGames;
-    return visibleGames.filter((game) => (
-      game.name.toLocaleLowerCase('th').includes(deferredQuery)
-      || game.providerName.toLocaleLowerCase('th').includes(deferredQuery)
-      || game.providerGameCode.toLocaleLowerCase('th').includes(deferredQuery)
-    ));
+    return visibleGames.filter((game) => {
+      const haystack = `${game.name} ${game.providerName} ${game.providerGameCode}`.toLocaleLowerCase('th');
+      return haystack.includes(deferredQuery);
+    });
   }, [activeTab, deferredQuery, favoriteIds, games, recentIds]);
 
   const newGames = useMemo(
-    () => matchingGames.filter((game) => game.isNew).slice(0, 7),
+    () => pickNewGames(matchingGames, NEW_SECTION_LIMIT),
     [matchingGames],
   );
   const hotGames = useMemo(
-    () => matchingGames.filter((game) => game.isHot).slice(0, 8),
+    () => pickHotProviderGames(matchingGames, HOT_SECTION_LIMIT),
     [matchingGames],
   );
 
@@ -200,7 +220,7 @@ export default function MemberSearchOverlay() {
   const rememberQuery = () => {
     const value = query.trim();
     if (!value) return;
-    const next = [value, ...history.filter((item) => item !== value)].slice(0, 8);
+    const next = [value, ...history.filter((item) => item.toLocaleLowerCase('th') !== value.toLocaleLowerCase('th'))].slice(0, 8);
     setHistory(next);
     writeStoredList(SEARCH_HISTORY_KEY, next);
   };
@@ -253,11 +273,17 @@ export default function MemberSearchOverlay() {
   const interactionLocked = Boolean(launchingGameId);
 
   return (
-    <div className={styles.overlay} role="presentation" onMouseDown={(event) => {
-      if (event.target === event.currentTarget && !interactionLocked) setOpen(false);
-    }}>
+    <div
+      className={styles.overlay}
+      data-member-search-overlay="desktop-source"
+      role="presentation"
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget && !interactionLocked) setOpen(false);
+      }}
+    >
       <section
         className={styles.modal}
+        data-member-search-modal="source"
         role="dialog"
         aria-modal="true"
         aria-labelledby="member-search-title"
@@ -267,7 +293,13 @@ export default function MemberSearchOverlay() {
 
         <header className={styles.header}>
           <h2 id="member-search-title">ค้นหา</h2>
-          <button type="button" className={styles.closeButton} onClick={() => setOpen(false)} aria-label="ปิดหน้าค้นหา" disabled={interactionLocked}>
+          <button
+            type="button"
+            className={styles.closeButton}
+            onClick={() => setOpen(false)}
+            aria-label="ปิดหน้าค้นหา"
+            disabled={interactionLocked}
+          >
             <img src="/assets/asset-pc/images/close.svg" alt="" aria-hidden="true" />
           </button>
         </header>
@@ -290,10 +322,13 @@ export default function MemberSearchOverlay() {
           </nav>
 
           <div className={styles.content}>
-            <form className={styles.searchForm} onSubmit={(event) => {
-              event.preventDefault();
-              rememberQuery();
-            }}>
+            <form
+              className={styles.searchForm}
+              onSubmit={(event) => {
+                event.preventDefault();
+                rememberQuery();
+              }}
+            >
               <input
                 ref={searchInputRef}
                 value={query}
@@ -306,8 +341,6 @@ export default function MemberSearchOverlay() {
               <button type="submit" aria-label="ค้นหา" disabled={interactionLocked}><SearchIcon /></button>
             </form>
 
-            {catalogLoading ? <div className={styles.emptyState}>กำลังโหลดรายการเกม...</div> : null}
-            {!catalogLoading && catalogMessage ? <div className={styles.emptyState}>{catalogMessage}</div> : null}
             {launchMessage ? <div className={styles.emptyState} role="alert">{launchMessage}</div> : null}
             {interactionLocked ? <div className={styles.emptyState} role="status">กำลังเปิดเกม...</div> : null}
 
@@ -315,12 +348,16 @@ export default function MemberSearchOverlay() {
               <section className={styles.historyPanel} aria-label="ประวัติการค้นหา">
                 <div className={styles.historyHeading}>
                   <strong>ประวัติการค้นหา</strong>
-                  <button type="button" onClick={clearHistory} disabled={interactionLocked}><TrashIcon /><span>ล้าง</span></button>
+                  <button type="button" onClick={clearHistory} disabled={interactionLocked}>
+                    <TrashIcon /><span>ล้าง</span>
+                  </button>
                 </div>
                 {history.length ? (
                   <div className={styles.historyItems}>
                     {history.map((item) => (
-                      <button key={item} type="button" onClick={() => setQuery(item)} disabled={interactionLocked}>{item}</button>
+                      <button key={item} type="button" onClick={() => setQuery(item)} disabled={interactionLocked}>
+                        {item}
+                      </button>
                     ))}
                   </div>
                 ) : null}
@@ -337,10 +374,15 @@ export default function MemberSearchOverlay() {
                   </div>
                 </SearchSection>
 
-                <SearchSection title="เกมฮิต" onViewAll={() => setActiveTab('hot')} disabled={interactionLocked}>
+                <SearchSection
+                  title="เกมฮิต"
+                  onViewAll={() => setActiveTab('hot')}
+                  disabled={interactionLocked}
+                  bodyPaddingTop={8}
+                >
                   <div className={styles.hotGrid}>
                     {hotGames.map((game) => (
-                      <LandscapeGameCard key={game.id} game={game} onOpen={openGame} disabled={interactionLocked} />
+                      <LandscapeProviderCard key={`${game.providerCode}:${game.id}`} game={game} onOpen={openGame} disabled={interactionLocked} />
                     ))}
                   </div>
                 </SearchSection>
@@ -365,51 +407,87 @@ export default function MemberSearchOverlay() {
   );
 }
 
-function SearchSection({ title, onViewAll, disabled = false, children }: {
+function SearchSection({
+  title,
+  onViewAll,
+  disabled = false,
+  bodyPaddingTop,
+  children,
+}: {
   title: string;
   onViewAll?: () => void;
   disabled?: boolean;
+  bodyPaddingTop?: number;
   children: ReactNode;
 }) {
   return (
     <section className={styles.section}>
       <header className={styles.sectionHeader}>
         <strong>{title}</strong>
-        {onViewAll ? <button type="button" onClick={onViewAll} disabled={disabled}>ดูทั้งหมด <ChevronRight /></button> : null}
+        {onViewAll ? (
+          <button type="button" onClick={onViewAll} disabled={disabled}>
+            ดูทั้งหมด <ChevronRight />
+          </button>
+        ) : null}
       </header>
-      <div className={styles.sectionBody}>{children}</div>
+      <div className={styles.sectionBody} style={bodyPaddingTop === undefined ? undefined : { paddingTop: bodyPaddingTop }}>
+        {children}
+      </div>
     </section>
   );
 }
 
-function PortraitGameCard({ game, onOpen, disabled }: {
+function PortraitGameCard({
+  game,
+  onOpen,
+  disabled,
+}: {
   game: SearchGame;
   onOpen: (game: SearchGame) => void;
   disabled: boolean;
 }) {
   return (
-    <button type="button" className={styles.portraitCard} onClick={() => onOpen(game)} aria-label={`เปิดเกม ${game.name}`} disabled={disabled}>
+    <button
+      type="button"
+      className={styles.portraitCard}
+      onClick={() => onOpen(game)}
+      aria-label={`เปิดเกม ${game.name}`}
+      disabled={disabled}
+    >
       <span className={styles.portraitImage}>
         <img className={styles.blurImage} src={game.imageUrl} alt="" aria-hidden="true" />
         <img className={styles.containImage} src={game.imageUrl} alt={game.name} />
-        {game.providerUrl ? <span className={styles.providerBadge}><img src={game.providerUrl} alt={game.providerName} /></span> : null}
+        {game.providerUrl ? (
+          <span className={styles.providerBadge}>
+            <img src={game.providerUrl} alt={game.providerName} />
+          </span>
+        ) : null}
         {game.isNew ? <span className={styles.newBadge}><SparkIcon />NEW</span> : null}
       </span>
-      <span className={styles.cardName}>{game.name}</span>
     </button>
   );
 }
 
-function LandscapeGameCard({ game, onOpen, disabled }: {
+function LandscapeProviderCard({
+  game,
+  onOpen,
+  disabled,
+}: {
   game: SearchGame;
   onOpen: (game: SearchGame) => void;
   disabled: boolean;
 }) {
   return (
-    <button type="button" className={styles.landscapeCard} onClick={() => onOpen(game)} aria-label={`เปิดเกมฮอต ${game.name}`} disabled={disabled}>
-      <img src={game.imageUrl} alt={game.name} />
+    <button
+      type="button"
+      className={styles.landscapeCard}
+      onClick={() => onOpen(game)}
+      aria-label={`เปิดเกมจากค่าย ${game.providerName}`}
+      disabled={disabled}
+    >
+      <img src={game.providerLandscapeUrl || game.providerUrl || game.imageUrl} alt={game.providerName} />
       {game.isHot ? <span className={styles.hotBadge}><FlameIcon />HOT</span> : null}
-      <span>{game.name}</span>
+      <span aria-hidden="true" style={{ display: 'none' }} />
     </button>
   );
 }
@@ -428,43 +506,136 @@ async function loadCatalogGames(): Promise<SearchGame[]> {
     if (!response.ok) throw new Error(`catalog ${response.status}`);
 
     const payload = await response.json().catch(() => null) as CatalogPayload | null;
-    const items = Array.isArray(payload?.items)
-      ? payload.items.map(mapCatalogGame).filter((item): item is SearchGame => Boolean(item))
-      : [];
-    return items.length ? items : FALLBACK_SEARCH_GAMES;
+    const items = readCatalogItems(payload)
+      .map(mapCatalogGame)
+      .filter((item): item is SearchGame => Boolean(item));
+
+    return items.length ? ensureSectionFlags(items) : FALLBACK_SEARCH_GAMES;
   } catch {
     catalogRequest = null;
     return FALLBACK_SEARCH_GAMES;
   }
 }
 
+function readCatalogItems(payload: CatalogPayload | null): CatalogGame[] {
+  if (Array.isArray(payload?.items)) return payload.items;
+  if (Array.isArray(payload?.data)) return payload.data;
+  if (payload?.data && typeof payload.data === 'object' && Array.isArray(payload.data.items)) {
+    return payload.data.items;
+  }
+  return [];
+}
+
 function mapCatalogGame(item: CatalogGame): SearchGame | null {
-  const id = firstText(item.id);
-  const providerGameCode = firstText(item.providerGameCode, id);
+  const id = firstText(item.id, item.providerGameCode, item.code);
+  const providerGameCode = firstText(item.providerGameCode, item.code, id);
   const name = firstText(item.name);
-  const imageUrl = firstText(
+  const sourceImage = firstText(
     item.imageUrl,
     item.iconUrl,
     item.media?.find((media) => media.cachedUrl)?.cachedUrl,
     item.media?.find((media) => media.sourceUrl)?.sourceUrl,
   );
-  if (!id || !providerGameCode || !name || !imageUrl) return null;
+  if (!id || !providerGameCode || !name || !sourceImage) return null;
 
-  const providerName = firstText(item.provider?.name, item.provider?.code, 'Unknown');
-  const providerCode = normalizeProviderCode(firstText(item.provider?.code, providerName));
+  const providerObject = item.provider && typeof item.provider === 'object' ? item.provider : null;
+  const providerName = firstText(
+    providerObject?.name,
+    providerObject?.code,
+    typeof item.provider === 'string' ? item.provider : null,
+    item.providerId,
+    'Unknown',
+  );
+  const providerCode = normalizeProviderCode(firstText(providerObject?.code, providerName));
+  const providerLogoSource = firstText(item.providerLogoUrl, providerObject?.logoUrl);
+  const providerUrl = resolvePcAsset(providerLogoSource);
 
   return {
     id,
     providerGameCode,
     name,
-    imageUrl,
+    imageUrl: resolvePcAsset(sourceImage),
     providerName,
     providerCode,
-    providerUrl: firstText(item.provider?.logoUrl),
+    providerUrl,
+    providerLandscapeUrl: resolveProviderLandscape(providerLogoSource) || providerUrl,
     category: normalizeCategory(item.category),
     isNew: item.isNew === true,
-    isHot: item.isPopular === true,
+    isHot: item.isPopular === true || item.isFeatured === true,
   };
+}
+
+function ensureSectionFlags(items: SearchGame[]): SearchGame[] {
+  const next = items.map((game) => ({ ...game }));
+  let newCount = next.filter((game) => game.isNew).length;
+
+  for (const game of next) {
+    if (newCount >= NEW_SECTION_LIMIT) break;
+    if (!game.isNew) {
+      game.isNew = true;
+      newCount += 1;
+    }
+  }
+
+  const hotProviders = new Set(
+    next.filter((game) => game.isHot).map((game) => game.providerCode || game.providerName),
+  );
+  for (const game of next) {
+    if (hotProviders.size >= HOT_SECTION_LIMIT) break;
+    const providerKey = game.providerCode || game.providerName;
+    if (!providerKey || hotProviders.has(providerKey)) continue;
+    game.isHot = true;
+    hotProviders.add(providerKey);
+  }
+
+  return next;
+}
+
+function pickNewGames(items: SearchGame[], limit: number) {
+  const preferred = items.filter((game) => game.isNew);
+  const fallback = items.filter((game) => !game.isNew);
+  return [...preferred, ...fallback].slice(0, limit);
+}
+
+function pickHotProviderGames(items: SearchGame[], limit: number) {
+  const ordered = [...items.filter((game) => game.isHot), ...items.filter((game) => !game.isHot)];
+  const seenProviders = new Set<string>();
+  const selected: SearchGame[] = [];
+
+  for (const game of ordered) {
+    const providerKey = game.providerCode || game.providerName || game.id;
+    if (seenProviders.has(providerKey)) continue;
+    seenProviders.add(providerKey);
+    selected.push(game);
+    if (selected.length >= limit) break;
+  }
+
+  return selected;
+}
+
+function resolvePcAsset(source: string) {
+  if (!source) return '';
+  return resolveLocalAssetByBasename(source, 'pc') || source;
+}
+
+function resolveProviderLandscape(source: string) {
+  if (!source) return '';
+  const basename = extractBasename(source);
+  if (!basename) return '';
+  return resolveLocalAssetByBasename(
+    `https://cdn.zabbet.com/providers/set/1_1_h/${encodeURIComponent(basename)}`,
+    'pc',
+  );
+}
+
+function extractBasename(source: string) {
+  const clean = source.split(/[?#]/, 1)[0] ?? '';
+  const basename = clean.split('/').filter(Boolean).pop() ?? '';
+  try {
+    return decodeURIComponent(basename);
+  } catch {
+    return basename;
+  }
 }
 
 function gameBrowseDestination(game: SearchGame) {
@@ -501,25 +672,63 @@ function TabIcon({ tab }: { tab: SearchTab }) {
 }
 
 function SearchIcon() {
-  return <svg viewBox="0 0 17 17" fill="none"><path d="M7.1 1.05a6.05 6.05 0 1 0 4.38 10.22l4.38 4.38" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" /><circle cx="7.1" cy="7.1" r="5.9" stroke="currentColor" strokeWidth="1.2" /></svg>;
+  return (
+    <svg viewBox="0 0 17 17" fill="none">
+      <path d="M7.1 1.05a6.05 6.05 0 1 0 4.38 10.22l4.38 4.38" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+      <circle cx="7.1" cy="7.1" r="5.9" stroke="currentColor" strokeWidth="1.2" />
+    </svg>
+  );
 }
+
 function ClockIcon() {
-  return <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8" stroke="currentColor" strokeWidth="1.8" /><path d="M12 7.5v5l3.2 2" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" /></svg>;
+  return (
+    <svg viewBox="0 0 24 24" fill="none">
+      <circle cx="12" cy="12" r="8" stroke="currentColor" strokeWidth="1.8" />
+      <path d="M12 7.5v5l3.2 2" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+    </svg>
+  );
 }
+
 function StarIcon() {
-  return <svg viewBox="0 0 24 24" fill="none"><path d="m12 3 2.7 5.5 6.1.9-4.4 4.3 1 6.1-5.4-2.9-5.4 2.9 1-6.1-4.4-4.3 6.1-.9L12 3Z" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" /></svg>;
+  return (
+    <svg viewBox="0 0 24 24" fill="none">
+      <path d="m12 3 2.7 5.5 6.1.9-4.4 4.3 1 6.1-5.4-2.9-5.4 2.9 1-6.1-4.4-4.3 6.1-.9L12 3Z" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" />
+    </svg>
+  );
 }
+
 function FlameIcon() {
-  return <svg viewBox="0 0 24 24" fill="none"><path d="M13.6 3.4c.6 3-1.2 4.2-2.5 5.7-1.1 1.3-1.8 2.5-1.3 4.3.4-1.2 1.3-2 2.2-2.8 1 1.1 2.3 2.5 2.3 4.4 0 2.4-1.8 4-4.4 4-3 0-5.4-2.2-5.4-5.6 0-4.1 3.2-6.5 5.9-9.4.1 1.9.5 3 1.3 3.8.6-1.1 1.3-2.4 1.9-4.4Z" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" /></svg>;
+  return (
+    <svg viewBox="0 0 24 24" fill="none">
+      <path d="M13.6 3.4c.6 3-1.2 4.2-2.5 5.7-1.1 1.3-1.8 2.5-1.3 4.3.4-1.2 1.3-2 2.2-2.8 1 1.1 2.3 2.5 2.3 4.4 0 2.4-1.8 4-4.4 4-3 0-5.4-2.2-5.4-5.6 0-4.1 3.2-6.5 5.9-9.4.1 1.9.5 3 1.3 3.8.6-1.1 1.3-2.4 1.9-4.4Z" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
+    </svg>
+  );
 }
+
 function SparkIcon() {
-  return <svg viewBox="0 0 24 24" fill="none"><path d="M12 3.2c.9 4 2.8 5.9 6.8 6.8-4 .9-5.9 2.8-6.8 6.8-.9-4-2.8-5.9-6.8-6.8 4-.9 5.9-2.8 6.8-6.8Z" fill="currentColor" /><path d="M18.2 15.5c.35 1.55 1.1 2.3 2.65 2.65-1.55.35-2.3 1.1-2.65 2.65-.35-1.55-1.1-2.3-2.65-2.65 1.55-.35 2.3-1.1 2.65-2.65Z" fill="currentColor" /></svg>;
+  return (
+    <svg viewBox="0 0 24 24" fill="none">
+      <path d="M12 3.2c.9 4 2.8 5.9 6.8 6.8-4 .9-5.9 2.8-6.8 6.8-.9-4-2.8-5.9-6.8-6.8 4-.9 5.9-2.8 6.8-6.8Z" fill="currentColor" />
+      <path d="M18.2 15.5c.35 1.55 1.1 2.3 2.65 2.65-1.55.35-2.3 1.1-2.65 2.65-.35-1.55-1.1-2.3-2.65-2.65 1.55-.35 2.3-1.1 2.65-2.65Z" fill="currentColor" />
+    </svg>
+  );
 }
+
 function TrashIcon() {
-  return <svg viewBox="0 0 16 16" fill="none"><path d="M6.23 2.49c0-.27.21-.49.48-.49h2.58c.27 0 .48.22.48.49v.49h2.75a.49.49 0 0 1 0 .97H3.48a.49.49 0 0 1 0-.97h2.75v-.49Z" fill="currentColor" /><path d="M4.28 5.7a.32.32 0 0 1 .32-.29h6.8c.16 0 .3.13.32.29l.13 1.17a29 29 0 0 1 0 6.36l-.02.11a1.69 1.69 0 0 1-1.43 1.49c-1.6.22-3.21.22-4.8 0a1.69 1.69 0 0 1-1.43-1.49l-.01-.11a29 29 0 0 1 0-6.36l.12-1.17Zm2.91 2.25a.48.48 0 1 0-.96 0v4.55a.48.48 0 1 0 .96 0V7.95Zm2.58 0a.48.48 0 1 0-.96 0v4.55a.48.48 0 1 0 .96 0V7.95Z" fill="currentColor" /></svg>;
+  return (
+    <svg viewBox="0 0 16 16" fill="none">
+      <path d="M6.23 2.49c0-.27.21-.49.48-.49h2.58c.27 0 .48.22.48.49v.49h2.75a.49.49 0 0 1 0 .97H3.48a.49.49 0 0 1 0-.97h2.75v-.49Z" fill="currentColor" />
+      <path d="M4.28 5.7a.32.32 0 0 1 .32-.29h6.8c.16 0 .3.13.32.29l.13 1.17a29 29 0 0 1 0 6.36l-.02.11a1.69 1.69 0 0 1-1.43 1.49c-1.6.22-3.21.22-4.8 0a1.69 1.69 0 0 1-1.43-1.49l-.01-.11a29 29 0 0 1 0-6.36l.12-1.17Zm2.91 2.25a.48.48 0 1 0-.96 0v4.55a.48.48 0 1 0 .96 0V7.95Zm2.58 0a.48.48 0 1 0-.96 0v4.55a.48.48 0 1 0 .96 0V7.95Z" fill="currentColor" />
+    </svg>
+  );
 }
+
 function ChevronRight() {
-  return <svg viewBox="0 0 8 13" fill="none"><path d="m1 1 5.2 5.5L1 12" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg>;
+  return (
+    <svg viewBox="0 0 8 13" fill="none">
+      <path d="m1 1 5.2 5.5L1 12" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
 }
 
 function readStoredList(key: string): string[] {
