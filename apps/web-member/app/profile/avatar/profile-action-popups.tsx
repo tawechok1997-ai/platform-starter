@@ -250,7 +250,7 @@ function PasswordField({
   onToggle: () => void;
 }) {
   return (
-    <label className={`${styles.passwordField} ${invalid ? styles.passwordFieldInvalid : ''} ${disabled ? styles.passwordFieldDisabled : ''}`}>
+    <label className={`${styles.passwordField} ${value ? styles.passwordFieldFilled : ''} ${invalid ? styles.passwordFieldInvalid : ''} ${disabled ? styles.passwordFieldDisabled : ''}`}>
       <span>{label}</span>
       <input
         type={visible ? 'text' : 'password'}
@@ -305,9 +305,9 @@ function trapFocus(event: KeyboardEvent<HTMLDivElement>) {
   const focusable = Array.from(event.currentTarget.querySelectorAll<HTMLElement>(
     'button:not([disabled]), a[href], input:not([disabled])',
   ));
-  if (!focusable.length) return;
   const first = focusable[0];
   const last = focusable[focusable.length - 1];
+  if (!first || !last) return;
   if (event.shiftKey && document.activeElement === first) {
     event.preventDefault();
     last.focus();
