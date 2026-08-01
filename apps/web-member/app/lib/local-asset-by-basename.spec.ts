@@ -17,6 +17,10 @@ const sourceCatalog = readFileSync(
   new URL('../../tools/source-cdn-asset-catalog.json', import.meta.url),
   'utf8',
 );
+const authenticatedSourceCatalog = readFileSync(
+  new URL('../../tools/authenticated-source-cdn-asset-catalog.json', import.meta.url),
+  'utf8',
+);
 const homeResolverSource = readFileSync(
   new URL('../components/member-home/local-game-asset-resolver.ts', import.meta.url),
   'utf8',
@@ -34,6 +38,16 @@ function withAssetCandidates(fileName: string, candidates: readonly string[], ru
     if (previous) mutableAssetIndex[key] = previous;
     else delete mutableAssetIndex[key];
   }
+}
+
+function readCatalog(source: string) {
+  const catalog = JSON.parse(source) as {
+    counts?: { entries?: number; uniqueBasenames?: number };
+    categories?: Record<string, string[]>;
+  };
+  const sourcePaths = Object.values(catalog.categories ?? {}).flat();
+  const uniqueBasenames = new Set(sourcePaths.map((value) => value.split('/').pop()?.toLowerCase()));
+  return { catalog, sourcePaths, uniqueBasenames };
 }
 
 test('extracts the final CDN filename from provider and gamecard URLs', () => {
@@ -98,12 +112,7 @@ test('generates a case-insensitive basename index by scanning all public assets 
 });
 
 test('records all supplied category CDN assets and audits them against local files', () => {
-  const catalog = JSON.parse(sourceCatalog) as {
-    counts?: { entries?: number; uniqueBasenames?: number };
-    categories?: Record<string, string[]>;
-  };
-  const sourcePaths = Object.values(catalog.categories ?? {}).flat();
-  const uniqueBasenames = new Set(sourcePaths.map((value) => value.split('/').pop()?.toLowerCase()));
+  const { catalog, sourcePaths, uniqueBasenames } = readCatalog(sourceCatalog);
 
   assert.equal(catalog.counts?.entries, 84);
   assert.equal(catalog.counts?.uniqueBasenames, 82);
@@ -114,10 +123,28 @@ test('records all supplied category CDN assets and audits them against local fil
   assert.equal(sourcePaths.includes('/providers/set/1_1_l/lali.png'), true);
   assert.equal(sourcePaths.includes('/providers/set/1_1_h/lotmw.png'), true);
   assert.equal(sourcePaths.some((value) => value.startsWith('/gamecard/')), true);
+});
+
+test('records authenticated source CDN media and audits it with the same basename owner', () => {
+  const { catalog, sourcePaths, uniqueBasenames } = readCatalog(authenticatedSourceCatalog);
+
+  assert.equal(catalog.counts?.entries, 99);
+  assert.equal(catalog.counts?.uniqueBasenames, 94);
+  assert.equal(sourcePaths.length, 99);
+  assert.equal(uniqueBasenames.size, 94);
+  assert.equal(sourcePaths.includes('/FEZX/grouptypes/bc954df4-70bb-460c-9ce8-c2cae326acbe.png'), true);
+  assert.equal(sourcePaths.includes('/providers/set/1_1_badge/pp.png'), true);
+  assert.equal(sourcePaths.includes('/videos/tutorial_640.webm'), true);
+  assert.equal(sourcePaths.some((value) => value.startsWith('/FEZX/promotions/')), true);
+  assert.doesNotMatch(authenticatedSourceCatalog, /null&quot/);
+
+  assert.match(auditSource, /authenticated-source-cdn-asset-catalog\.json/);
+  assert.match(auditSource, /authenticated-source-cdn-asset-match-report\.json/);
+  assert.match(auditSource, /for \(const descriptor of CATALOGS\)/);
   assert.match(auditSource, /status:\s*candidates\.length \? 'matched' : 'missing'/);
-  assert.match(auditSource, /source-cdn-asset-match-report\.json/);
   assert.match(auditSource, /Catalog entry count drift/);
   assert.match(auditSource, /Catalog basename count drift/);
+  assert.match(auditSource, /'\.ico'/);
 });
 
 test('refreshes the generated asset map before development and verification commands', () => {
