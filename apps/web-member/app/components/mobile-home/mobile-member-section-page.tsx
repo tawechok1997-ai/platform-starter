@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { API_URL, memberApiFetch } from '../../member-api';
 import { resolveLocalAssetByBasename } from '../../lib/local-asset-by-basename';
+import MobileMemberVipPage from './mobile-member-vip-page';
 import styles from './mobile-member-section-page.module.css';
 
 type Props = { section: string };
@@ -61,6 +62,17 @@ export default function MobileMemberSectionPage({ section }: Props) {
 
   const items = useMemo(() => normalizeItems(section, payload), [payload, section]);
 
+  if (section === 'vip') {
+    return (
+      <MobileMemberVipPage
+        payload={payload}
+        loading={loading}
+        error={error}
+        onBack={() => router.back()}
+      />
+    );
+  }
+
   return (
     <main className={styles.page} data-mobile-member-page={section}>
       <header className={styles.header}>
@@ -69,10 +81,10 @@ export default function MobileMemberSectionPage({ section }: Props) {
       </header>
 
       <section className={styles.body}>
-        {section === 'vip' || section === 'profile' ? <ProfileSummary payload={payload} fallbackImage={config.fallbackImage} /> : null}
+        {section === 'profile' ? <ProfileSummary payload={payload} fallbackImage={config.fallbackImage} /> : null}
         {loading ? <div className={styles.state}>กำลังโหลดข้อมูล...</div> : null}
         {!loading && error ? <div className={styles.error}>{error}</div> : null}
-        {!loading && !error && items.length === 0 && section !== 'vip' && section !== 'profile' ? (
+        {!loading && !error && items.length === 0 && section !== 'profile' ? (
           <div className={styles.state}>ยังไม่มีข้อมูลในส่วนนี้</div>
         ) : null}
         {items.length > 0 ? (
