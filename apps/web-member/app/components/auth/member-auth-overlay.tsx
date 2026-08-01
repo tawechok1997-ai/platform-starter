@@ -20,6 +20,7 @@ export default function MemberAuthOverlay({ mode, onClose, onSuccess }: MemberAu
   const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null);
   const exitTimerRef = useRef<number | null>(null);
   const closingRef = useRef(false);
+  const authCompletionRef = useRef(false);
 
   const clearExitTimer = useCallback(() => {
     if (exitTimerRef.current !== null) {
@@ -44,9 +45,18 @@ export default function MemberAuthOverlay({ mode, onClose, onSuccess }: MemberAu
     beginClose(onClose);
   }, [beginClose, onClose]);
 
-  const completeAuth = useCallback(() => {
-    beginClose(onSuccess);
-  }, [beginClose, onSuccess]);
+  const completeAuth = useCallback(async () => {
+    if (closingRef.current || authCompletionRef.current) return;
+    authCompletionRef.current = true;
+    try {
+      // The parent verifies the stored session and removes the auth route only
+      // after authentication is authoritative. Keeping this overlay mounted
+      // prevents stale tokens or failed verification from creating a close/open loop.
+      await onSuccess();
+    } finally {
+      authCompletionRef.current = false;
+    }
+  }, [onSuccess]);
 
   useEffect(() => {
     setPortalTarget(document.body);
@@ -55,6 +65,7 @@ export default function MemberAuthOverlay({ mode, onClose, onSuccess }: MemberAu
   useEffect(() => {
     clearExitTimer();
     closingRef.current = false;
+    authCompletionRef.current = false;
     setFrameReady(false);
     setClosing(false);
     setVisible(false);
@@ -103,7 +114,7 @@ export default function MemberAuthOverlay({ mode, onClose, onSuccess }: MemberAu
       if (event.origin !== window.location.origin || !event.data || typeof event.data !== 'object') return;
       const type = (event.data as { type?: unknown }).type;
       if (type === 'member-auth-close') requestClose();
-      if (type === 'member-auth-success') completeAuth();
+      if (type === 'member-auth-success') void completeAuth();
       if (type === 'member-auth-ready') setFrameReady(true);
     };
 
