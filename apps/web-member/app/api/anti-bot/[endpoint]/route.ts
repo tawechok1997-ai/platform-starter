@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { upstreamApiUrl } from '../../upstream';
-const ALLOWED_ENDPOINTS = new Set(['member-login', 'member-register']);
+
+const ALLOWED_ENDPOINTS = new Set([
+  'member-login',
+  'member-register',
+  'member-password-reset',
+]);
 
 export async function GET(
   _request: NextRequest,
@@ -24,8 +29,8 @@ export async function GET(
     });
   } catch {
     return NextResponse.json(
-      { message: 'Anti-bot configuration service is unavailable' },
-      { status: 503, headers: { 'cache-control': 'no-store' } },
+      { enabled: false, provider: null, siteKey: '', degraded: true },
+      { status: 200, headers: { 'cache-control': 'no-store' } },
     );
   }
 }
