@@ -313,6 +313,18 @@ export class ActivityRepository {
     `);
   }
 
+  async markLotteryEntryResult(memberId: string, roundCode: string, topMatched: boolean, bottomMatched: boolean, amount: number) {
+    await this.prisma.$executeRaw(Prisma.sql`
+      UPDATE "member_activity_lottery_entries"
+      SET "status" = CASE WHEN ${topMatched || bottomMatched} THEN 'WINNER' ELSE 'SETTLED' END,
+          "top_matched" = ${topMatched},
+          "bottom_matched" = ${bottomMatched},
+          "reward_amount" = ${new Prisma.Decimal(amount)}::numeric,
+          "settled_at" = CURRENT_TIMESTAMP
+      WHERE "member_id" = ${memberId}::uuid AND "round_code" = ${roundCode}
+    `);
+  }
+
   async adminOverview() {
     const rows = await this.prisma.$queryRaw<Array<Record<string, unknown>>>(Prisma.sql`
       SELECT
