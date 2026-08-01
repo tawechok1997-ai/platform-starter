@@ -511,7 +511,7 @@ function normalizeDeepLinkCategory(value: string | null) {
     sports: 'sport',
     table: 'card',
   };
-  return aliases[category] ?? category || 'all';
+  return (aliases[category] ?? category) || 'all';
 }
 
 function normalizeProviderCode(value: string | null) {
