@@ -53,7 +53,7 @@ test('authenticated drawer routes popup actions through the one mobile owner', (
 test('guest drawer slide behavior remains the only drawer motion owner', () => {
   assert.match(runtime, /drawer\.insertBefore\(drawerProfile, primaryMenu\)/);
   assert.match(runtime, /drawer\.append\(drawerLogout\)/);
-  assert.match(runtime, /drawer\.addEventListener\('pointerdown', closeBeforePlainNavigation, true\)/);
+  assert.doesNotMatch(runtime, /pointerdown|closeBeforePlainNavigation/);
   assert.match(runtime, /closeButton\?\.click\(\)/);
   assert.match(runtime, /drawerProfile\.remove\(\)/);
   assert.match(runtime, /drawerLogout\.remove\(\)/);
@@ -69,6 +69,8 @@ test('authenticated drawer matches source density and never renders guest action
   assert.match(runtimeCss, /nav\[aria-label='เมนูเพิ่มเติม'\][\s\S]*gap:\s*14px 10px/);
   assert.match(runtimeCss, /data-mobile-authenticated-drawer-top='true'[\s\S]*position:\s*absolute/);
   assert.match(runtime, /data-mobile-member-drawer-copy="referral"/);
-  assert.match(runtime, /navigator\.clipboard\?\.writeText\(absoluteLink\)/);
+  assert.match(runtime, /copyReferralLink\(absoluteLink\)/);
+  assert.match(runtime, /ReferralCopiedToast/);
+  assert.match(runtimeCss, /\.referralToast\s*\{[\s\S]*width:\s*min\(365px,[\s\S]*height:\s*60px[\s\S]*border:\s*1px solid #48c1b5/);
   assert.match(runtime, /action\.dataset\.mobileMemberDrawerCopy/);
 });
