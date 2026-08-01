@@ -59,7 +59,7 @@ export default function ProfileActionPopupLayer({ kind, onChange }: ProfileActio
     <div
       className={styles.layer}
       data-profile-action-popup-owner={kind}
-      onMouseDown={(event) => {
+      onPointerDown={(event) => {
         if (event.target === event.currentTarget) onChange(null);
       }}
     >
