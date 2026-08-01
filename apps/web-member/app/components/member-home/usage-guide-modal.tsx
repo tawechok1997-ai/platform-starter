@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState, type MouseEvent } from 'react';
 import { createPortal } from 'react-dom';
+import { resolveLocalAssetOrSource } from '../../lib/local-asset-by-basename';
 import { useMemberLocale } from '../../member-locale-provider';
 import {
   USAGE_GUIDE_COPY,
@@ -10,14 +11,25 @@ import {
   localizeGuideText,
   type GuideTab,
 } from './usage-guide-data';
+import {
+  PC_USAGE_GUIDE_DEFAULT_OPEN_KEYS,
+  PC_USAGE_GUIDE_SOURCE_BY_QUESTION,
+  type PcGuidePart,
+  type PcSourceGuideItem,
+} from './usage-guide-pc-source-data';
 import styles from './usage-guide-modal.module.css';
 
 const GUIDE_TITLE_ID = 'member-usage-guide-title';
+const DESKTOP_GUIDE_MEDIA = '(min-width: 901px)';
 
 export default function UsageGuideModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { locale } = useMemberLocale();
   const [activeTab, setActiveTab] = useState<GuideTab>('all');
   const [openItem, setOpenItem] = useState<string | null>(null);
+  const [openDesktopItems, setOpenDesktopItems] = useState<ReadonlySet<string>>(
+    () => new Set(PC_USAGE_GUIDE_DEFAULT_OPEN_KEYS),
+  );
+  const [desktopSourceEnabled, setDesktopSourceEnabled] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
 
   const visibleGroups = useMemo(
@@ -26,6 +38,16 @@ export default function UsageGuideModal({ open, onClose }: { open: boolean; onCl
       : USAGE_GUIDE_GROUPS.filter((group) => group.tab === activeTab),
     [activeTab],
   );
+
+  useEffect(() => {
+    if (!open) return;
+
+    const media = window.matchMedia(DESKTOP_GUIDE_MEDIA);
+    const syncViewport = () => setDesktopSourceEnabled(media.matches);
+    syncViewport();
+    media.addEventListener('change', syncViewport);
+    return () => media.removeEventListener('change', syncViewport);
+  }, [open]);
 
   useEffect(() => {
     if (!open) return;
@@ -51,6 +73,8 @@ export default function UsageGuideModal({ open, onClose }: { open: boolean; onCl
     if (!open) {
       setActiveTab('all');
       setOpenItem(null);
+      setOpenDesktopItems(new Set(PC_USAGE_GUIDE_DEFAULT_OPEN_KEYS));
+      setDesktopSourceEnabled(false);
     }
   }, [open]);
 
@@ -64,9 +88,23 @@ export default function UsageGuideModal({ open, onClose }: { open: boolean; onCl
   const closeLabel = localizeGuideText(USAGE_GUIDE_COPY.close, locale);
   const tabListLabel = localizeGuideText(USAGE_GUIDE_COPY.tabList, locale);
 
+  const resetDesktopDisclosureState = (tab: GuideTab) => {
+    setOpenDesktopItems(
+      tab === 'all' || tab === 'finance'
+        ? new Set(PC_USAGE_GUIDE_DEFAULT_OPEN_KEYS)
+        : new Set(),
+    );
+  };
+
   return createPortal(
     <div className={styles.backdrop} role="presentation" onMouseDown={closeFromBackdrop}>
-      <section className={styles.modal} role="dialog" aria-modal="true" aria-labelledby={GUIDE_TITLE_ID}>
+      <section
+        className={styles.modal}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={GUIDE_TITLE_ID}
+        data-pc-source-guide={desktopSourceEnabled ? 'true' : 'false'}
+      >
         <div className={styles.topLine} aria-hidden="true" />
         <header className={styles.header}>
           <div className={styles.heading}>
@@ -92,6 +130,7 @@ export default function UsageGuideModal({ open, onClose }: { open: boolean; onCl
                 onClick={() => {
                   setActiveTab(tab.id);
                   setOpenItem(null);
+                  resetDesktopDisclosureState(tab.id);
                   contentRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
                 }}
               >
@@ -112,14 +151,28 @@ export default function UsageGuideModal({ open, onClose }: { open: boolean; onCl
               <div className={styles.items}>
                 {group.items.map((guideItem, index) => {
                   const key = `${group.id}:${index}`;
-                  const expanded = openItem === key;
+                  const pcSourceItem = desktopSourceEnabled
+                    ? PC_USAGE_GUIDE_SOURCE_BY_QUESTION[guideItem.question.th]
+                    : undefined;
+                  const expanded = pcSourceItem
+                    ? openDesktopItems.has(key)
+                    : openItem === key;
+
                   return (
                     <div key={key} className={styles.item}>
                       <button
                         type="button"
-                        className={styles.itemButton}
+                        className={expanded
+                          ? `${styles.itemButton} ${styles.itemButtonExpanded}`
+                          : styles.itemButton}
                         aria-expanded={expanded}
-                        onClick={() => setOpenItem(expanded ? null : key)}
+                        onClick={() => {
+                          if (pcSourceItem) {
+                            setOpenDesktopItems((current) => toggleKey(current, key));
+                            return;
+                          }
+                          setOpenItem(expanded ? null : key);
+                        }}
                       >
                         <span>{localizeGuideText(guideItem.question, locale)}</span>
                         <svg className={expanded ? styles.chevronOpen : styles.chevron} viewBox="0 0 512 512" aria-hidden="true">
@@ -127,7 +180,9 @@ export default function UsageGuideModal({ open, onClose }: { open: boolean; onCl
                         </svg>
                       </button>
                       {expanded ? (
-                        <div className={styles.answer}>{localizeGuideText(guideItem.answer, locale)}</div>
+                        pcSourceItem
+                          ? <PcSourceGuideAnswer item={pcSourceItem} />
+                          : <div className={styles.answer}>{localizeGuideText(guideItem.answer, locale)}</div>
                       ) : null}
                     </div>
                   );
@@ -140,4 +195,64 @@ export default function UsageGuideModal({ open, onClose }: { open: boolean; onCl
     </div>,
     document.body,
   );
+}
+
+function PcSourceGuideAnswer({ item }: { item: PcSourceGuideItem }) {
+  return (
+    <div className={`${styles.answer} ${styles.sourceAnswer}`}>
+      {item.steps.map((step, stepIndex) => (
+        <div key={`${step.image}:${stepIndex}`} className={styles.sourceStep}>
+          {step.bullet ? (
+            <ul className={styles.sourceList}>
+              {step.lines.map((line, lineIndex) => (
+                <li key={lineIndex}>{renderGuideParts(line)}</li>
+              ))}
+            </ul>
+          ) : (
+            <div className={styles.sourceParagraphs}>
+              {step.lines.map((line, lineIndex) => (
+                <p key={lineIndex}>{renderGuideParts(line)}</p>
+              ))}
+            </div>
+          )}
+          <img
+            className={styles.sourceImage}
+            src={resolveLocalAssetOrSource(step.image, 'pc')}
+            data-source-cdn={step.image}
+            alt={step.alt}
+            loading="lazy"
+            decoding="async"
+            onError={(event) => {
+              const image = event.currentTarget;
+              if (image.dataset.cdnFallbackApplied === 'true') return;
+              image.dataset.cdnFallbackApplied = 'true';
+              image.src = step.image;
+            }}
+          />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function renderGuideParts(parts: readonly PcGuidePart[]) {
+  return parts.map((part, index) => {
+    const className = part.tone === 'danger'
+      ? styles.sourceDanger
+      : part.tone === 'success'
+        ? styles.sourceSuccess
+        : undefined;
+    return part.strong ? (
+      <strong key={`${part.text}:${index}`} className={className}>{part.text}</strong>
+    ) : (
+      <span key={`${part.text}:${index}`} className={className}>{part.text}</span>
+    );
+  });
+}
+
+function toggleKey(current: ReadonlySet<string>, key: string) {
+  const next = new Set(current);
+  if (next.has(key)) next.delete(key);
+  else next.add(key);
+  return next;
 }
