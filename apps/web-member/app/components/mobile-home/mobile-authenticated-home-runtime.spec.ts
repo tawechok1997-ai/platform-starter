@@ -47,7 +47,7 @@ test('authenticated drawer routes popup actions through the one mobile owner', (
   assert.match(runtime, /onClick=\{logout\}/);
   assert.match(runtime, /resolveLocalAssetByBasename\(VIP_BADGE_SOURCE/);
   assert.match(runtimeCss, /width:\s*min\(340px,\s*calc\(100vw - 20px\)\)/);
-  assert.match(runtimeCss, /padding:\s*20px 23px 28px/);
+  assert.match(runtimeCss, /padding:[\s\S]*max\(20px, env\(safe-area-inset-top\)\)[\s\S]*23px[\s\S]*max\(28px, env\(safe-area-inset-bottom\)\)/);
 });
 
 test('guest drawer slide behavior remains the only drawer motion owner', () => {
@@ -58,4 +58,17 @@ test('guest drawer slide behavior remains the only drawer motion owner', () => {
   assert.match(runtime, /drawerProfile\.remove\(\)/);
   assert.match(runtime, /drawerLogout\.remove\(\)/);
   assert.doesNotMatch(runtime, /translateX|translate3d|setMenuOpen/);
+});
+
+test('authenticated drawer matches source density and never renders guest actions', () => {
+  assert.match(runtimeCss, /data-mobile-auth-layout='drawer'[\s\S]*display:\s*none\s*!important/);
+  assert.match(runtimeCss, /\.referralRow\s*>\s*img\s*\{[\s\S]*width:\s*17px[\s\S]*height:\s*15px/);
+  assert.match(runtimeCss, /\.drawerAccount\s*\{[\s\S]*gap:\s*8px/);
+  assert.match(runtimeCss, /\.profileRow\s*\{[\s\S]*margin-bottom:\s*8px/);
+  assert.match(runtimeCss, /nav\[aria-label='บริการสมาชิก'\][\s\S]*margin-top:\s*16px[\s\S]*gap:\s*8px/);
+  assert.match(runtimeCss, /nav\[aria-label='เมนูเพิ่มเติม'\][\s\S]*gap:\s*14px 10px/);
+  assert.match(runtimeCss, /data-mobile-authenticated-drawer-top='true'[\s\S]*position:\s*absolute/);
+  assert.match(runtime, /data-mobile-member-drawer-copy="referral"/);
+  assert.match(runtime, /navigator\.clipboard\?\.writeText\(absoluteLink\)/);
+  assert.match(runtime, /action\.dataset\.mobileMemberDrawerCopy/);
 });
