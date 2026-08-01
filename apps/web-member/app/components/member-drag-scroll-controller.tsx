@@ -7,6 +7,7 @@ import MemberSearchOverlay from './member-search-overlay';
 type DragState = {
   rail: HTMLElement;
   pointerId: number;
+  pointerType: string;
   startX: number;
   startY: number;
   startScrollLeft: number;
@@ -15,13 +16,43 @@ type DragState = {
 
 const DRAG_THRESHOLD_PX = 10;
 const CLICK_SUPPRESSION_MS = 120;
-const SOURCE_DRAG_MULTIPLIER = 2;
+const MOUSE_DRAG_MULTIPLIER = 2;
+const TOUCH_DRAG_MULTIPLIER = 1;
+const MOBILE_ROOT_SELECTOR = '[data-mobile-home-root="true"]';
+
+function isHorizontalRail(element: HTMLElement) {
+  const overflowX = window.getComputedStyle(element).overflowX;
+  return overflowX === 'auto' || overflowX === 'scroll';
+}
 
 export default function MemberDragScrollController() {
   useEffect(() => {
     let drag: DragState | null = null;
     let suppressClickUntil = 0;
     let suppressClickRail: HTMLElement | null = null;
+    let mobileRailScanFrame = 0;
+
+    const markMobileRails = () => {
+      mobileRailScanFrame = 0;
+      const mobileRoot = document.querySelector<HTMLElement>(MOBILE_ROOT_SELECTOR);
+      if (!mobileRoot) return;
+
+      mobileRoot.querySelectorAll<HTMLElement>('*').forEach((element) => {
+        if (element.hasAttribute('data-drag-scroll')) return;
+        if (!isHorizontalRail(element)) return;
+        element.dataset.dragScroll = 'auto';
+      });
+    };
+
+    const scheduleMobileRailScan = () => {
+      if (mobileRailScanFrame) return;
+      mobileRailScanFrame = window.requestAnimationFrame(markMobileRails);
+    };
+
+    scheduleMobileRailScan();
+
+    const mobileRailObserver = new MutationObserver(scheduleMobileRailScan);
+    mobileRailObserver.observe(document.body, { childList: true, subtree: true });
 
     const findRail = (target: EventTarget | null) =>
       target instanceof Element ? target.closest<HTMLElement>('[data-drag-scroll]') : null;
@@ -34,6 +65,7 @@ export default function MemberDragScrollController() {
       drag = {
         rail,
         pointerId: event.pointerId,
+        pointerType: event.pointerType,
         startX: event.clientX,
         startY: event.clientY,
         startScrollLeft: rail.scrollLeft,
@@ -61,7 +93,10 @@ export default function MemberDragScrollController() {
         drag.rail.classList.add('is-dragging');
       }
 
-      drag.rail.scrollLeft = drag.startScrollLeft - deltaX * SOURCE_DRAG_MULTIPLIER;
+      const multiplier = drag.pointerType === 'mouse'
+        ? MOUSE_DRAG_MULTIPLIER
+        : TOUCH_DRAG_MULTIPLIER;
+      drag.rail.scrollLeft = drag.startScrollLeft - deltaX * multiplier;
       event.preventDefault();
     };
 
@@ -101,6 +136,8 @@ export default function MemberDragScrollController() {
     document.addEventListener('click', onClickCapture, true);
 
     return () => {
+      mobileRailObserver.disconnect();
+      if (mobileRailScanFrame) window.cancelAnimationFrame(mobileRailScanFrame);
       document.removeEventListener('pointerdown', onPointerDown);
       document.removeEventListener('pointermove', onPointerMove);
       document.removeEventListener('pointerup', finishDrag);
