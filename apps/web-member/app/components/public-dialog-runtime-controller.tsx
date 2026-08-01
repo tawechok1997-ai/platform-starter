@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import MemberSearchOverlay from './member-search-overlay';
 
 const DIALOGS = [
   { id: 'member-search-title', kind: 'search' },
@@ -57,7 +58,7 @@ function containsSupportedDialog(node: Node) {
 export default function PublicDialogRuntimeController() {
   useEffect(() => {
     let frame = 0;
-    const root = document.getElementById('member-desktop-scale-canvas') ?? document.body;
+    const root = document.body;
 
     const scheduleNormalize = () => {
       window.cancelAnimationFrame(frame);
@@ -77,5 +78,5 @@ export default function PublicDialogRuntimeController() {
     };
   }, []);
 
-  return null;
+  return <MemberSearchOverlay />;
 }
