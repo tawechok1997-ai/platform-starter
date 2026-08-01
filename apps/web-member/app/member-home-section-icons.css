@@ -1,0 +1,125 @@
+/* Unified section-heading icons from public/assets/asset-pc/home.
+ * These local files own both desktop and mobile headings so API/CMS paths
+ * cannot swap the icons after hydration. */
+
+:root {
+  --member-home-icon-highlight: url('/assets/asset-pc/home/icongamehighlight.webp');
+  --member-home-icon-popular: url('/assets/asset-pc/home/fire.svg');
+  --member-home-icon-online: url('/assets/asset-pc/home/mostonline.svg');
+  --member-home-icon-live: url('/assets/asset-pc/home/live.svg');
+  --member-home-icon-classic: url('/assets/asset-pc/home/icongameclassic.webp');
+  --member-home-icon-guide: url('/assets/asset-pc/home/iconguide.webp');
+  --member-home-icon-tournament: url('/assets/asset-pc/home/tournament.svg');
+  --member-home-icon-leaderboard: url('/assets/asset-pc/home/leader-board.svg');
+  --member-home-icon-jackpot: url('/assets/asset-pc/home/iconjackpot.webp');
+}
+
+/* Desktop source headings */
+.source-tournament__section-heading > img {
+  content: var(--member-home-icon-tournament) !important;
+  object-fit: contain !important;
+}
+
+.source-highlight-heading__icon {
+  display: block !important;
+  background: var(--member-home-icon-highlight) center / contain no-repeat !important;
+  color: transparent !important;
+  font-size: 0 !important;
+}
+
+.source-highlight-heading__icon > img,
+.reference-compact-section[data-section-kind='classic'] .reference-heading-icon > img,
+.reference-leaderboard .reference-side-icon > img {
+  display: none !important;
+}
+
+.source-popular-section .source-feed-heading__content > img {
+  content: var(--member-home-icon-popular) !important;
+}
+
+.source-online-section .source-feed-heading__content > img {
+  content: var(--member-home-icon-online) !important;
+}
+
+.source-live-section .source-feed-heading__content > img {
+  content: var(--member-home-icon-live) !important;
+}
+
+.source-popular-section .source-feed-heading__content > img,
+.source-online-section .source-feed-heading__content > img,
+.source-live-section .source-feed-heading__content > img {
+  display: block !important;
+  width: 24px !important;
+  height: 24px !important;
+  flex: 0 0 24px !important;
+  object-fit: contain !important;
+}
+
+.reference-compact-section[data-section-kind='classic'] .reference-heading-icon,
+.reference-leaderboard .reference-side-icon {
+  display: block !important;
+  width: 22px !important;
+  height: 22px !important;
+  flex: 0 0 22px !important;
+  color: transparent !important;
+  font-size: 0 !important;
+}
+
+.reference-compact-section[data-section-kind='classic'] .reference-heading-icon {
+  background: var(--member-home-icon-classic) center / contain no-repeat !important;
+}
+
+.reference-leaderboard .reference-side-icon {
+  background: var(--member-home-icon-leaderboard) center / contain no-repeat !important;
+}
+
+.home-jackpot__icon {
+  content: var(--member-home-icon-jackpot) !important;
+  object-fit: contain !important;
+}
+
+/* Mobile source headings. The id is on the heading text, so :has() scopes the
+ * adjacent decorative image without depending on generated CSS-module names. */
+@media (max-width: 900px) {
+  span:has(> #mobile-tournament-heading) > img {
+    content: var(--member-home-icon-tournament) !important;
+  }
+
+  span:has(> #mobile-leaderboard-heading) > img {
+    content: var(--member-home-icon-leaderboard) !important;
+  }
+
+  span:has(> #mobile-popular-heading) > img {
+    content: var(--member-home-icon-popular) !important;
+  }
+
+  span:has(> #mobile-online-heading) > img {
+    content: var(--member-home-icon-online) !important;
+  }
+
+  span:has(> #mobile-live-heading) > img {
+    content: var(--member-home-icon-live) !important;
+  }
+
+  span:has(> #mobile-classic-heading) > img {
+    content: var(--member-home-icon-classic) !important;
+  }
+
+  span:has(> #mobile-guide-heading) > img {
+    content: var(--member-home-icon-guide) !important;
+  }
+
+  span:has(> #mobile-tournament-heading) > img,
+  span:has(> #mobile-leaderboard-heading) > img,
+  span:has(> #mobile-popular-heading) > img,
+  span:has(> #mobile-online-heading) > img,
+  span:has(> #mobile-live-heading) > img,
+  span:has(> #mobile-classic-heading) > img,
+  span:has(> #mobile-guide-heading) > img {
+    display: block !important;
+    width: 18px !important;
+    height: 18px !important;
+    flex: 0 0 18px !important;
+    object-fit: contain !important;
+  }
+}
