@@ -485,8 +485,8 @@
 }
 
 .categoryRail {
-  position: sticky;
-  top: 60px;
+  position: relative;
+  top: 0;
   z-index: 98;
   display: flex;
   box-sizing: border-box;

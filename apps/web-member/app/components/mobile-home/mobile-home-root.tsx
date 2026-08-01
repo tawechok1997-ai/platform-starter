@@ -354,30 +354,37 @@ export default function MobileHomeRoot({ content, showPromotion }: MobileHomeRoo
 
       if (!mobileQuery.matches) {
         rail.dataset.mobileCategoryFollow = 'start';
-        rail.style.removeProperty('--mobile-category-rail-left');
+        rail.style.removeProperty('transform');
+        rail.style.removeProperty('will-change');
         lastState = 'start';
         return;
       }
 
       const contentRect = content.getBoundingClientRect();
+      const contentHeight = content.offsetHeight;
       const railHeight = rail.offsetHeight;
+      const scaleY = contentHeight > 0 ? contentRect.height / contentHeight : 1;
       const headerEdge = 60;
-      let nextState: 'start' | 'fixed' | 'end' = 'start';
-
-      if (contentRect.top <= headerEdge) {
-        nextState = contentRect.bottom <= headerEdge + railHeight ? 'end' : 'fixed';
-      }
+      const maxOffset = Math.max(0, contentHeight - railHeight);
+      const requestedOffset = scaleY > 0
+        ? Math.max(0, headerEdge - contentRect.top) / scaleY
+        : 0;
+      const offset = Math.min(requestedOffset, maxOffset);
+      const nextState = offset <= 0
+        ? 'start'
+        : offset >= maxOffset
+          ? 'end'
+          : 'following';
 
       if (nextState !== lastState) {
         rail.dataset.mobileCategoryFollow = nextState;
         lastState = nextState;
       }
 
-      if (nextState === 'fixed') {
-        rail.style.setProperty('--mobile-category-rail-left', `${Math.round(contentRect.left)}px`);
-      } else {
-        rail.style.removeProperty('--mobile-category-rail-left');
-      }
+      rail.style.transform = offset > 0
+        ? `translate3d(0, ${Math.round(offset)}px, 0)`
+        : 'none';
+      rail.style.willChange = offset > 0 ? 'transform' : 'auto';
     };
 
     const scheduleSync = () => {
@@ -405,7 +412,8 @@ export default function MobileHomeRoot({ content, showPromotion }: MobileHomeRoo
       mobileQuery.removeEventListener?.('change', scheduleSync);
       resizeObserver?.disconnect();
       delete rail.dataset.mobileCategoryFollow;
-      rail.style.removeProperty('--mobile-category-rail-left');
+      rail.style.removeProperty('transform');
+      rail.style.removeProperty('will-change');
     };
   }, [activeCategory, activeTab, categoryMenuItems.length]);
 
