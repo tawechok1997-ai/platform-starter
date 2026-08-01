@@ -27,7 +27,7 @@ export default function MobileFishingProviderPage() {
     <MobileProviderGamesCategoryPage
       category="fishing"
       catalogSlug="fishing"
-      title={{ th: 'ตกปลา', en: 'Fishing' }}
+      title={{ th: 'ยิงปลา', en: 'Fishing' }}
       providers={FISHING_PROVIDERS}
       catalogPlatform="mobile"
       providerAssetPlatform="mobile"
