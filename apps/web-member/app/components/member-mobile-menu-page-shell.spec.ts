@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import test from 'node:test';
 
 const floatingContact = readFileSync(new URL('./member-floating-contact.tsx', import.meta.url), 'utf8');
-const homeEffect = readFileSync(new URL('../member-floating-contact-home-effect.css', import.meta.url), 'utf8');
+const floatingContactCss = readFileSync(new URL('../member-floating-contact.css', import.meta.url), 'utf8');
 const livePage = readFileSync(new URL('./mobile-home/mobile-live-schedule-page.tsx', import.meta.url), 'utf8');
 
 const menuPages = [
@@ -32,26 +32,19 @@ test('contact and purple mini tools are removed only while a menu page is open',
   assert.match(floatingContact, /const isMobileMenuPage = MOBILE_MENU_PAGE_ROUTES\.has\(normalizedPath\)/);
   assert.match(floatingContact, /const showFloatingContact = sessionReady && !isMobileMenuPage/);
   assert.match(floatingContact, /if \(isMobileMenuPage\) return null/);
-  assert.match(floatingContact, /data-home=\{isHomePage \? 'true' : 'false'\}/);
 });
 
-test('mobile home contact follows the source motion without falling below the viewport', () => {
-  assert.match(floatingContact, /data-source-contact-motion="true"/);
-  assert.match(floatingContact, /contact-source-stage/);
-  assert.match(floatingContact, /contact-source-line-icon/);
-  assert.match(floatingContact, /contact-icon-btn/);
-  assert.match(floatingContact, /contact-ring-1/);
-  assert.match(floatingContact, /contact-ring-2/);
-  assert.match(floatingContact, /contact-ring-3/);
+test('mobile contact reuses the proven single animation owner', () => {
+  assert.match(floatingContact, /import '\.\.\/member-floating-contact\.css'/);
+  assert.doesNotMatch(floatingContact, /member-floating-contact-home-effect\.css/);
+  assert.doesNotMatch(floatingContact, /data-source-contact-motion|contact-source-stage/);
 
-  assert.match(homeEffect, /contact-source-stage[\s\S]*bottom:\s*calc\(64px \+ env\(safe-area-inset-bottom\)\)/);
-  assert.match(homeEffect, /contact-source-stage[\s\S]*translateY\(64px\)/);
-  assert.match(homeEffect, /data-open='true'[\s\S]*contact-source-stage[\s\S]*translateY\(0\)/);
-  assert.match(homeEffect, /contact-source-line-icon[\s\S]*translateY\(50%\) scale\(0\)/);
-  assert.match(homeEffect, /data-open='true'[\s\S]*contact-source-line-icon[\s\S]*translateY\(0\) scale\(1\)/);
-  assert.match(homeEffect, /contact-icon-btn[\s\S]*opacity:\s*1/);
-  assert.match(homeEffect, /data-open='true'[\s\S]*contact-icon-btn[\s\S]*opacity:\s*0/);
-  assert.match(homeEffect, /contact-ring-2[\s\S]*animation-delay:\s*800ms/);
-  assert.match(homeEffect, /contact-ring-3[\s\S]*animation-delay:\s*1600ms/);
-  assert.match(homeEffect, /contact-source-toggle:active[\s\S]*scale\(\.92\)/);
+  assert.match(floatingContactCss, /member-floating-contact__contact-stage[\s\S]*right:\s*-4px[\s\S]*bottom:\s*0/);
+  assert.match(floatingContactCss, /member-floating-contact__line[\s\S]*translateY\(50%\) scale\(0\)/);
+  assert.match(floatingContactCss, /data-open='true'[\s\S]*member-floating-contact__line[\s\S]*translateY\(0\) scale\(1\)/);
+  assert.match(floatingContactCss, /member-contact-ring 2\.7s ease-out infinite/);
+  assert.match(floatingContactCss, /ring--2[\s\S]*animation-delay:\s*0\.9s/);
+  assert.match(floatingContactCss, /ring--3[\s\S]*animation-delay:\s*1\.8s/);
+  assert.match(floatingContactCss, /data-open='true'[\s\S]*button-face > img[\s\S]*rotate\(90deg\) scale\(0\.78\)/);
+  assert.match(floatingContactCss, /data-open='true'[\s\S]*close-icon[\s\S]*rotate\(90deg\) scale\(1\)/);
 });
