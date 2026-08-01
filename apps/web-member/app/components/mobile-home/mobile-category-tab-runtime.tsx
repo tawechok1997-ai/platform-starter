@@ -86,7 +86,7 @@ const CATEGORY_LABELS: Record<'th' | 'en', Record<MobileCategoryId, string>> = {
     home: 'หน้าแรก',
     casino: 'คาสิโน',
     slot: 'สล็อต',
-    fishing: '-singawปลา',
+    fishing: 'ยิงปลา',
     sport: 'กีฬา',
     card: 'ไพ่',
     lottery: 'หวย',
