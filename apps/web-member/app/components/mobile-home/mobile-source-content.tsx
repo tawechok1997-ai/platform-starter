@@ -10,7 +10,7 @@ import { resolveLocalAssetByBasename } from '../../lib/local-asset-by-basename';
 import { V47_ASSETS } from '../member-home/v47-asset-map';
 import styles from './mobile-source-content.module.css';
 
-const MOBILE_TOURNAMENT_ART = '/assets/asset-mobile/images/home/tournament-mobile-source.svg';
+const MOBILE_TOURNAMENT_ART = '/assets/asset-pc/images/home/tournament-mobile-source.svg';
 
 const FALLBACK_TOURNAMENTS: MobileSourceTournament[] = [
   tournament('football-royale-2', 'No1. Tournament Football Royale ครั้งที่ 2', [
@@ -274,7 +274,7 @@ function MappedImage({ src, alt }: { src: string; alt: string }) {
   const source = src.trim();
   if (!source) return null;
 
-  const resolvedSrc = resolveLocalAssetByBasename(source, 'mobile') || source;
+  const resolvedSrc = resolveLocalAssetByBasename(source, 'pc') || source;
 
   return (
     <img
