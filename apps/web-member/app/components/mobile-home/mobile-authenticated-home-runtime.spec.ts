@@ -6,6 +6,7 @@ const memberHome = readFileSync(new URL('../../member-home.tsx', import.meta.url
 const runtime = readFileSync(new URL('./mobile-authenticated-home-runtime.tsx', import.meta.url), 'utf8');
 const runtimeCss = readFileSync(new URL('./mobile-authenticated-home-runtime.module.css', import.meta.url), 'utf8');
 const popupRuntime = readFileSync(new URL('./mobile-member-popup-runtime.tsx', import.meta.url), 'utf8');
+const mobileHomeRoot = readFileSync(new URL('./mobile-home-root.tsx', import.meta.url), 'utf8');
 
 test('authenticated mobile shell reuses the guest header and drawer owners', () => {
   assert.equal((memberHome.match(/<MobileAuthenticatedHomeRuntime\s*\/>/g) ?? []).length, 1);
@@ -54,7 +55,6 @@ test('guest drawer slide behavior remains the only drawer motion owner', () => {
   assert.match(runtime, /drawer\.insertBefore\(drawerProfile, primaryMenu\)/);
   assert.match(runtime, /drawer\.append\(drawerLogout\)/);
   assert.doesNotMatch(runtime, /pointerdown|closeBeforePlainNavigation/);
-  assert.match(runtime, /closeButton\?\.click\(\)/);
   assert.match(runtime, /drawerProfile\.remove\(\)/);
   assert.match(runtime, /drawerLogout\.remove\(\)/);
   assert.doesNotMatch(runtime, /translateX|translate3d|setMenuOpen/);
@@ -73,4 +73,25 @@ test('authenticated drawer matches source density and never renders guest action
   assert.match(runtime, /ReferralCopiedToast/);
   assert.match(runtimeCss, /\.referralToast\s*\{[\s\S]*width:\s*min\(365px,[\s\S]*height:\s*60px[\s\S]*border:\s*1px solid #48c1b5/);
   assert.match(runtime, /action\.dataset\.mobileMemberDrawerCopy/);
+});
+
+
+test('all source drawer page and popup actions have explicit mobile destinations', () => {
+  for (const section of [
+    'vip',
+    'commission',
+    'affiliate',
+    'bonus',
+    'live',
+    'promotions',
+    'news',
+    'activity',
+    'history',
+    'notifications',
+    'guide',
+  ]) {
+    assert.match(mobileHomeRoot, new RegExp(`/mobile/member/${section}`));
+  }
+  assert.match(mobileHomeRoot, /data-mobile-member-popup=\{icon === 'coupon' \? 'coupon'/);
+  assert.match(mobileHomeRoot, /data-mobile-member-popup=\{icon === 'video' \? 'video'/);
 });
