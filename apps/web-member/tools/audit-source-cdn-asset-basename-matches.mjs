@@ -6,10 +6,23 @@ const toolDirectory = path.dirname(fileURLToPath(import.meta.url));
 const packageRoot = path.resolve(toolDirectory, '..');
 const repositoryRoot = path.resolve(packageRoot, '..', '..');
 const assetRoot = path.join(packageRoot, 'public', 'assets');
-const catalogPath = path.join(toolDirectory, 'source-cdn-asset-catalog.json');
-const reportPath = path.join(repositoryRoot, 'docs', 'generated', 'source-cdn-asset-match-report.json');
 const CDN_ORIGIN = 'https://cdn.zabbet.com';
-const SUPPORTED_EXTENSIONS = new Set(['.avif', '.gif', '.jpeg', '.jpg', '.png', '.svg', '.webm', '.webp']);
+const SUPPORTED_EXTENSIONS = new Set(['.avif', '.gif', '.ico', '.jpeg', '.jpg', '.png', '.svg', '.webm', '.webp']);
+
+const CATALOGS = [
+  {
+    id: 'mobile-left-menu',
+    catalogPath: path.join(toolDirectory, 'source-cdn-asset-catalog.json'),
+    catalogLabel: 'apps/web-member/tools/source-cdn-asset-catalog.json',
+    reportPath: path.join(repositoryRoot, 'docs', 'generated', 'source-cdn-asset-match-report.json'),
+  },
+  {
+    id: 'authenticated-mobile',
+    catalogPath: path.join(toolDirectory, 'authenticated-source-cdn-asset-catalog.json'),
+    catalogLabel: 'apps/web-member/tools/authenticated-source-cdn-asset-catalog.json',
+    reportPath: path.join(repositoryRoot, 'docs', 'generated', 'authenticated-source-cdn-asset-match-report.json'),
+  },
+];
 
 async function walk(directory, baseDirectory = directory) {
   const entries = await readdir(directory, { withFileTypes: true });
@@ -49,7 +62,7 @@ function rankCandidate(value, sourceUrl) {
 
 function sourceItemsFromCatalog(catalog) {
   if (!catalog.categories || typeof catalog.categories !== 'object' || Array.isArray(catalog.categories)) {
-    throw new Error('source-cdn-asset-catalog.json must contain a categories object');
+    throw new Error('CDN asset catalog must contain a categories object');
   }
 
   const items = [];
@@ -66,76 +79,91 @@ function sourceItemsFromCatalog(catalog) {
   return items;
 }
 
-const catalog = JSON.parse(await readFile(catalogPath, 'utf8'));
-const sourceItems = sourceItemsFromCatalog(catalog);
-const uniqueSourceBasenames = new Set(sourceItems.map((item) => item.fileName));
-
-if (sourceItems.length !== Number(catalog.counts?.entries)) {
-  throw new Error(`Catalog entry count drift: expected ${catalog.counts?.entries}, received ${sourceItems.length}`);
+function buildLocalIndex(localFiles) {
+  const localByBasename = new Map();
+  for (const relative of localFiles) {
+    const basename = path.posix.basename(relative).toLowerCase();
+    const candidates = localByBasename.get(basename) ?? [];
+    candidates.push(`/assets/${relative}`);
+    localByBasename.set(basename, candidates);
+  }
+  return localByBasename;
 }
-if (uniqueSourceBasenames.size !== Number(catalog.counts?.uniqueBasenames)) {
-  throw new Error(
-    `Catalog basename count drift: expected ${catalog.counts?.uniqueBasenames}, received ${uniqueSourceBasenames.size}`,
-  );
+
+function matchCatalog(catalog, localByBasename, localFiles) {
+  const sourceItems = sourceItemsFromCatalog(catalog);
+  const uniqueSourceBasenames = new Set(sourceItems.map((item) => item.fileName));
+
+  if (sourceItems.length !== Number(catalog.counts?.entries)) {
+    throw new Error(`Catalog entry count drift: expected ${catalog.counts?.entries}, received ${sourceItems.length}`);
+  }
+  if (uniqueSourceBasenames.size !== Number(catalog.counts?.uniqueBasenames)) {
+    throw new Error(
+      `Catalog basename count drift: expected ${catalog.counts?.uniqueBasenames}, received ${uniqueSourceBasenames.size}`,
+    );
+  }
+
+  const items = sourceItems.map((entry) => {
+    const candidates = [...(localByBasename.get(entry.fileName) ?? [])]
+      .sort((left, right) => rankCandidate(left, entry.sourceUrl) - rankCandidate(right, entry.sourceUrl) || left.localeCompare(right));
+    return {
+      ...entry,
+      status: candidates.length ? 'matched' : 'missing',
+      selectedLocalAsset: candidates[0] ?? null,
+      localCandidates: candidates,
+    };
+  });
+
+  const uniqueByBasename = new Map();
+  for (const item of items) {
+    const existing = uniqueByBasename.get(item.fileName);
+    if (!existing || (!existing.selectedLocalAsset && item.selectedLocalAsset)) uniqueByBasename.set(item.fileName, item);
+  }
+
+  const uniqueItems = [...uniqueByBasename.values()].sort((left, right) => left.fileName.localeCompare(right.fileName));
+  const counts = {
+    sourceEntries: items.length,
+    uniqueBasenames: uniqueItems.length,
+    matchedEntries: items.filter((item) => item.status === 'matched').length,
+    missingEntries: items.filter((item) => item.status === 'missing').length,
+    matchedUniqueBasenames: uniqueItems.filter((item) => item.status === 'matched').length,
+    missingUniqueBasenames: uniqueItems.filter((item) => item.status === 'missing').length,
+    duplicatedLocalBasenames: uniqueItems.filter((item) => item.localCandidates.length > 1).length,
+    localAssetFilesScanned: localFiles.length,
+  };
+
+  return {
+    counts,
+    missing: uniqueItems.filter((item) => item.status === 'missing').map((item) => ({
+      category: item.category,
+      fileName: item.fileName,
+      sourceUrl: item.sourceUrl,
+    })),
+    items,
+  };
 }
 
 const localFiles = await walk(assetRoot);
-const localByBasename = new Map();
-for (const relative of localFiles) {
-  const basename = path.posix.basename(relative).toLowerCase();
-  const candidates = localByBasename.get(basename) ?? [];
-  candidates.push(`/assets/${relative}`);
-  localByBasename.set(basename, candidates);
-}
+const localByBasename = buildLocalIndex(localFiles);
 
-const items = sourceItems.map((entry) => {
-  const candidates = [...(localByBasename.get(entry.fileName) ?? [])]
-    .sort((left, right) => rankCandidate(left, entry.sourceUrl) - rankCandidate(right, entry.sourceUrl) || left.localeCompare(right));
-  return {
-    ...entry,
-    status: candidates.length ? 'matched' : 'missing',
-    selectedLocalAsset: candidates[0] ?? null,
-    localCandidates: candidates,
+for (const descriptor of CATALOGS) {
+  const catalog = JSON.parse(await readFile(descriptor.catalogPath, 'utf8'));
+  const matched = matchCatalog(catalog, localByBasename, localFiles);
+  const report = {
+    generatedAt: new Date().toISOString(),
+    catalogId: descriptor.id,
+    sourceCatalog: descriptor.catalogLabel,
+    assetRoot: 'apps/web-member/public/assets',
+    ...matched,
   };
-});
 
-const uniqueByBasename = new Map();
-for (const item of items) {
-  const existing = uniqueByBasename.get(item.fileName);
-  if (!existing || (!existing.selectedLocalAsset && item.selectedLocalAsset)) uniqueByBasename.set(item.fileName, item);
+  await mkdir(path.dirname(descriptor.reportPath), { recursive: true });
+  await writeFile(descriptor.reportPath, `${JSON.stringify(report, null, 2)}\n`, 'utf8');
+
+  console.log(`[${descriptor.id}] Source CDN entries: ${matched.counts.sourceEntries}`);
+  console.log(`[${descriptor.id}] Unique CDN basenames: ${matched.counts.uniqueBasenames}`);
+  console.log(`[${descriptor.id}] Matched unique basenames: ${matched.counts.matchedUniqueBasenames}`);
+  console.log(`[${descriptor.id}] Missing unique basenames: ${matched.counts.missingUniqueBasenames}`);
+  console.log(`[${descriptor.id}] Local asset files scanned: ${matched.counts.localAssetFilesScanned}`);
+  console.log(`[${descriptor.id}] Report: ${path.relative(repositoryRoot, descriptor.reportPath).replaceAll('\\', '/')}`);
 }
-
-const uniqueItems = [...uniqueByBasename.values()].sort((left, right) => left.fileName.localeCompare(right.fileName));
-const counts = {
-  sourceEntries: items.length,
-  uniqueBasenames: uniqueItems.length,
-  matchedEntries: items.filter((item) => item.status === 'matched').length,
-  missingEntries: items.filter((item) => item.status === 'missing').length,
-  matchedUniqueBasenames: uniqueItems.filter((item) => item.status === 'matched').length,
-  missingUniqueBasenames: uniqueItems.filter((item) => item.status === 'missing').length,
-  duplicatedLocalBasenames: uniqueItems.filter((item) => item.localCandidates.length > 1).length,
-  localAssetFilesScanned: localFiles.length,
-};
-
-const report = {
-  generatedAt: new Date().toISOString(),
-  sourceCatalog: 'apps/web-member/tools/source-cdn-asset-catalog.json',
-  assetRoot: 'apps/web-member/public/assets',
-  counts,
-  missing: uniqueItems.filter((item) => item.status === 'missing').map((item) => ({
-    category: item.category,
-    fileName: item.fileName,
-    sourceUrl: item.sourceUrl,
-  })),
-  items,
-};
-
-await mkdir(path.dirname(reportPath), { recursive: true });
-await writeFile(reportPath, `${JSON.stringify(report, null, 2)}\n`, 'utf8');
-
-console.log(`Source CDN entries: ${counts.sourceEntries}`);
-console.log(`Unique CDN basenames: ${counts.uniqueBasenames}`);
-console.log(`Matched unique basenames: ${counts.matchedUniqueBasenames}`);
-console.log(`Missing unique basenames: ${counts.missingUniqueBasenames}`);
-console.log(`Local asset files scanned: ${counts.localAssetFilesScanned}`);
-console.log(`Report: ${path.relative(repositoryRoot, reportPath).replaceAll('\\', '/')}`);
