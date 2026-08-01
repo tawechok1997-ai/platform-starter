@@ -40,7 +40,7 @@ test('promotion page keeps the source category and card contract', () => {
 });
 
 test('promotion fallback preserves all source cards and order', () => {
-  assert.equal((promotionSource.match(/\n  campaign\(/g) ?? []).length, 18);
+  assert.equal((promotionSource.match(/\n {2}campaign\(/g) ?? []).length, 18);
   assert.match(promotionSource, /โปรโมชั่นฝากครั้งแรกของวันรับโบนัส 10%/);
   assert.match(promotionSource, /Happy Sunday❤️/);
   assert.match(promotionSource, /Happy Monday💛/);
