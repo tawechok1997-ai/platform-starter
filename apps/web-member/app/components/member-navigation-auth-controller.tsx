@@ -13,6 +13,17 @@ const NAVIGATION_SELECTOR = [
   '#mobile-home-drawer a[href]',
 ].join(',');
 
+const GUEST_LOGIN_REQUIRED_LABELS = new Set([
+  'รายได้คอมมิชชั่น',
+  'แนะนำเพื่อน',
+  'คูปอง',
+  'โบนัสพิเศษ',
+  'commission',
+  'refer a friend',
+  'coupons',
+  'special bonuses',
+]);
+
 const CANONICAL_LABEL_TARGETS: Readonly<Record<string, string>> = {
   'ระดับสมาชิก vip': '/mobile-menu/vip',
   vip: '/mobile-menu/vip',
@@ -117,6 +128,20 @@ export default function MemberNavigationAuthController() {
       if (!(event.target instanceof Element)) return;
 
       const authAction = event.target.closest<HTMLAnchorElement>('a[href]');
+
+      // These guest drawer rows are member-only even when their source markup
+      // points at a popup or a public-looking fallback route. Capture them before
+      // React closes the drawer so the single auth overlay opens over the drawer.
+      if (authAction && !summary.isLoggedIn && requiresGuestLogin(authAction)) {
+        const rawHref = normalize(authAction.getAttribute('href') ?? '');
+        const intended = canonicalTargetFor(authAction) || rawHref;
+        event.preventDefault();
+        event.stopPropagation();
+        event.stopImmediatePropagation();
+        openAuth('login', intended);
+        return;
+      }
+
       if (authAction && !authAction.closest('[data-mobile-member-popup]')) {
         const rawHref = normalize(authAction.getAttribute('href') ?? '');
         const canonicalTarget = canonicalTargetFor(authAction) || rawHref;
@@ -173,13 +198,20 @@ export default function MemberNavigationAuthController() {
   return null;
 }
 
+function requiresGuestLogin(action: HTMLAnchorElement) {
+  return GUEST_LOGIN_REQUIRED_LABELS.has(actionLabel(action));
+}
+
 function canonicalTargetFor(action: HTMLAnchorElement) {
   const href = normalize(action.getAttribute('href') ?? '');
   const hrefTarget = CANONICAL_HREF_TARGETS[href];
   if (hrefTarget) return hrefTarget;
 
-  const label = action.textContent?.replace(/\s+/g, ' ').trim().toLowerCase() ?? '';
-  return CANONICAL_LABEL_TARGETS[label] ?? '';
+  return CANONICAL_LABEL_TARGETS[actionLabel(action)] ?? '';
+}
+
+function actionLabel(action: HTMLAnchorElement) {
+  return action.textContent?.replace(/\s+/g, ' ').trim().toLowerCase() ?? '';
 }
 
 function authModeForTarget(value: string): MemberAuthMode | null {
