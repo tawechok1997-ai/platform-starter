@@ -99,8 +99,6 @@ export function MemberSessionProvider({ children }: { children: ReactNode }) {
 
   const logout = useCallback(() => {
     clearMemberSession();
-    setIsLoggedIn(false);
-    setWallet(null);
     window.location.replace('/');
   }, []);
 
