@@ -17,6 +17,7 @@ test('lottery source page keeps the supplied two-card order', () => {
   assert.match(page, /1_1_h\/dac\.png/);
   assert.match(page, /code: 'lotmw'[\s\S]*isNew: true/);
   assert.doesNotMatch(page, /code: 'dac'[\s\S]*isNew: true/);
+  assert.match(shared, /<NewBadge label="NEW" \/>/);
 });
 
 test('lottery heading and filter match the supplied mobile source', () => {
