@@ -34,17 +34,41 @@ test('contact and purple mini tools are removed only while a menu page is open',
   assert.match(floatingContact, /if \(isMobileMenuPage\) return null/);
 });
 
-test('mobile contact reuses the proven single animation owner', () => {
-  assert.match(floatingContact, /import '\.\.\/member-floating-contact\.css'/);
-  assert.doesNotMatch(floatingContact, /member-floating-contact-home-effect\.css/);
-  assert.doesNotMatch(floatingContact, /data-source-contact-motion|contact-source-stage/);
+test('mobile contact follows the supplied source DOM structure', () => {
+  assert.match(floatingContact, /member-floating-contact__contact-host/);
+  assert.match(floatingContact, /member-floating-contact__contact-stage/);
+  assert.match(floatingContact, /member-floating-contact__contact-spacer/);
+  assert.match(floatingContact, /member-floating-contact__contact-motion/);
+  assert.match(floatingContact, /className="member-floating-contact__line contact"/);
+  assert.match(floatingContact, /contact-ring contact-ring-1/);
+  assert.match(floatingContact, /contact-ring contact-ring-2/);
+  assert.match(floatingContact, /contact-ring contact-ring-3/);
+  assert.match(floatingContact, /contact-btn/);
+  assert.match(floatingContact, /contact-icon-btn/);
+  assert.match(floatingContact, /member-floating-contact__close-canvas/);
+  assert.match(floatingContact, /width=\{80\}/);
+  assert.match(floatingContact, /height=\{80\}/);
+  assert.match(floatingContact, /member-floating-contact__scroll-top/);
+  assert.match(floatingContact, /drawContactCloseCanvas/);
+});
 
-  assert.match(floatingContactCss, /member-floating-contact__contact-stage[\s\S]*right:\s*-4px[\s\S]*bottom:\s*0/);
-  assert.match(floatingContactCss, /member-floating-contact__line[\s\S]*translateY\(50%\) scale\(0\)/);
-  assert.match(floatingContactCss, /data-open='true'[\s\S]*member-floating-contact__line[\s\S]*translateY\(0\) scale\(1\)/);
+test('mobile contact uses the supplied closed and open transitions', () => {
+  assert.match(floatingContactCss, /contact-host[\s\S]*bottom:\s*calc\(64px \+ env\(safe-area-inset-bottom\)\)/);
+  assert.match(floatingContactCss, /contact-stage[\s\S]*right:\s*0[\s\S]*bottom:\s*0/);
+  assert.match(floatingContactCss, /contact-spacer[\s\S]*translateY\(56px\)/);
+  assert.match(floatingContactCss, /contact-motion[\s\S]*translateY\(64px\)/);
+
+  assert.match(floatingContactCss, /member-floating-contact__line[\s\S]*height:\s*0[\s\S]*opacity:\s*0/);
+  assert.match(floatingContactCss, /member-floating-contact__line img[\s\S]*translateY\(50%\) scale\(0\)/);
+  assert.match(floatingContactCss, /data-open='true'[\s\S]*member-floating-contact__line[\s\S]*height:\s*60px[\s\S]*opacity:\s*1/);
+  assert.match(floatingContactCss, /data-open='true'[\s\S]*member-floating-contact__line img[\s\S]*translateY\(0\) scale\(1\)/);
+
+  assert.match(floatingContactCss, /contact-icon-btn[\s\S]*opacity:\s*1/);
+  assert.match(floatingContactCss, /close-canvas[\s\S]*opacity:\s*0/);
+  assert.match(floatingContactCss, /data-open='true'[\s\S]*contact-icon-btn[\s\S]*opacity:\s*0[\s\S]*rotate\(90deg\)/);
+  assert.match(floatingContactCss, /data-open='true'[\s\S]*close-canvas[\s\S]*opacity:\s*1[\s\S]*rotate\(90deg\)/);
+
   assert.match(floatingContactCss, /member-contact-ring 2\.7s ease-out infinite/);
   assert.match(floatingContactCss, /ring--2[\s\S]*animation-delay:\s*0\.9s/);
   assert.match(floatingContactCss, /ring--3[\s\S]*animation-delay:\s*1\.8s/);
-  assert.match(floatingContactCss, /data-open='true'[\s\S]*button-face > img[\s\S]*rotate\(90deg\) scale\(0\.78\)/);
-  assert.match(floatingContactCss, /data-open='true'[\s\S]*close-icon[\s\S]*rotate\(90deg\) scale\(1\)/);
 });
