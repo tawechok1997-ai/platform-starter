@@ -2,6 +2,7 @@
 
 import { usePathname } from 'next/navigation';
 import MemberBodySkeleton from './components/member-body-skeleton';
+import MemberLoadingScreen from './components/member-loading-screen';
 import SessionExpiredContent from './session-expired/session-expired-content';
 
 export default function Loading() {
@@ -19,25 +20,5 @@ export default function Loading() {
     return <MemberBodySkeleton />;
   }
 
-  return (
-    <main
-      className="member-loading-screen"
-      role="status"
-      aria-live="polite"
-      aria-label="กำลังโหลดเนื้อหา"
-    >
-      <span
-        aria-hidden="true"
-        style={{
-          width: 42,
-          height: 42,
-          border: '4px solid rgba(255,255,255,.12)',
-          borderTopColor: '#a814d4',
-          borderRadius: '50%',
-          animation: 'memberLoadingSpin .8s linear infinite',
-        }}
-      />
-      <style>{'@keyframes memberLoadingSpin{to{transform:rotate(360deg)}}'}</style>
-    </main>
-  );
+  return <MemberLoadingScreen />;
 }
