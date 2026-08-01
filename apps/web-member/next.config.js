@@ -50,6 +50,17 @@ const exactMobileAssetRewrites = [
   destination: `/assets/asset-pc/images/home/${fileName}`,
 }));
 
+const depositAssetRewrites = [
+  {
+    source: '/images/deposit/method/:path*',
+    destination: '/assets/asset-pc/images/deposit/method/:path*',
+  },
+  {
+    source: '/images/close.svg',
+    destination: '/assets/asset-pc/images/close.svg',
+  },
+];
+
 const legacyMobileAssetRewrites = [
   {
     source: '/assets/asset-mobile/:path*',
@@ -92,6 +103,7 @@ const nextConfig = {
       beforeFiles: [
         ...legacyMobileAssetRewrites,
         ...exactMobileAssetRewrites,
+        ...depositAssetRewrites,
       ],
     };
   },
