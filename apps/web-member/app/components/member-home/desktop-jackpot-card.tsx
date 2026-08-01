@@ -1,37 +1,22 @@
 'use client';
 
-import { useEffect, useState, type SyntheticEvent } from 'react';
+import type { SyntheticEvent } from 'react';
 import { useMemberRuntime } from '../../member-runtime-provider';
+import { useMemberJackpotLabel } from './member-jackpot-runtime';
 
 type DesktopJackpotCardProps = {
   artUrl: string;
   fallbackUrl: string;
   iconUrl: string;
-  initialValue?: number;
 };
-
-const DEFAULT_JACKPOT_VALUE = 196_464_585;
 
 export function DesktopJackpotCard({
   artUrl,
   fallbackUrl,
   iconUrl,
-  initialValue = DEFAULT_JACKPOT_VALUE,
 }: DesktopJackpotCardProps) {
   const { home } = useMemberRuntime();
-  const configuredValue = parseJackpotValue(home.jackpot.amount);
-  const [value, setValue] = useState(configuredValue ?? initialValue);
-
-  useEffect(() => {
-    if (configuredValue !== null) {
-      setValue(configuredValue);
-      return;
-    }
-    const timer = window.setInterval(() => {
-      setValue((current) => current + Math.floor(Math.random() * 7) + 1);
-    }, 1800);
-    return () => window.clearInterval(timer);
-  }, [configuredValue]);
+  const valueLabel = useMemberJackpotLabel(home.jackpot.amount);
 
   if (!home.jackpot.enabled) return null;
 
@@ -44,8 +29,6 @@ export function DesktopJackpotCard({
     image.dataset.fallbackApplied = 'true';
     image.src = fallbackUrl;
   };
-
-  const valueLabel = configuredValue !== null ? home.jackpot.amount : value.toLocaleString('en-US');
 
   return (
     <section className="home-jackpot" aria-label={home.jackpot.title}>
@@ -61,9 +44,4 @@ export function DesktopJackpotCard({
       </a>
     </section>
   );
-}
-
-function parseJackpotValue(value: string) {
-  const amount = Number(value.replace(/[^\d.-]/g, ''));
-  return Number.isFinite(amount) ? amount : null;
 }

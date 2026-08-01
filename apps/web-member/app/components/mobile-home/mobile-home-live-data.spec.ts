@@ -10,6 +10,8 @@ const mobileRoot = readFileSync(new URL('./mobile-home-root.tsx', import.meta.ur
 const homeDataRuntime = readFileSync(new URL('../../member-home-data-runtime.ts', import.meta.url), 'utf8');
 const gameController = readFileSync(new URL('../member-home/public-home-game-navigation-controller.tsx', import.meta.url), 'utf8');
 const manifest = readFileSync(new URL('../../manifest.ts', import.meta.url), 'utf8');
+const jackpotRuntime = readFileSync(new URL('../member-home/member-jackpot-runtime.ts', import.meta.url), 'utf8');
+const desktopJackpot = readFileSync(new URL('../member-home/desktop-jackpot-card.tsx', import.meta.url), 'utf8');
 
 test('mobile home and category catalogs request mobile records only', () => {
   assert.match(sourceRuntime, /platform:\s*'mobile'/);
@@ -65,4 +67,13 @@ test('mobile home, drawer, data states, and game launch overlay include English 
   assert.match(sourceContent, /Unable to load games/);
   assert.match(highlightContent, /No published activities yet/);
   assert.match(gameController, /Connecting to the game provider/);
+});
+
+test('desktop and mobile jackpots share one continuous simulator when no real amount exists', () => {
+  assert.match(desktopJackpot, /useMemberJackpotLabel\(home\.jackpot\.amount\)/);
+  assert.match(sourceContent, /useMemberJackpotLabel\(runtime\.jackpot\.amount\)/);
+  assert.match(sourceContent, /runtime\.jackpot\.enabled\s*\?/);
+  assert.doesNotMatch(sourceContent, /runtime\.jackpot\.enabled\s*&&\s*runtime\.jackpot\.amount/);
+  assert.match(jackpotRuntime, /useSyncExternalStore/);
+  assert.match(jackpotRuntime, /MEMBER_JACKPOT_EPOCH_MS/);
 });

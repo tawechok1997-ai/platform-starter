@@ -65,5 +65,6 @@ Then verify the deployed `/games` page on one desktop viewport and at least two 
 - Popular, most-online, and classic sections come only from `/games/catalog`; tournaments and their leaderboard come from `/games/tournaments` or explicitly configured CMS records.
 - Promotion cards come from `/public/promotions`; activities and news come from published Content Center announcements. Every card opens `/browse/promotions/:id` before any claim or external action.
 - Missing, failed, or empty APIs render localized states. They must not substitute demo tournaments, players, games, live matches, promotions, activities, or news.
+- Jackpot is the explicit simulator exception because no authoritative prize feed exists. Desktop and Mobile use the same time-derived runtime value, continue across reloads without resetting, and still honor an explicitly configured CMS amount.
 - The Home Screen shortcut uses the owned Web App Manifest and the browser install prompt where available. Android and iOS retain localized manual Add-to-Home-Screen instructions.
 - Before release, verify Thai and English at 390 px, 428 px, and 768 px, including Guest Login routing, authenticated launch, category switching, all Highlight tabs, install help, API failure states, and console 404s.

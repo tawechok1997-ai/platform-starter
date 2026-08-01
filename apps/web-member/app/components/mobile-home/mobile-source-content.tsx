@@ -3,6 +3,7 @@
 import { useMemberLocale } from '../../member-locale-provider';
 import { resolveLocalAssetByBasename } from '../../lib/local-asset-by-basename';
 import { V47_ASSETS } from '../member-home/v47-asset-map';
+import { useMemberJackpotLabel } from '../member-home/member-jackpot-runtime';
 import type { MobileSourceGame, MobileSourceTournament } from './mobile-source-runtime';
 import { useMobileSourceRuntime } from './mobile-source-runtime';
 import styles from './mobile-source-content.module.css';
@@ -15,6 +16,7 @@ export default function MobileSourceContent() {
   const copy = COPY[locale];
   const tournamentIcon = runtime.icons.tournament || V47_ASSETS.tournamentIcon;
   const leaderboardIcon = runtime.icons.leaderboard || V47_ASSETS.leaderboard;
+  const jackpotLabel = useMemberJackpotLabel(runtime.jackpot.amount);
 
   return (
     <div className={styles.root} data-mobile-section-owner="source-content" data-central-catalog={runtime.catalogConnected ? 'connected' : runtime.catalogStatus}>
@@ -32,10 +34,10 @@ export default function MobileSourceContent() {
         </section>
       ) : null}
 
-      {runtime.jackpot.enabled && runtime.jackpot.amount ? (
+      {runtime.jackpot.enabled ? (
         <section className={styles.jackpotBanner} aria-label={runtime.jackpot.title || copy.jackpot}>
           <MappedImage src={runtime.jackpot.image || V47_ASSETS.jackpot} alt="" />
-          <strong>{runtime.jackpot.amount}</strong>
+          <strong aria-live="off">{jackpotLabel}</strong>
         </section>
       ) : null}
 
