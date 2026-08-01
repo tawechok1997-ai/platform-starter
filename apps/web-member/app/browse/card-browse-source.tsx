@@ -1,9 +1,19 @@
 'use client';
 
-import { useEffect } from 'react';
+import { resolveLocalAssetOrSource } from '../lib/local-asset-by-basename';
 import SourceGameCategoryPage, { type SourceGameCategoryConfig } from './source-game-category-page';
 
-const badge = 'https://cdn.zabbet.com/providers/set/1_1_badge/kingm.png';
+const PROVIDER_ROOT = 'https://cdn.zabbet.com/providers/set';
+const kingmaker = {
+  code: 'kingm',
+  name: 'KINGMAKER',
+  badge: providerAsset('badge'),
+  card: providerAsset('v'),
+  background: providerAsset('bg'),
+  title: providerAsset('title'),
+  avatar: providerAsset('avatar'),
+};
+
 const rows = [
   ['burmese-6-animals', 'Burmese 6 Animals', 'https://cdn.zabbet.com/games/1762491448874-7fcaf6e3-1b1c-4e81-a3ca-9f4ebeb6c5b5.png', true, false],
   ['hunk-cai-shen', 'Hunk Cai Shen', 'https://cdn.zabbet.com/games/1762491483123-8f8674b7-bbbf-4d96-8ea1-cf134f0abfa2.png', true, false],
@@ -28,20 +38,20 @@ const rows = [
 const config: SourceGameCategoryConfig = {
   slug: 'card',
   title: 'ไพ่',
-  total: 123,
+  total: rows.length,
   resultUnit: 'เกม',
   mode: 'games',
   baseBackground: '/assets/asset-pc/images/game/card/bg_card.webp',
   baseLogo: '/assets/asset-pc/images/game/card/logo_card.webp',
   filters: [],
-  providers: [],
+  providers: [kingmaker],
   showProviderStrip: true,
-  games: rows.map(([id, name, image, isNew, isHot]) => ({
+  games: rows.map(([id, name, sourceImage, isNew, isHot]) => ({
     id,
     name,
-    image,
-    provider: null,
-    providerBadge: badge,
+    image: resolveLocalAssetOrSource(sourceImage, 'pc'),
+    provider: kingmaker.code,
+    providerBadge: kingmaker.badge,
     isNew,
     isHot,
     tags: [...(isNew ? ['new' as const] : []), ...(isHot ? ['hot' as const] : [])],
@@ -49,26 +59,6 @@ const config: SourceGameCategoryConfig = {
 };
 
 export default function CardBrowseSource() {
-  useEffect(() => {
-    const page = document.querySelector<HTMLElement>("main[data-source-game-category='card']");
-    if (!page) return;
-
-    const syncReferenceCount = () => {
-      const summary = page.querySelector<HTMLElement>(
-        '[data-source-filter-panel] > div:last-child > div:first-child > strong',
-      );
-      const heading = page.querySelector<HTMLElement>('section[aria-label="รายการไพ่"] > h1');
-
-      if (summary && summary.textContent !== '123 เกม') summary.textContent = '123 เกม';
-      if (heading && heading.textContent !== 'ไพ่ (123 เกม)') heading.textContent = 'ไพ่ (123 เกม)';
-    };
-
-    syncReferenceCount();
-    const observer = new MutationObserver(syncReferenceCount);
-    observer.observe(page, { childList: true, subtree: true, characterData: true });
-    return () => observer.disconnect();
-  }, []);
-
   return (
     <>
       <SourceGameCategoryPage config={config} />
@@ -90,4 +80,8 @@ export default function CardBrowseSource() {
       `}</style>
     </>
   );
+}
+
+function providerAsset(kind: 'badge' | 'v' | 'bg' | 'title' | 'avatar') {
+  return resolveLocalAssetOrSource(`${PROVIDER_ROOT}/1_1_${kind}/kingm.png`, 'pc');
 }
