@@ -2,6 +2,7 @@
   display: flex;
   width: 100%;
   min-width: 0;
+  padding-inline: 8px;
   flex-direction: column;
   gap: 20px;
 }
@@ -54,6 +55,42 @@
   margin-top: 8px;
 }
 
+.methodHeading {
+  display: flex;
+  width: 100%;
+  min-height: 26px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.changeMethod {
+  display: inline-flex;
+  height: 26px;
+  min-width: 0;
+  padding: 1px 8px;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  border: 1px solid #7600a8;
+  border-radius: 6px;
+  color: #fff;
+  background: rgb(21 19 26);
+  font: inherit;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 18px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.changeMethod svg {
+  display: block;
+  width: 15px;
+  height: 14px;
+  flex: 0 0 15px;
+}
+
 .methodList {
   display: flex;
   width: 100%;
@@ -83,8 +120,10 @@
 }
 
 .methodSelected {
-  border-color: #7600a8;
-  box-shadow: 0 0 0 1px #7600a8;
+  height: 54px;
+  padding-inline: 10px;
+  border: 2px solid #8800c1;
+  box-shadow: #e0b1f1 0 0 6px 2px;
 }
 
 .methodIdentity {
@@ -249,23 +288,23 @@
 
 .amountInput {
   width: 100%;
-  height: 104px;
-  padding: 0 18px;
+  height: 55px;
+  padding: 0 12px;
   border: 1px solid rgb(49 47 57);
   border-radius: 6px;
   outline: 0;
   color: #fff;
   background: rgb(21 19 26);
   font: inherit;
-  font-size: 46px;
-  font-weight: 800;
-  line-height: 1;
-  text-align: right;
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 22px;
+  text-align: left;
 }
 
 .amountInput::placeholder {
   color: #fff;
-  opacity: .95;
+  opacity: .4;
 }
 
 .amountInput:focus {
@@ -274,11 +313,12 @@
 
 .limit {
   margin: 0;
-  color: #ffbd24;
+  color: #cea44b;
   font-size: 11px;
-  font-weight: 500;
+  font-weight: 400;
   line-height: 18px;
-  text-align: center;
+  letter-spacing: .36px;
+  text-align: left;
 }
 
 .quickGrid {
@@ -293,11 +333,12 @@
   min-width: 0;
   border: 1px solid rgb(55 53 64);
   border-radius: 6px;
-  color: rgb(255 255 255 / 88%);
+  color: #fff;
   background: rgb(21 19 26);
   font: inherit;
   font-size: 13px;
   font-weight: 400;
+  opacity: .4;
   cursor: pointer;
 }
 
@@ -357,9 +398,9 @@
 }
 
 .actionRow > .confirmButton:disabled {
-  border-color: #7600a8;
-  color: #fff;
-  background: #7600a8;
+  border-color: #38373e;
+  color: #555;
+  background: #38373e;
   opacity: 1;
   cursor: not-allowed;
 }
@@ -417,8 +458,9 @@
   cursor: pointer;
 }
 
-@media (max-width: 479px) {
+@media (max-width: 359px) {
   .root {
+    padding-inline: 0;
     gap: 16px;
   }
 
@@ -454,11 +496,6 @@
     min-width: 48px;
     padding-inline: 6px;
     font-size: 9px;
-  }
-
-  .amountInput {
-    height: 72px;
-    font-size: 34px;
   }
 
   .noticeList p {
