@@ -1,5 +1,5 @@
 const IMAGE_ROOT = '/assets/asset-pc/images';
-const HOME_ICON_ROOT = '/assets/asset-pc/home';
+const HOME_ICON_ROOT = `${IMAGE_ROOT}/home`;
 const MENU_ROOT = '/assets/reference-brand/menu';
 const LOCAL_HERO_SLIDES = [
   { name: 'ผู้ชนะและรางวัล', url: `${IMAGE_ROOT}/FEZX/imageslides/1784196704798-2fc7e5da-8d52-42a1-8a40-4f0f0465a264.jpg` },
