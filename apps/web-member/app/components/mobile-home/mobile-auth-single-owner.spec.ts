@@ -22,19 +22,18 @@ test('member chrome owns exactly one authentication popup', () => {
   assert.match(memberChrome, /requestedAuthMode === 'login' \|\| requestedAuthMode === 'register'/);
   assert.match(memberChrome, /authModeOverride \?\? queryAuthMode/);
   assert.match(memberChrome, /authMode\s*\?\s*\([\s\S]*?<MemberAuthOverlay[\s\S]*?mode=\{authMode\}/);
-  assert.match(memberChrome, /onModeChange=\{\(mode\) => openAuth\(mode, authNextOverride\)\}/);
 });
 
-test('the shared popup keeps one iframe mounted while switching real embedded auth pages', () => {
+test('the shared popup owns one iframe and lets embedded auth pages navigate inside it', () => {
   assert.equal((authOverlay.match(/<iframe\b/g) ?? []).length, 1);
   assert.match(authOverlay, /mode === 'register' \? '\/register\?embed=1' : '\/login\?embed=1'/);
-  assert.doesNotMatch(authOverlay, /key=\{path\}/);
-  assert.match(authOverlay, /member-auth-switch/);
+  assert.match(authOverlay, /key=\{path\}/);
+  assert.doesNotMatch(authOverlay, /member-auth-switch/);
   assert.match(authOverlay, /member-auth-close/);
   assert.match(authOverlay, /member-auth-success/);
 });
 
-test('register and login tabs stay inside the mounted popup', () => {
+test('register and login tabs navigate between real embedded auth pages', () => {
   assert.match(loginPage, /registerHref = embedded \? '\/register\?embed=1' : '\/register'/);
   assert.match(loginPage, /loginHref = embedded \? '\/login\?embed=1' : '\/login'/);
   assert.match(loginPage, /<nav className="public-auth-tabs source-login-tabs"/);
