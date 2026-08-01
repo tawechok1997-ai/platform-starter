@@ -137,6 +137,11 @@
     -webkit-overflow-scrolling: touch;
   }
 
+  body:has(.public-game-shell[data-route='/']) [data-mobile-section-owner='category-menu'] [data-mobile-category-id] {
+    border: 0 !important;
+    box-shadow: 0 4px 4px rgb(0 0 0 / 25%) !important;
+  }
+
   body:has(.public-game-shell[data-route='/']) [data-mobile-section-owner='category-menu']::-webkit-scrollbar {
     display: none !important;
   }
