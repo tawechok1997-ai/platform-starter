@@ -120,7 +120,6 @@ export default function MemberNavigationAuthController() {
     }
 
     restoreScrollPosition(current.scrollX, current.scrollY);
-    router.refresh();
   }, [authRequest, router, verify]);
 
   useEffect(() => {
@@ -262,15 +261,11 @@ function safeNextTarget(value?: string | null) {
 }
 
 function restoreScrollPosition(scrollX: number, scrollY: number) {
-  let secondFrame = 0;
   window.requestAnimationFrame(() => {
-    secondFrame = window.requestAnimationFrame(() => {
+    window.requestAnimationFrame(() => {
       window.scrollTo(scrollX, scrollY);
     });
   });
-  return () => {
-    if (secondFrame) window.cancelAnimationFrame(secondFrame);
-  };
 }
 
 function normalizeCurrentLocation() {
