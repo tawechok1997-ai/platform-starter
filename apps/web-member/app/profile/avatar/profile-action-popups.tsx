@@ -1,6 +1,6 @@
 'use client';
 
-import { FormEvent, KeyboardEvent, useEffect, useMemo, useRef, useState } from 'react';
+import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { memberApiFetch } from '../../member-api';
 import { useMemberContactRuntime } from '../../member-settings-runtime';
@@ -38,14 +38,18 @@ export default function ProfileActionPopupLayer({ kind, onChange }: ProfileActio
       dialogRef.current?.querySelector<HTMLElement>('button, a, input')?.focus();
     });
 
-    const closeOnEscape = (event: globalThis.KeyboardEvent) => {
-      if (event.key === 'Escape') onChange(null);
+    const handleKeyDown = (event: globalThis.KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        onChange(null);
+        return;
+      }
+      if (event.key === 'Tab' && dialogRef.current) trapFocus(event, dialogRef.current);
     };
-    window.addEventListener('keydown', closeOnEscape);
+    window.addEventListener('keydown', handleKeyDown);
 
     return () => {
       window.cancelAnimationFrame(frame);
-      window.removeEventListener('keydown', closeOnEscape);
+      window.removeEventListener('keydown', handleKeyDown);
       html.style.overflow = previousHtmlOverflow;
       body.style.overflow = previousBodyOverflow;
       body.style.paddingRight = previousBodyPaddingRight;
@@ -56,20 +60,28 @@ export default function ProfileActionPopupLayer({ kind, onChange }: ProfileActio
 
   const title = kind === 'contact' ? 'ติดต่อ' : 'เปลี่ยนรหัสผ่าน';
   return createPortal(
-    <div
-      className={styles.layer}
-      data-profile-action-popup-owner={kind}
-      onPointerDown={(event) => {
-        if (event.target === event.currentTarget) onChange(null);
-      }}
-    >
+    <div className={styles.layer} data-profile-action-popup-owner={kind}>
+      <button
+        type="button"
+        aria-label="ปิดหน้าต่าง"
+        onClick={() => onChange(null)}
+        style={{
+          position: 'absolute',
+          inset: 0,
+          width: '100%',
+          height: '100%',
+          padding: 0,
+          border: 0,
+          background: 'transparent',
+          cursor: 'default',
+        }}
+      />
       <div
         ref={dialogRef}
         className={`${styles.dialog} ${kind === 'password' ? styles.passwordDialog : ''}`}
         role="dialog"
         aria-modal="true"
         aria-labelledby="profile-action-popup-title"
-        onKeyDown={trapFocus}
       >
         <div className={styles.dialogBorder} aria-hidden="true" />
         <PopupTitle title={title} />
@@ -300,9 +312,8 @@ function EyeIcon({ hidden }: { hidden: boolean }) {
     : <svg viewBox="0 0 16 16" aria-hidden="true"><path d="m2 1 13 13-1 1-2.1-2.1A8.4 8.4 0 0 1 8 14c-4.5 0-7-4-7-4a11 11 0 0 1 3.2-3.3L1 3l1-2Zm4.1 7.1a2.5 2.5 0 0 0 3.8 3.2L6.1 8.1ZM8 4c4.5 0 7 4 7 4a11 11 0 0 1-1.9 2.3l-2-2A2.5 2.5 0 0 0 7.7 5L6.8 4.1C7.2 4 7.6 4 8 4Z" /></svg>;
 }
 
-function trapFocus(event: KeyboardEvent<HTMLDivElement>) {
-  if (event.key !== 'Tab') return;
-  const focusable = Array.from(event.currentTarget.querySelectorAll<HTMLElement>(
+function trapFocus(event: globalThis.KeyboardEvent, container: HTMLElement) {
+  const focusable = Array.from(container.querySelectorAll<HTMLElement>(
     'button:not([disabled]), a[href], input:not([disabled])',
   ));
   const first = focusable[0];
