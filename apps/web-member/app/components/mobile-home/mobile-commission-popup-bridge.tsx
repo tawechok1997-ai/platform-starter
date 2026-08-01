@@ -1,6 +1,30 @@
 'use client';
 
+import { useLayoutEffect } from 'react';
+
+const COMMISSION_POPUP_KIND = 'commission-income';
+
 export default function MobileCommissionPopupBridge() {
+  useLayoutEffect(() => {
+    const drawer = document.querySelector<HTMLElement>('#mobile-home-drawer');
+    if (!drawer) return;
+
+    const action = Array.from(drawer.querySelectorAll<HTMLElement>('a,button,[role="button"]'))
+      .find((candidate) => {
+        const label = candidate.textContent?.replace(/\s+/g, ' ').trim().toLowerCase() ?? '';
+        return label.includes('รายได้คอมมิชชั่น') || label.includes('commission income');
+      });
+
+    if (!action) return;
+    const previousOwner = action.dataset.mobileMemberPopup;
+    action.dataset.mobileMemberPopup = COMMISSION_POPUP_KIND;
+
+    return () => {
+      if (previousOwner) action.dataset.mobileMemberPopup = previousOwner;
+      else delete action.dataset.mobileMemberPopup;
+    };
+  }, []);
+
   return (
     <style jsx global>{`
       @media (max-width: 900px) {
