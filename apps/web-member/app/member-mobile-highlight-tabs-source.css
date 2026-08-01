@@ -109,4 +109,35 @@
       padding-inline: 20px !important;
     }
   }
+
+  /* Sticky owner must not sit inside a clipped ancestor. The source root used
+   * overflow-x: clip, which prevents the vertical sticky rail on some mobile
+   * browsers even though the rail itself declares position: sticky. */
+  body:has(.public-game-shell[data-route='/']) {
+    overflow-x: clip !important;
+  }
+
+  body:has(.public-game-shell[data-route='/']) [data-mobile-home-root='true'],
+  body:has(.public-game-shell[data-route='/']) [data-mobile-home-root='true'] *:has(> [data-mobile-section-owner='category-menu']) {
+    overflow: visible !important;
+    contain: none !important;
+  }
+
+  body:has(.public-game-shell[data-route='/']) [data-mobile-section-owner='category-menu'] {
+    position: sticky !important;
+    top: 64px !important;
+    z-index: 100 !important;
+    align-self: start !important;
+    height: max-content !important;
+    max-height: calc(100dvh - 72px) !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    overscroll-behavior: contain !important;
+    scrollbar-width: none !important;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  body:has(.public-game-shell[data-route='/']) [data-mobile-section-owner='category-menu']::-webkit-scrollbar {
+    display: none !important;
+  }
 }
