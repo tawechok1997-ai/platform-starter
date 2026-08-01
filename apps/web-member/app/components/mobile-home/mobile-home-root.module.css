@@ -675,6 +675,7 @@
 
 .androidButton,
 .iosButton {
+  appearance: none;
   display: grid;
   width: 100px;
   height: 32px;
@@ -683,18 +684,56 @@
   border-radius: 7px;
   color: #fff;
   background: #000;
+  cursor: pointer;
+  font: inherit;
   text-decoration: none;
 }
 
 .androidButton {
-  border-color: #717171;
-  color: #717171;
-  cursor: not-allowed;
+  border-color: #55d187;
+  box-shadow: 0 0 0 1px rgb(85 209 135 / 28%);
 }
 
 .iosButton {
   border-color: #944fe8;
   box-shadow: 0 0 0 1px rgb(118 0 168 / 45%);
+}
+
+.shortcutHelp {
+  position: absolute;
+  inset: -12px;
+  z-index: 3;
+  display: grid;
+  align-content: center;
+  padding: 14px;
+  gap: 6px;
+  border: 1px solid rgb(220 168 243 / 55%);
+  border-radius: 7px;
+  background: rgb(21 19 26 / 96%);
+  box-shadow: 0 12px 28px rgb(0 0 0 / 35%);
+}
+
+.shortcutHelp strong {
+  font-size: 14px;
+}
+
+.shortcutHelp span {
+  color: #d5cedd;
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.shortcutHelp button {
+  width: fit-content;
+  margin-top: 2px;
+  padding: 3px 10px;
+  border: 1px solid #944fe8;
+  border-radius: 6px;
+  color: #fff;
+  background: #2b2135;
+  cursor: pointer;
+  font: inherit;
+  font-size: 11px;
 }
 
 .mobileFooter {
@@ -833,7 +872,9 @@
 .heroDots button:focus-visible,
 .highlightTabs button:focus-visible,
 .categoryItem:focus-visible,
+.androidButton:focus-visible,
 .iosButton:focus-visible,
+.shortcutHelp button:focus-visible,
 .mobileFooter a:focus-visible {
   outline: 2px solid #dca8f3;
   outline-offset: 2px;

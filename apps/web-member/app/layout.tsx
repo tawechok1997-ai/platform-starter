@@ -176,6 +176,7 @@ export const metadata: Metadata = {
     template: '%s | NOAH345',
   },
   description: 'เว็บพนันออนไลน์ที่ดีที่สุด พร้อมบริการลูกค้าตลอด 24 ชั่วโมง และมีเกมให้เลือกเล่นมากมาย',
+  manifest: '/manifest.webmanifest',
 };
 
 export const viewport: Viewport = {

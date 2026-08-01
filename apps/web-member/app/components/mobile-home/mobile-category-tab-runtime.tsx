@@ -18,7 +18,9 @@ type GameBadge = 'HOT' | 'NEW' | '';
 
 type CategoryGame = {
   id: string;
+  providerGameCode: string;
   name: string;
+  category: string;
   providerCode: string;
   providerName: string;
   providerIcon: string;
@@ -54,6 +56,7 @@ type CatalogGame = {
   provider?: string | { code?: string | null; name?: string | null; logoUrl?: string | null } | null;
   providerLogoUrl?: string | null;
   imageUrl?: string | null;
+  mobileImageUrl?: string | null;
   iconUrl?: string | null;
   media?: CatalogMedia[] | null;
   onlinePlayers?: number | null;
@@ -103,12 +106,12 @@ const CATEGORY_LABELS: Record<'th' | 'en', Record<MobileCategoryId, string>> = {
 };
 
 const API_CATEGORIES: Record<Exclude<MobileCategoryId, 'home'>, readonly string[]> = {
-  casino: ['casino', 'live'],
-  slot: ['slot', 'arcade'],
-  fishing: ['fishing', 'fish'],
+  casino: ['casino'],
+  slot: ['slot'],
+  fishing: ['fishing'],
   sport: ['sport', 'sports'],
-  card: ['card', 'table'],
-  lottery: ['lottery', 'lotto'],
+  card: ['card'],
+  lottery: ['lottery'],
 };
 
 const PAGE_LIMIT = 250;
@@ -138,6 +141,7 @@ export default function MobileCategoryTabRuntime() {
       if (!isMobileCategoryId(category)) return;
 
       event.preventDefault();
+      event.stopPropagation();
       setActiveCategory(category);
     };
 
@@ -326,11 +330,21 @@ function CategoryPanel({
               </header>
               <div className={styles.gameGrid}>
                 {provider.games.map((game) => (
-                  <article key={`${game.providerCode}:${game.id}`} className={styles.gameCard}>
+                  <button
+                    key={`${game.providerCode}:${game.id}`}
+                    type="button"
+                    className={styles.gameCard}
+                    data-game-id={game.id}
+                    data-game-code={game.providerGameCode}
+                    data-game-name={game.name}
+                    data-provider-code={game.providerCode}
+                    data-game-category={game.category}
+                    aria-label={`${locale === 'th' ? 'เล่น' : 'Play'} ${game.name}`}
+                  >
                     <div className={styles.poster}>
                       <img src={game.image} alt={game.name} loading="lazy" />
                       {game.badge ? <span data-badge={game.badge}>{game.badge}</span> : null}
-                      {game.players > 0 ? <small>{game.players.toLocaleString('en-US')} online</small> : null}
+                      {game.players > 0 ? <small>{game.players.toLocaleString('en-US')} {locale === 'th' ? 'ออนไลน์' : 'online'}</small> : null}
                     </div>
                     <div className={styles.meta}>
                       {game.providerIcon ? <img src={game.providerIcon} alt="" loading="lazy" /> : <span aria-hidden="true" />}
@@ -339,7 +353,7 @@ function CategoryPanel({
                         <small>{game.providerName || '-'}</small>
                       </div>
                     </div>
-                  </article>
+                  </button>
                 ))}
               </div>
             </section>
@@ -399,7 +413,7 @@ async function loadCategoryGames(category: Exclude<MobileCategoryId, 'home'>): P
     API_CATEGORIES[category].map((apiCategory) => loadCatalogCategory(apiCategory)),
   );
   const successful = outcomes.filter((outcome): outcome is PromiseFulfilledResult<CatalogGame[]> => outcome.status === 'fulfilled');
-  if (successful.length === 0) throw new Error(`Unable to load desktop catalog for ${category}`);
+  if (successful.length === 0) throw new Error(`Unable to load mobile catalog for ${category}`);
 
   const items = successful.flatMap((outcome) => outcome.value)
     .map(mapCatalogGame)
@@ -428,7 +442,7 @@ async function loadCatalogCategory(category: string): Promise<CatalogGame[]> {
 
 async function fetchCatalogPage(category: string, page: number): Promise<CatalogPayload | null> {
   const params = new URLSearchParams({
-    platform: 'pc',
+    platform: 'mobile',
     category,
     page: String(page),
     limit: String(PAGE_LIMIT),
@@ -457,10 +471,12 @@ function readTotalPages(payload: CatalogPayload | null, fallbackItemCount: numbe
 }
 
 function mapCatalogGame(item: CatalogGame): CategoryGame | null {
-  const id = firstText(item.providerGameCode, item.code, item.id);
+  const id = firstText(item.id, item.providerGameCode, item.code);
+  const providerGameCode = firstText(item.providerGameCode, item.code);
   const name = firstText(item.name);
   const readyMedia = item.media?.find((media) => media.status === 'READY');
   const sourceImage = firstText(
+    item.mobileImageUrl,
     item.imageUrl,
     item.iconUrl,
     readyMedia?.cachedUrl,
@@ -494,11 +510,13 @@ function mapCatalogGame(item: CatalogGame): CategoryGame | null {
 
   return {
     id,
+    providerGameCode,
     name,
+    category: normalizeCategory(item.category),
     providerCode,
     providerName: providerName || providerCode.toUpperCase(),
-    image: resolveLocalAssetByBasename(sourceImage, 'pc') || sourceImage,
-    providerIcon: resolveLocalAssetByBasename(sourceProviderIcon, 'pc') || sourceProviderIcon,
+    image: resolveLocalAssetByBasename(sourceImage, 'any') || sourceImage,
+    providerIcon: resolveLocalAssetByBasename(sourceProviderIcon, 'any') || sourceProviderIcon,
     badge: hot ? 'HOT' : fresh ? 'NEW' : '',
     players: positiveInteger(item.onlinePlayers ?? item.playerCount),
   };
@@ -522,6 +540,15 @@ function normalizeProviderCode(value: string) {
     .toLowerCase()
     .replace(/\.(?:png|jpe?g|webp|svg)$/i, '')
     .replace(/[^a-z0-9_-]+/g, '');
+}
+
+function normalizeCategory(value: unknown) {
+  const category = String(value ?? '').trim().toLowerCase();
+  if (category === 'sports') return 'sport';
+  if (category === 'fish') return 'fishing';
+  if (category === 'table') return 'card';
+  if (category === 'lotto') return 'lottery';
+  return category;
 }
 
 function positiveInteger(value: unknown) {

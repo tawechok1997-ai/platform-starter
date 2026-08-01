@@ -12,6 +12,7 @@ export type MemberGameLaunchCandidate = {
 
 export type MemberGameLaunchOptions = {
   signal?: AbortSignal;
+  locale?: 'th' | 'en';
 };
 
 type NormalizedMemberGameLaunchCandidate = {
@@ -51,9 +52,9 @@ export async function openMemberProviderGame(
 
   let lastMessage = '';
   for (const id of directIds) {
-    const attempt = await requestLaunch(id, options.signal);
+    const attempt = await requestLaunch(id, options.signal, options.locale);
     if (attempt.ok) {
-      navigateToProvider(attempt.launchUrl);
+      navigateToProvider(attempt.launchUrl, options.locale);
       return;
     }
     lastMessage = attempt.message;
@@ -62,15 +63,15 @@ export async function openMemberProviderGame(
 
   const resolvedId = await resolveMemberGameId(normalized, options.signal);
   if (!resolvedId) {
-    throw new Error(lastMessage || 'เกมนี้ยังไม่ได้เชื่อมกับระบบเปิดเกมจริงของค่าย');
+    throw new Error(lastMessage || launchCopy(options.locale).notConnected);
   }
 
-  const resolvedAttempt = await requestLaunch(resolvedId, options.signal);
+  const resolvedAttempt = await requestLaunch(resolvedId, options.signal, options.locale);
   if (!resolvedAttempt.ok) throw new Error(resolvedAttempt.message);
-  navigateToProvider(resolvedAttempt.launchUrl);
+  navigateToProvider(resolvedAttempt.launchUrl, options.locale);
 }
 
-async function requestLaunch(gameId: string, signal?: AbortSignal): Promise<LaunchAttempt> {
+async function requestLaunch(gameId: string, signal?: AbortSignal, locale?: 'th' | 'en'): Promise<LaunchAttempt> {
   const response = await memberApiFetch(
     `/member/games/${encodeURIComponent(gameId)}/launch`,
     signal ? { method: 'POST', signal } : { method: 'POST' },
@@ -78,12 +79,11 @@ async function requestLaunch(gameId: string, signal?: AbortSignal): Promise<Laun
   const payload = await response.json().catch(() => null);
   const source = unwrapRecord(payload);
   const launchUrl = firstText(source.launchUrl, source.url, source.gameUrl);
-  const message = firstText(
-    source.message,
-    source.errorMessage,
-    source.error,
-    response.ok ? 'ค่ายเกมไม่ได้ส่งลิงก์เข้าเกมกลับมา' : 'เปิดเกมไม่สำเร็จ',
-  );
+  const copy = launchCopy(locale);
+  const providerMessage = firstText(source.message, source.errorMessage, source.error);
+  const message = locale === 'en' && /[ก-๙]/.test(providerMessage)
+    ? (response.ok ? copy.missingUrl : copy.failed)
+    : firstText(providerMessage, response.ok ? copy.missingUrl : copy.failed);
 
   return {
     ok: response.ok && Boolean(launchUrl),
@@ -215,10 +215,10 @@ function canResolveAfter(status: number) {
   return status === 400 || status === 404 || status === 409 || status === 422;
 }
 
-function navigateToProvider(rawUrl: string) {
+function navigateToProvider(rawUrl: string, locale?: 'th' | 'en') {
   const target = new URL(rawUrl, window.location.origin);
   if (target.protocol !== 'http:' && target.protocol !== 'https:') {
-    throw new Error('ลิงก์เข้าเกมจากค่ายไม่ปลอดภัย');
+    throw new Error(locale === 'en' ? 'The game provider returned an unsafe launch URL.' : 'ลิงก์เข้าเกมจากค่ายไม่ปลอดภัย');
   }
   window.location.assign(target.toString());
 }
@@ -245,4 +245,18 @@ function compactText(value: string) {
 
 function uniqueText(values: string[]) {
   return Array.from(new Set(values.map((value) => value.trim()).filter(Boolean)));
+}
+
+function launchCopy(locale: 'th' | 'en' = 'th') {
+  return locale === 'en'
+    ? {
+      notConnected: 'This game is not connected to a live provider launch yet.',
+      missingUrl: 'The game provider did not return a launch URL.',
+      failed: 'Unable to launch the game.',
+    }
+    : {
+      notConnected: 'เกมนี้ยังไม่ได้เชื่อมกับระบบเปิดเกมจริงของค่าย',
+      missingUrl: 'ค่ายเกมไม่ได้ส่งลิงก์เข้าเกมกลับมา',
+      failed: 'เปิดเกมไม่สำเร็จ',
+    };
 }

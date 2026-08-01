@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useRouter } from 'next/navigation';
+import { useMemberLocale } from '../../member-locale-provider';
 import { useMemberSession } from '../../member-session-provider';
 import {
   openMemberProviderGame,
@@ -68,6 +69,7 @@ type LaunchState = {
 
 export default function PublicGameLoginController() {
   const router = useRouter();
+  const { locale } = useMemberLocale();
   const { ready, isLoggedIn } = useMemberSession();
   const launchAbortRef = useRef<AbortController | null>(null);
   const [launchState, setLaunchState] = useState<LaunchState | null>(null);
@@ -118,18 +120,19 @@ export default function PublicGameLoginController() {
       }, GAME_LAUNCH_TIMEOUT_MS);
 
       action.dataset.memberGameLaunching = 'true';
-      const gameName = candidate.name || 'เกม';
-      setLaunchState({ status: 'loading', gameName, message: 'กำลังเชื่อมต่อค่ายเกม...' });
+      const copy = LAUNCH_COPY[locale];
+      const gameName = candidate.name || copy.game;
+      setLaunchState({ status: 'loading', gameName, message: copy.connecting });
 
       try {
-        await openMemberProviderGame(candidate, { signal: controller.signal });
+        await openMemberProviderGame(candidate, { signal: controller.signal, locale });
       } catch (caught) {
         if (controller.signal.aborted) {
           if (launchAbortRef.current === controller && timedOut) {
             setLaunchState({
               status: 'error',
               gameName,
-              message: 'ค่ายเกมตอบสนองช้าเกิน 15 วินาที กรุณาลองใหม่อีกครั้ง',
+              message: copy.timeout,
             });
           }
           return;
@@ -138,7 +141,7 @@ export default function PublicGameLoginController() {
         setLaunchState({
           status: 'error',
           gameName,
-          message: caught instanceof Error ? caught.message : 'เปิดเกมไม่สำเร็จ',
+          message: caught instanceof Error ? caught.message : copy.launchFailed,
         });
       } finally {
         window.clearTimeout(timeout);
@@ -149,7 +152,7 @@ export default function PublicGameLoginController() {
 
     window.addEventListener('click', handleGameAction, true);
     return () => window.removeEventListener('click', handleGameAction, true);
-  }, [isLoggedIn, ready, router]);
+  }, [isLoggedIn, locale, ready, router]);
 
   useEffect(() => () => launchAbortRef.current?.abort(), []);
 
@@ -163,6 +166,7 @@ export default function PublicGameLoginController() {
   }, [launchState?.status]);
 
   if (!launchState || typeof document === 'undefined') return null;
+  const copy = LAUNCH_COPY[locale];
 
   const closeLaunch = () => {
     launchAbortRef.current?.abort();
@@ -179,10 +183,10 @@ export default function PublicGameLoginController() {
         aria-busy={launchState.status === 'loading'}
       >
         {launchState.status === 'loading' ? <span className="member-game-launch-spinner" aria-hidden="true" /> : null}
-        <strong>{launchState.status === 'loading' ? `กำลังเปิด ${launchState.gameName}` : 'เปิดเกมไม่สำเร็จ'}</strong>
+        <strong>{launchState.status === 'loading' ? `${copy.opening} ${launchState.gameName}` : copy.launchFailed}</strong>
         <p>{launchState.message}</p>
         <button type="button" onClick={closeLaunch}>
-          {launchState.status === 'loading' ? 'ยกเลิก' : 'ปิด'}
+          {launchState.status === 'loading' ? copy.cancel : copy.close}
         </button>
       </section>
     </div>,
@@ -233,7 +237,7 @@ function readLinkContext(action: HTMLElement) {
 }
 
 function cleanAriaLabel(value: string | null) {
-  return firstText(value).replace(/^(เปิด|เข้าเล่น|เล่น)\s*/i, '').trim();
+  return firstText(value).replace(/^(?:เปิด|เข้าเล่น|เล่น|open|play)\s*/i, '').trim();
 }
 
 function cleanImageAlt(value: string | null | undefined) {
@@ -259,3 +263,24 @@ function gameDestination(action: HTMLElement) {
 function firstText(...values: Array<string | null | undefined>) {
   return values.find((value): value is string => typeof value === 'string' && value.trim().length > 0)?.trim() ?? '';
 }
+
+const LAUNCH_COPY = {
+  th: {
+    game: 'เกม',
+    connecting: 'กำลังเชื่อมต่อค่ายเกม...',
+    timeout: 'ค่ายเกมตอบสนองช้าเกิน 15 วินาที กรุณาลองใหม่อีกครั้ง',
+    launchFailed: 'เปิดเกมไม่สำเร็จ',
+    opening: 'กำลังเปิด',
+    cancel: 'ยกเลิก',
+    close: 'ปิด',
+  },
+  en: {
+    game: 'game',
+    connecting: 'Connecting to the game provider...',
+    timeout: 'The game provider took longer than 15 seconds to respond. Please try again.',
+    launchFailed: 'Unable to launch the game',
+    opening: 'Opening',
+    cancel: 'Cancel',
+    close: 'Close',
+  },
+} as const;

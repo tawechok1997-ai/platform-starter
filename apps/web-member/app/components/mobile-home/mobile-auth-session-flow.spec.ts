@@ -11,7 +11,7 @@ test('embedded login validates stored tokens before announcing authentication su
   assert.match(loginPage, /member-auth-ready/);
   assert.doesNotMatch(
     loginPage,
-    /if \(hasMemberSessionTokens\(\)\) \{\s*if \(isEmbedded\).*member-auth-success/s,
+    /if \(hasMemberSessionTokens\(\)\) \{\s*if \(isEmbedded\)[\s\S]*member-auth-success/,
   );
 });
 

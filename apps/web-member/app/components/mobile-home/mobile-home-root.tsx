@@ -7,6 +7,7 @@ import { useMemberLocale } from '../../member-locale-provider';
 import { useMemberRuntime } from '../../member-runtime-provider';
 import { V47_ASSETS } from '../member-home/v47-asset-map';
 import MobileHighlightTabContent from './mobile-highlight-tab-content';
+import type { MobileHighlightTab } from './mobile-highlight-tab-content';
 import styles from './mobile-home-root.module.css';
 
 const SOURCE_ROOT = '/assets/asset-pc/images';
@@ -92,7 +93,120 @@ const MOBILE_CATEGORY_FALLBACK_ICONS: Record<MobileCategoryId, string> = {
   lottery: V47_ASSETS.menuLottery,
 };
 
-const HIGHLIGHT_TABS = ['ไฮไลท์', 'โปรโมชั่นแนะนำ', 'กิจกรรม', 'ข่าวสาร'] as const;
+const HIGHLIGHT_TABS = ['highlights', 'promotions', 'activities', 'news'] as const satisfies readonly MobileHighlightTab[];
+
+const MENU_LABELS_EN: Record<string, string> = {
+  'ระดับสมาชิก VIP': 'VIP level',
+  'รายได้คอมมิชชั่น': 'Commission',
+  'แนะนำเพื่อน': 'Refer a friend',
+  'คูปอง': 'Coupons',
+  'โบนัสพิเศษ': 'Special bonuses',
+  'ถ่ายทอดสด': 'Live',
+  'โปรโมชั่น': 'Promotions',
+  'ข่าวสาร': 'News',
+  'กิจกรรม': 'Activities',
+  'ประวัติ': 'History',
+  'แจ้งเตือน': 'Notifications',
+  'วีดีโอแนะนำ': 'Video guide',
+  'แนะนำการใช้งาน': 'Usage guide',
+};
+
+const ROOT_COPY = {
+  th: {
+    mobileHome: 'หน้าแรกมือถือ',
+    home: 'หน้าแรก',
+    openMenu: 'เปิดเมนูสมาชิก',
+    changeLanguage: 'เปลี่ยนภาษา',
+    memberMenu: 'เมนูสมาชิก',
+    closeMenu: 'ปิดเมนู',
+    memberServices: 'บริการสมาชิก',
+    moreMenu: 'เมนูเพิ่มเติม',
+    authActions: 'สมัครสมาชิกหรือเข้าสู่ระบบ',
+    homeTopics: 'หัวข้อหน้าแรก',
+    mobileContent: 'เนื้อหาหน้าแรกมือถือ',
+    promotions: 'โปรโมชั่น',
+    selectPromotion: 'เลือกโปรโมชั่น',
+    promotion: 'โปรโมชั่น',
+    announcements: 'ประกาศ',
+    websiteInfo: 'ข้อมูลเว็บไซต์มือถือ',
+    contactLine: 'ติดต่อเราผ่าน LINE',
+    register: 'สมัครสมาชิก',
+    login: 'เข้าสู่ระบบ',
+    highlightTabs: {
+      highlights: 'ไฮไลท์',
+      promotions: 'โปรโมชั่นแนะนำ',
+      activities: 'กิจกรรม',
+      news: 'ข่าวสาร',
+    },
+    shortcutTitle: 'เพิ่มปุ่มลัดหน้าโฮม',
+    shortcutHeading: 'เพิ่มปุ่มลัดได้แล้ววันนี้!',
+    shortcutSummary: 'สัมผัสประสบการณ์ที่เหนือกว่า เพิ่มปุ่มเลย',
+    installHelp: {
+      android: {
+        title: 'เพิ่มบน Android',
+        steps: 'เปิดเมนูเบราว์เซอร์ แล้วเลือก “เพิ่มลงในหน้าจอหลัก”',
+      },
+      ios: {
+        title: 'เพิ่มบน iPhone หรือ iPad',
+        steps: 'แตะปุ่มแชร์ใน Safari แล้วเลือก “เพิ่มไปยังหน้าจอโฮม”',
+      },
+    },
+    close: 'ปิด',
+    paymentMethods: 'วิธีการชำระเงิน',
+    contactUs: 'ติดต่อเรา',
+    responsibleGaming: 'รับผิดชอบในการเดิมพัน',
+    licenses: 'ใบอนุญาตและใบรับรอง',
+    licenseGuarantee: '(การันตีเกมลิขสิทธิ์แท้)',
+    securityBy: 'การรองรับและความปลอดภัยโดย',
+  },
+  en: {
+    mobileHome: 'Mobile home',
+    home: 'Home',
+    openMenu: 'Open member menu',
+    changeLanguage: 'Change language',
+    memberMenu: 'Member menu',
+    closeMenu: 'Close menu',
+    memberServices: 'Member services',
+    moreMenu: 'More options',
+    authActions: 'Register or sign in',
+    homeTopics: 'Home topics',
+    mobileContent: 'Mobile home content',
+    promotions: 'Promotions',
+    selectPromotion: 'Select a promotion',
+    promotion: 'Promotion',
+    announcements: 'Announcements',
+    websiteInfo: 'Mobile website information',
+    contactLine: 'Contact us on LINE',
+    register: 'Register',
+    login: 'Sign in',
+    highlightTabs: {
+      highlights: 'Highlights',
+      promotions: 'Promotions',
+      activities: 'Activities',
+      news: 'News',
+    },
+    shortcutTitle: 'Add a Home Screen shortcut',
+    shortcutHeading: 'Add a shortcut today!',
+    shortcutSummary: 'Get faster access from your Home Screen.',
+    installHelp: {
+      android: {
+        title: 'Add on Android',
+        steps: 'Open your browser menu and select “Add to Home screen”.',
+      },
+      ios: {
+        title: 'Add on iPhone or iPad',
+        steps: 'Tap Share in Safari, then select “Add to Home Screen”.',
+      },
+    },
+    close: 'Close',
+    paymentMethods: 'Payment methods',
+    contactUs: 'Contact us',
+    responsibleGaming: 'Responsible gaming',
+    licenses: 'Licenses and certificates',
+    licenseGuarantee: '(Genuine licensed games)',
+    securityBy: 'Supported and secured by',
+  },
+} as const;
 
 const BANKS = [
   'BBL',
@@ -144,16 +258,24 @@ type MobileAuthActionsProps = {
   onNavigate?: () => void;
 };
 
+type BeforeInstallPromptEvent = Event & {
+  prompt: () => Promise<void>;
+  userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
+};
+
 export default function MobileHomeRoot({ content, showPromotion }: MobileHomeRootProps) {
   const { locale, toggleLocale } = useMemberLocale();
   const { navigation } = useMemberRuntime();
+  const copy = ROOT_COPY[locale];
   const [menuOpen, setMenuOpen] = useState(false);
   const [activeSlide, setActiveSlide] = useState(0);
-  const [activeTab, setActiveTab] = useState<(typeof HIGHLIGHT_TABS)[number]>('ไฮไลท์');
+  const [activeTab, setActiveTab] = useState<MobileHighlightTab>('highlights');
   const [activeCategory, setActiveCategory] = useState<MobileCategoryId>('home');
   const categoryContentRef = useRef<HTMLDivElement>(null);
   const categoryRailRef = useRef<HTMLDivElement>(null);
-  const heroSlides = useMemo(() => getMobileHeroSlides(content), [content]);
+  const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null);
+  const [shortcutHelp, setShortcutHelp] = useState<'android' | 'ios' | null>(null);
+  const heroSlides = useMemo(() => getMobileHeroSlides(content, locale), [content, locale]);
   const announcementMessages = useMemo(() => getAnnouncementMessages(content), [content]);
   const categoryMenuItems = useMemo(() => MOBILE_CATEGORY_ORDER.flatMap((id) => {
     const item = navigation.find((candidate) => candidate.id === id && candidate.mobile);
@@ -166,12 +288,22 @@ export default function MobileHomeRoot({ content, showPromotion }: MobileHomeRoo
     }];
   }), [locale, navigation]);
 
-  const selectHighlightTab = (tab: (typeof HIGHLIGHT_TABS)[number]) => {
+  const selectHighlightTab = (tab: MobileHighlightTab) => {
     setActiveTab(tab);
     setActiveCategory('home');
     window.dispatchEvent(new CustomEvent('member:mobile-category-select', {
       detail: { category: 'home' satisfies MobileCategoryId },
     }));
+  };
+
+  const installShortcut = async (platform: 'android' | 'ios') => {
+    if (platform === 'android' && installPrompt) {
+      await installPrompt.prompt();
+      await installPrompt.userChoice.catch(() => ({ outcome: 'dismissed' as const }));
+      setInstallPrompt(null);
+      return;
+    }
+    setShortcutHelp(platform);
   };
 
   useEffect(() => {
@@ -277,19 +409,28 @@ export default function MobileHomeRoot({ content, showPromotion }: MobileHomeRoo
     };
   }, [activeCategory, activeTab, categoryMenuItems.length]);
 
+  useEffect(() => {
+    const capturePrompt = (event: Event) => {
+      event.preventDefault();
+      setInstallPrompt(event as BeforeInstallPromptEvent);
+    };
+    window.addEventListener('beforeinstallprompt', capturePrompt);
+    return () => window.removeEventListener('beforeinstallprompt', capturePrompt);
+  }, []);
+
   return (
     <main
       className={styles.root}
       data-mobile-home-root="true"
       data-ui-owner="mobile-home"
-      aria-label="หน้าแรกมือถือ"
+      aria-label={copy.mobileHome}
     >
       <header className={styles.header} data-mobile-section-owner="header">
         <div className={styles.headerInner}>
           <button
             type="button"
             className={styles.menuButton}
-            aria-label="เปิดเมนูสมาชิก"
+            aria-label={copy.openMenu}
             aria-expanded={menuOpen}
             aria-controls="mobile-home-drawer"
             onClick={() => setMenuOpen(true)}
@@ -297,11 +438,11 @@ export default function MobileHomeRoot({ content, showPromotion }: MobileHomeRoo
             <span aria-hidden="true"><i /><i /><i /></span>
           </button>
 
-          <Link href="/" className={styles.logoLink} aria-label="NOAH345 หน้าแรก">
+          <Link href="/" className={styles.logoLink} aria-label={`NOAH345 ${copy.home}`}>
             <img src={LOGO_URL} alt="NOAH345" />
           </Link>
 
-          <button type="button" className={styles.languageButton} aria-label="เปลี่ยนภาษา" onClick={toggleLocale}>
+          <button type="button" className={styles.languageButton} aria-label={copy.changeLanguage} onClick={toggleLocale}>
             <img src={`/images/flags/${locale}.svg`} alt="" aria-hidden="true" />
           </button>
         </div>
@@ -314,28 +455,28 @@ export default function MobileHomeRoot({ content, showPromotion }: MobileHomeRoo
         <button
           type="button"
           data-mobile-drawer-dismiss="true"
-          aria-label="ปิดเมนูสมาชิก"
+          aria-label={copy.closeMenu}
           tabIndex={menuOpen ? 0 : -1}
           onClick={() => setMenuOpen(false)}
         />
         <aside
           id="mobile-home-drawer"
           className={`${styles.drawer} ${menuOpen ? styles.drawerOpen : ''}`}
-          aria-label="เมนูสมาชิก"
+          aria-label={copy.memberMenu}
         >
           <div className={styles.drawerGlow} aria-hidden="true" />
           <div className={styles.drawerTop}>
             <img src={LOGO_URL} alt="NOAH345" />
-            <button type="button" aria-label="ปิดเมนู" onClick={() => setMenuOpen(false)}>×</button>
+            <button type="button" aria-label={copy.closeMenu} onClick={() => setMenuOpen(false)}>×</button>
           </div>
 
-          <nav className={styles.primaryMenu} aria-label="บริการสมาชิก">
+          <nav className={styles.primaryMenu} aria-label={copy.memberServices}>
             {PRIMARY_MENU.map(([label, href, icon]) => (
               <Link key={label} href={href} onClick={() => setMenuOpen(false)}>
                 <span className={styles.menuGlyph} aria-hidden="true">
                   <MobileMenuIcon name={icon} />
                 </span>
-                <strong>{label}</strong>
+                <strong>{localizedMenuLabel(label, locale)}</strong>
                 <span className={styles.menuArrow} aria-hidden="true">
                   <ChevronRightIcon />
                 </span>
@@ -343,18 +484,18 @@ export default function MobileHomeRoot({ content, showPromotion }: MobileHomeRoo
             ))}
           </nav>
 
-          <nav className={styles.secondaryMenu} aria-label="เมนูเพิ่มเติม">
+          <nav className={styles.secondaryMenu} aria-label={copy.moreMenu}>
             {SECONDARY_MENU.map(([label, href, icon]) => (
               <Link key={label} href={href} onClick={() => setMenuOpen(false)}>
                 <span className={styles.gridGlyph} aria-hidden="true">
                   <MobileMenuIcon name={icon} />
                 </span>
-                <strong>{label}</strong>
+                <strong>{localizedMenuLabel(label, locale)}</strong>
               </Link>
             ))}
             <button type="button" onClick={toggleLocale}>
               <img src={`/images/flags/${locale}.svg`} alt="" aria-hidden="true" />
-              <strong>เปลี่ยนภาษา</strong>
+              <strong>{copy.changeLanguage}</strong>
             </button>
           </nav>
 
@@ -364,26 +505,26 @@ export default function MobileHomeRoot({ content, showPromotion }: MobileHomeRoo
 
       <div className={styles.pageContent}>
         {showPromotion && heroSlides.length > 0 ? (
-          <section className={styles.hero} data-mobile-section-owner="hero" aria-label="โปรโมชั่น">
+          <section className={styles.hero} data-mobile-section-owner="hero" aria-label={copy.promotions}>
             <div className={styles.heroViewport}>
               <div className={styles.heroTrack} style={{ transform: `translateX(-${activeSlide * 100}%)` }}>
                 {heroSlides.map((slide, index) => (
                   <Link key={slide.id} href={slide.href} className={styles.heroSlide}>
                     <span>
-                      <img src={slide.image} alt={slide.title || `โปรโมชั่น ${index + 1}`} loading={index === 0 ? 'eager' : 'lazy'} />
+                      <img src={slide.image} alt={slide.title || `${copy.promotion} ${index + 1}`} loading={index === 0 ? 'eager' : 'lazy'} />
                     </span>
                   </Link>
                 ))}
               </div>
             </div>
             {heroSlides.length > 1 ? (
-              <div className={styles.heroDots} aria-label="เลือกโปรโมชั่น">
+              <div className={styles.heroDots} aria-label={copy.selectPromotion}>
                 {heroSlides.map((slide, index) => (
                   <button
                     key={slide.id}
                     type="button"
                     className={index === activeSlide ? styles.heroDotActive : ''}
-                    aria-label={slide.title || `โปรโมชั่น ${index + 1}`}
+                    aria-label={slide.title || `${copy.promotion} ${index + 1}`}
                     aria-current={index === activeSlide ? 'true' : undefined}
                     onClick={() => setActiveSlide(index)}
                   />
@@ -395,14 +536,14 @@ export default function MobileHomeRoot({ content, showPromotion }: MobileHomeRoo
 
         <section
           data-mobile-section-owner="auth-actions"
-          aria-label="สมัครสมาชิกหรือเข้าสู่ระบบ"
+          aria-label={copy.authActions}
           style={{ width: '100%', padding: '12px 12px 0' }}
         >
           <MobileAuthActions layout="page" />
         </section>
 
         {announcementMessages.length > 0 ? (
-          <section className={styles.announcement} data-mobile-section-owner="announcement" aria-label="ประกาศ">
+          <section className={styles.announcement} data-mobile-section-owner="announcement" aria-label={copy.announcements}>
             <span className={styles.announcementIcon} aria-hidden="true">
               <img src={ANNOUNCEMENT_ICON_URL} alt="" />
             </span>
@@ -429,7 +570,7 @@ export default function MobileHomeRoot({ content, showPromotion }: MobileHomeRoo
         <div
           className={styles.highlightTabs}
           data-mobile-section-owner="highlight-tabs"
-          aria-label="หัวข้อหน้าแรก"
+          aria-label={copy.homeTopics}
           role="tablist"
         >
           {HIGHLIGHT_TABS.map((tab, index) => {
@@ -446,7 +587,7 @@ export default function MobileHomeRoot({ content, showPromotion }: MobileHomeRoo
                 aria-controls="mobile-highlight-content"
                 onClick={() => selectHighlightTab(tab)}
               >
-                {tab}
+                {copy.highlightTabs[tab]}
               </button>
             );
           })}
@@ -489,7 +630,7 @@ export default function MobileHomeRoot({ content, showPromotion }: MobileHomeRoo
             id="mobile-highlight-content"
             className={styles.nextContentSlot}
             data-mobile-content-slot="after-highlight"
-            aria-label="เนื้อหาหน้าแรกมือถือ"
+            aria-label={copy.mobileContent}
             role="tabpanel"
             aria-live="polite"
           >
@@ -500,27 +641,35 @@ export default function MobileHomeRoot({ content, showPromotion }: MobileHomeRoo
 
       <div className={styles.bottomStructure} data-mobile-bottom-owner="true">
         <section className={styles.shortcutSection} data-mobile-section-owner="shortcut" aria-labelledby="mobile-shortcut-title">
-          <h2 id="mobile-shortcut-title">เพิ่มปุ่มลัดหน้าโฮม</h2>
+          <h2 id="mobile-shortcut-title">{copy.shortcutTitle}</h2>
           <div className={styles.shortcutCard} data-mobile-shortcut-card="true">
+            <img className={styles.shortcutArtwork} src={`${SOURCE_ROOT}/shortcut/bg_top.webp`} alt="" aria-hidden="true" />
             <div className={styles.shortcutContent}>
               <div className={styles.shortcutIntro}>
                 <img src={LOGO_URL} alt="NOAH345" />
                 <div>
-                  <strong>เพิ่มปุ่มลัดได้แล้ววันนี้!</strong>
-                  <span>สัมผัสประสบการณ์ที่เหนือกว่า เพิ่มปุ่มเลย</span>
+                  <strong>{copy.shortcutHeading}</strong>
+                  <span>{copy.shortcutSummary}</span>
                 </div>
               </div>
               <div className={styles.shortcutActions}>
-                <span className={styles.androidButton} aria-disabled="true">Android</span>
-                <Link href="/download" className={styles.iosButton}>iOS</Link>
+                <button type="button" className={styles.androidButton} onClick={() => { void installShortcut('android'); }}>Android</button>
+                <button type="button" className={styles.iosButton} onClick={() => { void installShortcut('ios'); }}>iOS</button>
               </div>
+              {shortcutHelp ? (
+                <div className={styles.shortcutHelp} role="status">
+                  <strong>{copy.installHelp[shortcutHelp].title}</strong>
+                  <span>{copy.installHelp[shortcutHelp].steps}</span>
+                  <button type="button" onClick={() => setShortcutHelp(null)}>{copy.close}</button>
+                </div>
+              ) : null}
             </div>
           </div>
         </section>
 
-        <footer className={styles.mobileFooter} data-mobile-section-owner="footer" aria-label="ข้อมูลเว็บไซต์มือถือ">
+        <footer className={styles.mobileFooter} data-mobile-section-owner="footer" aria-label={copy.websiteInfo}>
           <section className={styles.paymentSection} aria-labelledby="mobile-payment-title">
-            <h2 id="mobile-payment-title">วิธีการชำระเงิน</h2>
+            <h2 id="mobile-payment-title">{copy.paymentMethods}</h2>
             <div className={styles.bankGrid}>
               {BANKS.map((bank) => (
                 <img key={bank} src={`${SOURCE_ROOT}/banks/TH/${bank}.webp`} alt={bank} loading="lazy" />
@@ -532,13 +681,13 @@ export default function MobileHomeRoot({ content, showPromotion }: MobileHomeRoo
 
           <div className={styles.footerTopRow}>
             <section>
-              <strong>ติดต่อเรา</strong>
-              <a href="https://lin.ee/UYkP0OC" target="_blank" rel="noopener noreferrer" aria-label="ติดต่อเราผ่าน LINE">
+              <strong>{copy.contactUs}</strong>
+              <a href="https://lin.ee/UYkP0OC" target="_blank" rel="noopener noreferrer" aria-label={copy.contactLine}>
                 <img src={`${SOURCE_ROOT}/line.png`} alt="LINE" loading="lazy" />
               </a>
             </section>
             <section>
-              <strong>รับผิดชอบในการเดิมพัน</strong>
+              <strong>{copy.responsibleGaming}</strong>
               <img src={`${SOURCE_ROOT}/footer/gamecare.webp`} alt="Game Care" loading="lazy" />
             </section>
           </div>
@@ -548,8 +697,8 @@ export default function MobileHomeRoot({ content, showPromotion }: MobileHomeRoo
           <div className={styles.footerBottomRow}>
             <section className={styles.licenseSection}>
               <div className={styles.licenseTitle}>
-                <strong>ใบอนุญาตและใบรับรอง</strong>
-                <span>(การันตีเกมลิขสิทธิ์แท้)</span>
+                <strong>{copy.licenses}</strong>
+                <span>{copy.licenseGuarantee}</span>
               </div>
               <div className={styles.licenseGrid}>
                 {LICENSE_BADGES.map(([name, url]) => (
@@ -559,7 +708,7 @@ export default function MobileHomeRoot({ content, showPromotion }: MobileHomeRoo
             </section>
 
             <section className={styles.securitySection}>
-              <strong>การรองรับและความปลอดภัยโดย</strong>
+              <strong>{copy.securityBy}</strong>
               <div>
                 {SECURITY_BADGES.map(([name, url]) => (
                   <img key={name} src={url} alt={name} loading="lazy" />
@@ -627,7 +776,9 @@ function ChevronRightIcon() {
 }
 
 function MobileAuthActions({ layout, onNavigate }: MobileAuthActionsProps) {
+  const { locale } = useMemberLocale();
   const isPage = layout === 'page';
+  const copy = ROOT_COPY[locale];
 
   return (
     <div
@@ -645,14 +796,14 @@ function MobileAuthActions({ layout, onNavigate }: MobileAuthActionsProps) {
     >
       <AuthActionLink
         href="/?auth=register"
-        label="สมัครสมาชิก"
+        label={copy.register}
         className={styles.registerButton}
         horizontal={isPage}
         onNavigate={onNavigate}
       />
       <AuthActionLink
         href="/?auth=login"
-        label="เข้าสู่ระบบ"
+        label={copy.login}
         className={styles.loginButton}
         horizontal={isPage}
         onNavigate={onNavigate}
@@ -707,7 +858,7 @@ function AuthActionLink({ href, label, className, horizontal, onNavigate }: Auth
   );
 }
 
-function getMobileHeroSlides(content: CmsContent): MobileHeroSlide[] {
+function getMobileHeroSlides(content: CmsContent, locale: 'th' | 'en'): MobileHeroSlide[] {
   const seenImages = new Set<string>();
   const slides: MobileHeroSlide[] = [];
 
@@ -723,7 +874,7 @@ function getMobileHeroSlides(content: CmsContent): MobileHeroSlide[] {
       id: banner.id || `mobile-banner-${index + 1}`,
       image,
       href: banner.href || '/promotions',
-      title: banner.title || `โปรโมชั่น ${index + 1}`,
+      title: banner.title || `${ROOT_COPY[locale].promotion} ${index + 1}`,
     });
   });
 
@@ -735,7 +886,12 @@ function getAnnouncementMessages(content: CmsContent) {
   const messages: string[] = [];
 
   content.announcements.forEach((announcement) => {
-    if (!announcement.enabled || announcement.lifecycle === 'draft' || announcement.lifecycle === 'archived') return;
+    if (
+      !announcement.enabled
+      || announcement.kind !== 'system'
+      || announcement.lifecycle === 'draft'
+      || announcement.lifecycle === 'archived'
+    ) return;
 
     const message = [announcement.title, announcement.message]
       .map((value) => value.trim())
@@ -752,4 +908,8 @@ function getAnnouncementMessages(content: CmsContent) {
 
 function isImageUrl(value: string) {
   return /^(?:https?:\/\/|\/)/i.test(value.trim());
+}
+
+function localizedMenuLabel(label: string, locale: 'th' | 'en') {
+  return locale === 'en' ? MENU_LABELS_EN[label] ?? label : label;
 }
