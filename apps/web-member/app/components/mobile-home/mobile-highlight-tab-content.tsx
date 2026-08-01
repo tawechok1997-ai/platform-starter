@@ -6,10 +6,12 @@ import { memberApiFetch } from '../../member-api';
 import { useMemberLocale } from '../../member-locale-provider';
 import { useMemberRuntime } from '../../member-runtime-provider';
 import { resolveLocalAssetOrSource } from '../../lib/local-asset-by-basename';
+import MobileCasinoProviderPage from './mobile-casino-provider-page';
 import MobileSourceContent from './mobile-source-content';
 import styles from './mobile-highlight-tab-content.module.css';
 
 export type MobileHighlightTab = 'highlights' | 'promotions' | 'activities' | 'news';
+type MobileCategoryId = 'home' | 'casino' | 'slot' | 'fishing' | 'sport' | 'card' | 'lottery';
 
 type HighlightItem = {
   id: string;
@@ -28,9 +30,20 @@ type MobileHighlightTabContentProps = {
   activeTab: MobileHighlightTab;
 };
 
+const MOBILE_CATEGORY_IDS = new Set<MobileCategoryId>([
+  'home',
+  'casino',
+  'slot',
+  'fishing',
+  'sport',
+  'card',
+  'lottery',
+]);
+
 export default function MobileHighlightTabContent({ activeTab }: MobileHighlightTabContentProps) {
   const { locale } = useMemberLocale();
   const { home } = useMemberRuntime();
+  const [activeCategory, setActiveCategory] = useState<MobileCategoryId>('home');
   const [apiPromotions, setApiPromotions] = useState<HighlightItem[]>([]);
   const [promotionStatus, setPromotionStatus] = useState<'loading' | 'ready' | 'error'>('loading');
 
@@ -45,6 +58,28 @@ export default function MobileHighlightTabContent({ activeTab }: MobileHighlight
         if (!controller.signal.aborted) setPromotionStatus('error');
       });
     return () => controller.abort();
+  }, []);
+
+  useEffect(() => {
+    const selectFromClick = (event: MouseEvent) => {
+      const target = event.target;
+      if (!(target instanceof Element)) return;
+      const trigger = target.closest<HTMLElement>('[data-mobile-category-id]');
+      const category = trigger?.dataset.mobileCategoryId;
+      if (isMobileCategoryId(category)) setActiveCategory(category);
+    };
+
+    const selectFromEvent = (event: Event) => {
+      const category = (event as CustomEvent<{ category?: unknown }>).detail?.category;
+      if (isMobileCategoryId(category)) setActiveCategory(category);
+    };
+
+    window.addEventListener('click', selectFromClick, true);
+    window.addEventListener('member:mobile-category-select', selectFromEvent);
+    return () => {
+      window.removeEventListener('click', selectFromClick, true);
+      window.removeEventListener('member:mobile-category-select', selectFromEvent);
+    };
   }, []);
 
   const promotions = useMemo(
@@ -64,6 +99,14 @@ export default function MobileHighlightTabContent({ activeTab }: MobileHighlight
   const activities = useMemo(() => home.activities.map(runtimeItem), [home.activities]);
   const news = useMemo(() => home.news.map(runtimeItem), [home.news]);
   const copy = COPY[locale];
+
+  if (activeCategory === 'casino') {
+    return <MobileCasinoProviderPage />;
+  }
+
+  if (activeCategory !== 'home') {
+    return <MobileSourceContent />;
+  }
 
   if (activeTab === 'promotions') {
     return (
@@ -206,6 +249,10 @@ function text(value: unknown, fallback: string) {
 
 function firstText(...values: unknown[]) {
   return values.find((value): value is string => typeof value === 'string' && value.trim().length > 0)?.trim() ?? '';
+}
+
+function isMobileCategoryId(value: unknown): value is MobileCategoryId {
+  return typeof value === 'string' && MOBILE_CATEGORY_IDS.has(value as MobileCategoryId);
 }
 
 function AssetImage({ source, alt }: { source: string; alt: string }) {
