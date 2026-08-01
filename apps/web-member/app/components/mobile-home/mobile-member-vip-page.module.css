@@ -3,7 +3,7 @@
   min-height: 100dvh;
   margin: 0 auto;
   color: #fff;
-  background: #141019;
+  background: #110e16;
   box-shadow: 0 0 24px rgb(255 255 255 / 14%);
 }
 
@@ -30,6 +30,7 @@
   color: #fff;
   background: transparent;
   cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .header button svg {
@@ -67,6 +68,7 @@
   overflow-x: auto;
   scroll-snap-type: x mandatory;
   scrollbar-width: none;
+  user-select: none;
 }
 
 .tierTimeline::-webkit-scrollbar,
@@ -78,35 +80,78 @@
   position: relative;
   display: flex;
   width: 160px;
+  height: 100px;
   flex: 0 0 160px;
   align-items: center;
   scroll-snap-align: center;
 }
 
-.timelineButton,
-.timelineButtonActive {
+.timelineButton {
   position: relative;
   z-index: 1;
-  display: grid;
-  width: 44px;
+  display: flex;
+  width: 78px;
+  height: 86px;
   padding: 0;
-  place-items: center;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
   gap: 11px;
   border: 0;
   color: #a6a6a6;
   background: transparent;
   cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .timelineButtonActive {
   color: #fff;
 }
 
-.timelineButton strong,
-.timelineButtonActive strong {
+.timelineButton > strong {
   font-size: 10px;
   font-weight: 700;
   line-height: 12px;
+}
+
+.timelineTierArt {
+  position: relative;
+  display: grid;
+  width: 78px;
+  height: 72px;
+  place-items: center;
+}
+
+.timelineTierArt > img {
+  display: block;
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+  transform: scale(1.8);
+  transform-origin: center;
+  pointer-events: none;
+  filter: drop-shadow(0 5px 8px rgb(0 0 0 / 50%));
+}
+
+.timelineTierArt > span {
+  --vip-badge-color: #ff9499;
+  position: absolute;
+  right: 9px;
+  bottom: 2px;
+  left: 9px;
+  display: grid;
+  height: 17px;
+  padding: 1px;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 10px;
+  color: #fff;
+  background-color: var(--vip-badge-color);
+  background-image: linear-gradient(rgb(255 255 255 / 50%), rgb(255 255 255 / 0%));
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 15px;
+  box-shadow: inset 0 -6px 10px rgb(0 0 0 / 22%);
 }
 
 .timelineLock {
@@ -119,24 +164,17 @@
   background: #353535;
 }
 
-.timelineLock[data-unlocked='true'] {
-  color: #fff;
-  background: linear-gradient(180deg, #685f78, #342d42);
-}
-
 .timelineLock svg {
   width: 12px;
   height: 12px;
   fill: currentColor;
-  stroke: currentColor;
-  stroke-width: 1.7;
 }
 
 .timelineConnector {
   position: absolute;
   z-index: 0;
-  top: 10px;
-  left: 20px;
+  top: 49px;
+  left: 39px;
   width: 160px;
   height: 1px;
   background: #353535;
@@ -150,15 +188,16 @@
   overflow-x: auto;
   scroll-snap-type: x mandatory;
   scrollbar-width: none;
+  user-select: none;
 }
 
 .tierCard {
   position: relative;
   width: 82vw;
-  max-width: 350px;
+  max-width: 364px;
   height: 220px;
   padding: 0;
-  flex: 0 0 min(82vw, 350px);
+  flex: 0 0 min(82vw, 364px);
   overflow: hidden;
   border: 0;
   border-radius: 7px;
@@ -190,7 +229,7 @@
   top: 18px;
   left: 8px;
   width: 25%;
-  height: 95px;
+  height: 105px;
   border-radius: 999px;
 }
 
@@ -205,9 +244,9 @@
 .tierName {
   position: absolute;
   z-index: 3;
-  top: 37px;
+  top: 36px;
   right: 16px;
-  font-size: 24px;
+  font-size: 30px;
   font-weight: 800;
   font-style: italic;
   line-height: 36px;
@@ -221,7 +260,7 @@
   bottom: 0;
   left: 0;
   display: grid;
-  height: 157px;
+  height: 167px;
   padding: 58px 8px 12px;
   place-items: center;
   border: 1px solid rgb(255 255 255 / 4%);
@@ -242,6 +281,7 @@
   transform: translateX(-50%) rotate(45deg);
 }
 
+.currentProgressCopy,
 .lockedCopy,
 .progressCopy {
   position: relative;
@@ -250,10 +290,82 @@
   width: 100%;
   align-items: center;
   flex-direction: column;
-  gap: 3px;
   font-size: 9px;
   line-height: 15px;
   text-align: center;
+}
+
+.currentProgressCopy {
+  align-items: stretch;
+  gap: 0;
+  text-align: left;
+}
+
+.progressTrack {
+  position: relative;
+  width: 100%;
+  height: 3px;
+  margin-bottom: 7px;
+  overflow: visible;
+  border-radius: 1px;
+  background: rgb(230 230 230 / 10%);
+  box-shadow: 0 0 2px rgb(230 230 230 / 12%);
+}
+
+.progressTrack > span {
+  display: block;
+  max-width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(270deg, #fff1c2 8.96%, rgb(255 255 255 / 0%) 117.91%);
+}
+
+.currentProgressCopy > small {
+  color: #fff;
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 14px;
+}
+
+.progressAmount {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  margin-bottom: 5px;
+  color: #fff;
+}
+
+.progressAmount strong {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 18px;
+}
+
+.progressAmount i {
+  font-size: 13px;
+  font-style: normal;
+}
+
+.progressAmount b {
+  font-size: 10px;
+  font-weight: 500;
+}
+
+.nextTierMessage {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 400;
+  line-height: 15px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.lockedCopy,
+.progressCopy {
+  gap: 3px;
 }
 
 .lockedCopy svg,
@@ -272,26 +384,9 @@
 }
 
 .lockedCopy span,
-.lockedCopy small,
 .progressCopy small {
   color: #fff;
   font-size: 9px;
-}
-
-.progressTrack {
-  width: 82%;
-  height: 4px;
-  margin: 3px 0 2px;
-  overflow: hidden;
-  border-radius: 99px;
-  background: #1a171e;
-}
-
-.progressTrack span {
-  display: block;
-  height: 100%;
-  border-radius: inherit;
-  background: linear-gradient(90deg, #8f2cc7, #dc31e4);
 }
 
 .status,
@@ -312,11 +407,87 @@
   border-color: rgb(239 68 68 / 35%);
 }
 
+.birthdayPrompt {
+  display: grid;
+  width: calc(100% - 32px);
+  height: 72px;
+  margin: 1px 16px 0;
+  padding: 8px;
+  grid-template-columns: 48px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid #4c5059;
+  border-radius: 6px;
+  background: #15131a;
+}
+
+.birthdayIcon {
+  display: grid;
+  width: 48px;
+  height: 48px;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid #413e4b;
+  border-radius: 10px;
+  background: linear-gradient(0deg, rgb(27 24 36 / 60%) -5.86%, rgb(63 59 75 / 60%) 104.05%);
+}
+
+.birthdayIcon img {
+  display: block;
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+}
+
+.birthdayCopy {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.birthdayCopy strong {
+  overflow: hidden;
+  color: #7100bd;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 24px;
+  letter-spacing: .15px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.birthdayCopy small {
+  overflow: hidden;
+  color: #a6a6a6;
+  font-size: 10px;
+  line-height: 14px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.birthdayPrompt > button {
+  display: grid;
+  min-width: 72px;
+  height: 37px;
+  padding: 0 8px;
+  place-items: center;
+  border: 0;
+  border-radius: 6px;
+  color: #fff;
+  background: linear-gradient(165deg, #944fe8 -17.16%, #7600a8 91.36%);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
 .sectionStack {
   display: flex;
   padding: 2px 16px 0;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
 }
 
 .vipSection {
@@ -407,12 +578,12 @@
   place-items: center;
   overflow: hidden;
   border-radius: 999px;
-  background: #15131a;
+  background: linear-gradient(175deg, #505050 -79.22%, #474747 -15.16%, #252525 78.94%);
 }
 
 .benefitIcon > img {
-  width: 44px;
-  height: 44px;
+  width: 38px;
+  height: 38px;
   object-fit: contain;
 }
 
@@ -442,11 +613,15 @@
 
 .benefitItem p {
   margin: 0;
-  color: #a6a6a6;
+  color: #fff;
   font-size: 11px;
   font-weight: 500;
   line-height: 17px;
   text-align: center;
+}
+
+.benefitItem[data-locked='true'] p {
+  color: #a6a6a6;
 }
 
 .cashbackGrid {
@@ -515,6 +690,28 @@
     flex-basis: 86vw;
   }
 
+  .tierName {
+    font-size: 24px;
+  }
+
+  .nextTierMessage {
+    font-size: 8px;
+  }
+
+  .birthdayPrompt {
+    width: calc(100% - 16px);
+    margin-inline: 8px;
+  }
+
+  .birthdayCopy strong {
+    font-size: 12px;
+  }
+
+  .birthdayPrompt > button {
+    min-width: 66px;
+    font-size: 10px;
+  }
+
   .sectionStack {
     padding-inline: 8px;
   }
@@ -535,5 +732,12 @@
   .cashbackItem {
     padding: 6px;
     gap: 5px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tierCard,
+  .tierCardSelected {
+    transition: none;
   }
 }
