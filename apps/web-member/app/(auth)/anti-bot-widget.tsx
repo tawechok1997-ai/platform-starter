@@ -28,21 +28,35 @@ export function AntiBotWidget({ endpoint, locale, resetKey, onToken, onRequiredC
   const providerRef = useRef<Provider | null>(null);
   const [config, setConfig] = useState<PublicConfig | null>(null);
   const [error, setError] = useState('');
+  const [nonBlockingWarning, setNonBlockingWarning] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
+    setError('');
+    setNonBlockingWarning(false);
     client.request<PublicConfig>(`/api/anti-bot/${endpoint}`, { auth: false, cache: 'no-store' })
       .then((payload) => {
         if (cancelled) return;
         setConfig(payload);
         const ready = !payload.enabled || Boolean(payload.provider && payload.siteKey);
         onRequiredChange(Boolean(payload.enabled), ready);
-        if (payload.enabled && !ready) setError(locale === 'th' ? 'ระบบยืนยันความปลอดภัยยังตั้งค่าไม่ครบ' : 'Security verification is not configured correctly');
+        if (payload.enabled && !ready) {
+          setError(locale === 'th'
+            ? 'ระบบยืนยันความปลอดภัยยังตั้งค่าไม่ครบ'
+            : 'Security verification is not configured correctly');
+        }
       })
       .catch(() => {
         if (cancelled) return;
-        setError(locale === 'th' ? 'โหลดระบบยืนยันความปลอดภัยไม่สำเร็จ' : 'Could not load security verification');
-        onRequiredChange(true, false);
+        // Do not freeze the form because the public configuration proxy had a
+        // transient failure. The API remains the final CAPTCHA authority and
+        // will reject the request when a token is genuinely required.
+        setConfig({ enabled: false, provider: null, siteKey: '' });
+        setNonBlockingWarning(true);
+        setError(locale === 'th'
+          ? 'ตรวจสอบสถานะระบบยืนยันความปลอดภัยไม่ได้ ระบบจะตรวจอีกครั้งตอนส่งข้อมูล'
+          : 'Security verification status is unavailable. It will be checked again on submit.');
+        onRequiredChange(false, true);
       });
     return () => { cancelled = true; };
   }, [endpoint, locale, onRequiredChange]);
@@ -54,24 +68,44 @@ export function AntiBotWidget({ endpoint, locale, resetKey, onToken, onRequiredC
     providerRef.current = provider;
     const scriptId = `anti-bot-${provider.toLowerCase()}`;
     let script = document.getElementById(scriptId) as HTMLScriptElement | null;
+
+    const block = (message: string) => {
+      onToken('');
+      setNonBlockingWarning(false);
+      setError(message);
+      onRequiredChange(true, false);
+    };
+
     const render = () => {
       if (cancelled || !hostRef.current) return;
       try {
-        const api = provider === 'TURNSTILE' ? (window as any).turnstile : provider === 'RECAPTCHA' ? (window as any).grecaptcha : (window as any).hcaptcha;
+        const api = provider === 'TURNSTILE'
+          ? (window as any).turnstile
+          : provider === 'RECAPTCHA'
+            ? (window as any).grecaptcha
+            : (window as any).hcaptcha;
         if (!api?.render) throw new Error('provider unavailable');
         hostRef.current.innerHTML = '';
         widgetIdRef.current = api.render(hostRef.current, {
           sitekey: config.siteKey,
           theme: 'dark',
-          callback: (token: string) => { setError(''); onToken(token); onRequiredChange(true, true); },
+          callback: (token: string) => {
+            setError('');
+            onToken(token);
+            onRequiredChange(true, true);
+          },
           'expired-callback': () => onToken(''),
-          'error-callback': () => { onToken(''); setError(locale === 'th' ? 'การยืนยันมีปัญหา กรุณาลองใหม่' : 'Verification failed. Please try again'); },
+          'error-callback': () => block(locale === 'th'
+            ? 'การยืนยันมีปัญหา กรุณาลองใหม่'
+            : 'Verification failed. Please try again'),
         });
       } catch {
-        setError(locale === 'th' ? 'เปิดระบบยืนยันความปลอดภัยไม่สำเร็จ' : 'Could not start security verification');
-        onRequiredChange(true, false);
+        block(locale === 'th'
+          ? 'เปิดระบบยืนยันความปลอดภัยไม่สำเร็จ'
+          : 'Could not start security verification');
       }
     };
+
     if (!script) {
       script = document.createElement('script');
       script.id = scriptId;
@@ -79,11 +113,15 @@ export function AntiBotWidget({ endpoint, locale, resetKey, onToken, onRequiredC
       script.async = true;
       script.defer = true;
       script.onload = render;
-      script.onerror = () => { setError(locale === 'th' ? 'โหลดผู้ให้บริการ CAPTCHA ไม่สำเร็จ' : 'Could not load the CAPTCHA provider'); onRequiredChange(true, false); };
+      script.onerror = () => block(locale === 'th'
+        ? 'โหลดผู้ให้บริการ CAPTCHA ไม่สำเร็จ'
+        : 'Could not load the CAPTCHA provider');
       document.head.appendChild(script);
     } else if (provider === 'RECAPTCHA' && (window as any).grecaptcha?.ready) {
       (window as any).grecaptcha.ready(render);
-    } else render();
+    } else {
+      render();
+    }
     return () => { cancelled = true; };
   }, [config, locale, onRequiredChange, onToken]);
 
@@ -91,18 +129,32 @@ export function AntiBotWidget({ endpoint, locale, resetKey, onToken, onRequiredC
     const provider = providerRef.current;
     const id = widgetIdRef.current;
     if (!provider || id === null) return;
-    const api = provider === 'TURNSTILE' ? (window as any).turnstile : provider === 'RECAPTCHA' ? (window as any).grecaptcha : (window as any).hcaptcha;
+    const api = provider === 'TURNSTILE'
+      ? (window as any).turnstile
+      : provider === 'RECAPTCHA'
+        ? (window as any).grecaptcha
+        : (window as any).hcaptcha;
     try {
       api?.reset?.(id);
     } catch {
-      // A stale provider widget can already be gone; clearing the local token is still sufficient.
+      // Clearing the local token is enough when the provider already removed the widget.
     }
     onToken('');
   }, [resetKey, onToken]);
 
   if (!config?.enabled && !error) return null;
-  return <div style={{ display: 'grid', gap: 8, justifyItems: 'center', overflow: 'hidden' }}>
-    <div ref={hostRef} style={{ minHeight: config?.enabled ? 65 : 0, maxWidth: '100%' }} />
-    {error && <div role="alert" style={{ color: '#fca5a5', fontSize: 12, textAlign: 'center' }}>{error}</div>}
-  </div>;
+  return (
+    <div style={{ display: 'grid', gap: 8, justifyItems: 'center', overflow: 'hidden' }}>
+      <div ref={hostRef} style={{ minHeight: config?.enabled ? 65 : 0, maxWidth: '100%' }} />
+      {error ? (
+        <div
+          role={nonBlockingWarning ? 'status' : 'alert'}
+          aria-live={nonBlockingWarning ? 'polite' : 'assertive'}
+          style={{ color: nonBlockingWarning ? '#facc15' : '#fca5a5', fontSize: 12, textAlign: 'center' }}
+        >
+          {error}
+        </div>
+      ) : null}
+    </div>
+  );
 }
