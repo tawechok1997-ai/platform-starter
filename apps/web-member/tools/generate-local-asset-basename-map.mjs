@@ -46,9 +46,9 @@ function isLegacyMobileAssetPath(value) {
 }
 
 function candidateRank(value) {
-  const normalized = value.toLowerCase();
-  if (normalized.includes('/asset-pc/')) return 0;
-  if (normalized.includes('/reference-brand/')) return 1;
+  const normalized = value.toLowerCase().replace(/^\/+/, '');
+  if (normalized.startsWith('asset-pc/') || normalized.includes('/asset-pc/')) return 0;
+  if (normalized.startsWith('reference-brand/') || normalized.includes('/reference-brand/')) return 1;
   return 2;
 }
 
