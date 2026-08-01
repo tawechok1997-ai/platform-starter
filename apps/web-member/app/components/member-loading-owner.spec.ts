@@ -11,7 +11,7 @@ test('root suspense and route loading share one loading screen owner', () => {
   assert.match(layout, /<Suspense fallback=\{<MemberLoadingScreen \/>\}>/);
   assert.match(routeLoading, /import MemberLoadingScreen from '\.\/components\/member-loading-screen'/);
   assert.match(routeLoading, /return <MemberLoadingScreen \/>/);
-  assert.doesNotMatch(routeLoading, /MemberBodySkeleton|member-loading-screen/);
+  assert.doesNotMatch(routeLoading, /MemberBodySkeleton|className="member-loading-screen"/);
 });
 
 test('shared loading screen owns the loading surface once', () => {
