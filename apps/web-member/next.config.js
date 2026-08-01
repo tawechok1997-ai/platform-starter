@@ -30,25 +30,25 @@ const contentSecurityPolicy = [
   ["frame-src 'self'", ...antiBotScripts].join(' '),
 ].join('; ');
 
-const securityHeaders = [
-  { key: 'Content-Security-Policy', value: contentSecurityPolicy },
-  { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
-  { key: 'X-Content-Type-Options', value: 'nosniff' },
-  { key: 'X-Frame-Options', value: 'SAMEORIGIN' },
-  { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=(), payment=()' },
-  { key: 'Cross-Origin-Opener-Policy', value: 'same-origin' },
-  { key: 'Cross-Origin-Resource-Policy', value: 'same-site' },
-  { key: 'Strict-Transport-Security', value: 'max-age=31536000; includeSubDomains' },
-];
-
 const exactMobileAssetRewrites = [
-  ['fire.svg', '/assets/asset-moblie/images/home/fire.svg'],
-  ['mostonline.svg', '/assets/asset-moblie/images/home/mostonline.svg'],
-  ['live.svg', '/assets/asset-moblie/images/home/live.svg'],
-].flatMap(([fileName, destination]) => [
-  { source: `/images/home/${fileName}`, destination },
-  { source: `/assets/asset-pc/images/home/${fileName}`, destination },
-]);
+  'fire.svg',
+  'mostonline.svg',
+  'live.svg',
+].map((fileName) => ({
+  source: `/images/home/${fileName}`,
+  destination: `/assets/asset-pc/images/home/${fileName}`,
+}));
+
+const legacyMobileAssetRewrites = [
+  {
+    source: '/assets/asset-mobile/:path*',
+    destination: '/assets/asset-pc/:path*',
+  },
+  {
+    source: '/assets/asset-moblie/:path*',
+    destination: '/assets/asset-pc/:path*',
+  },
+];
 
 const canonicalPageRedirects = [
   { source: '/promotions', destination: '/browse/promotions?view=promotion', permanent: false },
@@ -79,11 +79,8 @@ const nextConfig = {
   async rewrites() {
     return {
       beforeFiles: [
+        ...legacyMobileAssetRewrites,
         ...exactMobileAssetRewrites,
-        {
-          source: '/assets/asset-pc/images/ZAB1/tournament/647280b5-3a23-4118-80a0-1b7feb340d1a.png',
-          destination: 'https://cdn.zabbet.com/ZAB1/tournament/647280b5-3a23-4118-80a0-1b7feb340d1a.png',
-        },
       ],
     };
   },
