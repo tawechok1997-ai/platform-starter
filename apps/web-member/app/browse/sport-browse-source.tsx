@@ -1,6 +1,7 @@
 'use client';
 
-import SourceGameCategoryPage, { type SourceGameCategoryConfig } from './source-game-category-page';
+import SourceProviderCategoryPage from './source-provider-category-page';
+import type { SourceGameCategoryConfig } from './source-game-category-page';
 
 const rows = [
   ['sbo', 'SBO', false],
@@ -23,7 +24,7 @@ const providers = rows.map(([code, name]) => ({
 const config: SourceGameCategoryConfig = {
   slug: 'sport',
   title: 'กีฬา',
-  total: 5,
+  total: rows.length,
   resultUnit: 'ค่าย',
   mode: 'provider-cards',
   baseBackground: '/assets/asset-pc/images/game/sport/bg_sport.webp',
@@ -45,7 +46,7 @@ const config: SourceGameCategoryConfig = {
 export default function SportBrowseSource() {
   return (
     <>
-      <SourceGameCategoryPage config={config} />
+      <SourceProviderCategoryPage config={config} />
       <style>{`
         main[data-source-game-category='sport'] [data-source-filter-types] {
           height: 16px !important;
