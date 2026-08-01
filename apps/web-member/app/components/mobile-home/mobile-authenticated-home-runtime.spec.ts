@@ -9,6 +9,7 @@ const popupRuntime = readFileSync(new URL('./mobile-member-popup-runtime.tsx', i
 const commissionBridge = readFileSync(new URL('./mobile-commission-popup-bridge.tsx', import.meta.url), 'utf8');
 const mobileHomeRoot = readFileSync(new URL('./mobile-home-root.tsx', import.meta.url), 'utf8');
 const avatarPage = readFileSync(new URL('../../profile/avatar/page.tsx', import.meta.url), 'utf8');
+const avatarCss = readFileSync(new URL('../../profile/avatar/avatar-page.module.css', import.meta.url), 'utf8');
 const sharedPopupRuntime = readFileSync(new URL('../member-shared-popup-runtime.tsx', import.meta.url), 'utf8');
 
 test('authenticated mobile shell reuses the guest header and drawer owners', () => {
@@ -58,6 +59,25 @@ test('profile pages and shared dialogs do not create a second mobile popup owner
   assert.match(sharedPopupRuntime, /\[data-mobile-member-popup\]/);
   assert.match(sharedPopupRuntime, /\[data-ui-owner="mobile-popup"\]/);
   assert.doesNotMatch(sharedPopupRuntime, /public-member-menu-grid--secondary button/);
+});
+
+test('profile pencil opens the source avatar page and selected avatar returns to the drawer', () => {
+  assert.match(runtime, /href="\/profile\/avatar"/);
+  assert.match(runtime, /data-mobile-profile-avatar-trigger="true"/);
+  assert.match(runtime, /MOBILE_AVATAR_EVENT/);
+  assert.match(runtime, /MOBILE_AVATAR_STORAGE_KEY/);
+  assert.match(runtime, /preferredAvatar \|\| textValue\(profileData\?\.avatarUrl\)/);
+  assert.match(avatarPage, /data-mobile-avatar-owner="true"/);
+  assert.match(avatarPage, /รายละเอียดโปรไฟล์/);
+  assert.match(avatarPage, /memberApiFetch\('\/member\/bank-accounts'\)/);
+  assert.match(avatarPage, /MOBILE_AVATAR_OPTIONS\.map/);
+  assert.match(avatarPage, /writeMobileAvatarPreference\(avatar\)/);
+  assert.match(avatarPage, /href="\/profile\/edit"/);
+  assert.match(avatarPage, /href="\/profile\/password"/);
+  assert.match(avatarCss, /max-width:\s*428px/);
+  assert.match(avatarCss, /\.profileHero\s*\{[\s\S]*align-items:\s*center/);
+  assert.match(avatarCss, /\.actions\s*\{[\s\S]*grid-template-columns:\s*repeat\(2, minmax\(0, 1fr\)\)/);
+  assert.match(avatarCss, /\.avatarGrid\s*\{[\s\S]*grid-template-columns:\s*repeat\(4, minmax\(0, 1fr\)\)/);
 });
 
 test('authenticated drawer routes popup actions through the one mobile owner', () => {
