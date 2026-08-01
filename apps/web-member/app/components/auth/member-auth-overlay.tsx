@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState, type SyntheticEvent } from 'react';
 import { createPortal } from 'react-dom';
+import { acquireMemberDocumentOverlayLock } from '../../lib/member-document-overlay-lock';
 
 export type MemberAuthMode = 'login' | 'register';
 
@@ -13,62 +14,6 @@ type MemberAuthOverlayProps = {
 };
 
 const EXIT_DURATION_MS = 180;
-const AUTH_OVERLAY_MOTION_CSS = `
-@keyframes memberAuthBackdropEnter {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-html body .member-auth-overlay,
-html body .member-auth-overlay[data-state='open'],
-html body .member-auth-overlay[data-state='closing'] {
-  background-color: transparent !important;
-  background-image: none !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
-}
-
-html body .member-auth-overlay__backdrop {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  display: block;
-  background: rgb(0 0 0 / 80%);
-  opacity: 0;
-  pointer-events: none;
-  will-change: opacity;
-}
-
-html body .member-auth-overlay[data-state='open'] .member-auth-overlay__backdrop {
-  animation: memberAuthBackdropEnter 260ms cubic-bezier(.22, 1, .36, 1) both;
-}
-
-html body .member-auth-overlay[data-state='closing'] .member-auth-overlay__backdrop {
-  animation: none;
-  opacity: 0;
-  transition: opacity 160ms ease-out;
-}
-
-html body .member-auth-overlay__frame {
-  z-index: 1 !important;
-}
-
-@media (max-width: 900px) {
-  html body .member-auth-overlay__backdrop {
-    background: rgb(0 0 0 / 72%);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  html body .member-auth-overlay[data-state='open'] .member-auth-overlay__backdrop {
-    animation-duration: 1ms;
-  }
-
-  html body .member-auth-overlay[data-state='closing'] .member-auth-overlay__backdrop {
-    transition-duration: 1ms;
-  }
-}
-`;
 
 export default function MemberAuthOverlay({ mode, onModeChange, onClose, onSuccess }: MemberAuthOverlayProps) {
   const [activeMode, setActiveMode] = useState<MemberAuthMode>(mode);
@@ -156,26 +101,7 @@ export default function MemberAuthOverlay({ mode, onModeChange, onClose, onSucce
   }, [activeMode]);
 
   useEffect(() => {
-    const body = document.body;
-    const html = document.documentElement;
-    const scrollbarWidth = Math.max(0, window.innerWidth - html.clientWidth);
-    const computedBodyPaddingRight = Number.parseFloat(window.getComputedStyle(body).paddingRight) || 0;
-
-    const previousBodyStyles = {
-      overflow: body.style.overflow,
-      overscrollBehavior: body.style.overscrollBehavior,
-      paddingRight: body.style.paddingRight,
-    };
-    const previousHtmlStyles = {
-      overflow: html.style.overflow,
-      overscrollBehavior: html.style.overscrollBehavior,
-    };
-
-    body.style.overflow = 'hidden';
-    body.style.overscrollBehavior = 'none';
-    if (scrollbarWidth > 0) body.style.paddingRight = `${computedBodyPaddingRight + scrollbarWidth}px`;
-    html.style.overflow = 'hidden';
-    html.style.overscrollBehavior = 'none';
+    const releaseDocumentLock = acquireMemberDocumentOverlayLock();
 
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') requestClose();
@@ -198,12 +124,7 @@ export default function MemberAuthOverlay({ mode, onModeChange, onClose, onSucce
       clearExitTimer();
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('message', handleMessage);
-
-      body.style.overflow = previousBodyStyles.overflow;
-      body.style.overscrollBehavior = previousBodyStyles.overscrollBehavior;
-      body.style.paddingRight = previousBodyStyles.paddingRight;
-      html.style.overflow = previousHtmlStyles.overflow;
-      html.style.overscrollBehavior = previousHtmlStyles.overscrollBehavior;
+      releaseDocumentLock();
     };
   }, [clearExitTimer, completeAuth, requestClose, switchMode]);
 
@@ -266,7 +187,6 @@ export default function MemberAuthOverlay({ mode, onModeChange, onClose, onSucce
       data-state={motionState}
       data-frame-ready={frameReady ? 'true' : 'false'}
     >
-      <style>{AUTH_OVERLAY_MOTION_CSS}</style>
       <span className="member-auth-overlay__backdrop" aria-hidden="true" />
       <iframe
         className="member-auth-overlay__frame"
