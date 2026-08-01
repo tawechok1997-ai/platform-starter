@@ -5,19 +5,12 @@ import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
 import { createAuthBrandRuntime } from '../../components/auth/auth-brand-runtime';
 import { AntiBotWidget } from '../anti-bot-widget';
 import { PublicSiteSettings, defaultSettings, loadPublicSiteSettings, memberFeatureFlags } from '../../site-settings';
-import { hasMemberSessionTokens, memberApiFetch, persistMemberSession } from '../../member-api';
+import { clearMemberSession, hasMemberSessionTokens, memberApiFetch } from '../../member-api';
 import { resolveMemberLoginDestination } from '../../../src/features/auth/auth-redirect';
 
 type Locale = 'th' | 'en';
 type AuthMode = 'login' | 'forgot';
 type LoginErrors = { identifier?: string; secret?: string };
-
-type AuthSessionResponse = {
-  accessToken?: unknown;
-  refreshToken?: unknown;
-  data?: unknown;
-  session?: unknown;
-};
 
 const copy = {
   th: {
@@ -63,24 +56,59 @@ export default function MemberSignInPage() {
   const [message, setMessage] = useState('');
   const [status, setStatus] = useState<'idle' | 'success' | 'error' | 'info'>('idle');
   const [loading, setLoading] = useState(false);
+  const [sessionChecking, setSessionChecking] = useState(true);
   const [showSecret, setShowSecret] = useState(false);
   const [embedded, setEmbedded] = useState(false);
 
   useEffect(() => {
+    let cancelled = false;
     const params = new URLSearchParams(window.location.search);
     const isEmbedded = params.get('embed') === '1' && window.parent !== window;
     setEmbedded(isEmbedded);
     if (params.get('mode') === 'forgot') setMode('forgot');
 
-    if (hasMemberSessionTokens()) {
-      if (isEmbedded) window.parent.postMessage({ type: 'member-auth-success' }, window.location.origin);
-      else window.location.replace(resolveMemberLoginDestination(window.location.search));
-      return;
-    }
-
     const savedLocale = safeStorageGet('member_locale');
     if (savedLocale === 'th' || savedLocale === 'en') setLocale(savedLocale);
     loadPublicSiteSettings().then(setSettings).catch(() => setSettings(defaultSettings));
+
+    const revealEmbeddedForm = () => {
+      if (isEmbedded) window.parent.postMessage({ type: 'member-auth-ready' }, window.location.origin);
+    };
+
+    const validateStoredSession = async () => {
+      if (!hasMemberSessionTokens()) {
+        if (!cancelled) {
+          setSessionChecking(false);
+          revealEmbeddedForm();
+        }
+        return;
+      }
+
+      try {
+        const response = await memberApiFetch('/member/auth/profile', {
+          suppressSessionExpiryRedirect: true,
+        });
+        if (cancelled) return;
+        if (response.ok) {
+          if (isEmbedded) window.parent.postMessage({ type: 'member-auth-success' }, window.location.origin);
+          else window.location.replace(resolveMemberLoginDestination(window.location.search));
+          return;
+        }
+        if (response.status === 401) clearMemberSession();
+      } catch {
+        // A transient API failure must not close or reload the login popup.
+      }
+
+      if (!cancelled) {
+        setSessionChecking(false);
+        revealEmbeddedForm();
+      }
+    };
+
+    void validateStoredSession();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const t = copy[locale];
@@ -92,7 +120,7 @@ export default function MemberSignInPage() {
     setCaptchaReady(ready);
   }, []);
   const captchaBlocked = captchaRequired && !captchaReady;
-  const disabled = loading || captchaBlocked || (mode === 'login' && !flags.login);
+  const disabled = sessionChecking || loading || captchaBlocked || (mode === 'login' && !flags.login);
 
   function resetFeedback() {
     setErrors({});
@@ -105,7 +133,7 @@ export default function MemberSignInPage() {
   }
 
   function switchMode(nextMode: AuthMode) {
-    if (loading || nextMode === mode) return;
+    if (loading || sessionChecking || nextMode === mode) return;
     setMode(nextMode);
     setSecret('');
     setShowSecret(false);
@@ -171,17 +199,14 @@ export default function MemberSignInPage() {
         body: JSON.stringify({ identifier: identifier.trim(), secret, captchaToken: captchaToken || undefined, deviceId: 'web-member' }),
         signal: controller.signal,
       });
-      const data = await res.json().catch(() => null) as AuthSessionResponse | null;
+      const data = await res.json().catch(() => null) as { message?: unknown } | null;
       if (!res.ok) {
-        showError(typeof (data as { message?: unknown } | null)?.message === 'string'
-          ? String((data as { message: string }).message)
-          : t.failed);
+        showError(typeof data?.message === 'string' ? data.message : t.failed);
         setCaptchaResetKey((value) => value + 1);
         return;
       }
 
-      const session = normalizeSessionPayload(data);
-      if (!persistMemberSession(session)) {
+      if (!hasMemberSessionTokens()) {
         showError(t.sessionFailed);
         return;
       }
@@ -309,15 +334,6 @@ export default function MemberSignInPage() {
       </section>
     </main>
   );
-}
-
-function normalizeSessionPayload(payload: AuthSessionResponse | null) {
-  const nested = payload && typeof payload === 'object'
-    ? ((payload.session && typeof payload.session === 'object' ? payload.session : null)
-      ?? (payload.data && typeof payload.data === 'object' ? payload.data : null)
-      ?? payload)
-    : null;
-  return nested as { accessToken?: unknown; refreshToken?: unknown } | null;
 }
 
 function safeStorageGet(key: string) {
