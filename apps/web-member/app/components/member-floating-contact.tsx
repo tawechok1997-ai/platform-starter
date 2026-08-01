@@ -22,7 +22,7 @@ const MINI_TOOLS = [
 
 export default function MemberFloatingContact() {
   const [open, setOpen] = useState(false);
-  const [miniToolsOpen, setMiniToolsOpen] = useState(true);
+  const [miniToolsOpen, setMiniToolsOpen] = useState(false);
   const { primary } = useMemberContactRuntime();
 
   useEffect(() => {
