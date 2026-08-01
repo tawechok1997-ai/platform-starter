@@ -24,8 +24,8 @@ const NAVIGATION_FEATURES = new Set<NonNullable<MemberNavigationItem['feature']>
 
 const APPROVED_MENU_ICONS: Readonly<Record<string, string>> = {
   home: '/images/menu-icons/home.svg',
-  slot: '/images/menu-icons/slot.svg',
-  card: '/images/menu-icons/card.svg',
+  slot: '/assets/reference-brand/menu/slot.png',
+  card: '/assets/reference-brand/menu/card.png',
 };
 
 export function buildConfiguredMemberNavigation(
