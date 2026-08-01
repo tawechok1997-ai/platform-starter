@@ -6,6 +6,7 @@ const memberHome = readFileSync(new URL('../../member-home.tsx', import.meta.url
 const runtime = readFileSync(new URL('./mobile-authenticated-home-runtime.tsx', import.meta.url), 'utf8');
 const runtimeCss = readFileSync(new URL('./mobile-authenticated-home-runtime.module.css', import.meta.url), 'utf8');
 const popupRuntime = readFileSync(new URL('./mobile-member-popup-runtime.tsx', import.meta.url), 'utf8');
+const commissionBridge = readFileSync(new URL('./mobile-commission-popup-bridge.tsx', import.meta.url), 'utf8');
 const mobileHomeRoot = readFileSync(new URL('./mobile-home-root.tsx', import.meta.url), 'utf8');
 const avatarPage = readFileSync(new URL('../../profile/avatar/page.tsx', import.meta.url), 'utf8');
 const sharedPopupRuntime = readFileSync(new URL('../member-shared-popup-runtime.tsx', import.meta.url), 'utf8');
@@ -36,6 +37,19 @@ test('mobile authenticated shell owns one mobile popup runtime and no desktop po
   assert.doesNotMatch(runtime, /MemberHeaderFinanceRuntime|MemberMenuIncomeSafeRuntime|MemberMenuSpecialBonusRuntime|MemberMenuSecondaryRuntime|MemberMenuVipRuntime/);
   assert.doesNotMatch(popupRuntime, /MemberHeaderFinanceRuntime|MemberMenuIncomeSafeRuntime|MemberSharedPopupRuntime/);
   assert.match(popupRuntime, /function SourcePopupShell/);
+});
+
+test('commission actions reuse the one popup owner and source geometry', () => {
+  assert.equal((runtime.match(/<MobileCommissionPopupBridge\s*\/>/g) ?? []).length, 1);
+  assert.match(commissionBridge, /data\.mobileMemberPopup = COMMISSION_POPUP_KIND/);
+  assert.match(commissionBridge, /commission-income/);
+  assert.match(commissionBridge, /data-mobile-popup-owner='commission-income'/);
+  assert.match(commissionBridge, /width:\s*min\(480px, 100%\)/);
+  assert.match(commissionBridge, /min-height:\s*75px/);
+  assert.match(commissionBridge, /grid-template-columns:\s*repeat\(3, minmax\(0, 1fr\)\)/);
+  assert.doesNotMatch(commissionBridge, /createPortal|role="dialog"|MutationObserver/);
+  assert.match(popupRuntime, /popup === 'commission-income'/);
+  assert.match(popupRuntime, /<IncomeTransferContent/);
 });
 
 test('profile pages and shared dialogs do not create a second mobile popup owner', () => {
