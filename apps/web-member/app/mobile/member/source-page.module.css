@@ -1,0 +1,268 @@
+.page {
+  width: 100%;
+  max-width: 428px;
+  min-height: 100dvh;
+  margin: 0 auto;
+  padding-bottom: calc(60px + env(safe-area-inset-bottom));
+  color: #fff;
+  background: #141019;
+}
+
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 51;
+  display: grid;
+  width: 100%;
+  height: 50px;
+  padding: 0 8px;
+  grid-template-columns: 32px minmax(0, 1fr) 32px;
+  align-items: center;
+  background: #171422;
+}
+
+.header button {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  padding: 4px;
+  place-items: center;
+  border: 0;
+  color: #fff;
+  background: transparent;
+  cursor: pointer;
+}
+
+.header svg {
+  width: 24px;
+  height: 24px;
+}
+
+.header h1 {
+  margin: 0;
+  overflow: hidden;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 24px;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.body {
+  display: flex;
+  padding: 16px;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.periodTabs {
+  display: grid;
+  width: 100%;
+  height: 24px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  overflow: hidden;
+  border: 1px solid #504a60;
+  border-radius: 3px;
+}
+
+.periodTabs button {
+  min-width: 0;
+  padding: 0 3px;
+  border: 0;
+  border-right: 1px solid #504a60;
+  color: #fff;
+  background: transparent;
+  font: inherit;
+  font-size: 10px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.periodTabs button:last-child {
+  border-right: 0;
+}
+
+.periodTabs button[data-active='true'] {
+  background: #504a60;
+}
+
+.summaryCard {
+  position: relative;
+  display: flex;
+  width: 100%;
+  min-height: 77px;
+  padding: 10px 12px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  overflow: hidden;
+  border: 1px solid rgb(98 98 98 / 70%);
+  border-radius: 7px;
+  background: #15131a;
+}
+
+.summaryCard > div {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.summaryCard span {
+  overflow: hidden;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 20px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.summaryCard strong {
+  font-size: 20px;
+  font-weight: 800;
+  line-height: 28px;
+}
+
+.summaryCard button {
+  min-width: 96px;
+  height: 36px;
+  border: 1px solid #9a14bb;
+  border-radius: 6px;
+  color: #fff;
+  background: linear-gradient(165.34deg, #944fe8 -17.16%, #7600a8 91.36%);
+  font: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.sectionTitle {
+  display: flex;
+  min-height: 27px;
+  margin-top: 2px;
+  padding: 0 10px;
+  align-items: center;
+  border-bottom: 1px solid rgb(187 91 234 / 44%);
+  border-radius: 3px;
+  background: linear-gradient(90deg, rgb(187 91 234 / 20%) -6.21%, rgb(187 91 234 / 44%) 4.41%, transparent 83.01%);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.row,
+.bonusCard {
+  display: grid;
+  min-height: 66px;
+  padding: 10px 12px;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid #504a60;
+  border-radius: 7px;
+  background: #15131a;
+}
+
+.row {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.row > div,
+.bonusCard > div {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.row strong,
+.bonusCard strong {
+  overflow: hidden;
+  font-size: 12px;
+  line-height: 18px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.row span,
+.bonusCard span,
+.bonusCard small {
+  color: #a6a6a6;
+  font-size: 10px;
+  line-height: 16px;
+}
+
+.row b {
+  color: #bb5bea;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.bonusCard {
+  grid-template-columns: 42px minmax(0, 1fr);
+}
+
+.bonusCard > span {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  border-radius: 8px;
+  background: linear-gradient(145deg, #4c405d, #2b2637);
+  color: #e0b1f1;
+  font-size: 22px;
+}
+
+.empty {
+  display: flex;
+  min-height: 60vh;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  color: #a6a6a6;
+  text-align: center;
+}
+
+.empty svg {
+  width: 116px;
+  height: 81px;
+}
+
+.empty strong {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.state {
+  padding: 12px;
+  color: #a6a6a6;
+  font-size: 12px;
+  text-align: center;
+}
+
+@media (min-width: 360px) {
+  .header h1 {
+    font-size: 18px;
+  }
+
+  .periodTabs button,
+  .summaryCard button {
+    font-size: 11px;
+  }
+}
+
+@media (min-width: 640px) and (max-width: 900px) {
+  .page {
+    max-width: 640px;
+  }
+
+  .body {
+    padding-inline: 20px;
+  }
+}
