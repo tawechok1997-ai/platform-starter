@@ -76,6 +76,7 @@ const API_CATEGORIES: Record<Exclude<MobileCategoryId, 'home'>, readonly string[
 };
 
 const categoryCache = new Map<Exclude<MobileCategoryId, 'home'>, Promise<CategoryGame[]>>();
+const MOBILE_CATEGORY_SELECT_EVENT = 'member:mobile-category-select';
 
 export default function MobileCategoryTabRuntime() {
   const { locale } = useMemberLocale();
@@ -98,12 +99,23 @@ export default function MobileCategoryTabRuntime() {
       if (!isMobileCategoryId(category)) return;
 
       event.preventDefault();
-      event.stopPropagation();
       setActiveCategory(category);
     };
 
+    const selectCategory = (event: Event) => {
+      const detail = event instanceof CustomEvent ? event.detail : null;
+      const category = detail && typeof detail === 'object'
+        ? (detail as { category?: string }).category
+        : undefined;
+      if (isMobileCategoryId(category)) setActiveCategory(category);
+    };
+
     root.addEventListener('click', switchCategory, true);
-    return () => root.removeEventListener('click', switchCategory, true);
+    window.addEventListener(MOBILE_CATEGORY_SELECT_EVENT, selectCategory);
+    return () => {
+      root.removeEventListener('click', switchCategory, true);
+      window.removeEventListener(MOBILE_CATEGORY_SELECT_EVENT, selectCategory);
+    };
   }, []);
 
   useEffect(() => {
@@ -113,6 +125,7 @@ export default function MobileCategoryTabRuntime() {
     root.dataset.mobileActiveCategory = activeCategory;
     root.querySelectorAll<HTMLElement>('[data-mobile-category-id]').forEach((item) => {
       const active = item.dataset.mobileCategoryId === activeCategory;
+      item.setAttribute('aria-selected', active ? 'true' : 'false');
       if (active) item.setAttribute('aria-current', 'page');
       else item.removeAttribute('aria-current');
     });
