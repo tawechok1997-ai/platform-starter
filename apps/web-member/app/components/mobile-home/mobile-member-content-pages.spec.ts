@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 import test from 'node:test';
 
 const menu = readFileSync(new URL('./mobile-home-root.tsx', import.meta.url), 'utf8');
+const highlight = readFileSync(new URL('./mobile-highlight-tab-content.tsx', import.meta.url), 'utf8');
 const promotions = readFileSync(new URL('./mobile-member-promotions-page.tsx', import.meta.url), 'utf8');
 const promotionSource = readFileSync(new URL('./mobile-member-promotion-source.ts', import.meta.url), 'utf8');
 const news = readFileSync(new URL('./mobile-member-news-page.tsx', import.meta.url), 'utf8');
@@ -11,10 +12,17 @@ const promotionRoute = readFileSync(new URL('../../mobile/member/promotions/page
 const newsRoute = readFileSync(new URL('../../mobile/member/news/page.tsx', import.meta.url), 'utf8');
 const activityRoute = readFileSync(new URL('../../mobile/member/activity/page.tsx', import.meta.url), 'utf8');
 
-test('authenticated drawer routes all three source pages', () => {
+test('mobile drawer keeps promotion news and activity inside the current home content', () => {
   assert.match(menu, /\['โปรโมชั่น', '\/mobile\/member\/promotions', 'promotion'\]/);
   assert.match(menu, /\['ข่าวสาร', '\/mobile\/member\/news', 'news'\]/);
   assert.match(menu, /\['กิจกรรม', '\/mobile\/member\/activity', 'activity'\]/);
+  assert.match(highlight, /MOBILE_INLINE_MEMBER_TABS/);
+  assert.match(highlight, /'\/mobile\/member\/promotions': 'promotions'/);
+  assert.match(highlight, /'\/mobile\/member\/news': 'news'/);
+  assert.match(highlight, /'\/mobile\/member\/activity': 'activities'/);
+  assert.match(highlight, /event\.preventDefault\(\)/);
+  assert.match(highlight, /mobile-highlight-tab-/);
+  assert.match(highlight, /scrollIntoView/);
   assert.match(promotionRoute, /MobileMemberPromotionsPage/);
   assert.match(newsRoute, /MobileMemberNewsPage/);
   assert.match(activityRoute, /MobileMemberActivityPage/);
