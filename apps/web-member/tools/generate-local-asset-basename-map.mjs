@@ -40,12 +40,16 @@ async function walk(directory, baseDirectory = directory) {
   return files;
 }
 
+function isLegacyMobileAssetPath(value) {
+  const normalized = value.toLowerCase();
+  return normalized.startsWith('asset-mobile/') || normalized.startsWith('asset-moblie/');
+}
+
 function candidateRank(value) {
   const normalized = value.toLowerCase();
   if (normalized.includes('/asset-pc/')) return 0;
-  if (normalized.includes('/asset-mobile/')) return 1;
-  if (normalized.includes('/asset-moblie/')) return 2;
-  return 3;
+  if (normalized.includes('/reference-brand/')) return 1;
+  return 2;
 }
 
 function serialize(map) {
@@ -72,13 +76,17 @@ function serialize(map) {
 
 const files = await walk(assetRoot);
 const byBasename = new Map();
+let indexedAssetCount = 0;
 
 for (const relative of files) {
+  if (isLegacyMobileAssetPath(relative)) continue;
+
   const basename = path.posix.basename(relative).toLowerCase();
   const publicUrl = `/${path.posix.join('assets', relative)}`;
   const candidates = byBasename.get(basename) ?? [];
   candidates.push(publicUrl);
   byBasename.set(basename, candidates);
+  indexedAssetCount += 1;
 }
 
 await mkdir(path.dirname(outputPath), { recursive: true });
@@ -86,5 +94,5 @@ await writeFile(outputPath, serialize(byBasename), 'utf8');
 
 const duplicateBasenames = [...byBasename.values()].filter((candidates) => candidates.length > 1).length;
 console.log(
-  `Generated ${path.relative(packageRoot, outputPath).replaceAll('\\', '/')} from ${files.length} local assets (${byBasename.size} basenames, ${duplicateBasenames} duplicated basenames).`,
+  `Generated ${path.relative(packageRoot, outputPath).replaceAll('\\', '/')} from ${indexedAssetCount} unified local assets (${byBasename.size} basenames, ${duplicateBasenames} duplicated basenames).`,
 );
