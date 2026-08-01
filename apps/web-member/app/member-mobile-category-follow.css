@@ -1,0 +1,37 @@
+/* Mobile category rail follows the viewport like the Desktop Jackpot rail,
+ * but remains bounded by the category-content column and stops before the
+ * shortcut/footer area. This is intentionally sticky, never fixed, so there
+ * is still one navigation owner and no overlay geometry to synchronize. */
+@media (max-width: 900px) {
+  html[data-member-viewport-mode='mobile'] [data-mobile-home-root='true'],
+  html[data-member-viewport-mode='mobile'] [data-mobile-home-root='true'] [data-mobile-section-owner='highlight-tabs'],
+  html[data-member-viewport-mode='mobile'] [data-mobile-home-root='true'] *:has(> [data-mobile-section-owner='category-menu']) {
+    overflow: visible !important;
+    contain: none !important;
+  }
+
+  html[data-member-viewport-mode='mobile'] [data-mobile-home-root='true'] *:has(> [data-mobile-section-owner='category-menu']) {
+    position: relative !important;
+    align-items: start !important;
+    min-height: 100% !important;
+  }
+
+  html[data-member-viewport-mode='mobile'] [data-mobile-section-owner='category-menu'] {
+    position: sticky !important;
+    position: -webkit-sticky !important;
+    top: calc(64px + env(safe-area-inset-top, 0px)) !important;
+    z-index: 100 !important;
+    align-self: start !important;
+    height: fit-content !important;
+    max-height: calc(100dvh - 72px - env(safe-area-inset-top, 0px)) !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    overscroll-behavior: contain !important;
+    scrollbar-width: none !important;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  html[data-member-viewport-mode='mobile'] [data-mobile-section-owner='category-menu']::-webkit-scrollbar {
+    display: none !important;
+  }
+}
