@@ -128,6 +128,7 @@ function buildSafeProvider(
     firstGame?.image,
     badge,
   );
+  const maintenance = catalogProvider?.maintenance ?? configured?.maintenance;
 
   return {
     code,
@@ -149,7 +150,7 @@ function buildSafeProvider(
       resolveExpectedLocalProviderAsset('avatar', code),
       TRANSPARENT_IMAGE,
     ),
-    maintenance: catalogProvider?.maintenance ?? configured?.maintenance,
+    ...(typeof maintenance === 'boolean' ? { maintenance } : {}),
   };
 }
 
