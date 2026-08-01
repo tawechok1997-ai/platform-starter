@@ -13,16 +13,97 @@
   color: #fff;
 }
 
+.headingRow {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  min-height: 20px;
+  margin-bottom: 12px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
 .heading {
-  margin: 0 0 12px;
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
   font-size: 13px;
   font-weight: 600;
-  line-height: 18px;
+  line-height: 20px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .heading span {
   font-size: 10px;
+  font-weight: 400;
+}
+
+.filterWrap {
+  position: relative;
+  flex: 0 0 auto;
+}
+
+.filterButton {
+  display: inline-flex;
+  height: 20px;
+  padding: 0 8px;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  border: 0;
+  border-radius: 999px;
+  color: #d66eec;
+  background: #fff;
+  font: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.filterButton span {
+  font-size: 8px;
   font-weight: 600;
+}
+
+.filterButton svg {
+  width: 12px;
+  height: 12px;
+  fill: currentcolor;
+}
+
+.filterMenu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 30;
+  display: grid;
+  width: 116px;
+  padding: 6px;
+  gap: 4px;
+  border: 1px solid rgb(214 110 236 / 28%);
+  border-radius: 9px;
+  background: #fff;
+  box-shadow: 0 8px 24px rgb(0 0 0 / 28%);
+}
+
+.filterMenu button {
+  min-height: 30px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 7px;
+  color: #3b304a;
+  background: transparent;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+
+.filterMenu button[data-active='true'] {
+  color: #8d1daf;
+  background: #f6e8fb;
 }
 
 .grid {
@@ -31,6 +112,10 @@
   flex-wrap: wrap;
   justify-content: space-between;
   gap: 10px;
+}
+
+.stackedGrid {
+  gap: 8px;
 }
 
 .card {
@@ -47,7 +132,9 @@
   -webkit-tap-highlight-color: transparent;
 }
 
-.card:focus-visible {
+.card:focus-visible,
+.filterButton:focus-visible,
+.filterMenu button:focus-visible {
   outline: 2px solid #d29bff;
   outline-offset: 2px;
 }
@@ -104,5 +191,24 @@
   .root {
     padding-right: 10px;
     padding-left: 10px;
+  }
+
+  .heading {
+    font-size: 16px;
+  }
+
+  .filterButton {
+    height: 30px;
+    padding: 0 12px;
+    gap: 8px;
+  }
+
+  .filterButton span {
+    font-size: 12px;
+  }
+
+  .filterButton svg {
+    width: 16px;
+    height: 16px;
   }
 }
