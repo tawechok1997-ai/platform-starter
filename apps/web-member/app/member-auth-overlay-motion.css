@@ -1,0 +1,57 @@
+@keyframes memberAuthBackdropEnter {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* This file is imported by member-auth-overlay.css. The explicit div selector
+   intentionally gives the static motion layer higher specificity than the
+   older base overlay rules that follow the import. */
+html body div.member-auth-overlay,
+html body div.member-auth-overlay[data-state='open'],
+html body div.member-auth-overlay[data-state='closing'] {
+  background-color: transparent !important;
+  background-image: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+html body div.member-auth-overlay .member-auth-overlay__backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  display: block;
+  background: rgb(0 0 0 / 80%);
+  opacity: 0;
+  pointer-events: none;
+  will-change: opacity;
+}
+
+html body div.member-auth-overlay[data-state='open'] .member-auth-overlay__backdrop {
+  animation: memberAuthBackdropEnter 260ms cubic-bezier(.22, 1, .36, 1) both;
+}
+
+html body div.member-auth-overlay[data-state='closing'] .member-auth-overlay__backdrop {
+  animation: none;
+  opacity: 0;
+  transition: opacity 160ms ease-out;
+}
+
+html body div.member-auth-overlay .member-auth-overlay__frame {
+  z-index: 1 !important;
+}
+
+@media (max-width: 900px) {
+  html body div.member-auth-overlay .member-auth-overlay__backdrop {
+    background: rgb(0 0 0 / 72%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html body div.member-auth-overlay[data-state='open'] .member-auth-overlay__backdrop {
+    animation-duration: 1ms;
+  }
+
+  html body div.member-auth-overlay[data-state='closing'] .member-auth-overlay__backdrop {
+    transition-duration: 1ms;
+  }
+}
