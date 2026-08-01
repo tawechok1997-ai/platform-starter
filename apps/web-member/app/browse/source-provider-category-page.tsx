@@ -64,10 +64,13 @@ export default function SourceProviderCategoryPage({
       }
     }
 
-    const orderedCodes = Array.from(new Set([
-      ...configuredProviders.map((provider) => normalizeProviderCode(provider.code)),
-      ...(catalog?.providers ?? []).map((provider) => normalizeProviderCode(provider.code)),
-    ].filter(Boolean)));
+    const configuredCodes = configuredProviders.map((provider) => normalizeProviderCode(provider.code));
+    const catalogCodes = (catalog?.providers ?? []).map((provider) => normalizeProviderCode(provider.code));
+    const hasCompleteCatalog = Boolean(catalog && !catalog.incomplete && catalogCodes.length);
+    const orderedCodes = Array.from(new Set((hasCompleteCatalog
+      ? [...configuredCodes.filter((code) => catalogByCode.has(code)), ...catalogCodes]
+      : [...configuredCodes, ...catalogCodes]
+    ).filter(Boolean)));
 
     const providers = orderedCodes.map((code) => {
       const configured = configuredByCode.get(code);
@@ -98,11 +101,17 @@ export default function SourceProviderCategoryPage({
       };
     });
 
+    const filters = config.filters.map((filter) => ({
+      ...filter,
+      count: games.filter((game) => game.tags.includes(filter.key)).length,
+    }));
+
     return {
       ...config,
       total: providers.length,
       providers,
       games,
+      filters,
       mode: 'provider-cards' as const,
     };
   }, [catalog, config, configuredProviders]);
