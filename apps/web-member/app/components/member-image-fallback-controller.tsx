@@ -19,6 +19,7 @@ export default function MemberImageFallbackController() {
         && attemptedLocalSource
         && image.getAttribute('src') === attemptedLocalSource
       ) {
+        image.dataset.mobileLocalFailedSource = originalMobileSource;
         delete image.dataset.mobileLocalSource;
         image.src = originalMobileSource;
         const originalSourceSet = image.dataset.mobileOriginalSourceSet;
