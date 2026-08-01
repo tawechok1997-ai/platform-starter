@@ -213,7 +213,7 @@ export async function requestJson<T>(path: string, options: ApiOptions = {}): Pr
   return payload as T;
 }
 
-export async function refreshMemberToken() {
+export async function refreshMemberToken(): Promise<string> {
   if (refreshRequest) return refreshRequest;
   refreshRequest = performMemberTokenRefresh();
   try {
@@ -223,7 +223,7 @@ export async function refreshMemberToken() {
   }
 }
 
-async function performMemberTokenRefresh() {
+async function performMemberTokenRefresh(): Promise<string> {
   const refreshToken = readStorage('member_refresh_token');
   if (!refreshToken) return '';
   const res = await fetch(joinApiUrl(API_URL, '/member/auth/refresh'), {
@@ -233,7 +233,7 @@ async function performMemberTokenRefresh() {
   });
   const data = await res.json().catch(() => null);
   const session = normalizeMemberSessionPayload(data);
-  if (!res.ok || !session?.accessToken) return '';
+  if (!res.ok || typeof session?.accessToken !== 'string' || !session.accessToken) return '';
   if (!persistMemberSession({
     accessToken: session.accessToken,
     refreshToken: session.refreshToken || refreshToken,
