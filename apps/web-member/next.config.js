@@ -45,6 +45,7 @@ const exactMobileAssetRewrites = [
   'fire.svg',
   'mostonline.svg',
   'live.svg',
+  'faq.svg',
 ].map((fileName) => ({
   source: `/images/home/${fileName}`,
   destination: `/assets/asset-pc/images/home/${fileName}`,
@@ -68,6 +69,17 @@ const legacyMobileAssetRewrites = [
   },
   {
     source: '/assets/asset-moblie/:path*',
+    destination: '/assets/asset-pc/:path*',
+  },
+];
+
+const missingAssetFallbackRewrites = [
+  {
+    source: '/images/:path*',
+    destination: '/assets/asset-pc/images/:path*',
+  },
+  {
+    source: '/assets/asset-pc/images/:path*',
     destination: '/assets/asset-pc/:path*',
   },
 ];
@@ -105,6 +117,7 @@ const nextConfig = {
         ...exactMobileAssetRewrites,
         ...depositAssetRewrites,
       ],
+      afterFiles: missingAssetFallbackRewrites,
     };
   },
   images: {
