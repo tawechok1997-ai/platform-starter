@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { cmsResponsiveMediaUrls, type CmsContent } from '../../site-settings';
 import { useMemberLocale } from '../../member-locale-provider';
 import { useMemberRuntime } from '../../member-runtime-provider';
@@ -151,6 +151,8 @@ export default function MobileHomeRoot({ content, showPromotion }: MobileHomeRoo
   const [activeSlide, setActiveSlide] = useState(0);
   const [activeTab, setActiveTab] = useState<(typeof HIGHLIGHT_TABS)[number]>('ไฮไลท์');
   const [activeCategory, setActiveCategory] = useState<MobileCategoryId>('home');
+  const categoryContentRef = useRef<HTMLDivElement>(null);
+  const categoryRailRef = useRef<HTMLDivElement>(null);
   const heroSlides = useMemo(() => getMobileHeroSlides(content), [content]);
   const announcementMessages = useMemo(() => getAnnouncementMessages(content), [content]);
   const categoryMenuItems = useMemo(() => MOBILE_CATEGORY_ORDER.flatMap((id) => {
@@ -205,6 +207,75 @@ export default function MobileHomeRoot({ content, showPromotion }: MobileHomeRoo
 
     return () => window.clearInterval(timer);
   }, [heroSlides.length, showPromotion]);
+
+  useEffect(() => {
+    const content = categoryContentRef.current;
+    const rail = categoryRailRef.current;
+    if (!content || !rail) return;
+
+    const mobileQuery = window.matchMedia('(max-width: 900px)');
+    let frame = 0;
+    let lastState = '';
+
+    const syncRail = () => {
+      frame = 0;
+
+      if (!mobileQuery.matches) {
+        rail.dataset.mobileCategoryFollow = 'start';
+        rail.style.removeProperty('--mobile-category-rail-left');
+        lastState = 'start';
+        return;
+      }
+
+      const contentRect = content.getBoundingClientRect();
+      const railHeight = rail.offsetHeight;
+      const headerEdge = 60;
+      let nextState: 'start' | 'fixed' | 'end' = 'start';
+
+      if (contentRect.top <= headerEdge) {
+        nextState = contentRect.bottom <= headerEdge + railHeight ? 'end' : 'fixed';
+      }
+
+      if (nextState !== lastState) {
+        rail.dataset.mobileCategoryFollow = nextState;
+        lastState = nextState;
+      }
+
+      if (nextState === 'fixed') {
+        rail.style.setProperty('--mobile-category-rail-left', `${Math.round(contentRect.left)}px`);
+      } else {
+        rail.style.removeProperty('--mobile-category-rail-left');
+      }
+    };
+
+    const scheduleSync = () => {
+      if (frame) return;
+      frame = window.requestAnimationFrame(syncRail);
+    };
+
+    syncRail();
+    window.addEventListener('resize', scheduleSync, { passive: true });
+    window.addEventListener('scroll', scheduleSync, { passive: true });
+    document.addEventListener('scroll', scheduleSync, { capture: true, passive: true });
+    mobileQuery.addEventListener?.('change', scheduleSync);
+
+    const resizeObserver = typeof ResizeObserver === 'undefined'
+      ? null
+      : new ResizeObserver(scheduleSync);
+    resizeObserver?.observe(content);
+    resizeObserver?.observe(rail);
+
+    return () => {
+      if (frame) window.cancelAnimationFrame(frame);
+      window.removeEventListener('resize', scheduleSync);
+      window.removeEventListener('scroll', scheduleSync);
+      document.removeEventListener('scroll', scheduleSync, { capture: true });
+      mobileQuery.removeEventListener?.('change', scheduleSync);
+      resizeObserver?.disconnect();
+      delete rail.dataset.mobileCategoryFollow;
+      rail.style.removeProperty('--mobile-category-rail-left');
+    };
+  }, [activeCategory, activeTab, categoryMenuItems.length]);
 
   return (
     <main
@@ -381,10 +452,12 @@ export default function MobileHomeRoot({ content, showPromotion }: MobileHomeRoo
           })}
         </div>
 
-        <div className={styles.categoryContent}>
+        <div ref={categoryContentRef} className={styles.categoryContent}>
           <div
+            ref={categoryRailRef}
             className={styles.categoryRail}
             data-mobile-section-owner="category-menu"
+            data-mobile-category-follow="start"
             aria-label={locale === 'th' ? 'หมวดเกม' : 'Game categories'}
             role="tablist"
             aria-orientation="vertical"
