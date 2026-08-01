@@ -1,0 +1,250 @@
+.root {
+  width: 100%;
+  max-width: 640px;
+  min-height: 100dvh;
+  margin: 0 auto;
+  color: #fff;
+  background: #171422;
+}
+
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 51;
+  display: grid;
+  height: 50px;
+  padding: 0 8px;
+  grid-template-columns: 32px minmax(0, 1fr) 32px;
+  align-items: center;
+  background: #171422;
+}
+
+.header button {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  padding: 4px;
+  place-items: center;
+  border: 0;
+  color: #fff;
+  background: transparent;
+  cursor: pointer;
+}
+
+.header svg {
+  width: 24px;
+  height: 24px;
+  fill: currentColor;
+}
+
+.header h1 {
+  margin: 0;
+  font-size: 18px;
+  line-height: 24px;
+  text-align: center;
+}
+
+.body {
+  display: grid;
+  padding: 16px 16px 48px;
+  gap: 14px;
+  background: radial-gradient(circle at 50% 0%, rgb(255 255 255 / 8%), transparent 42%);
+}
+
+.profileCard {
+  display: grid;
+  min-width: 0;
+  padding: 12px;
+  grid-template-columns: 100px minmax(0, 1fr);
+  align-items: center;
+  gap: 14px;
+  border: 1px solid rgb(139 0 171 / 65%);
+  border-radius: 10px;
+  background: linear-gradient(180deg, #342f43 0%, rgb(0 0 0 / 0%) 100%);
+}
+
+.currentAvatar {
+  display: block;
+  width: 100px;
+  height: 100px;
+  border-radius: 10px;
+  object-fit: cover;
+  background: #251f31;
+}
+
+.profileDetails {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.vipBadge {
+  position: relative;
+  display: flex;
+  width: max-content;
+  max-width: calc(100% - 12px);
+  height: 20px;
+  margin: 0 0 3px 12px;
+  padding: 1px;
+  align-items: center;
+  border-radius: 10px;
+  background: linear-gradient(rgb(255 255 255 / 50%), transparent), #ff9463;
+}
+
+.vipBadge img {
+  position: absolute;
+  left: -12px;
+  width: 30px;
+  height: 25px;
+  object-fit: contain;
+}
+
+.vipBadge span {
+  height: 18px;
+  padding: 1px 10px 0 22px;
+  overflow: hidden;
+  border-radius: 10px;
+  background: radial-gradient(at center top, rgb(255 255 255 / 20%) 20%, rgb(0 0 0 / 30%) 70%), #ff9463;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 15px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.profileDetails > strong {
+  overflow: hidden;
+  font-size: 15px;
+  line-height: 20px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.profileDetails > span,
+.profileDetails > small {
+  overflow: hidden;
+  color: #d8d1df;
+  font-size: 12px;
+  line-height: 17px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.profileDetails > small {
+  color: #9d93ab;
+}
+
+.actions {
+  display: grid;
+  gap: 8px;
+}
+
+.actions a {
+  display: grid;
+  min-height: 42px;
+  padding: 0 10px;
+  grid-template-columns: 28px minmax(0, 1fr) 20px;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid #8b00ab;
+  border-radius: 7px;
+  color: #fff;
+  background: linear-gradient(#342f43 0%, rgb(0 0 0 / 0%) 100%);
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.actions a > svg:first-child {
+  width: 22px;
+  height: 22px;
+  fill: #dca8f3;
+}
+
+.actions a > svg:last-child {
+  width: 12px;
+  height: 12px;
+  fill: #8800c1;
+}
+
+.avatarSection {
+  padding: 12px;
+  border-radius: 8px;
+  background: rgb(187 91 234 / 10%);
+}
+
+.avatarSection > header {
+  display: flex;
+  min-height: 34px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.avatarSection h2 {
+  margin: 0;
+  font-size: 16px;
+  line-height: 24px;
+}
+
+.avatarSection header span {
+  color: #bb5bea;
+  font-size: 12px;
+}
+
+.avatarGrid {
+  display: grid;
+  padding-top: 10px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.avatarGrid button {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+  padding: 0;
+  overflow: hidden;
+  border: 2px solid transparent;
+  border-radius: 10px;
+  background: #251f31;
+  cursor: pointer;
+}
+
+.avatarGrid button > img:first-child {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+.avatarGrid button.avatarActive {
+  border-color: #bb5bea;
+  box-shadow: 0 0 0 2px rgb(187 91 234 / 18%);
+}
+
+.selectedIcon {
+  position: absolute;
+  right: 4px;
+  bottom: 4px;
+  width: 28px;
+  height: 28px;
+}
+
+@media (min-width: 430px) {
+  .header h1 {
+    font-size: 20px;
+  }
+
+  .avatarGrid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 600px) {
+  .avatarGrid {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+}
