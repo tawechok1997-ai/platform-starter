@@ -255,7 +255,7 @@ export default function FishingBrowseSource() {
         </header>
 
         <div className={styles.layout} data-source-game-layout>
-          <aside className={styles.filterPanel} data-source-filter-panel aria-label="ตัวกรองเกมตกปลา">
+          <aside className={styles.filterPanel} data-source-filter-panel aria-label="ตัวกรองเกมยิงปลา">
             <div className={styles.filterGlow} aria-hidden="true" />
             <div className={styles.filterTitle} data-source-filter-title>ตัวกรอง</div>
 
@@ -318,7 +318,7 @@ export default function FishingBrowseSource() {
             </div>
           </aside>
 
-          <section className={styles.gameArea} aria-label="รายการเกมตกปลา" aria-live="polite">
+          <section className={styles.gameArea} aria-label="รายการเกมยิงปลา" aria-live="polite">
             <h1>-singawปลา ({resultCount.toLocaleString('th-TH')} เกม)</h1>
             {visibleGames.length ? (
               <div className={styles.gameGrid}>
