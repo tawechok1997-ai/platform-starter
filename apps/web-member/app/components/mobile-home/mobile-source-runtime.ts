@@ -1,11 +1,10 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import { getMemberGameCatalog, type MemberCatalogGame } from '../../lib/member-game-catalog';
 import { memberApiFetch } from '../../member-api';
 import { useMemberRuntime } from '../../member-runtime-provider';
 import { useSiteSettings } from '../../site-settings-provider';
-
-const CATALOG_CATEGORIES = ['slot', 'casino', 'arcade', 'fishing', 'card', 'lottery'] as const;
 
 export type MobileSourceGame = {
   id: string;
@@ -17,6 +16,7 @@ export type MobileSourceGame = {
   badge: 'HOT' | 'NEW' | '';
   players: number;
   category: string;
+  tags: string[];
   popular: boolean;
 };
 
@@ -61,28 +61,6 @@ export type MobileSourceGuide = {
 };
 
 type LoadStatus = 'loading' | 'ready' | 'error';
-
-type CatalogGame = {
-  id?: string | null;
-  providerGameCode?: string | null;
-  code?: string | null;
-  name?: string | null;
-  providerId?: string | null;
-  provider?: string | { code?: string | null; name?: string | null; logoUrl?: string | null } | null;
-  providerLogoUrl?: string | null;
-  category?: string | null;
-  tags?: string[] | null;
-  imageUrl?: string | null;
-  iconUrl?: string | null;
-  onlinePlayers?: number | null;
-  playerCount?: number | null;
-  isPopular?: boolean | null;
-  isFeatured?: boolean | null;
-  isNew?: boolean | null;
-  rawPayload?: { assetSource?: string | null } | null;
-};
-
-type CatalogPayload = { items?: CatalogGame[] | null; data?: CatalogGame[] | null };
 
 type PublicTournamentPayload = {
   items?: Array<{
@@ -153,17 +131,28 @@ export function useMobileSourceRuntime() {
   );
   const tournaments = apiTournaments.length > 0 ? apiTournaments : cmsTournaments;
 
-  const popularGames = useMemo(
-    () => [...catalogGames].sort((left, right) => gamePopularityScore(right) - gamePopularityScore(left)).slice(0, 10),
+  const taggedPopular = useMemo(
+    () => catalogGames.filter((item) => item.popular || item.tags.includes('hot') || item.tags.includes('popular')),
     [catalogGames],
   );
+  const popularGames = useMemo(
+    () => [...(taggedPopular.length > 0 ? taggedPopular : catalogGames)]
+      .sort((left, right) => gamePopularityScore(right) - gamePopularityScore(left))
+      .slice(0, 10),
+    [catalogGames, taggedPopular],
+  );
   const onlineGames = useMemo(
-    () => [...catalogGames].filter((item) => item.players > 0).sort((left, right) => right.players - left.players).slice(0, 6),
+    () => [...catalogGames]
+      .filter((item) => item.players > 0)
+      .sort((left, right) => right.players - left.players)
+      .slice(0, 6),
     [catalogGames],
   );
   const classicGames = useMemo(
-    () => catalogGames.filter((item) => item.category === 'arcade' || item.category === 'card')
-      .sort((left, right) => gamePopularityScore(right) - gamePopularityScore(left)).slice(0, 6),
+    () => catalogGames
+      .filter((item) => item.tags.some((tag) => ['arcade', 'classic', 'card', 'table'].includes(tag)))
+      .sort((left, right) => gamePopularityScore(right) - gamePopularityScore(left))
+      .slice(0, 12),
     [catalogGames],
   );
 
@@ -197,7 +186,12 @@ export function useMobileSourceRuntime() {
 
   const section = useMemo(() => {
     const byId = new Map(gameSections.map((item) => [item.id, item] as const));
-    return { popular: byId.get('popular'), online: byId.get('online'), live: byId.get('live'), classic: byId.get('classic') };
+    return {
+      popular: byId.get('popular'),
+      online: byId.get('online'),
+      live: byId.get('live'),
+      classic: byId.get('classic'),
+    };
   }, [gameSections]);
   const liveMatches = useMemo(
     () => normalizeLiveMatches((typedSettings.features as Record<string, unknown>).live_match_items),
@@ -207,7 +201,11 @@ export function useMobileSourceRuntime() {
     () => typedSettings.features.cms_content.faqs
       .filter((item) => item.enabled && item.lifecycle !== 'draft' && item.lifecycle !== 'archived' && item.question.trim())
       .slice(0, 5)
-      .map((item, index) => ({ id: item.id || `faq-${index + 1}`, title: item.question.trim(), href: `/guide#faq-${encodeURIComponent(item.id || String(index + 1))}` })),
+      .map((item, index) => ({
+        id: item.id || `faq-${index + 1}`,
+        title: item.question.trim(),
+        href: `/guide#faq-${encodeURIComponent(item.id || String(index + 1))}`,
+      })),
     [typedSettings.features.cms_content.faqs],
   );
 
@@ -233,32 +231,40 @@ export function useMobileSourceRuntime() {
 }
 
 async function getCatalogGames() {
-  if (!catalogRequest) catalogRequest = loadCatalogGames().catch((error) => { catalogRequest = null; throw error; });
+  if (!catalogRequest) {
+    catalogRequest = getMemberGameCatalog('mobile')
+      .then((items) => items.map(mapCatalogGame))
+      .catch((error) => {
+        catalogRequest = null;
+        throw error;
+      });
+  }
   return catalogRequest;
 }
 
-async function loadCatalogGames(): Promise<MobileSourceGame[]> {
-  const payloads = await Promise.allSettled(CATALOG_CATEGORIES.map(async (category) => {
-    const params = new URLSearchParams({ platform: 'mobile', category, page: '1', limit: '100' });
-    const response = await memberApiFetch(`/games/catalog?${params.toString()}`, {
-      skipAuth: true,
-      suppressSessionExpiryRedirect: true,
-    });
-    if (!response.ok) throw new Error(`catalog ${category}: ${response.status}`);
-    return await response.json().catch(() => null) as CatalogPayload | null;
-  }));
-  const successful = payloads.filter((item): item is PromiseFulfilledResult<CatalogPayload | null> => item.status === 'fulfilled');
-  if (successful.length === 0) throw new Error('mobile catalog unavailable');
-
-  const mapped = successful.flatMap(({ value }) => {
-    const items = Array.isArray(value?.items) ? value.items : Array.isArray(value?.data) ? value.data : [];
-    return items.map(mapCatalogGame).filter((item): item is MobileSourceGame => Boolean(item));
-  });
-  return dedupeGames(mapped).slice(0, 120);
+function mapCatalogGame(item: MemberCatalogGame): MobileSourceGame {
+  return {
+    id: item.id,
+    providerGameCode: item.providerGameCode,
+    name: item.name,
+    provider: item.providerName || item.provider.toUpperCase(),
+    providerIcon: item.providerIcon,
+    image: item.image,
+    badge: item.badge,
+    players: item.players,
+    category: item.category,
+    tags: item.tags,
+    popular: item.popular,
+  };
 }
 
 async function getPublicTournaments() {
-  if (!tournamentRequest) tournamentRequest = loadPublicTournaments().catch((error) => { tournamentRequest = null; throw error; });
+  if (!tournamentRequest) {
+    tournamentRequest = loadPublicTournaments().catch((error) => {
+      tournamentRequest = null;
+      throw error;
+    });
+  }
   return tournamentRequest;
 }
 
@@ -290,33 +296,6 @@ async function loadPublicTournaments(): Promise<MobileSourceTournament[]> {
       }).filter((entry) => entry.name !== '-'),
     };
   }).filter((item) => item.title);
-}
-
-function mapCatalogGame(item: CatalogGame): MobileSourceGame | null {
-  const id = firstText(item.id, item.providerGameCode, item.code);
-  const providerGameCode = firstText(item.providerGameCode, item.code);
-  const name = firstText(item.name);
-  const image = firstText(item.imageUrl, item.iconUrl);
-  if (!id || !name || !image) return null;
-  if (item.rawPayload?.assetSource === 'generated-svg' || image.includes('/provider-simulator/icons/')) return null;
-
-  const providerObject = item.provider && typeof item.provider === 'object' ? item.provider : null;
-  const provider = firstText(providerObject?.name, providerObject?.code, item.providerId, typeof item.provider === 'string' ? item.provider : null);
-  const tags = Array.isArray(item.tags) ? item.tags.map((tag) => String(tag).toLowerCase()) : [];
-  const hot = item.isPopular === true || item.isFeatured === true || tags.some((tag) => /hot|popular|ยอดนิยม/.test(tag));
-  const fresh = item.isNew === true || tags.some((tag) => /new|ใหม่/.test(tag));
-  return {
-    id,
-    providerGameCode,
-    name,
-    provider: provider.toUpperCase(),
-    providerIcon: firstText(item.providerLogoUrl, providerObject?.logoUrl),
-    image,
-    badge: hot ? 'HOT' : fresh ? 'NEW' : '',
-    players: readPlayers(item),
-    category: normalizeCategory(item.category),
-    popular: hot,
-  };
 }
 
 function normalizeLiveMatches(value: unknown): MobileSourceLiveMatch[] {
@@ -357,31 +336,14 @@ function safePathname(value: string) {
   try { return new URL(normalized).pathname; } catch { return ''; }
 }
 
-function readPlayers(item: CatalogGame) {
-  const value = Number(item.onlinePlayers ?? item.playerCount);
-  return Number.isFinite(value) && value > 0 ? Math.round(value) : 0;
-}
-
 function gamePopularityScore(item: MobileSourceGame) {
-  return (item.popular ? 100_000 : 0) + (item.badge === 'NEW' ? 10_000 : 0) + item.players;
-}
-
-function dedupeGames(items: MobileSourceGame[]) {
-  return Array.from(new Map(items.map((item) => [`${item.provider}:${item.id}`.toLowerCase(), item] as const)).values());
-}
-
-function normalizeCategory(value: unknown) {
-  const category = String(value ?? '').trim().toLowerCase();
-  if (/arcade|อาเขต/.test(category)) return 'arcade';
-  if (/card|table|ไพ่/.test(category)) return 'card';
-  if (/casino|live/.test(category)) return 'casino';
-  if (/fish/.test(category)) return 'fishing';
-  if (/lottery|หวย/.test(category)) return 'lottery';
-  return category || 'slot';
+  return (item.popular ? 100_000 : 0)
+    + (item.badge === 'NEW' ? 10_000 : 0)
+    + item.players;
 }
 
 function normalizeSearch(value: string) {
-  return value.toLowerCase().replace(/[^a-z0-9ก-๙]+/g, ' ').trim();
+  return value.toLocaleLowerCase('th').replace(/[^a-z0-9ก-๙]+/g, ' ').trim();
 }
 
 function safeHref(value: unknown) {
@@ -390,18 +352,16 @@ function safeHref(value: unknown) {
 }
 
 function record(value: unknown): Record<string, unknown> {
-  return value && typeof value === 'object' && !Array.isArray(value) ? value as Record<string, unknown> : {};
-}
-
-function finite(value: unknown, fallback: number) {
-  const number = Number(value);
-  return Number.isFinite(number) ? number : fallback;
+  return value && typeof value === 'object' && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : {};
 }
 
 function text(value: unknown, fallback: string) {
   return typeof value === 'string' && value.trim() ? value.trim() : fallback;
 }
 
-function firstText(...values: unknown[]) {
-  return values.find((value): value is string => typeof value === 'string' && value.trim().length > 0)?.trim() ?? '';
+function finite(value: unknown, fallback: number) {
+  const number = Number(value);
+  return Number.isFinite(number) ? number : fallback;
 }
