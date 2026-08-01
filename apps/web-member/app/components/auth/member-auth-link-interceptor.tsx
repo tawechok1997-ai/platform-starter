@@ -19,13 +19,15 @@ export default function MemberAuthLinkInterceptor() {
   }, []);
 
   const complete = useCallback(async () => {
-    await verify();
+    const authenticated = await verify();
+    if (!authenticated) return;
+
     const destination = nextPath;
     setMode(null);
     setNextPath(null);
 
     if (destination && destination.startsWith('/') && !destination.startsWith('//')) {
-      window.location.assign(destination);
+      router.replace(destination);
       return;
     }
 
@@ -61,5 +63,12 @@ export default function MemberAuthLinkInterceptor() {
   }, [isAuthRoute]);
 
   if (isAuthRoute || !mode) return null;
-  return <MemberAuthOverlay mode={mode} onClose={close} onSuccess={complete} />;
+  return (
+    <MemberAuthOverlay
+      mode={mode}
+      onModeChange={setMode}
+      onClose={close}
+      onSuccess={complete}
+    />
+  );
 }
