@@ -3,6 +3,7 @@
 import type { CSSProperties } from 'react';
 import type { MemberFeatureFlags } from './site-settings';
 import MemberHome from './member-home';
+import MobileTournamentEntryBridge from './components/mobile-home/mobile-tournament-entry-bridge';
 import { MemberCard } from './components/member-ui';
 import { useSiteSettings } from './site-settings-provider';
 
@@ -46,21 +47,24 @@ export default function Page() {
     return <main className="member-ui-page member-maintenance"><div className="member-ui-container"><MemberCard tone="warning"><p className="member-maintenance__eyebrow">Maintenance</p><h1>{website.site_name}</h1><p>{maintenance.message}</p></MemberCard></div></main>;
   }
 
-  return <main data-animation-level={animationLevel} style={brandStyle}>
-    <MemberHome
-      siteName={website.site_name}
-      description={website.site_description}
-      primaryColor={branding.primary_color}
-      cardColor={branding.card_color}
-      textColor={branding.text_color}
-      showBalanceHeader={theme.show_balance_header}
-      showButtons={theme.show_deposit_withdraw_buttons}
-      showPromotion={theme.show_promotion_banner}
-      showProviders={theme.show_popular_providers}
-      showRecommended={theme.show_recommended_games}
-      cmsContent={features.cms_content}
-      icons={icons}
-      features={featureFlags}
-    />
-  </main>;
+  return (
+    <main data-animation-level={animationLevel} style={brandStyle}>
+      <MobileTournamentEntryBridge />
+      <MemberHome
+        siteName={website.site_name}
+        description={website.site_description}
+        primaryColor={branding.primary_color}
+        cardColor={branding.card_color}
+        textColor={branding.text_color}
+        showBalanceHeader={theme.show_balance_header}
+        showButtons={theme.show_deposit_withdraw_buttons}
+        showPromotion={theme.show_promotion_banner}
+        showProviders={theme.show_popular_providers}
+        showRecommended={theme.show_recommended_games}
+        cmsContent={features.cms_content}
+        icons={icons}
+        features={featureFlags}
+      />
+    </main>
+  );
 }
