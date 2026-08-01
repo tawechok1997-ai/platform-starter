@@ -102,7 +102,7 @@ import './member-public-modal-viewport-contract.css';
 import './member-v47-tournament-rank-badge-size-lock.css';
 import './member-leaderboard-source-match-lock.css';
 import './member-leaderboard-rank-number-lock.css';
-import './member-casino-transparent-source-match.css';
+import './member-casino-transparent-source-match-lock.css';
 import './member-source-game-transparent-surfaces.css';
 import './member-popup-responsive-unified.css';
 import './member-popup-responsive-current-runtime.css';
@@ -118,6 +118,7 @@ import MemberClientNavigationController from './components/member-client-navigat
 import MemberDragScrollController from './components/member-drag-scroll-controller';
 import MemberFloatingContact from './components/member-floating-contact';
 import MemberImageFallbackController from './components/member-image-fallback-controller';
+import MobileLocalAssetRuntime from './components/mobile-local-asset-runtime';
 import MemberNavigationAuthController from './components/member-navigation-auth-controller';
 import MemberRenderStabilityController from './components/member-render-stability-controller';
 import PublicDialogRuntimeController from './components/public-dialog-runtime-controller';
@@ -199,6 +200,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 <MemberRenderStabilityController />
                 <MemberClientNavigationController />
                 <MemberImageFallbackController />
+                <MobileLocalAssetRuntime />
                 <MemberDragScrollController />
                 <PublicLiveNavigationController />
                 <PublicDialogRuntimeController />
