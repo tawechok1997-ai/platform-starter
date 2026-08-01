@@ -1,188 +1,227 @@
+.root {
+  box-sizing: border-box !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  margin: 0 !important;
+  padding: 10px 14px 16px !important;
+  overflow: hidden !important;
+}
+
 .header {
-  display: flex;
-  align-items: center;
-  box-sizing: border-box;
-  width: 100%;
-  min-height: 38px;
-  padding: 7px 16px;
-  gap: 9px;
-  border-bottom: 1px solid rgb(187 91 234 / 38%);
-  background: linear-gradient(90deg, #57226f 0%, #27152f 72%, #17121d 100%);
-  color: #fff;
+  display: flex !important;
+  align-items: center !important;
+  box-sizing: border-box !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-height: 32px !important;
+  margin: 0 !important;
+  padding: 5px 8px !important;
+  gap: 7px !important;
+  overflow: hidden !important;
+  border: 1px solid rgb(187 91 234 / 22%) !important;
+  border-radius: 4px !important;
+  background: linear-gradient(90deg, #57226f 0%, #27152f 72%, #17121d 100%) !important;
+  color: #fff !important;
 }
 
 .headerIcon {
-  display: grid;
-  flex: 0 0 24px;
-  place-items: center;
-  width: 24px;
-  height: 24px;
+  display: grid !important;
+  flex: 0 0 20px !important;
+  place-items: center !important;
+  box-sizing: border-box !important;
+  width: 20px !important;
+  min-width: 20px !important;
+  max-width: 20px !important;
+  height: 20px !important;
+  min-height: 20px !important;
+  max-height: 20px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: hidden !important;
 }
 
 .headerIcon img {
-  display: block;
-  width: 22px;
-  height: 22px;
-  object-fit: contain;
+  display: block !important;
+  box-sizing: border-box !important;
+  width: 18px !important;
+  min-width: 18px !important;
+  max-width: 18px !important;
+  height: 18px !important;
+  min-height: 18px !important;
+  max-height: 18px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  object-fit: contain !important;
+  object-position: center !important;
+  transform: none !important;
+  filter: none !important;
 }
 
 .header strong {
-  min-width: 0;
-  overflow: hidden;
-  font-size: 15px;
-  font-weight: 700;
-  line-height: 20px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  min-width: 0 !important;
+  margin: 0 !important;
+  overflow: hidden !important;
+  font-size: 14px !important;
+  font-weight: 700 !important;
+  line-height: 20px !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
 }
 
 .sourceGuide {
-  box-sizing: border-box;
-  width: calc(100% - 24px);
-  max-width: calc(100% - 24px);
-  margin: 0 auto;
-  padding: 6px 0 16px;
-  overflow: visible;
-  color: #fff;
+  box-sizing: border-box !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  margin: 0 !important;
+  padding: 6px 0 0 !important;
+  overflow: hidden !important;
+  color: #fff !important;
 }
 
 .sourceGuide details {
-  box-sizing: border-box;
-  width: 100%;
-  max-width: 100%;
-  margin: 10px 0 0;
-  overflow: hidden;
-  border-radius: 6px;
+  box-sizing: border-box !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  margin: 10px 0 0 !important;
+  overflow: hidden !important;
+  border-radius: 6px !important;
 }
 
 .sourceGuide summary {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  box-sizing: border-box;
-  width: 100%;
-  max-width: 100%;
-  min-height: 44px;
-  margin: 0;
-  padding: 10px 12px;
-  gap: 12px;
-  overflow: hidden;
-  border: 1px solid #4f495d;
-  border-radius: 6px;
-  background: #262232;
-  color: #fff;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 700;
-  line-height: 20px;
-  list-style: none;
-  text-align: left;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  box-sizing: border-box !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  min-height: 44px !important;
+  margin: 0 !important;
+  padding: 10px 12px !important;
+  gap: 12px !important;
+  overflow: hidden !important;
+  border: 1px solid #4f495d !important;
+  border-radius: 6px !important;
+  background: #262232 !important;
+  color: #fff !important;
+  cursor: pointer !important;
+  font-size: 14px !important;
+  font-weight: 700 !important;
+  line-height: 20px !important;
+  list-style: none !important;
+  text-align: left !important;
 }
 
 .sourceGuide summary::-webkit-details-marker {
-  display: none;
+  display: none !important;
 }
 
 .sourceGuide summary::after {
-  flex: 0 0 auto;
-  width: 18px;
-  height: 18px;
-  color: currentColor;
-  content: '⌄';
-  font-size: 18px;
-  font-weight: 700;
-  line-height: 14px;
-  text-align: center;
-  transform: rotate(0deg);
-  transition: transform 180ms ease;
+  flex: 0 0 auto !important;
+  width: 18px !important;
+  height: 18px !important;
+  color: currentColor !important;
+  content: '⌄' !important;
+  font-size: 18px !important;
+  font-weight: 700 !important;
+  line-height: 14px !important;
+  text-align: center !important;
+  transform: rotate(0deg) !important;
+  transition: transform 180ms ease !important;
 }
 
 .sourceGuide details[open] summary::after {
-  transform: rotate(180deg);
+  transform: rotate(180deg) !important;
 }
 
 .sourceGuide details[open] summary {
-  border-bottom: 0;
-  border-radius: 6px 6px 0 0;
+  border-bottom: 0 !important;
+  border-radius: 6px 6px 0 0 !important;
 }
 
 .panel {
-  box-sizing: border-box;
-  width: 100%;
-  max-width: 100%;
-  padding: 16px;
-  overflow: hidden;
-  border: 1px solid #4f495d;
-  border-top: 0;
-  border-radius: 0 0 4px 4px;
-  background: #15141a;
-  color: #fff;
-  font-size: 14px;
-  line-height: 1.65;
+  box-sizing: border-box !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  padding: 16px !important;
+  overflow: hidden !important;
+  border: 1px solid #4f495d !important;
+  border-top: 0 !important;
+  border-radius: 0 0 4px 4px !important;
+  background: #15141a !important;
+  color: #fff !important;
+  font-size: 14px !important;
+  line-height: 1.65 !important;
 }
 
 .step {
-  box-sizing: border-box;
-  width: 100%;
-  max-width: 100%;
-  overflow: hidden;
+  box-sizing: border-box !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
 }
 
 .step + .step {
-  margin-top: 16px;
+  margin-top: 16px !important;
 }
 
 .paragraphs,
 .list {
-  box-sizing: border-box;
-  max-width: 100%;
-  margin: 0 0 10px;
-  padding: 0;
-  overflow-wrap: anywhere;
+  box-sizing: border-box !important;
+  max-width: 100% !important;
+  margin: 0 0 10px !important;
+  padding: 0 !important;
+  overflow-wrap: anywhere !important;
 }
 
 .paragraphs p {
-  margin: 0;
+  margin: 0 !important;
 }
 
 .paragraphs p + p {
-  margin-top: 4px;
+  margin-top: 4px !important;
 }
 
 .list {
-  padding-left: 22px;
+  padding-left: 22px !important;
 }
 
 .list li + li {
-  margin-top: 4px;
+  margin-top: 4px !important;
 }
 
 .danger {
-  color: #f00;
+  color: #f00 !important;
 }
 
 .success {
-  color: #38761d;
+  color: #38761d !important;
 }
 
 .image {
-  display: block;
-  box-sizing: border-box;
-  width: 100%;
-  max-width: 100%;
-  height: auto;
-  margin: 0 auto;
-  object-fit: contain;
-  object-position: center top;
+  display: block !important;
+  box-sizing: border-box !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  height: auto !important;
+  margin: 0 auto !important;
+  object-fit: contain !important;
+  object-position: center top !important;
+  transform: none !important;
 }
 
 .sourceGuide summary:focus-visible {
-  outline: 2px solid #dca8f3;
-  outline-offset: 2px;
+  outline: 2px solid #dca8f3 !important;
+  outline-offset: -2px !important;
 }
 
 @media (prefers-reduced-motion: reduce) {
   .sourceGuide summary::after {
-    transition: none;
+    transition: none !important;
   }
 }
