@@ -207,6 +207,18 @@ export default function MobileMemberPopupRuntime() {
       const action = event.target.closest<HTMLElement>('a,button,[role="button"]');
       if (!action) return;
 
+      const href = action instanceof HTMLAnchorElement ? action.getAttribute('href') ?? '' : '';
+      if (
+        action.getAttribute('aria-label') === 'แก้ไขโปรไฟล์'
+        || href === '/mobile/member/profile'
+      ) {
+        event.preventDefault();
+        event.stopPropagation();
+        closeDrawer();
+        window.location.assign('/profile/avatar');
+        return;
+      }
+
       const explicit = action.dataset.mobileMemberPopup;
       if (explicit && isMobilePopupKind(explicit)) {
         event.preventDefault();
@@ -216,7 +228,6 @@ export default function MobileMemberPopupRuntime() {
         return;
       }
 
-      const href = action instanceof HTMLAnchorElement ? action.getAttribute('href') ?? '' : '';
       const text = action.textContent?.replace(/\s+/g, ' ').trim() ?? '';
       const inferredPopup = popupFromAction(text, href, action);
       if (inferredPopup) {
