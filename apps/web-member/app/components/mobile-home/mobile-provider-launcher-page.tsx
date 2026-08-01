@@ -118,7 +118,7 @@ export default function MobileProviderLauncherPage({
               data-game-name={provider.name}
               aria-label={`${copy.open} ${provider.name}`}
             >
-              {provider.isNew ? <NewBadge label={copy.newLabel} /> : null}
+              {provider.isNew ? <NewBadge label="NEW" /> : null}
               <img
                 src={resolvedSource}
                 alt={provider.name}
@@ -167,7 +167,6 @@ const COPY = {
   th: {
     providers: 'ค่ายเกม',
     open: 'เข้าเล่น',
-    newLabel: 'ใหม่',
     filter: 'กรอง',
     all: 'ทั้งหมด',
     newOnly: 'เกมใหม่',
@@ -175,7 +174,6 @@ const COPY = {
   en: {
     providers: 'providers',
     open: 'Open',
-    newLabel: 'New',
     filter: 'Filter',
     all: 'All',
     newOnly: 'New games',
