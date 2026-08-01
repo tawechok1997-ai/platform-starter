@@ -381,6 +381,106 @@
   opacity: .7;
 }
 
+
+/* Authenticated drawer geometry copied from the Mobile source. */
+:global([data-mobile-home-root='true'][data-mobile-authenticated='true'] > div:has(> #mobile-home-drawer)) {
+  left: 50% !important;
+  right: auto !important;
+  width: min(100%, 428px) !important;
+  transform: translateX(-50%);
+}
+
+:global([data-mobile-authenticated-drawer-top='true']) {
+  position: absolute !important;
+  top: max(20px, env(safe-area-inset-top)) !important;
+  right: 23px !important;
+  z-index: 3 !important;
+  width: 18px !important;
+  min-height: 18px !important;
+  margin: 0 !important;
+}
+
+:global([data-mobile-authenticated-drawer-top='true'] > button) {
+  width: 18px !important;
+  height: 18px !important;
+  padding: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  font-size: 22px !important;
+}
+
+:global([data-mobile-home-root='true'][data-mobile-authenticated='true'] [data-mobile-auth-layout='drawer']) {
+  display: none !important;
+}
+
+.drawerAccount {
+  gap: 8px;
+  padding-top: 4px;
+}
+
+.profileRow {
+  margin-bottom: 8px;
+}
+
+.moneyActions i img {
+  display: block;
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+}
+
+.incomeIcon img {
+  display: block;
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+}
+
+.referralRow > img {
+  display: block;
+  width: 17px;
+  height: 15px;
+  object-fit: contain;
+}
+
+.referralRow > span {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 7px;
+}
+
+.referralRow small {
+  min-width: 0;
+  overflow: hidden;
+  font-size: 10px;
+  font-weight: 400;
+  line-height: 18px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+:global([data-mobile-home-root='true'][data-mobile-authenticated='true'] #mobile-home-drawer nav[aria-label='บริการสมาชิก']) {
+  margin-top: 16px !important;
+  padding: 8px !important;
+  gap: 8px !important;
+}
+
+:global([data-mobile-home-root='true'][data-mobile-authenticated='true'] #mobile-home-drawer nav[aria-label='บริการสมาชิก'] > a) {
+  min-height: 32px !important;
+}
+
+:global([data-mobile-home-root='true'][data-mobile-authenticated='true'] #mobile-home-drawer nav[aria-label='เมนูเพิ่มเติม']) {
+  margin-top: 16px !important;
+  padding: 12px 4px !important;
+  gap: 14px 10px !important;
+}
+
+:global([data-mobile-home-root='true'][data-mobile-authenticated='true'] #mobile-home-drawer nav[aria-label='เมนูเพิ่มเติม'] > a),
+:global([data-mobile-home-root='true'][data-mobile-authenticated='true'] #mobile-home-drawer nav[aria-label='เมนูเพิ่มเติม'] > button) {
+  min-height: 52px !important;
+}
+
 @media (max-width: 359px) {
   :global([data-mobile-home-root='true'][data-mobile-authenticated='true'] #mobile-home-drawer) {
     padding-right: 16px !important;
