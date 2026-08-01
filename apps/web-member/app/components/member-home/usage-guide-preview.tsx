@@ -15,26 +15,27 @@ type UsageGuidePreviewProps = {
   mobile?: boolean;
 };
 
-const PC_SOURCE_GUIDES = Object.entries(PC_USAGE_GUIDE_SOURCE_BY_QUESTION) as readonly [
+const SOURCE_GUIDES = Object.entries(PC_USAGE_GUIDE_SOURCE_BY_QUESTION) as readonly [
   string,
   PcSourceGuideItem,
 ][];
 
 export default function UsageGuidePreview({ mobile = false }: UsageGuidePreviewProps) {
   const { locale } = useMemberLocale();
-  const useSourcePcGuide = !mobile && locale === 'th';
+  const useSourceGuide = locale === 'th';
 
   return (
     <div
-      className={`shared-usage-guide-preview ${mobile ? '' : styles.root}`}
+      className={`shared-usage-guide-preview ${mobile ? styles.mobileRoot : styles.root}`}
       data-shared-guide-preview-content="true"
+      data-source-guide-viewport={mobile ? 'mobile' : 'desktop'}
     >
       {mobile ? (
-        <header className="v47-mobile-section-title">
-          <span>
-            <img src={V47_ASSETS.mobileFaq} alt="" aria-hidden="true" />
-            <strong>Guide</strong>
+        <header className={styles.mobileHeader}>
+          <span className={styles.mobileHeaderIcon} aria-hidden="true">
+            <img src={V47_ASSETS.mobileFaq} alt="" />
           </span>
+          <strong>Guide</strong>
         </header>
       ) : (
         <header className={styles.header}>
@@ -45,12 +46,18 @@ export default function UsageGuidePreview({ mobile = false }: UsageGuidePreviewP
         </header>
       )}
 
-      {useSourcePcGuide ? (
-        <div className={styles.sourceGuide} data-pc-source-guide-preview="true">
-          {PC_SOURCE_GUIDES.map(([question, guide]) => (
-            <details key={question}>
-              <summary>{question}</summary>
-              <PcSourceGuidePanel guide={guide} />
+      {useSourceGuide ? (
+        <div
+          className={mobile ? styles.mobileSourceGuide : styles.sourceGuide}
+          data-source-guide-preview="true"
+        >
+          {SOURCE_GUIDES.map(([question, guide]) => (
+            <details key={question} className={mobile ? styles.mobileDetails : undefined}>
+              <summary className={mobile ? styles.mobileSummary : undefined}>
+                <span>{question}</span>
+                {mobile ? <GuideChevron /> : null}
+              </summary>
+              <SourceGuidePanel guide={guide} mobile={mobile} />
             </details>
           ))}
         </div>
@@ -76,9 +83,9 @@ export default function UsageGuidePreview({ mobile = false }: UsageGuidePreviewP
   );
 }
 
-function PcSourceGuidePanel({ guide }: { guide: PcSourceGuideItem }) {
+function SourceGuidePanel({ guide, mobile }: { guide: PcSourceGuideItem; mobile: boolean }) {
   return (
-    <div className={styles.panel}>
+    <div className={`${styles.panel} ${mobile ? styles.mobilePanel : ''}`}>
       {guide.steps.map((step, stepIndex) => (
         <div key={`${step.image}:${stepIndex}`} className={styles.step}>
           {step.bullet ? (
@@ -111,6 +118,21 @@ function PcSourceGuidePanel({ guide }: { guide: PcSourceGuideItem }) {
         </div>
       ))}
     </div>
+  );
+}
+
+function GuideChevron() {
+  return (
+    <svg
+      className={styles.mobileChevron}
+      viewBox="0 0 24 24"
+      width="20"
+      height="20"
+      aria-hidden="true"
+    >
+      <path fill="none" d="M0 0h24v24H0z" />
+      <path fill="currentColor" d="M7.41 8.59 12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z" />
+    </svg>
   );
 }
 
