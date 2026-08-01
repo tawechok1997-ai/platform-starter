@@ -1,0 +1,102 @@
+/* Exact Mobile deposit popup sizing and motion contract.
+ * The legacy overlay owner renders as a grid and lets percentage-width
+ * dialogs shrink to their intrinsic content width. Deposit must stay on the
+ * same 480px source shell as the original popup.
+ */
+@media (max-width: 900px) {
+  html[data-member-viewport-mode='mobile'] body
+    > [data-ui-owner='mobile-popup'][role='presentation']:has(> [data-mobile-popup-owner='deposit']) {
+    position: fixed !important;
+    inset: 0 !important;
+    z-index: 201 !important;
+    display: flex !important;
+    box-sizing: border-box !important;
+    width: 100vw !important;
+    height: 100dvh !important;
+    margin: 0 !important;
+    padding:
+      max(16px, env(safe-area-inset-top))
+      max(16px, env(safe-area-inset-right))
+      max(16px, env(safe-area-inset-bottom))
+      max(16px, env(safe-area-inset-left)) !important;
+    align-items: center !important;
+    justify-content: center !important;
+    overflow: hidden !important;
+    background: rgb(0 0 0 / 80%) !important;
+    backdrop-filter: none !important;
+    overscroll-behavior: contain !important;
+  }
+
+  html[data-member-viewport-mode='mobile'] body
+    > [data-ui-owner='mobile-popup'][role='presentation']
+    > [data-mobile-popup-owner='deposit'][role='dialog'] {
+    position: relative !important;
+    inset: auto !important;
+    display: flex !important;
+    box-sizing: border-box !important;
+    width: min(480px, calc(100vw - 32px)) !important;
+    min-width: min(480px, calc(100vw - 32px)) !important;
+    max-width: min(480px, calc(100vw - 32px)) !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: calc(100dvh - 32px) !important;
+    margin: 0 !important;
+    padding: 56px 16px 16px !important;
+    flex: 0 0 auto !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 24px !important;
+    overflow: hidden !important;
+    border: 0 !important;
+    border-radius: 10px !important;
+    color: #fff !important;
+    background: linear-gradient(0deg, rgb(27 24 36) -5.86%, rgb(63 59 75) 104.05%) !important;
+    box-shadow: 0 1px 24px 4px rgb(90 90 90 / 20%) !important;
+    transform: none !important;
+    translate: none !important;
+    scale: 1 !important;
+    zoom: 1 !important;
+    isolation: isolate !important;
+  }
+
+  html[data-member-viewport-mode='mobile'] [data-mobile-popup-owner='deposit']
+    > div:last-child {
+    box-sizing: border-box !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    max-height: calc(100dvh - 104px) !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    scrollbar-width: none !important;
+    overscroll-behavior: contain !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  html[data-member-viewport-mode='mobile'] [data-mobile-popup-owner='deposit']
+    > div:last-child::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  html[data-member-viewport-mode='mobile'] [data-mobile-popup-owner='deposit']
+    strong,
+  html[data-member-viewport-mode='mobile'] [data-mobile-popup-owner='deposit']
+    span {
+    overflow-wrap: normal !important;
+    word-break: normal !important;
+  }
+}
+
+@media (max-width: 359px) {
+  html[data-member-viewport-mode='mobile'] body
+    > [data-ui-owner='mobile-popup'][role='presentation']
+    > [data-mobile-popup-owner='deposit'][role='dialog'] {
+    width: calc(100vw - 16px) !important;
+    min-width: calc(100vw - 16px) !important;
+    max-width: calc(100vw - 16px) !important;
+    padding: 52px 12px 12px !important;
+    gap: 16px !important;
+  }
+}
