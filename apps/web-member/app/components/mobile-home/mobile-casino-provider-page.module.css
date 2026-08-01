@@ -1,3 +1,10 @@
+:global([data-mobile-home-root='true']:has([data-mobile-casino-provider-page='true']) [data-mobile-section-owner='hero']),
+:global([data-mobile-home-root='true']:has([data-mobile-casino-provider-page='true']) [data-mobile-section-owner='auth-actions']),
+:global([data-mobile-home-root='true']:has([data-mobile-casino-provider-page='true']) [data-mobile-section-owner='announcement']),
+:global([data-mobile-home-root='true']:has([data-mobile-casino-provider-page='true']) [data-mobile-section-owner='highlight-tabs']) {
+  display: none !important;
+}
+
 .root {
   box-sizing: border-box;
   width: 100%;
