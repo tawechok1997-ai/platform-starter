@@ -86,8 +86,11 @@ export default tseslint.config(
     },
   },
   {
-    // This source-matched menu animation is muted, decorative video with no spoken content.
-    files: ['apps/web-member/app/components/member-menu-secondary-runtime.tsx'],
+    // Source tutorial videos are visual walk-through assets without a caption track.
+    files: [
+      'apps/web-member/app/components/member-menu-secondary-runtime.tsx',
+      'apps/web-member/app/components/mobile-home/mobile-member-popup-runtime.tsx',
+    ],
     rules: {
       'jsx-a11y/media-has-caption': 'off',
     },
