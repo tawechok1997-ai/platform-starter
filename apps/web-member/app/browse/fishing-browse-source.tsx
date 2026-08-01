@@ -1,7 +1,9 @@
 'use client';
 
-import { useMemo, useState, type SyntheticEvent } from 'react';
+import { useEffect, useMemo, useState, type SyntheticEvent } from 'react';
+import { resolveLocalAssetOrSource } from '../lib/local-asset-by-basename';
 import { useMemberSession } from '../member-session-provider';
+import { loadSourceCategoryCatalog, type SourceCategoryCatalog } from './source-game-catalog';
 import styles from './source-game-category-page.module.css';
 
 type FishingFilterKey = 'hot' | 'new' | 'slot';
@@ -40,10 +42,13 @@ const PROVIDER_ROWS = [
   ['acewinfish', 'AceWin'],
 ] as const;
 
-const PROVIDERS: FishingProvider[] = PROVIDER_ROWS.map(([code, name]) => ({
+const FALLBACK_PROVIDERS: FishingProvider[] = PROVIDER_ROWS.map(([code, name]) => ({
   code,
   name,
-  badge: `https://cdn.zabbet.com/providers/set/1_1_badge/${code}.png`,
+  badge: resolveLocalAssetOrSource(
+    `https://cdn.zabbet.com/providers/set/1_1_badge/${code}.png`,
+    'pc',
+  ),
 }));
 
 const GAME_ROWS = [
@@ -101,38 +106,94 @@ const NEW_IDS = new Set([
 
 const SLOT_IDS = new Set(['dragon-zuma', 'zumas-honor']);
 
-const GAMES: FishingGame[] = GAME_ROWS.map(([id, name, image, provider]) => {
+const FALLBACK_GAMES: FishingGame[] = GAME_ROWS.map(([id, name, image, provider]) => {
   const tags: FishingFilterKey[] = [];
   const isHot = HOT_IDS.has(id);
   const isNew = NEW_IDS.has(id);
   if (isHot) tags.push('hot');
   if (isNew) tags.push('new');
   if (SLOT_IDS.has(id)) tags.push('slot');
-  return { id, name, image, provider, tags, isHot, isNew };
+  return {
+    id,
+    name,
+    image: resolveLocalAssetOrSource(image, 'pc'),
+    provider,
+    tags,
+    isHot,
+    isNew,
+  };
 });
 
-const FILTERS: { key: FishingFilterKey; label: string; count: number }[] = [
-  { key: 'hot', label: 'เกมส์ฮิต', count: 9 },
-  { key: 'new', label: 'เกมส์ใหม่', count: 14 },
-  { key: 'slot', label: 'เกมส์สล็อต', count: 2 },
+const FILTERS: { key: FishingFilterKey; label: string }[] = [
+  { key: 'hot', label: 'เกมส์ฮิต' },
+  { key: 'new', label: 'เกมส์ใหม่' },
+  { key: 'slot', label: 'เกมส์สล็อต' },
 ];
 
 export default function FishingBrowseSource() {
   const { ready, isLoggedIn } = useMemberSession();
   const [selectedFilters, setSelectedFilters] = useState<FishingFilterKey[]>([]);
   const [providerCode, setProviderCode] = useState<string | null>(null);
+  const [catalog, setCatalog] = useState<SourceCategoryCatalog | null>(null);
+  const [catalogLoading, setCatalogLoading] = useState(true);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    let cancelled = false;
+    setCatalogLoading(true);
+
+    void loadSourceCategoryCatalog('fishing', [], controller.signal)
+      .then((result) => {
+        if (!cancelled) setCatalog(result);
+      })
+      .catch((error) => {
+        if (!cancelled && !isAbortError(error)) setCatalog(null);
+      })
+      .finally(() => {
+        if (!cancelled) setCatalogLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+      controller.abort();
+    };
+  }, []);
+
+  const providers = useMemo(
+    () => mergeFishingProviders(FALLBACK_PROVIDERS, catalog?.providers ?? []),
+    [catalog?.providers],
+  );
+
+  const games = useMemo(() => {
+    const catalogGames = (catalog?.games ?? [])
+      .map((game): FishingGame | null => {
+        const provider = normalizeProviderCode(game.provider ?? '');
+        if (!provider || !game.id || !game.name || !game.image) return null;
+        const tags = game.tags.filter(isFishingFilterKey);
+        return {
+          id: game.id,
+          name: game.name,
+          image: resolveLocalAssetOrSource(game.image, 'pc'),
+          provider,
+          tags,
+          isHot: game.isHot || tags.includes('hot'),
+          isNew: game.isNew || tags.includes('new'),
+        };
+      })
+      .filter((game): game is FishingGame => Boolean(game));
+    return mergeFishingGames(catalogGames, FALLBACK_GAMES);
+  }, [catalog?.games]);
 
   const visibleGames = useMemo(
-    () => GAMES.filter((game) => {
+    () => games.filter((game) => {
       const providerMatch = !providerCode || game.provider === providerCode;
       const filterMatch = selectedFilters.length === 0 || selectedFilters.some((filter) => game.tags.includes(filter));
       return providerMatch && filterMatch;
     }),
-    [providerCode, selectedFilters],
+    [games, providerCode, selectedFilters],
   );
 
-  const untouched = providerCode === null && selectedFilters.length === 0;
-  const resultCount = untouched ? 129 : visibleGames.length;
+  const resultCount = visibleGames.length;
 
   const toggleFilter = (key: FishingFilterKey) => {
     setSelectedFilters((current) => (
@@ -145,15 +206,12 @@ export default function FishingBrowseSource() {
     setProviderCode(null);
   };
 
-  const countForFilter = (key: FishingFilterKey, referenceCount: number) => {
-    if (untouched) return referenceCount;
-    return GAMES.filter((game) => {
-      const providerMatch = !providerCode || game.provider === providerCode;
-      return providerMatch && game.tags.includes(key);
-    }).length;
-  };
+  const countForFilter = (key: FishingFilterKey) => games.filter((game) => {
+    const providerMatch = !providerCode || game.provider === providerCode;
+    return providerMatch && game.tags.includes(key);
+  }).length;
 
-  const countForProvider = (code: string) => GAMES.filter((game) => {
+  const countForProvider = (code: string) => games.filter((game) => {
     const filterMatch = selectedFilters.length === 0 || selectedFilters.some((filter) => game.tags.includes(filter));
     return game.provider === code && filterMatch;
   }).length;
@@ -168,7 +226,13 @@ export default function FishingBrowseSource() {
   };
 
   return (
-    <main className={styles.page} data-source-game-category="fishing" aria-busy="false">
+    <main
+      className={styles.page}
+      data-source-game-category="fishing"
+      data-catalog-source={catalog?.games.length ? 'central' : 'fallback'}
+      data-catalog-incomplete={catalog?.incomplete ? 'true' : 'false'}
+      aria-busy={catalogLoading}
+    >
       <div className={styles.backgroundStack} aria-hidden="true">
         <img
           className={styles.baseBackground}
@@ -180,12 +244,12 @@ export default function FishingBrowseSource() {
         <div className={styles.bottomFade} data-source-bottom-fade />
       </div>
 
-      <section className={styles.content} aria-label="ยิงปลา">
+      <section className={styles.content} aria-label="-singawปลา">
         <header className={styles.heroTitle}>
           <img
             className={styles.baseTitle}
             src="/assets/asset-pc/images/game/fishing/logo_fishing.webp"
-            alt="ยิงปลา"
+            alt="-singawปลา"
             onError={swapToAssetBundle}
           />
         </header>
@@ -203,7 +267,7 @@ export default function FishingBrowseSource() {
             <div className={styles.typeGrid} data-source-filter-types>
               {FILTERS.map((filter) => {
                 const checked = selectedFilters.includes(filter.key);
-                const count = countForFilter(filter.key, filter.count);
+                const count = countForFilter(filter.key);
                 return (
                   <label key={filter.key} className={styles.filterOption}>
                     <input type="checkbox" checked={checked} onChange={() => toggleFilter(filter.key)} />
@@ -223,7 +287,7 @@ export default function FishingBrowseSource() {
             </div>
 
             <div className={styles.providerGrid} data-source-provider-grid>
-              {PROVIDERS.map((provider) => {
+              {providers.map((provider) => {
                 const selected = providerCode === provider.code;
                 const count = countForProvider(provider.code);
                 return (
@@ -255,11 +319,11 @@ export default function FishingBrowseSource() {
           </aside>
 
           <section className={styles.gameArea} aria-label="รายการเกมตกปลา" aria-live="polite">
-            <h1>ยิงปลา ({resultCount.toLocaleString('th-TH')} เกม)</h1>
+            <h1>-singawปลา ({resultCount.toLocaleString('th-TH')} เกม)</h1>
             {visibleGames.length ? (
               <div className={styles.gameGrid}>
                 {visibleGames.map((game) => {
-                  const provider = PROVIDERS.find((item) => item.code === game.provider);
+                  const provider = providers.find((item) => item.code === game.provider);
                   return (
                     <article key={`${game.provider}:${game.id}`} className={styles.gameCard}>
                       <button
@@ -305,6 +369,54 @@ export default function FishingBrowseSource() {
       `}</style>
     </main>
   );
+}
+
+function mergeFishingProviders(
+  fallbackProviders: readonly FishingProvider[],
+  catalogProviders: SourceCategoryCatalog['providers'],
+) {
+  const merged = new Map<string, FishingProvider>();
+  fallbackProviders.forEach((provider) => merged.set(provider.code, provider));
+  catalogProviders.forEach((provider) => {
+    const code = normalizeProviderCode(provider.code);
+    if (!code) return;
+    const fallback = merged.get(code);
+    merged.set(code, {
+      code,
+      name: provider.name || fallback?.name || code.toUpperCase(),
+      badge: resolveLocalAssetOrSource(provider.badge || fallback?.badge, 'pc'),
+    });
+  });
+  return Array.from(merged.values());
+}
+
+function mergeFishingGames(primary: readonly FishingGame[], fallback: readonly FishingGame[]) {
+  const merged = new Map<string, FishingGame>();
+  const names = new Set<string>();
+  for (const game of [...primary, ...fallback]) {
+    const key = `${game.provider}:${game.id.toLowerCase()}`;
+    const nameKey = `${game.provider}:${game.name.trim().toLocaleLowerCase('th')}`;
+    if (merged.has(key) || names.has(nameKey)) continue;
+    merged.set(key, game);
+    names.add(nameKey);
+  }
+  return Array.from(merged.values());
+}
+
+function isFishingFilterKey(value: string): value is FishingFilterKey {
+  return value === 'hot' || value === 'new' || value === 'slot';
+}
+
+function normalizeProviderCode(value: string) {
+  return value
+    .trim()
+    .toLowerCase()
+    .replace(/\.(?:png|jpe?g|webp|svg)$/i, '')
+    .replace(/[^a-z0-9_-]+/g, '');
+}
+
+function isAbortError(error: unknown) {
+  return error instanceof DOMException && error.name === 'AbortError';
 }
 
 function hideBrokenImage(event: SyntheticEvent<HTMLImageElement>) {
