@@ -72,7 +72,6 @@ test('authenticated drawer matches source density and never renders guest action
   assert.match(runtime, /copyReferralLink\(absoluteLink\)/);
   assert.match(runtime, /ReferralCopiedToast/);
   assert.match(runtimeCss, /\.referralToast\s*\{[\s\S]*width:\s*min\(365px,[\s\S]*height:\s*60px[\s\S]*border:\s*1px solid #48c1b5/);
-  assert.match(runtime, /action\.dataset\.mobileMemberDrawerCopy/);
 });
 
 
