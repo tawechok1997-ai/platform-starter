@@ -4,7 +4,6 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useMemberRuntime } from '../member-runtime-provider';
 
-const MEMBER_AUTH_OPEN_EVENT = 'member:auth-open';
 const NAVIGATION_SELECTOR = [
   '.member-desktop-nav a[href]',
   '.member-mobile-runtime-navigation a[href]',
@@ -86,18 +85,6 @@ export default function MemberNavigationAuthController() {
       if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
       if (!(event.target instanceof Element)) return;
 
-      const anchor = event.target.closest<HTMLAnchorElement>('a[href]');
-      if (anchor) {
-        const canonicalTarget = canonicalTargetFor(anchor);
-        const authMode = authModeForTarget(canonicalTarget);
-        if (authMode) {
-          event.preventDefault();
-          event.stopPropagation();
-          openAuthOverlay(authMode);
-          return;
-        }
-      }
-
       const navigationLink = event.target.closest<HTMLAnchorElement>(NAVIGATION_SELECTOR);
       if (!navigationLink) return;
 
@@ -115,26 +102,13 @@ export default function MemberNavigationAuthController() {
 
       event.preventDefault();
       event.stopPropagation();
-      openAuthOverlay('login', intended);
+      router.replace(`/?auth=login&next=${encodeURIComponent(intended)}`, { scroll: false });
     };
 
     document.addEventListener('click', guard, true);
     return () => document.removeEventListener('click', guard, true);
   }, [navigation, router, summary.isLoggedIn]);
 
-  return null;
-}
-
-function openAuthOverlay(mode: 'login' | 'register', next?: string) {
-  window.dispatchEvent(new CustomEvent(MEMBER_AUTH_OPEN_EVENT, {
-    detail: { mode, ...(next ? { next } : {}) },
-  }));
-}
-
-function authModeForTarget(target: string) {
-  const normalized = normalize(target);
-  if (normalized === '/?auth=login') return 'login' as const;
-  if (normalized === '/?auth=register') return 'register' as const;
   return null;
 }
 
