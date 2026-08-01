@@ -31,9 +31,38 @@ const GUEST_LOGIN_REQUIRED_LABELS = new Set([
   'notifications',
 ]);
 
+const GUEST_PUBLIC_MOBILE_TARGETS: Readonly<Record<string, string>> = {
+  '/mobile/member/vip': '/mobile/member/vip',
+  '/mobile/member/live': '/mobile/member/live',
+  '/mobile/member/promotions': '/mobile/member/promotions',
+  '/mobile/member/news': '/mobile/member/news',
+  '/mobile/member/activity': '/mobile/member/activity',
+  '/mobile/member/guide': '/mobile/member/guide',
+};
+
+const GUEST_PUBLIC_MOBILE_LABEL_TARGETS: Readonly<Record<string, string>> = {
+  'ระดับสมาชิก vip': '/mobile/member/vip',
+  'vip level': '/mobile/member/vip',
+  vip: '/mobile/member/vip',
+  'ถ่ายทอดสด': '/mobile/member/live',
+  live: '/mobile/member/live',
+  'โปรโมชั่น': '/mobile/member/promotions',
+  promotions: '/mobile/member/promotions',
+  promotion: '/mobile/member/promotions',
+  'ข่าวสาร': '/mobile/member/news',
+  news: '/mobile/member/news',
+  'กิจกรรม': '/mobile/member/activity',
+  activities: '/mobile/member/activity',
+  activity: '/mobile/member/activity',
+  'แนะนำการใช้งาน': '/mobile/member/guide',
+  'คู่มือการใช้งาน': '/mobile/member/guide',
+  'usage guide': '/mobile/member/guide',
+  guide: '/mobile/member/guide',
+};
+
 const CANONICAL_LABEL_TARGETS: Readonly<Record<string, string>> = {
-  'ระดับสมาชิก vip': '/mobile-menu/vip',
-  vip: '/mobile-menu/vip',
+  'ระดับสมาชิก vip': '/mobile/member/vip',
+  vip: '/mobile/member/vip',
   'รายได้คอมมิชชั่น': '/affiliate',
   'แนะนำเพื่อน': '/affiliate',
   affiliate: '/affiliate',
@@ -41,17 +70,17 @@ const CANONICAL_LABEL_TARGETS: Readonly<Record<string, string>> = {
   'โบนัส': '/bonus',
   'โบนัสพิเศษ': '/bonus',
   bonus: '/bonus',
-  'โปรโมชั่น': '/browse/promotions?view=promotion',
-  'โปรโมชั่นแนะนำ': '/browse/promotions?view=promotion',
-  promotion: '/browse/promotions?view=promotion',
-  promotions: '/browse/promotions?view=promotion',
-  'กิจกรรม': '/browse/promotions?view=activity',
-  activity: '/browse/promotions?view=activity',
-  activities: '/browse/promotions?view=activity',
-  'ข่าวสาร': '/browse/promotions?view=news',
-  news: '/browse/promotions?view=news',
-  'ถ่ายทอดสด': '/live',
-  live: '/live',
+  'โปรโมชั่น': '/mobile/member/promotions',
+  'โปรโมชั่นแนะนำ': '/mobile/member/promotions',
+  promotion: '/mobile/member/promotions',
+  promotions: '/mobile/member/promotions',
+  'กิจกรรม': '/mobile/member/activity',
+  activity: '/mobile/member/activity',
+  activities: '/mobile/member/activity',
+  'ข่าวสาร': '/mobile/member/news',
+  news: '/mobile/member/news',
+  'ถ่ายทอดสด': '/mobile/member/live',
+  live: '/mobile/member/live',
   'ประวัติ': '/transactions',
   'ประวัติรายการ': '/transactions',
   history: '/transactions',
@@ -61,9 +90,9 @@ const CANONICAL_LABEL_TARGETS: Readonly<Record<string, string>> = {
   notifications: '/notifications',
   'วีดีโอแนะนำ': '/mobile-menu/video',
   'วิดีโอแนะนำ': '/mobile-menu/video',
-  'แนะนำการใช้งาน': '/guide',
-  'คู่มือการใช้งาน': '/guide',
-  guide: '/guide',
+  'แนะนำการใช้งาน': '/mobile/member/guide',
+  'คู่มือการใช้งาน': '/mobile/member/guide',
+  guide: '/mobile/member/guide',
   'สมัครสมาชิก': '/?auth=register',
   register: '/?auth=register',
   'เข้าสู่ระบบ': '/?auth=login',
@@ -81,14 +110,19 @@ const CANONICAL_HREF_TARGETS: Readonly<Record<string, string>> = {
   '/register?embed=1': '/?auth=register',
   '/?auth=login': '/?auth=login',
   '/?auth=register': '/?auth=register',
-  '/promotions': '/browse/promotions?view=promotion',
-  '/mobile-menu/promotions': '/browse/promotions?view=promotion',
-  '/mobile-menu/activities': '/browse/promotions?view=activity',
+  '/promotions': '/mobile/member/promotions',
+  '/mobile-menu/promotions': '/mobile/member/promotions',
+  '/mobile-menu/activities': '/mobile/member/activity',
   '/mobile/member/activity': '/mobile/member/activity',
-  '/mobile-menu/news': '/browse/promotions?view=news',
-  '/mobile-menu/live': '/live',
-  '/?category=live': '/live',
-  '/mobile-menu/guide': '/guide',
+  '/mobile-menu/news': '/mobile/member/news',
+  '/mobile-menu/live': '/mobile/member/live',
+  '/?category=live': '/mobile/member/live',
+  '/mobile-menu/guide': '/mobile/member/guide',
+  '/mobile/member/vip': '/mobile/member/vip',
+  '/mobile/member/live': '/mobile/member/live',
+  '/mobile/member/promotions': '/mobile/member/promotions',
+  '/mobile/member/news': '/mobile/member/news',
+  '/mobile/member/guide': '/mobile/member/guide',
 };
 
 type AuthOpenDetail = {
@@ -136,6 +170,22 @@ export default function MemberNavigationAuthController() {
       if (!(event.target instanceof Element)) return;
 
       const authAction = event.target.closest<HTMLAnchorElement>('a[href]');
+
+      // These six drawer rows own real public pages before login. Resolve them
+      // before runtime navigation metadata can misclassify the same href as
+      // protected and open the auth popup over a page that already exists.
+      const guestPublicTarget = authAction
+        && !summary.isLoggedIn
+        && authAction.closest('#mobile-home-drawer')
+        ? guestPublicMobileTargetFor(authAction)
+        : '';
+      if (guestPublicTarget) {
+        event.preventDefault();
+        event.stopPropagation();
+        event.stopImmediatePropagation();
+        router.replace(guestPublicTarget, { scroll: false });
+        return;
+      }
 
       // These guest drawer rows are member-only even when their source markup
       // points at a popup or a public-looking fallback route. Capture them before
@@ -204,6 +254,13 @@ export default function MemberNavigationAuthController() {
   }, [navigation, openAuth, router, summary.isLoggedIn]);
 
   return null;
+}
+
+function guestPublicMobileTargetFor(action: HTMLAnchorElement) {
+  const href = normalize(action.getAttribute('href') ?? '');
+  return GUEST_PUBLIC_MOBILE_TARGETS[href]
+    ?? GUEST_PUBLIC_MOBILE_LABEL_TARGETS[actionLabel(action)]
+    ?? '';
 }
 
 function requiresGuestLogin(action: HTMLAnchorElement) {
