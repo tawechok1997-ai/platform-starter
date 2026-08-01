@@ -1,9 +1,12 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useMemberRuntime } from '../member-runtime-provider';
+import { useMemberSession } from '../member-session-provider';
+import MemberAuthOverlay, { type MemberAuthMode } from './auth/member-auth-overlay';
 
+const MEMBER_AUTH_OPEN_EVENT = 'member:auth-open';
 const NAVIGATION_SELECTOR = [
   '.member-desktop-nav a[href]',
   '.member-mobile-runtime-navigation a[href]',
@@ -70,11 +73,82 @@ const CANONICAL_HREF_TARGETS: Readonly<Record<string, string>> = {
   '/mobile-menu/guide': '/guide',
 };
 
-type MemberAuthMode = 'login' | 'register';
+type AuthRequest = {
+  mode: MemberAuthMode;
+  next?: string;
+  scrollX: number;
+  scrollY: number;
+};
+
+type AuthOpenDetail = {
+  mode?: unknown;
+  next?: unknown;
+};
 
 export default function MemberNavigationAuthController() {
   const router = useRouter();
   const { navigation, summary } = useMemberRuntime();
+  const { verify } = useMemberSession();
+  const [authRequest, setAuthRequest] = useState<AuthRequest | null>(null);
+
+  const openAuth = useCallback((mode: MemberAuthMode, next?: string) => {
+    setAuthRequest({
+      mode,
+      next: safeNextTarget(next),
+      scrollX: window.scrollX,
+      scrollY: window.scrollY,
+    });
+  }, []);
+
+  const closeAuth = useCallback(() => {
+    const current = authRequest;
+    setAuthRequest(null);
+    if (current) restoreScrollPosition(current.scrollX, current.scrollY);
+  }, [authRequest]);
+
+  const completeAuth = useCallback(async () => {
+    if (!authRequest) return;
+    const authenticated = await verify();
+    if (!authenticated) return;
+
+    const current = authRequest;
+    setAuthRequest(null);
+
+    if (current.next) {
+      router.replace(current.next, { scroll: false });
+      return;
+    }
+
+    restoreScrollPosition(current.scrollX, current.scrollY);
+    router.refresh();
+  }, [authRequest, router, verify]);
+
+  useEffect(() => {
+    const handleAuthOpen = (event: Event) => {
+      const detail = (event as CustomEvent<AuthOpenDetail>).detail;
+      if (!detail || (detail.mode !== 'login' && detail.mode !== 'register')) return;
+      openAuth(detail.mode, typeof detail.next === 'string' ? detail.next : undefined);
+    };
+
+    window.addEventListener(MEMBER_AUTH_OPEN_EVENT, handleAuthOpen);
+    return () => window.removeEventListener(MEMBER_AUTH_OPEN_EVENT, handleAuthOpen);
+  }, [openAuth]);
+
+  useEffect(() => {
+    if (!authRequest) return;
+
+    let secondFrame = 0;
+    const firstFrame = window.requestAnimationFrame(() => {
+      secondFrame = window.requestAnimationFrame(() => {
+        window.scrollTo(authRequest.scrollX, authRequest.scrollY);
+      });
+    });
+
+    return () => {
+      window.cancelAnimationFrame(firstFrame);
+      if (secondFrame) window.cancelAnimationFrame(secondFrame);
+    };
+  }, [authRequest]);
 
   useEffect(() => {
     const protectedTargets = new Map(
@@ -86,6 +160,21 @@ export default function MemberNavigationAuthController() {
     const guard = (event: MouseEvent) => {
       if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
       if (!(event.target instanceof Element)) return;
+
+      const authAction = event.target.closest<HTMLAnchorElement>('a[href]');
+      if (authAction && !authAction.closest('[data-mobile-member-popup]')) {
+        const rawHref = normalize(authAction.getAttribute('href') ?? '');
+        const canonicalTarget = canonicalTargetFor(authAction) || rawHref;
+        const authMode = authModeForTarget(canonicalTarget);
+
+        if (authMode) {
+          event.preventDefault();
+          event.stopPropagation();
+          event.stopImmediatePropagation();
+          openAuth(authMode, nextTargetFor(rawHref));
+          return;
+        }
+      }
 
       const navigationLink = event.target.closest<HTMLAnchorElement>(NAVIGATION_SELECTOR);
       if (!navigationLink) return;
@@ -103,28 +192,22 @@ export default function MemberNavigationAuthController() {
       if (summary.isLoggedIn && mobileRoot?.dataset.mobileAuthenticated === 'true' && insideMobileDrawer) return;
 
       const href = normalize(navigationLink.getAttribute('href') ?? '');
-      const canonicalTarget = canonicalTargetFor(navigationLink);
-      const authMode = authModeForTarget(canonicalTarget || href);
-
-      if (authMode) {
-        event.preventDefault();
-        event.stopImmediatePropagation();
-        openAuthOverlay(authMode);
-        return;
-      }
 
       if (!summary.isLoggedIn && protectedTargets.size) {
         const intended = protectedTargets.get(href);
         if (intended) {
           event.preventDefault();
+          event.stopPropagation();
           event.stopImmediatePropagation();
-          openAuthOverlay('login', intended);
+          openAuth('login', intended);
           return;
         }
       }
 
+      const canonicalTarget = canonicalTargetFor(navigationLink);
       if (canonicalTarget && normalizeCurrentLocation() !== normalize(canonicalTarget)) {
         event.preventDefault();
+        event.stopPropagation();
         event.stopImmediatePropagation();
         router.replace(canonicalTarget, { scroll: false });
       }
@@ -132,9 +215,15 @@ export default function MemberNavigationAuthController() {
 
     document.addEventListener('click', guard, true);
     return () => document.removeEventListener('click', guard, true);
-  }, [navigation, router, summary.isLoggedIn]);
+  }, [navigation, openAuth, router, summary.isLoggedIn]);
 
-  return null;
+  return authRequest ? (
+    <MemberAuthOverlay
+      mode={authRequest.mode}
+      onClose={closeAuth}
+      onSuccess={completeAuth}
+    />
+  ) : null;
 }
 
 function canonicalTargetFor(action: HTMLAnchorElement) {
@@ -159,10 +248,29 @@ function authModeForTarget(value: string): MemberAuthMode | null {
   return null;
 }
 
-function openAuthOverlay(mode: MemberAuthMode, next?: string) {
-  window.dispatchEvent(new CustomEvent('member:auth-open', {
-    detail: { mode, next },
-  }));
+function nextTargetFor(value: string) {
+  try {
+    return safeNextTarget(new URL(value, 'https://member.local').searchParams.get('next'));
+  } catch {
+    return undefined;
+  }
+}
+
+function safeNextTarget(value?: string | null) {
+  const next = String(value ?? '').trim();
+  return next.startsWith('/') && !next.startsWith('//') ? next : undefined;
+}
+
+function restoreScrollPosition(scrollX: number, scrollY: number) {
+  let secondFrame = 0;
+  window.requestAnimationFrame(() => {
+    secondFrame = window.requestAnimationFrame(() => {
+      window.scrollTo(scrollX, scrollY);
+    });
+  });
+  return () => {
+    if (secondFrame) window.cancelAnimationFrame(secondFrame);
+  };
 }
 
 function normalizeCurrentLocation() {
