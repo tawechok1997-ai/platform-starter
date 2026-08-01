@@ -12,6 +12,18 @@ test('VIP member route uses its dedicated source page', () => {
   assert.doesNotMatch(sectionPage, /section === 'vip' \|\| section === 'profile'/);
 });
 
+test('guest VIP renders the public programme without requesting member data', () => {
+  assert.match(sectionPage, /useMemberSession\(\)/);
+  assert.match(sectionPage, /if \(section === 'vip' && !isLoggedIn\)/);
+  assert.match(sectionPage, /setPayload\(null\)/);
+  assert.match(sectionPage, /payload=\{isLoggedIn \? payload : null\}/);
+  assert.match(sectionPage, /error=\{isLoggedIn \? error : ''\}/);
+
+  const guestGuardIndex = sectionPage.indexOf("if (section === 'vip' && !isLoggedIn)");
+  const memberRequestIndex = sectionPage.indexOf('const request =');
+  assert.ok(guestGuardIndex >= 0 && memberRequestIndex > guestGuardIndex);
+});
+
 test('VIP tier CDN names resolve against unified PC assets first', () => {
   assert.match(vipPage, /c005cd08-59f6-485f-8ee2-db342d509aa5\.png/);
   assert.match(vipPage, /78fd025e-0742-410c-ad98-c38f5acdeff1\.png/);
