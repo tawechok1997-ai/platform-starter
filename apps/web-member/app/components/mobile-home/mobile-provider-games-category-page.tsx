@@ -31,7 +31,8 @@ type MobileProviderGamesCategoryPageProps = {
   title: Readonly<{ th: string; en: string }>;
   providers: readonly MobileProviderGamesCard[];
   catalogPlatform: SourceCatalogPlatform;
-  assetPlatform: SourceCatalogPlatform;
+  providerAssetPlatform: SourceCatalogPlatform;
+  gameAssetPlatform: SourceCatalogPlatform;
   includeCatalogProviders?: boolean;
 };
 
@@ -46,7 +47,8 @@ export default function MobileProviderGamesCategoryPage({
   title,
   providers: configuredCards,
   catalogPlatform,
-  assetPlatform,
+  providerAssetPlatform,
+  gameAssetPlatform,
   includeCatalogProviders = false,
 }: MobileProviderGamesCategoryPageProps) {
   const { locale } = useMemberLocale();
@@ -94,11 +96,7 @@ export default function MobileProviderGamesCategoryPage({
   }, [category]);
 
   const providerCards = useMemo(
-    () => mergeProviderCards(
-      configuredCards,
-      catalog?.providers ?? [],
-      includeCatalogProviders,
-    ),
+    () => mergeProviderCards(configuredCards, catalog?.providers ?? [], includeCatalogProviders),
     [catalog?.providers, configuredCards, includeCatalogProviders],
   );
 
@@ -108,7 +106,9 @@ export default function MobileProviderGamesCategoryPage({
 
   const selectedGames = useMemo(() => {
     if (!selectedCode) return [];
-    return (catalog?.games ?? []).filter((game) => normalizeProviderCode(game.provider ?? '') === selectedCode);
+    return (catalog?.games ?? []).filter(
+      (game) => normalizeProviderCode(game.provider ?? '') === selectedCode,
+    );
   }, [catalog?.games, selectedCode]);
 
   const filteredGames = useMemo(() => {
@@ -142,7 +142,7 @@ export default function MobileProviderGamesCategoryPage({
         category={category}
         title={title[locale]}
         providers={providerCards}
-        assetPlatform={assetPlatform}
+        providerAssetPlatform={providerAssetPlatform}
         locale={locale}
         onSelect={selectProvider}
       />
@@ -159,6 +159,7 @@ export default function MobileProviderGamesCategoryPage({
       data-provider-games-category={category}
       data-provider-games-stage="games"
       data-selected-provider={selectedProvider.code}
+      data-game-asset-platform={gameAssetPlatform}
       aria-labelledby={`mobile-${category}-games-heading`}
     >
       <div className={styles.providerRail} role="tablist" aria-label={copy.changeProvider}>
@@ -166,7 +167,7 @@ export default function MobileProviderGamesCategoryPage({
           const code = normalizeProviderCode(provider.code);
           const active = code === selectedCode;
           const iconSource = provider.iconSource || providerIconSource(provider.code);
-          const resolvedIcon = resolveLocalAssetOrSource(iconSource, assetPlatform);
+          const resolvedIcon = resolveLocalAssetOrSource(iconSource, providerAssetPlatform);
           return (
             <button
               key={provider.code}
@@ -189,7 +190,12 @@ export default function MobileProviderGamesCategoryPage({
       </div>
 
       <div className={styles.slotGamesToolbar}>
-        <button type="button" className={styles.backButton} onClick={backToProviders} aria-label={copy.backToProviders}>
+        <button
+          type="button"
+          className={styles.backButton}
+          onClick={backToProviders}
+          aria-label={copy.backToProviders}
+        >
           <span aria-hidden="true">‹</span>
         </button>
         <h2 id={`mobile-${category}-games-heading`}>
@@ -243,7 +249,7 @@ export default function MobileProviderGamesCategoryPage({
               game={game}
               provider={selectedProvider}
               category={category}
-              assetPlatform={assetPlatform}
+              gameAssetPlatform={gameAssetPlatform}
               locale={locale}
             />
           ))}
@@ -267,14 +273,14 @@ function ProviderSelection({
   category,
   title,
   providers,
-  assetPlatform,
+  providerAssetPlatform,
   locale,
   onSelect,
 }: {
   category: 'slot' | 'fishing' | 'card';
   title: string;
   providers: readonly MobileProviderGamesCard[];
-  assetPlatform: SourceCatalogPlatform;
+  providerAssetPlatform: SourceCatalogPlatform;
   locale: 'th' | 'en';
   onSelect: (provider: MobileProviderGamesCard) => void;
 }) {
@@ -295,7 +301,7 @@ function ProviderSelection({
 
       <div className={styles.grid}>
         {providers.map((provider) => {
-          const resolvedSource = resolveLocalAssetOrSource(provider.source, assetPlatform);
+          const resolvedSource = resolveLocalAssetOrSource(provider.source, providerAssetPlatform);
           const className = [
             styles.card,
             styles.providerSelectButton,
@@ -336,17 +342,17 @@ function GameCard({
   game,
   provider,
   category,
-  assetPlatform,
+  gameAssetPlatform,
   locale,
 }: {
   game: SourceGameItem;
   provider: MobileProviderGamesCard;
   category: 'slot' | 'fishing' | 'card';
-  assetPlatform: SourceCatalogPlatform;
+  gameAssetPlatform: SourceCatalogPlatform;
   locale: 'th' | 'en';
 }) {
   const source = game.image;
-  const resolvedSource = resolveLocalAssetOrSource(source, assetPlatform);
+  const resolvedSource = resolveLocalAssetOrSource(source, gameAssetPlatform);
   const providerCode = game.provider ?? provider.code;
   const destination = new URLSearchParams({
     category,
@@ -364,6 +370,7 @@ function GameCard({
       data-game-name={game.name}
       data-provider-code={providerCode}
       data-game-category={category}
+      data-game-icon-platform={gameAssetPlatform}
       aria-label={`${locale === 'th' ? 'เข้าเล่น' : 'Play'} ${game.name}`}
     >
       <span className={styles.slotGameImage}>
@@ -404,7 +411,6 @@ function mergeProviderCards(
       merged.set(code, {
         ...existing,
         name: provider.name || existing.name,
-        iconSource: provider.badge || existing.iconSource,
       });
       return;
     }
@@ -412,7 +418,7 @@ function mergeProviderCards(
       code,
       name: provider.name || code.toUpperCase(),
       source: providerCardSource(code),
-      iconSource: provider.badge || providerIconSource(code),
+      iconSource: providerIconSource(code),
       layout: 'half',
     });
   });
@@ -494,7 +500,7 @@ function FilterIcon() {
     <svg viewBox="0 0 512 512" aria-hidden="true">
       <path d="M32 384h272v32H32zM400 384h80v32h-80zM384 447.5c0 17.949-14.327 32.5-32 32.5-17.673 0-32-14.551-32-32.5v-95c0-17.949 14.327-32.5 32-32.5 17.673 0 32 14.551 32 32.5v95z" />
       <path d="M32 240h80v32H32zM208 240h272v32H208zM192 303.5c0 17.949-14.327 32.5-32 32.5-17.673 0-32-14.551-32-32.5v-95c0-17.949 14.327-32.5 32-32.5 17.673 0 32 14.551 32 32.5v95z" />
-      <path d="M32 96h272v32H32zM400 96h80v32H80zM384 159.5c0 17.949-14.327 32.5-32 32.5-17.673 0-32-14.551-32-32.5v-95c0-17.949 14.327-32.5 32-32.5 17.673 0 32 14.551 32 32.5v95z" />
+      <path d="M32 96h272v32H32zM400 96h80v32h-80zM384 159.5c0 17.949-14.327 32.5-32 32.5-17.673 0-32-14.551-32-32.5v-95c0-17.949 14.327-32.5 32-32.5 17.673 0 32 14.551 32 32.5v95z" />
     </svg>
   );
 }
