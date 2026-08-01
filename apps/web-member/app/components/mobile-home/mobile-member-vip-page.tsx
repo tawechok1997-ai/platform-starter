@@ -18,22 +18,31 @@ type MobileMemberVipPageProps = {
 type Tier = {
   key: TierKey;
   label: string;
-  target: number;
+  threshold: number;
   source: string;
+  badgeColor: string;
+};
+
+type CashbackItemConfig = {
+  label: string;
+  icon: string;
+  keys: readonly string[];
 };
 
 const TIERS = [
   {
     key: 'bronze',
     label: 'Bronze',
-    target: 20_000,
+    threshold: 0,
     source: 'https://cdn.zabbet.com/FEZX/grouptypes/c005cd08-59f6-485f-8ee2-db342d509aa5.png',
+    badgeColor: '#ff9499',
   },
   {
     key: 'silver',
     label: 'Silver',
-    target: 50_000,
+    threshold: 50_000,
     source: 'https://cdn.zabbet.com/FEZX/grouptypes/78fd025e-0742-410c-ad98-c38f5acdeff1.png',
+    badgeColor: '#8f8f96',
   },
 ] as const satisfies readonly [Tier, Tier];
 
@@ -48,12 +57,12 @@ const SPECIAL_BONUSES = [
 ] as const;
 
 const CASHBACK = [
-  { label: 'กีฬา', icon: '/assets/asset-pc/images/ถ่ายถอดสด.png' },
-  { label: 'คาสิโน', icon: '/assets/asset-pc/images/ระดับสมาชิก.png' },
-  { label: 'ตกปลา', icon: '/assets/asset-pc/images/เเนะนำเพื่อน.png' },
-  { label: 'สล็อต', icon: '/assets/asset-pc/images/โปรโมชั้น.png' },
-  { label: 'หวย', icon: '/assets/asset-pc/images/คูปอง.png' },
-] as const;
+  { label: 'กีฬา', icon: '/assets/asset-pc/images/ถ่ายถอดสด.png', keys: ['sportsCashback', 'sportCashback', 'sports'] },
+  { label: 'คาสิโน', icon: '/assets/asset-pc/images/ระดับสมาชิก.png', keys: ['casinoCashback', 'liveCasinoCashback', 'casino'] },
+  { label: 'ยิงปลา', icon: '/assets/asset-pc/images/เเนะนำเพื่อน.png', keys: ['fishingCashback', 'fishCashback', 'fishing'] },
+  { label: 'สล็อต', icon: '/assets/asset-pc/images/โปรโมชั้น.png', keys: ['slotCashback', 'slotsCashback', 'slot'] },
+  { label: 'หวย', icon: '/assets/asset-pc/images/คูปอง.png', keys: ['lotteryCashback', 'lottoCashback', 'lottery'] },
+] as const satisfies readonly CashbackItemConfig[];
 
 export default function MobileMemberVipPage({
   payload,
@@ -68,6 +77,9 @@ export default function MobileMemberVipPage({
     () => resolveCurrentTier(profile, summary.vipLevel, turnover),
     [profile, summary.vipLevel, turnover],
   );
+  const currentTierIndex = tierIndex(currentTier);
+  const birthday = useMemo(() => resolveBirthday(profile), [profile]);
+  const periodEnd = useMemo(() => resolvePeriodEnd(profile), [profile]);
   const [selectedTier, setSelectedTier] = useState<TierKey>(currentTier);
   const cardRowRef = useRef<HTMLDivElement>(null);
 
@@ -80,11 +92,11 @@ export default function MobileMemberVipPage({
     card?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
   }, [selectedTier]);
 
-  const bronzeUnlocked = turnover >= TIERS[0].target;
-  const silverUnlocked = turnover >= TIERS[1].target;
+  const bronzeUnlocked = currentTierIndex >= 0;
+  const silverUnlocked = currentTierIndex >= 1 || turnover >= TIERS[1].threshold;
 
   return (
-    <main className={styles.page} data-mobile-member-page="vip">
+    <main className={styles.page} data-mobile-member-page="vip" data-mobile-vip-authenticated={summary.isLoggedIn ? 'true' : 'false'}>
       <header className={styles.header}>
         <button type="button" aria-label="ย้อนกลับ" onClick={onBack}><BackIcon /></button>
         <h1>ระดับสมาชิก VIP</h1>
@@ -95,19 +107,33 @@ export default function MobileMemberVipPage({
         <section className={styles.tierTimeline} aria-label="ระดับสมาชิก VIP">
           {TIERS.map((tier, index) => {
             const selected = selectedTier === tier.key;
-            const unlocked = turnover >= tier.target;
+            const unlocked = currentTierIndex >= index || turnover >= tier.threshold;
+            const current = currentTier === tier.key;
             return (
               <div className={styles.timelineStep} key={tier.key}>
                 <button
                   type="button"
-                  className={selected ? styles.timelineButtonActive : styles.timelineButton}
+                  className={`${styles.timelineButton} ${selected ? styles.timelineButtonActive : ''}`}
+                  data-current={current ? 'true' : 'false'}
                   aria-pressed={selected}
                   onClick={() => setSelectedTier(tier.key)}
                 >
-                  <span className={styles.timelineLock} data-unlocked={unlocked ? 'true' : 'false'}>
-                    {unlocked ? <CheckIcon /> : <LockIcon />}
-                  </span>
-                  <strong>{tier.label}</strong>
+                  {unlocked ? (
+                    <span className={styles.timelineTierArt}>
+                      <img
+                        src={resolveTierSource(tier.source)}
+                        alt=""
+                        aria-hidden="true"
+                        onError={(event) => { event.currentTarget.src = tier.source; }}
+                      />
+                      <span style={{ '--vip-badge-color': tier.badgeColor } as React.CSSProperties}>{tier.label}</span>
+                    </span>
+                  ) : (
+                    <>
+                      <span className={styles.timelineLock}><LockIcon /></span>
+                      <strong>{tier.label}</strong>
+                    </>
+                  )}
                 </button>
                 {index < TIERS.length - 1 ? <span className={styles.timelineConnector} aria-hidden="true" /> : null}
               </div>
@@ -116,11 +142,14 @@ export default function MobileMemberVipPage({
         </section>
 
         <section className={styles.tierCards} ref={cardRowRef} aria-label="รายละเอียดระดับสมาชิก">
-          {TIERS.map((tier) => (
+          {TIERS.map((tier, index) => (
             <TierCard
               key={tier.key}
               tier={tier}
+              tierIndex={index}
+              currentTierIndex={currentTierIndex}
               turnover={turnover}
+              periodEnd={periodEnd}
               selected={selectedTier === tier.key}
               onSelect={() => setSelectedTier(tier.key)}
             />
@@ -129,6 +158,8 @@ export default function MobileMemberVipPage({
 
         {loading ? <div className={styles.status}>กำลังโหลดข้อมูลสมาชิก...</div> : null}
         {!loading && error ? <div className={styles.error}>{error}</div> : null}
+
+        {summary.isLoggedIn ? <BirthdayPrompt birthday={birthday} /> : null}
 
         <div className={styles.sectionStack}>
           <VipSection title="สิทธิประโยชน์ VIP">
@@ -150,7 +181,13 @@ export default function MobileMemberVipPage({
           <VipSection title="คืนเงินพิเศษ" locked={!silverUnlocked}>
             <div className={styles.cashbackGrid}>
               {CASHBACK.map((item) => (
-                <CashbackItem key={item.label} {...item} locked={!silverUnlocked} />
+                <CashbackItem
+                  key={item.label}
+                  icon={item.icon}
+                  label={item.label}
+                  rate={resolveCashbackRate(profile, item.keys)}
+                  locked={!silverUnlocked}
+                />
               ))}
             </div>
           </VipSection>
@@ -162,58 +199,93 @@ export default function MobileMemberVipPage({
 
 function TierCard({
   tier,
+  tierIndex: cardTierIndex,
+  currentTierIndex,
   turnover,
+  periodEnd,
   selected,
   onSelect,
 }: {
   tier: Tier;
+  tierIndex: number;
+  currentTierIndex: number;
   turnover: number;
+  periodEnd: Date;
   selected: boolean;
   onSelect: () => void;
 }) {
-  const unlocked = turnover >= tier.target;
-  const remaining = Math.max(0, tier.target - turnover);
-  const progress = Math.min(100, tier.target > 0 ? (turnover / tier.target) * 100 : 0);
-  const localSource = resolveLocalAssetOrSource(tier.source, 'pc');
+  const unlocked = currentTierIndex >= cardTierIndex || turnover >= tier.threshold;
+  const current = currentTierIndex === cardTierIndex;
+  const nextTier = TIERS[cardTierIndex + 1];
+  const progressTarget = current && nextTier ? nextTier.threshold : tier.threshold;
+  const progress = progressTarget > 0 ? Math.min(100, (turnover / progressTarget) * 100) : 100;
+  const remaining = Math.max(0, progressTarget - turnover);
 
   return (
     <button
       type="button"
       className={`${styles.tierCard} ${selected ? styles.tierCardSelected : ''}`}
       data-vip-tier-card={tier.key}
+      data-current={current ? 'true' : 'false'}
       aria-pressed={selected}
       onClick={onSelect}
     >
       <span className={styles.tierEmblemWrap}>
         <img
           className={styles.tierEmblem}
-          src={localSource}
+          src={resolveTierSource(tier.source)}
           alt={tier.label}
           loading="eager"
-          onError={(event) => {
-            if (event.currentTarget.src !== tier.source) event.currentTarget.src = tier.source;
-          }}
+          onError={(event) => { event.currentTarget.src = tier.source; }}
         />
       </span>
       <strong className={styles.tierName}>{tier.label}</strong>
       <span className={styles.tierCardPanel}>
-        {unlocked ? (
+        {current && nextTier ? (
+          <span className={styles.currentProgressCopy}>
+            <span className={styles.progressTrack}><span style={{ width: `${progress}%` }} /></span>
+            <small>ยอดแทงสะสม</small>
+            <span className={styles.progressAmount}>
+              <strong>{formatCredits(turnover)}</strong>
+              <i>/</i>
+              <b>{formatCredits(nextTier.threshold)}</b>
+            </span>
+            <span className={styles.nextTierMessage}>
+              <span>ทำยอดแทงเพิ่มอีก {formatCredits(remaining)} เครดิต</span>
+              <span>เพื่อเป็นระดับ {nextTier.label} ภายใน {formatPeriodEnd(periodEnd)}</span>
+            </span>
+          </span>
+        ) : unlocked ? (
           <span className={styles.progressCopy}>
             <CheckIcon />
             <strong>คุณได้รับสิทธิ์ระดับ {tier.label}</strong>
-            <span className={styles.progressTrack}><span style={{ width: `${progress}%` }} /></span>
-            <small>ยอดแทงสะสม {formatCredits(turnover)} / {formatCredits(tier.target)} เครดิต</small>
+            <small>ยอดแทงสะสม {formatCredits(turnover)} เครดิต</small>
           </span>
         ) : (
           <span className={styles.lockedCopy}>
             <LockIcon />
             <strong>คุณมียอดแทงสะสมยังไม่ถึง {tier.label}</strong>
-            <span>ต้องมียอดแทงครบ {formatCredits(tier.target)} เครดิต ขึ้นไป</span>
-            {turnover > 0 ? <small>เหลืออีก {formatCredits(remaining)} เครดิต</small> : null}
+            <span>ต้องมียอดแทงครบ {formatCredits(tier.threshold)} เครดิต ขึ้นไป</span>
           </span>
         )}
       </span>
     </button>
+  );
+}
+
+function BirthdayPrompt({ birthday }: { birthday: string }) {
+  const icon = resolveLocalAssetOrSource(SPECIAL_BONUSES[0].icon, 'mobile');
+  return (
+    <section className={styles.birthdayPrompt} aria-label="โบนัสพิเศษวันเกิด">
+      <span className={styles.birthdayIcon}><img src={icon} alt="" aria-hidden="true" /></span>
+      <span className={styles.birthdayCopy}>
+        <strong>โบนัสพิเศษวันเกิด</strong>
+        {birthday ? <small>{formatBirthday(birthday)}</small> : null}
+      </span>
+      <button type="button" onClick={() => window.location.assign('/profile')}>
+        {birthday ? 'แก้ไขวันเกิด' : 'กรอกวันเกิด'}
+      </button>
+    </section>
   );
 }
 
@@ -236,23 +308,24 @@ function VipSection({
 }
 
 function SectionPlate({ title }: { title: string }) {
+  const gradientId = `vip-section-${title.replace(/\s+/g, '-')}`;
   return (
     <div className={styles.sectionPlate}>
       <svg viewBox="0 0 194 38" fill="none" aria-hidden="true">
         <path
           d="M3 1H1.69l.346 1.264 4.651 17 .013.049.018.047c.032.083.832 2.148 2.35 4.745 1.505 2.576 3.771 5.735 6.883 7.783 3.45 2.27 7.534 3.299 10.622 3.786 1.557.245 2.882.326 3.824.346.47.01.845.004 1.106-.004l.301-.012.08-.004.022-.001h.006H53.375 96.25 139.125h21.438.006l.022.001.08.004.301.012c.261.008.636.014 1.106.004.942-.02 2.267-.101 3.824-.346 3.088-.487 7.172-1.516 10.622-3.786 3.112-2.048 5.378-5.207 6.883-7.783 1.518-2.597 2.318-4.662 2.35-4.745l.018-.047.013-.049 4.651-17L192.31 1H191 3Z"
-          fill="url(#vip-section-fill)"
-          stroke="url(#vip-section-stroke)"
+          fill={`url(#${gradientId}-fill)`}
+          stroke={`url(#${gradientId}-stroke)`}
           strokeOpacity=".22"
           strokeWidth="2"
         />
         <defs>
-          <linearGradient id="vip-section-fill" x1="96" y1="38" x2="96" y2="0" gradientUnits="userSpaceOnUse">
+          <linearGradient id={`${gradientId}-fill`} x1="96" y1="38" x2="96" y2="0" gradientUnits="userSpaceOnUse">
             <stop stopColor="#505050" />
             <stop offset=".32" stopColor="#474747" />
             <stop offset=".79" stopColor="#313131" />
           </linearGradient>
-          <linearGradient id="vip-section-stroke" x1="142.5" y1="48.75" x2="142" y2="6.72" gradientUnits="userSpaceOnUse">
+          <linearGradient id={`${gradientId}-stroke`} x1="142.5" y1="48.75" x2="142" y2="6.72" gradientUnits="userSpaceOnUse">
             <stop stopColor="#f2f2f2" />
             <stop offset="1" stopColor="#f2f2f2" stopOpacity="0" />
           </linearGradient>
@@ -264,7 +337,7 @@ function SectionPlate({ title }: { title: string }) {
 }
 
 function BenefitItem({ icon, label, locked }: { icon: string; label: string; locked: boolean }) {
-  const localIcon = resolveLocalAssetOrSource(icon, 'pc');
+  const localIcon = resolveLocalAssetOrSource(icon, 'mobile');
   return (
     <div className={styles.benefitItem} data-locked={locked ? 'true' : 'false'}>
       <span className={styles.benefitIcon}>
@@ -276,20 +349,31 @@ function BenefitItem({ icon, label, locked }: { icon: string; label: string; loc
   );
 }
 
-function CashbackItem({ icon, label, locked }: { icon: string; label: string; locked: boolean }) {
-  const localIcon = resolveLocalAssetOrSource(icon, 'pc');
+function CashbackItem({
+  icon,
+  label,
+  rate,
+  locked,
+}: {
+  icon: string;
+  label: string;
+  rate: number;
+  locked: boolean;
+}) {
+  const localIcon = resolveLocalAssetOrSource(icon, 'mobile');
   return (
     <div className={styles.cashbackItem} data-locked={locked ? 'true' : 'false'}>
       <span><img src={localIcon} alt="" aria-hidden="true" /></span>
       <strong>{label}</strong>
-      <b>0%</b>
+      <b>{formatPercent(rate)}</b>
     </div>
   );
 }
 
 function unwrapProfile(payload: unknown): UnknownRecord {
   const root = asRecord(payload) ?? {};
-  return asRecord(root.data) ?? asRecord(root.profile) ?? root;
+  const data = asRecord(root.data);
+  return asRecord(data?.profile) ?? asRecord(root.profile) ?? data ?? root;
 }
 
 function resolveTurnover(profile: UnknownRecord) {
@@ -303,7 +387,9 @@ function resolveTurnover(profile: UnknownRecord) {
     profile.vipTurnover,
     vip.turnover,
     vip.progress,
+    vip.currentTurnover,
     stats.turnover,
+    stats.cumulativeTurnover,
     wallet.turnover,
   );
 }
@@ -316,13 +402,52 @@ function resolveCurrentTier(profile: UnknownRecord, runtimeTier: string, turnove
     asRecord(profile.vip)?.level,
     runtimeTier,
   ).toLowerCase();
-  if (value.includes('silver') || turnover >= TIERS[1].target) return 'silver';
+  if (value.includes('silver') || turnover >= TIERS[1].threshold) return 'silver';
   return 'bronze';
+}
+
+function resolveBirthday(profile: UnknownRecord) {
+  const personal = asRecord(profile.personal) ?? {};
+  return firstString(profile.birthDate, profile.birthday, profile.dateOfBirth, personal.birthDate, personal.birthday);
+}
+
+function resolvePeriodEnd(profile: UnknownRecord) {
+  const vip = asRecord(profile.vip) ?? {};
+  const value = firstString(
+    profile.vipPeriodEndsAt,
+    profile.vipCycleEndsAt,
+    profile.periodEndsAt,
+    vip.periodEndsAt,
+    vip.cycleEndsAt,
+    vip.expiresAt,
+  );
+  const parsed = value ? new Date(value) : null;
+  if (parsed && Number.isFinite(parsed.getTime())) return parsed;
+  const now = new Date();
+  return new Date(now.getFullYear(), now.getMonth() + 1, 1, 4, 30, 0, 0);
+}
+
+function resolveCashbackRate(profile: UnknownRecord, keys: readonly string[]) {
+  const vip = asRecord(profile.vip) ?? {};
+  const cashback = asRecord(vip.cashback) ?? asRecord(profile.cashback) ?? {};
+  const benefits = asRecord(vip.benefits) ?? asRecord(profile.vipBenefits) ?? {};
+  return firstFiniteNumber(
+    ...keys.flatMap((key) => [profile[key], vip[key], cashback[key], benefits[key]]),
+  );
+}
+
+function tierIndex(key: TierKey) {
+  return TIERS.findIndex((tier) => tier.key === key);
+}
+
+function resolveTierSource(source: string) {
+  return resolveLocalAssetOrSource(source, 'mobile');
 }
 
 function firstFiniteNumber(...values: unknown[]) {
   for (const value of values) {
-    const parsed = Number(value);
+    const normalized = typeof value === 'string' ? value.replace(/[,%\s]/g, '') : value;
+    const parsed = Number(normalized);
     if (Number.isFinite(parsed) && parsed >= 0) return parsed;
   }
   return 0;
@@ -341,6 +466,23 @@ function asRecord(value: unknown): UnknownRecord | null {
 
 function formatCredits(value: number) {
   return Math.max(0, value).toLocaleString('en-US', { maximumFractionDigits: 2 });
+}
+
+function formatPercent(value: number) {
+  const safe = Math.max(0, value);
+  return `${safe.toLocaleString('en-US', { maximumFractionDigits: 2 })}%`;
+}
+
+function formatPeriodEnd(value: Date) {
+  const hours = String(value.getHours()).padStart(2, '0');
+  const minutes = String(value.getMinutes()).padStart(2, '0');
+  return `วันที่ ${value.getDate()} เดือน ${value.getMonth() + 1} เวลา ${hours}:${minutes}`;
+}
+
+function formatBirthday(value: string) {
+  const parsed = new Date(value);
+  if (!Number.isFinite(parsed.getTime())) return value;
+  return new Intl.DateTimeFormat('th-TH', { day: 'numeric', month: 'long', year: 'numeric' }).format(parsed);
 }
 
 function BackIcon() {
