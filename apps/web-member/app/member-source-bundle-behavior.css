@@ -148,6 +148,37 @@
   }
 }
 
+/* Mobile inherits only interaction behavior. Geometry remains owned by Mobile CSS modules. */
+@media (max-width: 900px) {
+  [data-mobile-home-root='true'] [data-drag-scroll] {
+    overscroll-behavior-inline: contain;
+    scroll-behavior: auto;
+    scrollbar-width: none;
+    touch-action: pan-y;
+    user-select: none;
+    -webkit-overflow-scrolling: touch;
+    -webkit-user-select: none;
+  }
+
+  [data-mobile-home-root='true'] [data-drag-scroll]::-webkit-scrollbar {
+    display: none;
+  }
+
+  [data-mobile-home-root='true'] [data-drag-scroll] img,
+  [data-mobile-home-root='true'] [data-drag-scroll] a,
+  [data-mobile-home-root='true'] [data-drag-scroll] button {
+    -webkit-user-drag: none;
+    user-drag: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .desktop-reference-home .reference-announcement-track {
+    animation: none !important;
+    padding-left: 0 !important;
+  }
+}
+
 @keyframes source-announcement-marquee {
   from { transform: translate3d(0, 0, 0); }
   to { transform: translate3d(-100%, 0, 0); }
