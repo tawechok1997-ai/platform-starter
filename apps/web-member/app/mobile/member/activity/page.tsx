@@ -17,7 +17,7 @@ export default function MobileActivityRoute() {
   useEffect(() => {
     const controller = new AbortController();
 
-    fetch(`${API_URL}/public/site-settings`, {
+    fetch(`${API_URL}/public/activities`, {
       cache: 'no-store',
       headers: { accept: 'application/json' },
       signal: controller.signal,
@@ -26,7 +26,7 @@ export default function MobileActivityRoute() {
       if (!response.ok) return;
       setItems(extractActivities(payload));
     }).catch(() => {
-      // The source activity cards remain available when CMS data is unavailable.
+      // Source cards remain available while the API is unavailable or before the migration is deployed.
     }).finally(() => {
       if (!controller.signal.aborted) setLoading(false);
     });
@@ -38,46 +38,27 @@ export default function MobileActivityRoute() {
     <MobileMemberActivityPage
       items={items}
       loading={loading}
-      onBack={() => router.back()}
+      onBack={() => router.push('/')}
     />
   );
 }
 
 function extractActivities(payload: unknown): MobileActivityContentItem[] {
   const root = asRecord(payload);
-  const features = asRecord(root.features);
-  const content = asRecord(root.content);
-  const source = firstArray(
-    features.activities,
-    features.events,
-    features.eventCampaigns,
-    features.event_campaigns,
-    content.activities,
-    content.events,
-    root.activities,
-    root.events,
-  );
+  const source = Array.isArray(root.items) ? root.items : [];
 
   return source.flatMap((value, index) => {
     const item = asRecord(value);
     if (!isVisible(item)) return [];
-
-    const image = firstString(
-      item.mobileImageUrl,
-      item.mobile_image_url,
-      item.imageUrl,
-      item.image,
-      item.bannerUrl,
-      item.thumbnailUrl,
-      item.thumbnail,
-    );
-    if (!image) return [];
+    const image = firstString(item.mobileImageUrl, item.imageUrl, item.image, item.bannerUrl, item.thumbnailUrl);
+    const href = safeHref(firstString(item.href, item.url, item.link, item.actionUrl));
+    if (!image || !href) return [];
 
     return [{
       id: firstString(item.id, item.code, `activity-${index + 1}`),
       title: firstString(item.title, item.name, `กิจกรรม ${index + 1}`),
       image,
-      href: safeHref(firstString(item.href, item.url, item.link, item.actionUrl)),
+      href,
     } satisfies MobileActivityContentItem];
   });
 }
@@ -86,10 +67,6 @@ function asRecord(value: unknown): UnknownRecord {
   return value && typeof value === 'object' && !Array.isArray(value)
     ? value as UnknownRecord
     : {};
-}
-
-function firstArray(...values: unknown[]) {
-  return values.find((value): value is unknown[] => Array.isArray(value)) ?? [];
 }
 
 function firstString(...values: unknown[]) {
