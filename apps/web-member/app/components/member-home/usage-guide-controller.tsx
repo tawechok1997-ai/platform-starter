@@ -8,6 +8,7 @@ const OPEN_GUIDE_EVENT = 'open-member-usage-guide';
 const MOBILE_MEMBER_POPUP_EVENT = 'member:mobile-popup-open';
 const MOBILE_QUERY = '(max-width: 900px)';
 const VIDEO_TRIGGER_SELECTOR = '[data-mobile-member-popup="video"]';
+const VIDEO_TRIGGER_LABELS = ['วีดีโอแนะนำ', 'วิดีโอแนะนำ'] as const;
 
 type MobilePopupOpenDetail = { kind?: unknown };
 
@@ -18,6 +19,20 @@ function isInternalGuideLink(link: HTMLAnchorElement) {
   } catch {
     return false;
   }
+}
+
+function isVideoGuideTrigger(target: Element) {
+  if (target.closest<HTMLElement>(VIDEO_TRIGGER_SELECTOR)) return true;
+
+  const action = target.closest<HTMLElement>('a,button,[role="button"]');
+  if (!action) return false;
+
+  const label = [
+    action.getAttribute('aria-label') ?? '',
+    action.textContent ?? '',
+  ].join(' ').replace(/\s+/g, ' ').trim();
+
+  return VIDEO_TRIGGER_LABELS.some((value) => label.includes(value));
 }
 
 export default function UsageGuideController() {
@@ -41,11 +56,11 @@ export default function UsageGuideController() {
         || event.altKey
         || !(event.target instanceof Element)
         || !window.matchMedia(MOBILE_QUERY).matches
+        || !isVideoGuideTrigger(event.target)
       ) return;
 
-      const trigger = event.target.closest<HTMLElement>(VIDEO_TRIGGER_SELECTOR);
-      if (!trigger) return;
-
+      // Capture on window before the authenticated popup runtime reaches the
+      // event. Guest and member drawers therefore reuse this exact popup owner.
       event.preventDefault();
       event.stopPropagation();
       event.stopImmediatePropagation();
@@ -59,8 +74,6 @@ export default function UsageGuideController() {
       showVideo();
     };
 
-    // Window capture runs before the authenticated drawer runtime. This keeps
-    // one active owner for the video guide before and after login.
     window.addEventListener('click', handleVideoClick, true);
     window.addEventListener(MOBILE_MEMBER_POPUP_EVENT, handlePopupOpen);
     return () => {
