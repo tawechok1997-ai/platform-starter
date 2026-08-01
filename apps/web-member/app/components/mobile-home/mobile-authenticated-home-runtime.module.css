@@ -527,3 +527,71 @@
     height: 18px;
   }
 }
+
+
+.referralToast {
+  position: fixed;
+  top: max(20px, env(safe-area-inset-top));
+  left: 50%;
+  z-index: 302;
+  display: grid;
+  width: min(365px, calc(100vw - 32px));
+  height: 60px;
+  padding: 10px 12px 10px 27px;
+  grid-template-columns: 24px minmax(0, 1fr) 28px;
+  align-items: center;
+  gap: 12px;
+  transform: translateX(-50%);
+  border: 1px solid #48c1b5;
+  border-radius: 6px;
+  color: #1f2937;
+  background: #f8fafc;
+  box-shadow: 0 8px 22px rgb(0 0 0 / 24%);
+  animation: referralToastIn 220ms ease-out both;
+}
+
+.referralToastIcon,
+.referralToastIcon svg { display: block; width: 24px; height: 24px; }
+
+.referralToastCopy {
+  display: flex;
+  min-width: 0;
+  align-self: stretch;
+  flex-direction: column;
+  justify-content: center;
+  gap: 1px;
+}
+
+.referralToastCopy strong { color: #1f2937; font-size: 14px; font-weight: 600; line-height: 20px; }
+.referralToastCopy small {
+  overflow: hidden;
+  color: #334155;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 16px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.referralToast > button {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  place-items: center;
+  border: 0;
+  color: #c2c2c2;
+  background: transparent;
+  cursor: pointer;
+}
+
+.referralToast > button svg { width: 28px; height: 28px; }
+
+@keyframes referralToastIn {
+  from { opacity: 0; transform: translate(-50%, -10px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .referralToast { animation: none; }
+}
