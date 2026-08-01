@@ -27,6 +27,9 @@ test('guest member-only drawer actions open the one login overlay before popup a
     'แนะนำเพื่อน',
     'คูปอง',
     'โบนัสพิเศษ',
+    'ประวัติ',
+    'ประวัติรายการ',
+    'แจ้งเตือน',
   ]) {
     assert.match(navigationController, new RegExp(`GUEST_LOGIN_REQUIRED_LABELS[\\s\\S]*${label}`));
   }
