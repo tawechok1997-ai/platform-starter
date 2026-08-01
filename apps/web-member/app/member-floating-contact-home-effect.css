@@ -1,98 +1,213 @@
-/* Keep the source-style contact pulse visible on the mobile home only. */
+/* Mobile home contact motion reconstructed from the source DOM contract. */
 
 @media (max-width: 900px) {
-  .member-floating-contact[data-home='true'][data-open='false']
-    .member-floating-contact__button-face {
-    animation: member-contact-source-float 2.1s ease-in-out infinite;
+  .member-floating-contact[data-home='true'][data-source-contact-motion='true'] {
+    bottom: 0;
   }
 
-  .member-floating-contact[data-home='true'][data-open='false']
-    .member-floating-contact__button-face::after {
-    position: absolute;
-    inset: 7px;
-    border: 1px solid rgb(255 225 126 / 42%);
-    border-radius: 999px;
-    content: '';
-    box-shadow:
-      0 0 14px rgb(255 210 86 / 42%),
-      inset 0 0 12px rgb(255 236 174 / 18%);
-    animation: member-contact-source-glow 2.1s ease-in-out infinite;
+  .member-floating-contact[data-home='true'][data-source-contact-motion='true']
+    .contact-source-stage {
+    transform: translateY(64px);
+    transition: transform 300ms ease;
+    will-change: transform;
+  }
+
+  .member-floating-contact[data-home='true'][data-source-contact-motion='true'][data-open='true']
+    .contact-source-stage {
+    transform: translateY(0);
+  }
+
+  .member-floating-contact[data-home='true'][data-source-contact-motion='true']
+    .contact-source-channels {
+    width: 60px;
+    height: 0;
+    padding: 0;
+    overflow: visible;
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+    transition: none;
     pointer-events: none;
   }
 
-  .member-floating-contact[data-home='true'][data-open='false']
-    .member-floating-contact__ring {
-    width: 70px;
-    height: 70px;
-    border-width: 2px;
-    border-color: rgb(255 215 94 / 82%);
-    box-shadow: 0 0 14px rgb(255 199 57 / 28%);
-    animation-name: member-contact-source-ring;
-    animation-duration: 2.4s;
-    animation-timing-function: cubic-bezier(.2, .65, .35, 1);
-    animation-iteration-count: infinite;
+  .member-floating-contact[data-home='true'][data-source-contact-motion='true']
+    .contact {
+    position: relative;
+    display: block;
+    width: 60px;
+    height: 0;
+    flex: 0 0 0;
+    overflow: visible;
+    border-radius: 999px;
+    opacity: 0;
+    transform: none;
+    transition:
+      height 200ms ease-out,
+      flex-basis 200ms ease-out,
+      opacity 200ms ease-out;
+    pointer-events: none;
   }
 
-  .member-floating-contact[data-home='true'][data-open='false']
-    .member-floating-contact__ring--2 {
-    animation-delay: .8s;
+  .member-floating-contact[data-home='true'][data-source-contact-motion='true']
+    .contact-source-line-icon {
+    display: block;
+    width: 60px;
+    height: 60px;
+    border-radius: 999px;
+    object-fit: contain;
+    opacity: 1;
+    transform: translateY(50%) scale(0);
+    transform-origin: center;
+    transition: transform 200ms ease-out;
+    will-change: transform;
   }
 
-  .member-floating-contact[data-home='true'][data-open='false']
-    .member-floating-contact__ring--3 {
-    animation-delay: 1.6s;
+  .member-floating-contact[data-home='true'][data-source-contact-motion='true'][data-open='true']
+    .contact {
+    height: 60px;
+    flex-basis: 60px;
+    opacity: 1;
+    pointer-events: auto;
   }
-}
 
-@keyframes member-contact-source-float {
-  0%, 100% {
+  .member-floating-contact[data-home='true'][data-source-contact-motion='true'][data-open='true']
+    .contact-source-line-icon {
     transform: translateY(0) scale(1);
-    filter: drop-shadow(0 8px 18px rgb(0 0 0 / 34%));
   }
 
-  50% {
-    transform: translateY(-5px) scale(1.035);
-    filter:
-      drop-shadow(0 12px 20px rgb(0 0 0 / 38%))
-      drop-shadow(0 0 10px rgb(255 204 64 / 26%));
-  }
-}
-
-@keyframes member-contact-source-glow {
-  0%, 100% {
-    opacity: .42;
-    transform: scale(.94);
+  .member-floating-contact[data-home='true'][data-source-contact-motion='true']
+    .contact-source-toggle {
+    transform: scale(1);
+    transition: transform 300ms ease;
   }
 
-  50% {
-    opacity: .9;
-    transform: scale(1.04);
+  .member-floating-contact[data-home='true'][data-source-contact-motion='true']
+    .contact-source-toggle:active {
+    transform: scale(.92);
+    transition-duration: 90ms;
+  }
+
+  .member-floating-contact[data-home='true'][data-source-contact-motion='true']
+    .contact-btn {
+    width: 80px;
+    height: 80px;
+    animation: none;
+    transform: scale(1);
+    transition: transform 300ms ease;
+  }
+
+  .member-floating-contact[data-home='true'][data-source-contact-motion='true']
+    .contact-icon-btn {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 80px;
+    height: 80px;
+    padding: 4px;
+    opacity: 1;
+    transform: translate(-50%, -50%) rotate(0deg) scale(1);
+    transition: opacity 300ms ease, transform 300ms ease;
+    will-change: opacity, transform;
+  }
+
+  .member-floating-contact[data-home='true'][data-source-contact-motion='true']
+    .contact-close-motion {
+    position: relative;
+    display: block;
+    width: 80px;
+    height: 80px;
+    padding: 6px;
+    border-radius: 999px;
+    opacity: 0;
+    transform: rotate(0deg) scale(.78);
+    transition: opacity 300ms ease, transform 300ms ease;
+    will-change: opacity, transform;
+  }
+
+  .member-floating-contact[data-home='true'][data-source-contact-motion='true'][data-open='true']
+    .contact-icon-btn {
+    opacity: 0;
+    transform: translate(-50%, -50%) rotate(90deg) scale(.78);
+  }
+
+  .member-floating-contact[data-home='true'][data-source-contact-motion='true'][data-open='true']
+    .contact-close-motion {
+    opacity: 1;
+    transform: rotate(90deg) scale(1);
+  }
+
+  .member-floating-contact[data-home='true'][data-source-contact-motion='true']
+    .contact-ring {
+    width: 72px;
+    height: 72px;
+    border: 2px solid rgb(244 196 75 / 78%);
+    box-shadow:
+      0 0 8px rgb(255 219 105 / 42%),
+      inset 0 0 8px rgb(255 222 120 / 16%);
+    opacity: 0;
+    animation: member-contact-source-ring 2.4s cubic-bezier(.2, .62, .32, 1) infinite;
+    transition: opacity 180ms ease;
+    will-change: opacity, transform;
+  }
+
+  .member-floating-contact[data-home='true'][data-source-contact-motion='true']
+    .contact-ring-1 {
+    animation-delay: 0ms;
+  }
+
+  .member-floating-contact[data-home='true'][data-source-contact-motion='true']
+    .contact-ring-2 {
+    animation-delay: 800ms;
+  }
+
+  .member-floating-contact[data-home='true'][data-source-contact-motion='true']
+    .contact-ring-3 {
+    animation-delay: 1600ms;
+  }
+
+  .member-floating-contact[data-home='true'][data-source-contact-motion='true'][data-open='true']
+    .contact-ring {
+    opacity: 0;
+    animation-play-state: paused;
   }
 }
 
 @keyframes member-contact-source-ring {
   0% {
-    opacity: .82;
+    opacity: 0;
     transform: translate(-50%, -50%) scale(.58);
   }
 
-  72% {
-    opacity: .16;
+  12% {
+    opacity: .82;
+  }
+
+  68% {
+    opacity: .18;
   }
 
   100% {
     opacity: 0;
-    transform: translate(-50%, -50%) scale(1.82);
+    transform: translate(-50%, -50%) scale(1.72);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .member-floating-contact[data-home='true']
-    .member-floating-contact__button-face,
-  .member-floating-contact[data-home='true']
-    .member-floating-contact__button-face::after,
-  .member-floating-contact[data-home='true']
-    .member-floating-contact__ring {
+  .member-floating-contact[data-home='true'][data-source-contact-motion='true']
+    .contact-source-stage,
+  .member-floating-contact[data-home='true'][data-source-contact-motion='true']
+    .contact,
+  .member-floating-contact[data-home='true'][data-source-contact-motion='true']
+    .contact-source-line-icon,
+  .member-floating-contact[data-home='true'][data-source-contact-motion='true']
+    .contact-source-toggle,
+  .member-floating-contact[data-home='true'][data-source-contact-motion='true']
+    .contact-icon-btn,
+  .member-floating-contact[data-home='true'][data-source-contact-motion='true']
+    .contact-close-motion,
+  .member-floating-contact[data-home='true'][data-source-contact-motion='true']
+    .contact-ring {
     animation: none;
+    transition: none;
   }
 }
