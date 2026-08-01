@@ -1,5 +1,14 @@
 'use client';
 
+import { useEffect, useMemo, useState } from 'react';
+import {
+  loadSourceCategoryCatalog,
+} from '../../browse/source-game-catalog';
+import type {
+  SourceGameItem,
+  SourceGameProvider,
+} from '../../browse/source-game-category-page';
+import { useMemberLocale } from '../../member-locale-provider';
 import { resolveLocalAssetOrSource } from '../../lib/local-asset-by-basename';
 import styles from './mobile-casino-provider-page.module.css';
 
@@ -12,6 +21,9 @@ type SlotProviderCard = {
   layout: 'wide-hero' | 'wide-banner' | 'half';
   badge?: SlotProviderBadge;
 };
+
+const INITIAL_GAME_COUNT = 60;
+const GAME_PAGE_STEP = 60;
 
 const SLOT_PROVIDERS: readonly SlotProviderCard[] = [
   { code: 'ygr', name: 'YGR', source: 'https://cdn.zabbet.com/providers/set/1_1_h/ygr.png', layout: 'wide-hero', badge: 'hot' },
@@ -58,17 +70,42 @@ const SLOT_PROVIDERS: readonly SlotProviderCard[] = [
   { code: 'rb7slot', name: 'RB7SLOT', source: 'https://cdn.zabbet.com/providers/set/1_1_h/rb7slot.png', layout: 'half', badge: 'new' },
 ] as const;
 
+const SLOT_SOURCE_PROVIDERS: readonly SourceGameProvider[] = SLOT_PROVIDERS.map((provider) => ({
+  code: provider.code,
+  name: provider.name,
+  badge: providerAssetSource('badge', provider.code),
+  card: providerAssetSource('card', provider.code),
+  background: providerAssetSource('bg', provider.code),
+  title: providerAssetSource('title', provider.code),
+  avatar: providerAssetSource('avatar', provider.code),
+}));
+
 export default function MobileSlotProviderPage() {
+  const { locale } = useMemberLocale();
+  const [selectedProvider, setSelectedProvider] = useState<SlotProviderCard | null>(null);
+
+  if (selectedProvider) {
+    return (
+      <MobileSlotGamesPage
+        provider={selectedProvider}
+        locale={locale}
+        onBack={() => setSelectedProvider(null)}
+      />
+    );
+  }
+
   return (
     <section
       className={styles.root}
       data-mobile-slot-provider-page="true"
       data-category-flow="provider-games"
+      data-slot-step="providers"
       aria-labelledby="mobile-slot-provider-heading"
     >
       <div className={styles.headingRow}>
         <h2 id="mobile-slot-provider-heading" className={styles.heading}>
-          สล็อต <span>({SLOT_PROVIDERS.length} ค่ายเกม)</span>
+          {locale === 'th' ? 'สล็อต' : 'Slots'}{' '}
+          <span>({SLOT_PROVIDERS.length} {locale === 'th' ? 'ค่ายเกม' : 'providers'})</span>
         </h2>
       </div>
 
@@ -77,21 +114,22 @@ export default function MobileSlotProviderPage() {
           const resolvedSource = resolveLocalAssetOrSource(provider.source, 'mobile');
           const className = [
             styles.card,
+            styles.providerSelectButton,
             provider.layout !== 'half' ? styles.wide : '',
             provider.layout === 'wide-banner' ? styles.banner : styles.hero,
           ].filter(Boolean).join(' ');
-          const destination = `/browse/games?category=slot&provider=${encodeURIComponent(provider.code)}&platform=mobile`;
 
           return (
-            <a
+            <button
               key={provider.code}
-              href={destination}
+              type="button"
               className={className}
               data-provider-select="true"
               data-provider-code={provider.code}
               data-game-category="slot"
               data-next-step="games"
-              aria-label={`ดูเกมค่าย ${provider.name}`}
+              aria-label={locale === 'th' ? `ดูเกมค่าย ${provider.name}` : `View ${provider.name} games`}
+              onClick={() => setSelectedProvider(provider)}
             >
               {provider.badge === 'hot' ? <HotBadge /> : null}
               {provider.badge === 'new' ? <NewBadge /> : null}
@@ -110,12 +148,153 @@ export default function MobileSlotProviderPage() {
                   image.hidden = true;
                 }}
               />
-            </a>
+            </button>
           );
         })}
       </div>
     </section>
   );
+}
+
+function MobileSlotGamesPage({
+  provider,
+  locale,
+  onBack,
+}: {
+  provider: SlotProviderCard;
+  locale: 'th' | 'en';
+  onBack: () => void;
+}) {
+  const [games, setGames] = useState<SourceGameItem[]>([]);
+  const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading');
+  const [visibleCount, setVisibleCount] = useState(INITIAL_GAME_COUNT);
+  const copy = SLOT_COPY[locale];
+
+  useEffect(() => {
+    const controller = new AbortController();
+    let cancelled = false;
+    setGames([]);
+    setVisibleCount(INITIAL_GAME_COUNT);
+    setStatus('loading');
+
+    void loadSourceCategoryCatalog('slot', SLOT_SOURCE_PROVIDERS, 'mobile', controller.signal)
+      .then((catalog) => {
+        if (cancelled) return;
+        const selectedCode = normalizeProviderCode(provider.code);
+        setGames(catalog.games.filter((game) => game.provider === selectedCode));
+        setStatus('ready');
+      })
+      .catch((error: unknown) => {
+        if (cancelled || isAbortError(error)) return;
+        setGames([]);
+        setStatus('error');
+      });
+
+    return () => {
+      cancelled = true;
+      controller.abort();
+    };
+  }, [provider.code]);
+
+  const visibleGames = useMemo(() => games.slice(0, visibleCount), [games, visibleCount]);
+  const providerBadge = resolveLocalAssetOrSource(providerAssetSource('badge', provider.code), 'mobile');
+
+  return (
+    <section
+      className={`${styles.root} ${styles.slotGamesRoot}`}
+      data-mobile-slot-games-page="true"
+      data-category-flow="provider-games"
+      data-slot-step="games"
+      data-selected-provider={provider.code}
+      aria-labelledby="mobile-slot-games-heading"
+    >
+      <div className={styles.slotGamesHeading}>
+        <button type="button" className={styles.backButton} onClick={onBack} aria-label={copy.backToProviders}>
+          <span aria-hidden="true">‹</span>
+        </button>
+        <img src={providerBadge} alt="" aria-hidden="true" onError={(event) => { event.currentTarget.hidden = true; }} />
+        <h2 id="mobile-slot-games-heading">
+          {provider.name}
+          <span>{status === 'ready' ? `(${games.length} ${copy.games})` : ''}</span>
+        </h2>
+      </div>
+
+      {status === 'loading' ? <SlotState message={copy.loading} /> : null}
+      {status === 'error' ? <SlotState message={copy.error} /> : null}
+      {status === 'ready' && games.length === 0 ? <SlotState message={copy.empty} /> : null}
+
+      {visibleGames.length > 0 ? (
+        <div className={styles.slotGameGrid}>
+          {visibleGames.map((game) => (
+            <SlotGameCard key={`${game.provider ?? provider.code}:${game.id}`} game={game} provider={provider} locale={locale} />
+          ))}
+        </div>
+      ) : null}
+
+      {visibleCount < games.length ? (
+        <button
+          type="button"
+          className={styles.loadMoreButton}
+          onClick={() => setVisibleCount((current) => Math.min(games.length, current + GAME_PAGE_STEP))}
+        >
+          {copy.loadMore}
+        </button>
+      ) : null}
+    </section>
+  );
+}
+
+function SlotGameCard({
+  game,
+  provider,
+  locale,
+}: {
+  game: SourceGameItem;
+  provider: SlotProviderCard;
+  locale: 'th' | 'en';
+}) {
+  const source = game.image;
+  const resolvedSource = resolveLocalAssetOrSource(source, 'mobile');
+
+  return (
+    <button
+      type="button"
+      className={styles.slotGameCard}
+      data-game-id={game.id}
+      data-game-code={game.id}
+      data-game-name={game.name}
+      data-provider-code={game.provider ?? provider.code}
+      data-game-category="slot"
+      aria-label={`${locale === 'th' ? 'เข้าเล่น' : 'Play'} ${game.name}`}
+    >
+      <span className={styles.slotGameImage}>
+        <img
+          src={resolvedSource}
+          alt={game.name}
+          loading="lazy"
+          onError={(event) => {
+            const image = event.currentTarget;
+            if (resolvedSource !== source && image.dataset.remoteFallback !== 'true') {
+              image.dataset.remoteFallback = 'true';
+              image.src = source;
+              return;
+            }
+            image.hidden = true;
+          }}
+        />
+        <span className={styles.slotGameBadges} aria-hidden="true">
+          {game.isHot ? <b className={styles.slotHotBadge}>HOT</b> : null}
+          {game.isNew ? <b className={styles.slotNewBadge}>NEW</b> : null}
+        </span>
+      </span>
+      <strong>{game.name}</strong>
+      <small>{provider.name}</small>
+    </button>
+  );
+}
+
+function SlotState({ message }: { message: string }) {
+  return <div className={styles.slotState} role="status">{message}</div>;
 }
 
 function HotBadge() {
@@ -137,3 +316,39 @@ function NewBadge() {
     </span>
   );
 }
+
+function providerAssetSource(kind: 'badge' | 'card' | 'bg' | 'title' | 'avatar', code: string) {
+  const set = kind === 'card' ? '1_1_v' : `1_1_${kind}`;
+  return `https://cdn.zabbet.com/providers/set/${set}/${code}.png`;
+}
+
+function normalizeProviderCode(value: string) {
+  return value
+    .trim()
+    .toLowerCase()
+    .replace(/\.(?:png|jpe?g|webp|svg)$/i, '')
+    .replace(/[^a-z0-9_-]+/g, '');
+}
+
+function isAbortError(error: unknown) {
+  return error instanceof DOMException && error.name === 'AbortError';
+}
+
+const SLOT_COPY = {
+  th: {
+    games: 'เกม',
+    loading: 'กำลังโหลดเกมของค่าย...',
+    error: 'โหลดรายการเกมไม่สำเร็จ กรุณาลองใหม่อีกครั้ง',
+    empty: 'ค่ายนี้ยังไม่มีเกมมือถือที่พร้อมแสดง',
+    loadMore: 'โหลดเกมเพิ่มเติม',
+    backToProviders: 'กลับไปเลือกค่ายสล็อต',
+  },
+  en: {
+    games: 'games',
+    loading: 'Loading provider games...',
+    error: 'Unable to load games. Please try again.',
+    empty: 'This provider has no mobile games available yet.',
+    loadMore: 'Load more games',
+    backToProviders: 'Back to slot providers',
+  },
+} as const;
