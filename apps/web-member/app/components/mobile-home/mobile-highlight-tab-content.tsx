@@ -8,6 +8,7 @@ import { useMemberRuntime } from '../../member-runtime-provider';
 import { resolveLocalAssetOrSource } from '../../lib/local-asset-by-basename';
 import MobileCasinoProviderPage from './mobile-casino-provider-page';
 import MobileSourceContent from './mobile-source-content';
+import MobileSportProviderPage from './mobile-sport-provider-page';
 import styles from './mobile-highlight-tab-content.module.css';
 
 export type MobileHighlightTab = 'highlights' | 'promotions' | 'activities' | 'news';
@@ -102,6 +103,10 @@ export default function MobileHighlightTabContent({ activeTab }: MobileHighlight
 
   if (activeCategory === 'casino') {
     return <MobileCasinoProviderPage />;
+  }
+
+  if (activeCategory === 'sport') {
+    return <MobileSportProviderPage />;
   }
 
   if (activeCategory !== 'home') {
