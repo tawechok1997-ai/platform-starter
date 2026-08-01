@@ -12,6 +12,8 @@ type Locale = 'th' | 'en';
 type AuthMode = 'login' | 'forgot';
 type LoginErrors = { identifier?: string; secret?: string };
 
+const STORED_SESSION_TIMEOUT_MS = 6000;
+
 const copy = {
   th: {
     eyebrow: 'เข้าสู่ระบบสมาชิก', title: 'เข้าสู่ระบบ', identifier: 'เบอร์โทรศัพท์', identifierPlaceholder: '',
@@ -62,6 +64,8 @@ export default function MemberSignInPage() {
 
   useEffect(() => {
     let cancelled = false;
+    let sessionTimeout = 0;
+    const sessionController = new AbortController();
     const params = new URLSearchParams(window.location.search);
     const isEmbedded = params.get('embed') === '1' && window.parent !== window;
     setEmbedded(isEmbedded);
@@ -84,9 +88,11 @@ export default function MemberSignInPage() {
         return;
       }
 
+      sessionTimeout = window.setTimeout(() => sessionController.abort(), STORED_SESSION_TIMEOUT_MS);
       try {
         const response = await memberApiFetch('/member/auth/profile', {
           suppressSessionExpiryRedirect: true,
+          signal: sessionController.signal,
         });
         if (cancelled) return;
         if (response.ok) {
@@ -96,7 +102,10 @@ export default function MemberSignInPage() {
         }
         if (response.status === 401) clearMemberSession();
       } catch {
-        // A transient API failure must not close or reload the login popup.
+        // A stale-session timeout or transient API failure must reveal the login form.
+      } finally {
+        window.clearTimeout(sessionTimeout);
+        sessionTimeout = 0;
       }
 
       if (!cancelled) {
@@ -108,6 +117,8 @@ export default function MemberSignInPage() {
     void validateStoredSession();
     return () => {
       cancelled = true;
+      sessionController.abort();
+      if (sessionTimeout) window.clearTimeout(sessionTimeout);
     };
   }, []);
 
