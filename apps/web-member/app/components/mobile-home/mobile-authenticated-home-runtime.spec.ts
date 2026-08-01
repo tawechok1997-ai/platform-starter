@@ -5,6 +5,7 @@ import test from 'node:test';
 const memberHome = readFileSync(new URL('../../member-home.tsx', import.meta.url), 'utf8');
 const runtime = readFileSync(new URL('./mobile-authenticated-home-runtime.tsx', import.meta.url), 'utf8');
 const runtimeCss = readFileSync(new URL('./mobile-authenticated-home-runtime.module.css', import.meta.url), 'utf8');
+const popupRuntime = readFileSync(new URL('./mobile-member-popup-runtime.tsx', import.meta.url), 'utf8');
 
 test('authenticated mobile shell reuses the guest header and drawer owners', () => {
   assert.equal((memberHome.match(/<MobileAuthenticatedHomeRuntime\s*\/>/g) ?? []).length, 1);
@@ -21,42 +22,38 @@ test('logged-in header replaces only guest language and auth controls', () => {
   assert.match(runtime, /\[data-mobile-auth-layout="drawer"\]/);
   assert.match(runtime, /button\[aria-label="เปลี่ยนภาษา"\]/);
   assert.match(runtime, /className=\{styles\.headerSearch\}/);
-  assert.match(runtime, /public-member-wallet-action/);
+  assert.match(runtime, /className=\{styles\.headerWallet\}/);
   assert.match(runtime, /summary\.walletAvailable/);
   assert.doesNotMatch(runtime, /hero|announcement|highlight-tabs|category-menu|shortcut|footer/);
 });
 
-test('mobile member menu reuses the existing desktop popup runtimes', () => {
-  assert.equal((runtime.match(/<MemberHeaderFinanceRuntime\s+locale=\{locale\}\s*\/>/g) ?? []).length, 1);
-  assert.equal((runtime.match(/<MemberMenuIncomeSafeRuntime\s+locale=\{locale\}\s*\/>/g) ?? []).length, 1);
-  assert.equal((runtime.match(/<MemberMenuSpecialBonusRuntime\s+locale=\{locale\}\s*\/>/g) ?? []).length, 1);
-  assert.equal((runtime.match(/<MemberMenuSecondaryRuntime\s+locale=\{locale\}\s*\/>/g) ?? []).length, 1);
-  assert.equal((runtime.match(/<MemberMenuVipRuntime\s+locale=\{locale\}\s*\/>/g) ?? []).length, 1);
-  assert.match(runtime, /primaryMenu\.classList\.add\('public-member-menu-grid'\)/);
-  assert.match(runtime, /secondaryMenu\.classList\.add\('public-member-menu-grid', 'public-member-menu-grid--secondary'\)/);
-  assert.match(runtime, /data-member-language-trigger/);
-  assert.match(runtime, /\/browse\/promotions\?view=activity/);
-  assert.doesNotMatch(runtime, /function\s+(DepositPopup|WithdrawPopup|CouponPopup|IncomeTransferPopup|MemberVipModal)/);
+test('mobile authenticated shell owns one mobile popup runtime and no desktop popup runtime', () => {
+  assert.equal((runtime.match(/<MobileMemberPopupRuntime\s*\/>/g) ?? []).length, 1);
+  assert.match(runtime, /import MobileMemberPopupRuntime from '\.\/mobile-member-popup-runtime'/);
+  assert.doesNotMatch(runtime, /MemberHeaderFinanceRuntime|MemberMenuIncomeSafeRuntime|MemberMenuSpecialBonusRuntime|MemberMenuSecondaryRuntime|MemberMenuVipRuntime/);
+  assert.doesNotMatch(popupRuntime, /MemberHeaderFinanceRuntime|MemberMenuIncomeSafeRuntime|MemberSharedPopupRuntime/);
+  assert.match(popupRuntime, /function SourcePopupShell/);
 });
 
-test('authenticated drawer matches the supplied member structure and central session', () => {
+test('authenticated drawer routes popup actions through the one mobile owner', () => {
   assert.match(runtime, /data-mobile-authenticated-drawer-content="true"/);
   assert.match(runtime, /summary\.displayName \|\| summary\.username/);
   assert.match(runtime, /summary\.vipLevel/);
-  assert.equal((runtime.match(/href="\/deposit"/g) ?? []).length >= 2, true);
-  assert.match(runtime, /href="\/withdraw"/);
-  assert.match(runtime, /public-member-income-row/);
-  assert.match(runtime, /public-member-referral-row/);
+  assert.equal((runtime.match(/data-mobile-member-popup="deposit"/g) ?? []).length >= 2, true);
+  assert.match(runtime, /data-mobile-member-popup="withdraw"/);
+  assert.match(runtime, /data-mobile-member-popup="network-income"/);
+  assert.match(runtime, /data-mobile-member-popup="commission-income"/);
+  assert.match(runtime, /data-mobile-member-popup', 'language'/);
   assert.match(runtime, /onClick=\{logout\}/);
   assert.match(runtime, /resolveLocalAssetByBasename\(VIP_BADGE_SOURCE/);
   assert.match(runtimeCss, /width:\s*min\(340px,\s*calc\(100vw - 20px\)\)/);
   assert.match(runtimeCss, /padding:\s*20px 23px 28px/);
 });
 
-test('guest drawer slide behavior remains the only motion owner', () => {
+test('guest drawer slide behavior remains the only drawer motion owner', () => {
   assert.match(runtime, /drawer\.insertBefore\(drawerProfile, primaryMenu\)/);
   assert.match(runtime, /drawer\.append\(drawerLogout\)/);
-  assert.match(runtime, /drawer\.addEventListener\('pointerdown', closeBeforeAction, true\)/);
+  assert.match(runtime, /drawer\.addEventListener\('pointerdown', closeBeforePlainNavigation, true\)/);
   assert.match(runtime, /closeButton\?\.click\(\)/);
   assert.match(runtime, /drawerProfile\.remove\(\)/);
   assert.match(runtime, /drawerLogout\.remove\(\)/);
