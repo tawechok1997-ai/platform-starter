@@ -28,6 +28,7 @@ import type {
   ReceivingAccount,
   WalletResponse,
 } from '../../types/member-finance';
+import MobileDepositSourceContent from './mobile-deposit-source-content';
 import styles from './mobile-member-popup-runtime.module.css';
 
 export type MobilePopupKind =
@@ -310,7 +311,7 @@ export default function MobileMemberPopupRuntime() {
             {popup === 'menu' ? <MenuContent onOpen={open} onNavigate={navigate} /> : null}
             {popup === 'contact' ? <ContactContent /> : null}
             {popup === 'password' ? <PasswordContent locale={locale} onContact={() => open('contact')} /> : null}
-            {popup === 'deposit' ? <MobileDepositContent locale={locale} onClose={close} /> : null}
+            {popup === 'deposit' ? <MobileDepositSourceContent locale={locale} onClose={close} /> : null}
             {popup === 'withdraw' ? <MobileWithdrawContent locale={locale} onClose={close} /> : null}
             {popup === 'network-income' ? (
               <IncomeTransferContent
