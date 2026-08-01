@@ -45,6 +45,18 @@ const MOBILE_CATEGORY_IDS = new Set<MobileCategoryId>([
   'lottery',
 ]);
 
+const MOBILE_INLINE_MEMBER_TABS: Readonly<Record<string, Exclude<MobileHighlightTab, 'highlights'>>> = {
+  '/mobile/member/promotions': 'promotions',
+  '/mobile/member/activity': 'activities',
+  '/mobile/member/news': 'news',
+};
+
+const MOBILE_HIGHLIGHT_TAB_INDEX: Readonly<Record<Exclude<MobileHighlightTab, 'highlights'>, number>> = {
+  promotions: 1,
+  activities: 2,
+  news: 3,
+};
+
 export default function MobileHighlightTabContent({ activeTab }: MobileHighlightTabContentProps) {
   const { locale } = useMemberLocale();
   const { home } = useMemberRuntime();
@@ -85,6 +97,50 @@ export default function MobileHighlightTabContent({ activeTab }: MobileHighlight
       window.removeEventListener('click', selectFromClick, true);
       window.removeEventListener('member:mobile-category-select', selectFromEvent);
     };
+  }, []);
+
+  useEffect(() => {
+    const keepMemberContentInline = (event: MouseEvent) => {
+      if (
+        event.defaultPrevented
+        || event.button !== 0
+        || event.metaKey
+        || event.ctrlKey
+        || event.shiftKey
+        || event.altKey
+      ) return;
+
+      const target = event.target;
+      if (!(target instanceof Element)) return;
+      if (!document.querySelector('[data-mobile-home-root="true"]')) return;
+
+      const anchor = target.closest<HTMLAnchorElement>('a[href]');
+      if (!anchor || anchor.download || (anchor.target && anchor.target !== '_self')) return;
+
+      const destination = new URL(anchor.href, window.location.href);
+      if (destination.origin !== window.location.origin) return;
+
+      const normalizedPath = destination.pathname.replace(/\/+$/, '') || '/';
+      const inlineTab = MOBILE_INLINE_MEMBER_TABS[normalizedPath];
+      if (!inlineTab) return;
+
+      const tabButton = document.getElementById(
+        `mobile-highlight-tab-${MOBILE_HIGHLIGHT_TAB_INDEX[inlineTab]}`,
+      );
+      if (!(tabButton instanceof HTMLButtonElement)) return;
+
+      event.preventDefault();
+      tabButton.click();
+      tabButton.focus({ preventScroll: true });
+
+      window.requestAnimationFrame(() => {
+        document.querySelector<HTMLElement>('[data-mobile-section-owner="highlight-tabs"]')
+          ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    };
+
+    window.addEventListener('click', keepMemberContentInline, true);
+    return () => window.removeEventListener('click', keepMemberContentInline, true);
   }, []);
 
   const promotions = useMemo(
