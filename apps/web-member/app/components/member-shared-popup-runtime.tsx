@@ -58,8 +58,12 @@ export default function MemberSharedPopupRuntime({
       if (!(event.target instanceof Element)) return;
       if (event.target.closest('.member-shared-popup, [data-member-modal-system="true"]')) return;
 
+      // Mobile member actions have one dedicated owner. Shared popup must never
+      // intercept the same click or two dialogs will open from one control.
+      if (event.target.closest('[data-mobile-member-popup], [data-ui-owner="mobile-popup"]')) return;
+
       const languageTrigger = event.target.closest<HTMLElement>(
-        '[data-member-language-trigger], .public-home-flag, .public-member-menu-grid--secondary button',
+        '[data-member-language-trigger], .public-home-flag',
       );
       if (languageTrigger) {
         event.preventDefault();
