@@ -4,6 +4,7 @@ import '../components/auth/auth-source-login.css';
 import '../components/auth/auth-source-register.css';
 import '../components/auth/auth-embedded-overlay.css';
 import '../components/auth/auth-popup-single-owner.css';
+import '../components/auth/auth-popup-mobile-source-final.css';
 
 export default function MemberAuthLayout({ children }: { children: ReactNode }) {
   return <div className="auth-reference-scope">{children}</div>;
