@@ -36,6 +36,11 @@ test('mobile portal owners are explicitly tagged and remain mobile-only', () => 
   assert.match(mobilePopupRuntime, /height=\{BOTTOM_NAV_CANVAS_SIZE\}/);
   assert.match(mobilePopupRuntime, /data-bottom-navigation-canvas=\{kind\}/);
   assert.match(mobilePopupRuntime, /<BottomNavigationCanvasIcon src=\{item\.icon\} kind=\{item\.kind\} \/>/);
+  assert.match(mobilePopupRuntime, /icon: '\/assets\/asset-pc\/images\/ฝาก\.png'/);
+  assert.match(mobilePopupRuntime, /icon: '\/assets\/asset-pc\/images\/ถอน\.png'/);
+  assert.match(mobilePopupRuntime, /icon: '\/assets\/asset-pc\/images\/line\.png'/);
+  assert.doesNotMatch(mobilePopupRuntime, /icon: '\/assets\/asset-pc\/images\/เมนู\.png'/);
+  assert.doesNotMatch(mobilePopupRuntime, /icon: '\/images\/(?:ฝาก|ถอน|line)\.png'/);
   assert.match(mobilePopupRuntime, /if \(!isMobile \|\| !summary\.isLoggedIn/);
 });
 
