@@ -3,35 +3,42 @@
   inset: 0;
   z-index: 201;
   display: flex;
-  padding: 16px;
+  padding:
+    max(16px, env(safe-area-inset-top))
+    max(16px, env(safe-area-inset-right))
+    max(16px, env(safe-area-inset-bottom))
+    max(16px, env(safe-area-inset-left));
   align-items: center;
   justify-content: center;
-  background: rgb(0 0 0 / 80%);
+  overflow: hidden;
+  background: var(--mobile-source-backdrop, rgb(0 0 0 / 80%));
   animation: mobilePopupFade .22s ease-out both;
+  overscroll-behavior: contain;
 }
 
 .dialog {
   position: relative;
   display: flex;
-  width: min(480px, 100%);
-  max-height: calc(100dvh - 32px);
+  width: min(var(--mobile-source-popup-max, 480px), 100%);
+  max-height: calc(100dvh - max(32px, env(safe-area-inset-top) + env(safe-area-inset-bottom)));
   padding: 56px 16px 16px;
   flex-direction: column;
   align-items: center;
   gap: 24px;
   overflow: hidden;
-  border-radius: 10px;
-  color: #fff;
-  background: linear-gradient(0deg, #1b1824 -5.86%, #3f3b4b 104.05%);
-  box-shadow: 0 1px 24px 4px rgb(90 90 90 / 20%);
+  border-radius: var(--mobile-source-radius-dialog, 10px);
+  color: var(--mobile-source-text, #fff);
+  background: var(--mobile-source-surface-gradient, linear-gradient(0deg, #1b1824 -5.86%, #3f3b4b 104.05%));
+  box-shadow: var(--mobile-source-shadow-soft, 0 1px 24px 4px rgb(90 90 90 / 20%));
   animation: mobilePopupScale .24s cubic-bezier(.2,.8,.2,1) both;
+  isolation: isolate;
 }
 
 .border {
   position: absolute;
   inset: 0;
-  border: 1px solid #413e4b;
-  border-radius: 10px;
+  border: 1px solid var(--mobile-source-border, #413e4b);
+  border-radius: inherit;
   pointer-events: none;
 }
 
@@ -59,9 +66,12 @@
   align-items: center;
   justify-content: center;
   transform: translateX(-50%);
+  overflow: hidden;
   font-size: 16px;
   font-weight: 700;
   line-height: 22px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   pointer-events: none;
 }
 
@@ -76,22 +86,31 @@
   padding: 0;
   place-items: center;
   border: 0;
+  border-radius: 999px;
   color: #fff;
   background: transparent;
   cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
 }
 
-.close img { width: 12px; height: 12px; }
+.close img {
+  width: 12px;
+  height: 12px;
+}
 
 .content {
   width: 100%;
   min-height: 0;
   overflow-x: hidden;
   overflow-y: auto;
+  overscroll-behavior: contain;
   scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
 }
 
-.content::-webkit-scrollbar { display: none; }
+.content::-webkit-scrollbar {
+  display: none;
+}
 
 .financeContent,
 .withdrawContent,
@@ -99,6 +118,7 @@
 .depositTransfer {
   display: flex;
   width: 100%;
+  min-width: 0;
   flex-direction: column;
   gap: 16px;
 }
@@ -106,6 +126,7 @@
 .depositForm label,
 .slipInput {
   display: flex;
+  min-width: 0;
   flex-direction: column;
   gap: 8px;
   font-size: 13px;
@@ -117,12 +138,18 @@
   width: 100%;
   height: 55px;
   padding: 0 12px;
-  border: 1px solid #312f39;
-  border-radius: 6px;
+  border: 1px solid var(--mobile-source-border-soft, #312f39);
+  border-radius: var(--mobile-source-radius-control, 6px);
   outline: 0;
-  color: #fff;
-  background: #15131a;
+  color: var(--mobile-source-text, #fff);
+  background: var(--mobile-source-surface, #15131a);
   font-size: 16px;
+}
+
+.depositForm input:focus,
+.amountInput:focus {
+  border-color: var(--mobile-source-accent, #bb5bea);
+  box-shadow: var(--mobile-source-focus-ring, 0 0 0 2px rgb(187 91 234 / 18%));
 }
 
 .methodGrid,
@@ -135,17 +162,19 @@
 .methodGrid button,
 .quickGrid button,
 .languageChoices button {
+  min-width: 0;
   min-height: 45px;
   border: 1px solid #373540;
-  border-radius: 6px;
-  color: #fff;
-  background: #15131a;
+  border-radius: var(--mobile-source-radius-control, 6px);
+  color: var(--mobile-source-text, #fff);
+  background: var(--mobile-source-surface, #15131a);
   font: inherit;
   cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .selected {
-  border-color: #9700bd !important;
+  border-color: var(--mobile-source-accent-strong, #9700bd) !important;
   background: linear-gradient(180deg,#73108d,#451051) !important;
   box-shadow: inset 0 1px rgb(255 255 255 / 12%);
 }
@@ -153,10 +182,11 @@
 .primaryButton {
   min-height: 48px;
   border: 1px solid #9a14bb !important;
-  border-radius: 6px;
+  border-radius: var(--mobile-source-radius-control, 6px);
   color: #fff !important;
-  background: linear-gradient(180deg,#9700bd 0%,#5e0074 100%) !important;
+  background: linear-gradient(180deg, var(--mobile-source-accent-strong, #9700bd) 0%, var(--mobile-source-accent-deep, #5e0074) 100%) !important;
   font-weight: 700 !important;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 14%);
 }
 
 .primaryButton:disabled,
@@ -175,7 +205,7 @@
   gap: 10px;
   border: 1px solid rgb(98 98 98 / 70%);
   border-radius: 7px;
-  background: #15131a;
+  background: var(--mobile-source-surface, #15131a);
 }
 
 .bankCard img {
@@ -195,21 +225,46 @@
 }
 
 .bankCard strong,
-.bankCard b { font-size: 13px; line-height: 18px; }
-.bankCard span { color: rgb(255 255 255 / 72%); font-size: 12px; }
-.bankCard select { max-width: 90px; color: #fff; background: #211d2b; border: 1px solid #413e4b; border-radius: 5px; }
+.bankCard b {
+  overflow: hidden;
+  font-size: 13px;
+  line-height: 18px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bankCard span {
+  overflow: hidden;
+  color: var(--mobile-source-text-muted, rgb(255 255 255 / 72%));
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bankCard select {
+  max-width: 90px;
+  color: #fff;
+  background: #211d2b;
+  border: 1px solid var(--mobile-source-border, #413e4b);
+  border-radius: 5px;
+}
 
 .transferAmount {
   display: flex;
   padding: 12px;
   align-items: center;
   justify-content: space-between;
-  border: 1px solid #312f39;
+  gap: 12px;
+  border: 1px solid var(--mobile-source-border-soft, #312f39);
   border-radius: 7px;
-  background: #15131a;
+  background: var(--mobile-source-surface, #15131a);
 }
 
-.transferAmount strong { color: #ffbd24; font-size: 20px; }
+.transferAmount strong {
+  color: var(--mobile-source-gold, #ffbd24);
+  font-size: 20px;
+  white-space: nowrap;
+}
 
 .slipInput {
   position: relative;
@@ -222,7 +277,12 @@
   cursor: pointer;
 }
 
-.slipInput input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+.slipInput input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
 
 .actions {
   display: grid;
@@ -234,10 +294,10 @@
 .actions button,
 .cancelLink {
   min-height: 48px;
-  border: 1px solid #413e4b;
-  border-radius: 6px;
-  color: #6b6f77;
-  background: #15131a;
+  border: 1px solid var(--mobile-source-border, #413e4b);
+  border-radius: var(--mobile-source-radius-control, 6px);
+  color: #a7a3ad;
+  background: var(--mobile-source-surface, #15131a);
   font: inherit;
   font-weight: 600;
   cursor: pointer;
@@ -255,16 +315,27 @@
   line-height: 20px;
 }
 
-.withdrawPrompt { text-align: left; }
-.amountInput { font-size: 20px; text-align: right; }
+.withdrawPrompt {
+  text-align: left;
+}
+
+.amountInput {
+  font-size: 20px;
+  text-align: right;
+}
+
 .minimum,
-.remaining { color: #cea44b; font-size: 11px; line-height: 18px; }
+.remaining {
+  color: #cea44b;
+  font-size: 11px;
+  line-height: 18px;
+}
 
 .message,
 .empty {
   padding: 10px 12px;
   border: 1px solid rgb(206 164 75 / 35%);
-  border-radius: 6px;
+  border-radius: var(--mobile-source-radius-control, 6px);
   color: #e8c777;
   background: rgb(21 19 26 / 65%);
   font-size: 12px;
@@ -280,15 +351,28 @@
   align-items: center;
   justify-content: center;
   gap: 12px;
-  border: 1px solid #413e4b;
-  border-radius: 8px;
-  background: #15131a;
+  border: 1px solid var(--mobile-source-border, #413e4b);
+  border-radius: var(--mobile-source-radius-card, 8px);
+  background: var(--mobile-source-surface, #15131a);
   text-align: center;
 }
 
-.incomeContent span { color: rgb(255 255 255 / 72%); font-size: 13px; }
-.incomeContent strong { color: #ffbd24; font-size: 34px; line-height: 42px; }
-.incomeContent p { margin: 0; color: rgb(255 255 255 / 55%); font-size: 12px; }
+.incomeContent span {
+  color: var(--mobile-source-text-muted, rgb(255 255 255 / 72%));
+  font-size: 13px;
+}
+
+.incomeContent strong {
+  color: var(--mobile-source-gold, #ffbd24);
+  font-size: 34px;
+  line-height: 42px;
+}
+
+.incomeContent p {
+  margin: 0;
+  color: var(--mobile-source-text-subtle, rgb(255 255 255 / 55%));
+  font-size: 12px;
+}
 
 .languageChoices {
   display: grid;
@@ -303,25 +387,73 @@
   font-weight: 600;
 }
 
-.languageChoices img { width: 28px; height: 20px; object-fit: cover; border-radius: 2px; }
+.languageChoices img {
+  width: 28px;
+  height: 20px;
+  object-fit: cover;
+  border-radius: 2px;
+}
 
 @media (min-width: 768px) and (max-width: 900px) {
-  .bankCard { min-height: 90px; }
-  .bankCard img { width: 60px; height: 60px; flex-basis: 60px; }
-  .amountInput { height: 80px; font-size: 34px; }
+  .dialog {
+    padding-inline: 20px;
+  }
+
+  .bankCard {
+    min-height: 90px;
+  }
+
+  .bankCard img {
+    width: 60px;
+    height: 60px;
+    flex-basis: 60px;
+  }
+
+  .amountInput {
+    height: 80px;
+    font-size: 34px;
+  }
 }
 
 @media (max-width: 359px) {
-  .backdrop { padding: 8px; }
-  .dialog { max-height: calc(100dvh - 16px); padding-inline: 12px; }
+  .backdrop {
+    padding:
+      max(8px, env(safe-area-inset-top))
+      max(8px, env(safe-area-inset-right))
+      max(8px, env(safe-area-inset-bottom))
+      max(8px, env(safe-area-inset-left));
+  }
+
+  .dialog {
+    max-height: calc(100dvh - max(16px, env(safe-area-inset-top) + env(safe-area-inset-bottom)));
+    padding: 52px 12px 12px;
+    gap: 18px;
+  }
+
+  .title,
+  .titleCap {
+    width: 176px;
+  }
+
   .methodGrid,
-  .quickGrid { gap: 6px; }
+  .quickGrid {
+    gap: 6px;
+  }
 }
 
-@keyframes mobilePopupFade { from { opacity: 0; } to { opacity: 1; } }
-@keyframes mobilePopupScale { from { opacity: 0; transform: scale(.96); } to { opacity: 1; transform: scale(1); } }
+@keyframes mobilePopupFade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes mobilePopupScale {
+  from { opacity: 0; transform: scale(.96); }
+  to { opacity: 1; transform: scale(1); }
+}
 
 @media (prefers-reduced-motion: reduce) {
   .backdrop,
-  .dialog { animation: none; }
+  .dialog {
+    animation: none;
+  }
 }
