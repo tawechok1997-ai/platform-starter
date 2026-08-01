@@ -93,6 +93,7 @@ export default function MemberFloatingContact() {
       data-open={open ? 'true' : 'false'}
       data-authenticated={isLoggedIn ? 'true' : 'false'}
       data-home={isHomePage ? 'true' : 'false'}
+      data-source-contact-motion="true"
       aria-label="เครื่องมือสมาชิกและช่องทางติดต่อ"
     >
       <div
@@ -140,35 +141,40 @@ export default function MemberFloatingContact() {
       </div>
 
       {showFloatingContact ? (
-        <div className="member-floating-contact__contact-stage">
-          <div className="member-floating-contact__channels" aria-hidden={!open}>
+        <div className="member-floating-contact__contact-stage contact-source-stage">
+          <div className="member-floating-contact__channels contact-source-channels" aria-hidden={!open}>
             <a
               href={primary.href}
               target={primary.external ? '_blank' : undefined}
               rel={primary.external ? 'noreferrer noopener' : undefined}
-              className="member-floating-contact__line"
+              className="member-floating-contact__line contact"
               tabIndex={open ? 0 : -1}
               aria-label={`ติดต่อทีมงานผ่าน ${primary.label}`}
               title={`${primary.label}: ${primary.value}`}
             >
-              <img src={LINE_ICON_URL} alt={primary.label} loading="lazy" />
+              <img
+                className="contact-source-line-icon"
+                src={LINE_ICON_URL}
+                alt={primary.label}
+                loading="lazy"
+              />
             </a>
           </div>
 
           <button
             type="button"
-            className="member-floating-contact__toggle"
+            className="member-floating-contact__toggle contact-source-toggle"
             aria-label={open ? 'ปิดเมนูติดต่อทีมงาน' : 'เปิดเมนูติดต่อทีมงาน'}
             aria-expanded={open}
             onClick={() => setOpen((current) => !current)}
           >
-            <span className="member-floating-contact__ring member-floating-contact__ring--1" aria-hidden="true" />
-            <span className="member-floating-contact__ring member-floating-contact__ring--2" aria-hidden="true" />
-            <span className="member-floating-contact__ring member-floating-contact__ring--3" aria-hidden="true" />
+            <span className="member-floating-contact__ring member-floating-contact__ring--1 contact-ring contact-ring-1" aria-hidden="true" />
+            <span className="member-floating-contact__ring member-floating-contact__ring--2 contact-ring contact-ring-2" aria-hidden="true" />
+            <span className="member-floating-contact__ring member-floating-contact__ring--3 contact-ring contact-ring-3" aria-hidden="true" />
 
-            <span className="member-floating-contact__button-face" aria-hidden="true">
-              <img src={CONTACT_ICON_URL} alt="" loading="lazy" />
-              <span className="member-floating-contact__close-icon" />
+            <span className="member-floating-contact__button-face contact-btn" aria-hidden="true">
+              <img className="contact-icon-btn" src={CONTACT_ICON_URL} alt="" loading="lazy" />
+              <span className="member-floating-contact__close-icon contact-close-motion" />
             </span>
           </button>
         </div>
