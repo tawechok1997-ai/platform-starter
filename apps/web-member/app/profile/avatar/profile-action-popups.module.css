@@ -207,7 +207,7 @@
 }
 
 .passwordField:focus-within > span,
-.passwordField:has(input:not(:placeholder-shown)) > span {
+.passwordFieldFilled > span {
   top: 0;
   transform: translateY(-50%);
   font-size: 11px;
@@ -223,10 +223,6 @@
   color: #fff;
   background: transparent;
   font-size: 14px;
-}
-
-.passwordField input::placeholder {
-  color: transparent;
 }
 
 .passwordField button {
