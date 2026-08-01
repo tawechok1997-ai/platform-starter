@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useMemberSession } from '../member-session-provider';
 import { useMemberContactRuntime } from '../member-settings-runtime';
 import '../member-floating-contact.css';
 
@@ -23,7 +24,9 @@ const MINI_TOOLS = [
 export default function MemberFloatingContact() {
   const [open, setOpen] = useState(false);
   const [miniToolsOpen, setMiniToolsOpen] = useState(false);
+  const { ready: sessionReady, isLoggedIn } = useMemberSession();
   const { primary } = useMemberContactRuntime();
+  const showFloatingContact = sessionReady && !isLoggedIn;
 
   useEffect(() => {
     if (!open) return;
@@ -35,6 +38,10 @@ export default function MemberFloatingContact() {
     window.addEventListener('keydown', closeOnEscape);
     return () => window.removeEventListener('keydown', closeOnEscape);
   }, [open]);
+
+  useEffect(() => {
+    if (isLoggedIn) setOpen(false);
+  }, [isLoggedIn]);
 
   const activateMiniTool = (id: (typeof MINI_TOOLS)[number]['id']) => {
     window.dispatchEvent(new CustomEvent('member:mini-tool', { detail: { id } }));
@@ -90,38 +97,40 @@ export default function MemberFloatingContact() {
         </button>
       </div>
 
-      <div className="member-floating-contact__contact-stage">
-        <div className="member-floating-contact__channels" aria-hidden={!open}>
-          <a
-            href={primary.href}
-            target={primary.external ? '_blank' : undefined}
-            rel={primary.external ? 'noreferrer noopener' : undefined}
-            className="member-floating-contact__line"
-            tabIndex={open ? 0 : -1}
-            aria-label={`ติดต่อทีมงานผ่าน ${primary.label}`}
-            title={`${primary.label}: ${primary.value}`}
+      {showFloatingContact ? (
+        <div className="member-floating-contact__contact-stage">
+          <div className="member-floating-contact__channels" aria-hidden={!open}>
+            <a
+              href={primary.href}
+              target={primary.external ? '_blank' : undefined}
+              rel={primary.external ? 'noreferrer noopener' : undefined}
+              className="member-floating-contact__line"
+              tabIndex={open ? 0 : -1}
+              aria-label={`ติดต่อทีมงานผ่าน ${primary.label}`}
+              title={`${primary.label}: ${primary.value}`}
+            >
+              <img src={LINE_ICON_URL} alt={primary.label} loading="lazy" />
+            </a>
+          </div>
+
+          <button
+            type="button"
+            className="member-floating-contact__toggle"
+            aria-label={open ? 'ปิดเมนูติดต่อทีมงาน' : 'เปิดเมนูติดต่อทีมงาน'}
+            aria-expanded={open}
+            onClick={() => setOpen((current) => !current)}
           >
-            <img src={LINE_ICON_URL} alt={primary.label} loading="lazy" />
-          </a>
+            <span className="member-floating-contact__ring member-floating-contact__ring--1" aria-hidden="true" />
+            <span className="member-floating-contact__ring member-floating-contact__ring--2" aria-hidden="true" />
+            <span className="member-floating-contact__ring member-floating-contact__ring--3" aria-hidden="true" />
+
+            <span className="member-floating-contact__button-face" aria-hidden="true">
+              <img src={CONTACT_ICON_URL} alt="" loading="lazy" />
+              <span className="member-floating-contact__close-icon" />
+            </span>
+          </button>
         </div>
-
-        <button
-          type="button"
-          className="member-floating-contact__toggle"
-          aria-label={open ? 'ปิดเมนูติดต่อทีมงาน' : 'เปิดเมนูติดต่อทีมงาน'}
-          aria-expanded={open}
-          onClick={() => setOpen((current) => !current)}
-        >
-          <span className="member-floating-contact__ring member-floating-contact__ring--1" aria-hidden="true" />
-          <span className="member-floating-contact__ring member-floating-contact__ring--2" aria-hidden="true" />
-          <span className="member-floating-contact__ring member-floating-contact__ring--3" aria-hidden="true" />
-
-          <span className="member-floating-contact__button-face" aria-hidden="true">
-            <img src={CONTACT_ICON_URL} alt="" loading="lazy" />
-            <span className="member-floating-contact__close-icon" />
-          </span>
-        </button>
-      </div>
+      ) : null}
     </aside>
   );
 }
