@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { memberApiFetch } from '../member-api';
 import HotGamesRail from './hot-games-rail';
 
@@ -36,8 +36,17 @@ type LobbyPayload = {
   pagination: Pagination;
   counts: Counts;
 };
+type DeepLinkRequest = {
+  category: string;
+  provider: string;
+  platform: PlatformFilter;
+  game: string;
+  autoLaunch: boolean;
+};
 
 const PAGE_SIZE = 24;
+const DIRECT_LAUNCH_PAGE_SIZE = 100;
+const DIRECT_LAUNCH_MAX_PAGES = 20;
 const FAVORITES_KEY = 'member_favorite_game_ids';
 const EMPTY_PAYLOAD: LobbyPayload = {
   items: [],
@@ -48,6 +57,13 @@ const EMPTY_PAYLOAD: LobbyPayload = {
   popular: [],
   pagination: { page: 1, limit: PAGE_SIZE, total: 0, totalPages: 1, hasMore: false },
   counts: { total: 0, database: 0, catalogOnly: 0, mobile: 0, pc: 0 },
+};
+const EMPTY_DEEP_LINK: DeepLinkRequest = {
+  category: 'all',
+  provider: 'all',
+  platform: 'all',
+  game: '',
+  autoLaunch: false,
 };
 
 export default function MemberGamesPage() {
@@ -64,19 +80,34 @@ export default function MemberGamesPage() {
   const [error, setError] = useState('');
   const [launchingId, setLaunchingId] = useState<string>();
   const [message, setMessage] = useState('');
+  const [deepLink, setDeepLink] = useState<DeepLinkRequest>(EMPTY_DEEP_LINK);
+  const [deepLinkReady, setDeepLinkReady] = useState(false);
+  const directLaunchAttemptRef = useRef('');
 
   useEffect(() => {
     setFavoriteIds(readIds());
+
+    const request = readDeepLink(window.location.search);
+    setDeepLink(request);
+    setCategory(request.category);
+    setProvider(request.provider);
+    setPlatform(request.platform);
+    setPage(1);
+    setDeepLinkReady(true);
   }, []);
+
   useEffect(() => {
     const timer = window.setTimeout(() => setDebouncedQuery(query.trim()), 350);
     return () => window.clearTimeout(timer);
   }, [query]);
+
   useEffect(() => {
     setPage(1);
   }, [category, provider, platform, debouncedQuery]);
 
   useEffect(() => {
+    if (!deepLinkReady) return;
+
     let cancelled = false;
     async function load() {
       const append = page > 1;
@@ -108,7 +139,72 @@ export default function MemberGamesPage() {
     return () => {
       cancelled = true;
     };
-  }, [page, category, provider, platform, debouncedQuery]);
+  }, [page, category, provider, platform, debouncedQuery, deepLinkReady]);
+
+  const launchGame = useCallback(async (game: Game) => {
+    if (!isAvailable(game)) {
+      setMessage(
+        game.id.startsWith('catalog:')
+          ? 'เกมนี้มีข้อมูลในแคตตาล็อกแล้ว แต่ยังไม่ได้เชื่อมบัญชีเกมจริง'
+          : 'เกมนี้ยังไม่พร้อมให้เล่น',
+      );
+      return;
+    }
+
+    setLaunchingId(game.id);
+    setMessage(`กำลังเปิด ${game.name}...`);
+    try {
+      const response = await memberApiFetch(`/member/games/${encodeURIComponent(game.id)}/launch`, { method: 'POST' });
+      const data = await response.json().catch(() => null);
+      if (!response.ok || !data?.launchUrl) throw new Error(data?.message ?? 'เปิดเกมไม่สำเร็จ');
+
+      const sessionId = typeof data.session?.id === 'string' ? data.session.id : '';
+      const requiresTransfer = data.requiresTransfer === true || data.session?.requiresTransfer === true;
+      if (requiresTransfer && sessionId) {
+        window.location.assign(
+          `/games/session?session=${encodeURIComponent(sessionId)}&game=${encodeURIComponent(game.name)}&launchUrl=${encodeURIComponent(data.launchUrl)}`,
+        );
+        return;
+      }
+
+      window.location.assign(data.launchUrl);
+    } catch (caught) {
+      setMessage(caught instanceof Error ? caught.message : 'เปิดเกมไม่สำเร็จ');
+      setLaunchingId(undefined);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!deepLinkReady || loading || !deepLink.autoLaunch || !deepLink.game) return;
+
+    const attemptKey = [deepLink.category, deepLink.provider, deepLink.platform, deepLink.game].join(':');
+    if (directLaunchAttemptRef.current === attemptKey) return;
+    directLaunchAttemptRef.current = attemptKey;
+
+    let cancelled = false;
+    async function launchRequestedGame() {
+      setMessage('กำลังค้นหาเกมที่เลือก...');
+      try {
+        const loadedGame = findRequestedGame(payload.items, deepLink);
+        const requestedGame = loadedGame ?? await resolveRequestedGame(deepLink);
+        if (cancelled) return;
+        if (!requestedGame) {
+          throw new Error('ไม่พบเกมที่เลือกในค่ายนี้ หรือเกมยังไม่ได้ถูกนำเข้าระบบจริง');
+        }
+        await launchGame(requestedGame);
+      } catch (caught) {
+        if (!cancelled) {
+          setMessage(caught instanceof Error ? caught.message : 'ไม่สามารถเปิดเกมที่เลือกได้');
+          setLaunchingId(undefined);
+        }
+      }
+    }
+
+    void launchRequestedGame();
+    return () => {
+      cancelled = true;
+    };
+  }, [deepLink, deepLinkReady, launchGame, loading, payload.items]);
 
   const favoriteGames = useMemo(
     () => payload.items.filter((game) => favoriteIds.includes(game.id)),
@@ -116,24 +212,6 @@ export default function MemberGamesPage() {
   );
   const visibleGames = category === 'favorite' ? favoriteGames : payload.items;
   const heroGame = payload.featured[0] ?? payload.popular[0] ?? payload.items[0];
-
-  async function launchGame(game: Game) {
-    if (!isAvailable(game)) return setMessage('เกมนี้ยังไม่พร้อมให้เล่น');
-    setLaunchingId(game.id);
-    setMessage(`กำลังเปิด ${game.name}...`);
-    try {
-      const response = await memberApiFetch(`/member/games/${game.id}/launch`, { method: 'POST' });
-      const data = await response.json().catch(() => null);
-      if (!response.ok || !data?.launchUrl) throw new Error(data?.message ?? 'เปิดเกมไม่สำเร็จ');
-      const sessionId = data.session?.id;
-      window.location.href = sessionId
-        ? `/games/session?session=${encodeURIComponent(sessionId)}&game=${encodeURIComponent(game.name)}&launchUrl=${encodeURIComponent(data.launchUrl)}`
-        : data.launchUrl;
-    } catch (caught) {
-      setMessage(caught instanceof Error ? caught.message : 'เปิดเกมไม่สำเร็จ');
-      setLaunchingId(undefined);
-    }
-  }
 
   function toggleFavorite(game: Game) {
     setFavoriteIds((current) => {
@@ -155,6 +233,9 @@ export default function MemberGamesPage() {
     setPlatform('all');
     setQuery('');
     setDebouncedQuery('');
+    setDeepLink(EMPTY_DEEP_LINK);
+    directLaunchAttemptRef.current = '';
+    window.history.replaceState(null, '', '/games');
   }
 
   return (
@@ -396,6 +477,7 @@ function pickImage(game: Game) {
     null
   );
 }
+
 function isAvailable(game: Game) {
   return (
     String(game.status ?? 'ACTIVE').toUpperCase() === 'ACTIVE' &&
@@ -403,6 +485,85 @@ function isAvailable(game: Game) {
     !game.id.startsWith('catalog:')
   );
 }
+
+function readDeepLink(search: string): DeepLinkRequest {
+  const params = new URLSearchParams(search);
+  const category = normalizeDeepLinkCategory(params.get('category'));
+  const provider = normalizeProviderCode(params.get('provider'));
+  const platform = normalizePlatform(params.get('platform'));
+  const game = cleanParam(params.get('game'));
+
+  return {
+    category,
+    provider,
+    platform,
+    game,
+    autoLaunch: Boolean(game && game.toLowerCase() !== provider.toLowerCase()),
+  };
+}
+
+function normalizeDeepLinkCategory(value: string | null) {
+  const category = cleanParam(value).toLowerCase();
+  const aliases: Record<string, string> = {
+    fish: 'fishing',
+    live: 'casino',
+    lotto: 'lottery',
+    sports: 'sport',
+    table: 'card',
+  };
+  return aliases[category] ?? category || 'all';
+}
+
+function normalizeProviderCode(value: string | null) {
+  const provider = cleanParam(value)
+    .toLowerCase()
+    .replace(/\.(?:png|jpe?g|webp|svg)$/i, '')
+    .replace(/[^a-z0-9_-]+/g, '');
+  return provider || 'all';
+}
+
+function normalizePlatform(value: string | null): PlatformFilter {
+  const platform = cleanParam(value).toLowerCase();
+  return platform === 'mobile' || platform === 'pc' || platform === 'both' ? platform : 'all';
+}
+
+function cleanParam(value: string | null) {
+  return typeof value === 'string' ? value.trim().slice(0, 240) : '';
+}
+
+function findRequestedGame(games: Game[], request: DeepLinkRequest) {
+  const target = request.game.toLowerCase();
+  return games.find((game) => {
+    const identityMatch = game.id.toLowerCase() === target || game.providerGameCode.toLowerCase() === target;
+    const providerMatch = request.provider === 'all' || game.provider?.code.toLowerCase() === request.provider;
+    return identityMatch && providerMatch;
+  }) ?? null;
+}
+
+async function resolveRequestedGame(request: DeepLinkRequest): Promise<Game | null> {
+  for (let page = 1; page <= DIRECT_LAUNCH_MAX_PAGES; page += 1) {
+    const params = new URLSearchParams({
+      page: String(page),
+      limit: String(DIRECT_LAUNCH_PAGE_SIZE),
+    });
+    if (request.platform !== 'all') params.set('platform', request.platform);
+    if (request.provider !== 'all') params.set('provider', request.provider);
+    if (request.category !== 'all') params.set('category', request.category);
+
+    const response = await memberApiFetch(`/member/games?${params.toString()}`);
+    const data = await response.json().catch(() => null);
+    if (!response.ok) throw new Error(readMessage(data, 'ค้นหาเกมที่เลือกไม่สำเร็จ'));
+
+    const payload = normalizePayload(data);
+    const found = findRequestedGame(payload.items, request);
+    if (found) return found;
+
+    const hasNextPage = payload.pagination.hasMore || page < payload.pagination.totalPages;
+    if (!hasNextPage || payload.items.length === 0) break;
+  }
+  return null;
+}
+
 function categoryLabel(value: string) {
   const labels: Record<string, string> = {
     slot: 'สล็อต',
@@ -418,9 +579,11 @@ function categoryLabel(value: string) {
   };
   return labels[value.toLowerCase()] ?? value;
 }
+
 function mergeGames(current: Game[], incoming: Game[]) {
   return [...new Map([...current, ...incoming].map((game) => [game.id, game])).values()];
 }
+
 function readIds() {
   try {
     const value = JSON.parse(window.localStorage.getItem(FAVORITES_KEY) ?? '[]');
@@ -429,11 +592,13 @@ function readIds() {
     return [];
   }
 }
+
 function readMessage(value: unknown, fallback: string) {
   return value && typeof value === 'object' && 'message' in value && typeof value.message === 'string'
     ? value.message
     : fallback;
 }
+
 function normalizePayload(value: unknown): LobbyPayload {
   const source = value && typeof value === 'object' ? (value as Record<string, unknown>) : {};
   const nested =
@@ -482,6 +647,7 @@ function normalizePayload(value: unknown): LobbyPayload {
     },
   };
 }
+
 function normalizeGame(value: unknown): Game | null {
   if (!value || typeof value !== 'object') return null;
   const source = value as Record<string, unknown>;
