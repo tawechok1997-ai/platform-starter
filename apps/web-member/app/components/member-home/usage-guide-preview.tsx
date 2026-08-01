@@ -25,7 +25,10 @@ export default function UsageGuidePreview({ mobile = false }: UsageGuidePreviewP
   const useSourcePcGuide = !mobile && locale === 'th';
 
   return (
-    <div className="shared-usage-guide-preview" data-shared-guide-preview-content="true">
+    <div
+      className={`shared-usage-guide-preview ${mobile ? '' : styles.root}`}
+      data-shared-guide-preview-content="true"
+    >
       {mobile ? (
         <header className="v47-mobile-section-title">
           <span>
