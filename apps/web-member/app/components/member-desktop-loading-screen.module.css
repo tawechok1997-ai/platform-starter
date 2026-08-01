@@ -1,0 +1,68 @@
+.screen {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: grid;
+  width: 100%;
+  min-width: 0;
+  min-height: 100dvh;
+  margin: 0;
+  place-items: center;
+  overflow: hidden;
+  color: #fff;
+  background: #000;
+}
+
+.loadingWord {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: clamp(28px, 2.15vw, 36px);
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.7px;
+  text-shadow: 0 1px 2px rgb(0 0 0 / 45%);
+}
+
+.spinner {
+  display: inline-block;
+  width: 19px;
+  height: 19px;
+  margin: 0 2px;
+  flex: 0 0 19px;
+  border: 3px solid rgb(255 255 255 / 30%);
+  border-top-color: #fff;
+  border-right-color: #a814d4;
+  border-radius: 999px;
+  animation: memberDesktopLoadingSpin 700ms linear infinite;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@keyframes memberDesktopLoadingSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 900px) {
+  .screen {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation-duration: 1.4s;
+  }
+}
