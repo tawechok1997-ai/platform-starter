@@ -2,9 +2,14 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
 import { LOCAL_ASSET_PATHS_BY_BASENAME } from '../generated/local-asset-basename-map';
-import { extractAssetBasename, resolveLocalAssetByBasename } from './local-asset-by-basename';
+import {
+  canonicalizeLocalAssetPath,
+  extractAssetBasename,
+  resolveLocalAssetByBasename,
+} from './local-asset-by-basename';
 
 const packageJson = readFileSync(new URL('../../package.json', import.meta.url), 'utf8');
+const nextConfig = readFileSync(new URL('../../next.config.js', import.meta.url), 'utf8');
 const generatorSource = readFileSync(
   new URL('../../tools/generate-local-asset-basename-map.mjs', import.meta.url),
   'utf8',
@@ -23,6 +28,10 @@ const authenticatedSourceCatalog = readFileSync(
 );
 const homeResolverSource = readFileSync(
   new URL('../components/member-home/local-game-asset-resolver.ts', import.meta.url),
+  'utf8',
+);
+const v47AssetMap = readFileSync(
+  new URL('../components/member-home/v47-asset-map.ts', import.meta.url),
   'utf8',
 );
 
@@ -61,7 +70,32 @@ test('extracts the final CDN filename from provider and gamecard URLs', () => {
   );
 });
 
-test('matches a CDN provider filename to the closest local asset path', () => {
+test('canonicalizes every historical local asset root to asset-pc/images', () => {
+  assert.equal(
+    canonicalizeLocalAssetPath('/assets/asset-pc/home/fire.svg'),
+    '/assets/asset-pc/images/home/fire.svg',
+  );
+  assert.equal(
+    canonicalizeLocalAssetPath('/assets/asset-mobile/providers/dg.png'),
+    '/assets/asset-pc/images/providers/dg.png',
+  );
+  assert.equal(
+    canonicalizeLocalAssetPath('/assets/asset-moblie/ZAB1/tournament/banner.png'),
+    '/assets/asset-pc/images/ZAB1/tournament/banner.png',
+  );
+  assert.equal(
+    canonicalizeLocalAssetPath('/assets/asset-pc/providers/dg.png?version=2#badge'),
+    '/assets/asset-pc/images/providers/dg.png?version=2#badge',
+  );
+});
+
+test('canonical image paths are idempotent and never duplicate the images segment', () => {
+  const source = '/assets/asset-pc/images/home/fire.svg';
+  assert.equal(canonicalizeLocalAssetPath(source), source);
+  assert.doesNotMatch(canonicalizeLocalAssetPath(source), /\/images\/images\//);
+});
+
+test('matches a CDN provider filename to the closest canonical local asset path', () => {
   withAssetCandidates('dg.png', [
     '/assets/asset-mobile/images/providers/set/1_1_h/dg.png',
     '/assets/asset-pc/images/providers/set/1_1_badge/dg.png',
@@ -86,29 +120,42 @@ test('matches UUID gamecard filenames without relying on provider names', () => 
   });
 });
 
-test('prefers PC or Mobile assets deterministically when the basename is duplicated', () => {
+test('uses the unified canonical PC asset for every platform preference', () => {
   withAssetCandidates('amb.png', [
     '/assets/asset-mobile/images/providers/set/1_1_h/amb.png',
+    '/assets/asset-pc/providers/set/1_1_h/amb.png',
     '/assets/asset-pc/images/providers/set/1_1_h/amb.png',
   ], () => {
     const source = 'https://cdn.zabbet.com/providers/amb.png';
-    assert.equal(
-      resolveLocalAssetByBasename(source, 'pc'),
-      '/assets/asset-pc/images/providers/set/1_1_h/amb.png',
-    );
-    assert.equal(
-      resolveLocalAssetByBasename(source, 'mobile'),
-      '/assets/asset-mobile/images/providers/set/1_1_h/amb.png',
-    );
+    for (const preference of ['pc', 'mobile', 'any'] as const) {
+      assert.equal(
+        resolveLocalAssetByBasename(source, preference),
+        '/assets/asset-pc/images/providers/set/1_1_h/amb.png',
+      );
+    }
   });
 });
 
-test('generates a case-insensitive basename index by scanning all public assets recursively', () => {
+test('generates a case-insensitive index from canonical local assets only', () => {
   assert.match(generatorSource, /async function walk\(/);
   assert.match(generatorSource, /path\.posix\.basename\(relative\)\.toLowerCase\(\)/);
   assert.match(generatorSource, /SUPPORTED_EXTENSIONS/);
-  assert.match(generatorSource, /asset-mobile/);
-  assert.match(generatorSource, /asset-moblie/);
+  assert.match(generatorSource, /CANONICAL_PC_PREFIX = 'asset-pc\/images\/'/);
+  assert.match(generatorSource, /isDeprecatedAssetPath/);
+  assert.match(generatorSource, /skippedDeprecatedCount/);
+});
+
+test('central asset owners point forward to asset-pc/images only', () => {
+  assert.match(v47AssetMap, /const IMAGE_ROOT = '\/assets\/asset-pc\/images'/);
+  assert.match(v47AssetMap, /const HOME_ICON_ROOT = `\$\{IMAGE_ROOT\}\/home`/);
+  assert.doesNotMatch(v47AssetMap, /['"`]\/assets\/asset-pc\/(?!images(?:\/|['"`]))/);
+
+  assert.match(nextConfig, /canonicalPcAssetRoot = '\/assets\/asset-pc\/images'/);
+  assert.match(nextConfig, /source: '\/assets\/asset-pc\/:path\(\(\?!images/);
+  assert.doesNotMatch(
+    nextConfig,
+    /source: '\/assets\/asset-pc\/images\/:path\*'[\s\S]*destination: '\/assets\/asset-pc\/:path\*'/,
+  );
 });
 
 test('records all supplied category CDN assets and audits them against local files', () => {
