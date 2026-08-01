@@ -7,13 +7,14 @@ export type MemberAuthMode = 'login' | 'register';
 
 type MemberAuthOverlayProps = {
   mode: MemberAuthMode;
+  onModeChange: (mode: MemberAuthMode) => void;
   onClose: () => void;
   onSuccess: () => void | Promise<void>;
 };
 
 const EXIT_DURATION_MS = 220;
 
-export default function MemberAuthOverlay({ mode, onClose, onSuccess }: MemberAuthOverlayProps) {
+export default function MemberAuthOverlay({ mode, onModeChange, onClose, onSuccess }: MemberAuthOverlayProps) {
   const [frameReady, setFrameReady] = useState(false);
   const [visible, setVisible] = useState(false);
   const [closing, setClosing] = useState(false);
@@ -21,6 +22,11 @@ export default function MemberAuthOverlay({ mode, onClose, onSuccess }: MemberAu
   const exitTimerRef = useRef<number | null>(null);
   const closingRef = useRef(false);
   const authCompletionRef = useRef(false);
+  const onModeChangeRef = useRef(onModeChange);
+
+  useEffect(() => {
+    onModeChangeRef.current = onModeChange;
+  }, [onModeChange]);
 
   const clearExitTimer = useCallback(() => {
     if (exitTimerRef.current !== null) {
@@ -49,9 +55,6 @@ export default function MemberAuthOverlay({ mode, onClose, onSuccess }: MemberAu
     if (closingRef.current || authCompletionRef.current) return;
     authCompletionRef.current = true;
     try {
-      // The parent verifies the stored session and removes the auth route only
-      // after authentication is authoritative. Keeping this overlay mounted
-      // prevents stale tokens or failed verification from creating a close/open loop.
       await onSuccess();
     } finally {
       authCompletionRef.current = false;
@@ -66,7 +69,6 @@ export default function MemberAuthOverlay({ mode, onClose, onSuccess }: MemberAu
     clearExitTimer();
     closingRef.current = false;
     authCompletionRef.current = false;
-    setFrameReady(false);
     setClosing(false);
     setVisible(false);
 
@@ -75,7 +77,11 @@ export default function MemberAuthOverlay({ mode, onClose, onSuccess }: MemberAu
     });
 
     return () => window.cancelAnimationFrame(animationFrame);
-  }, [clearExitTimer, mode]);
+  }, [clearExitTimer]);
+
+  useEffect(() => {
+    setFrameReady(false);
+  }, [mode]);
 
   useEffect(() => {
     const body = document.body;
@@ -112,10 +118,13 @@ export default function MemberAuthOverlay({ mode, onClose, onSuccess }: MemberAu
 
     const handleMessage = (event: MessageEvent) => {
       if (event.origin !== window.location.origin || !event.data || typeof event.data !== 'object') return;
-      const type = (event.data as { type?: unknown }).type;
-      if (type === 'member-auth-close') requestClose();
-      if (type === 'member-auth-success') void completeAuth();
-      if (type === 'member-auth-ready') setFrameReady(true);
+      const payload = event.data as { type?: unknown; mode?: unknown };
+      if (payload.type === 'member-auth-close') requestClose();
+      if (payload.type === 'member-auth-success') void completeAuth();
+      if (payload.type === 'member-auth-ready') setFrameReady(true);
+      if (payload.type === 'member-auth-switch' && (payload.mode === 'login' || payload.mode === 'register')) {
+        onModeChangeRef.current(payload.mode);
+      }
     };
 
     window.addEventListener('keydown', handleKeyDown);
@@ -145,8 +154,37 @@ export default function MemberAuthOverlay({ mode, onClose, onSuccess }: MemberAu
 
   function revealFrameWhenEmbedded(event: SyntheticEvent<HTMLIFrameElement>) {
     const frame = event.currentTarget;
-    let attempts = 0;
+    const embeddedDocument = frame.contentDocument;
 
+    if (embeddedDocument && embeddedDocument.documentElement.dataset.memberAuthNavigationBound !== 'true') {
+      embeddedDocument.documentElement.dataset.memberAuthNavigationBound = 'true';
+      embeddedDocument.addEventListener('click', (clickEvent) => {
+        if (!(clickEvent.target instanceof Element)) return;
+        const link = clickEvent.target.closest<HTMLAnchorElement>('a[href]');
+        if (!link) return;
+
+        let target: URL;
+        try {
+          target = new URL(link.getAttribute('href') ?? '', window.location.origin);
+        } catch {
+          return;
+        }
+
+        if (target.origin !== window.location.origin) return;
+        const nextMode = target.pathname === '/register'
+          ? 'register'
+          : target.pathname === '/login'
+            ? 'login'
+            : null;
+        if (!nextMode) return;
+
+        clickEvent.preventDefault();
+        clickEvent.stopPropagation();
+        onModeChangeRef.current(nextMode);
+      }, true);
+    }
+
+    let attempts = 0;
     const checkEmbeddedMode = () => {
       const embeddedPage = frame.contentDocument?.querySelector('[data-embedded="true"]');
       if (embeddedPage || attempts >= 120) {
@@ -172,7 +210,6 @@ export default function MemberAuthOverlay({ mode, onClose, onSuccess }: MemberAu
       data-frame-ready={frameReady ? 'true' : 'false'}
     >
       <iframe
-        key={path}
         className="member-auth-overlay__frame"
         src={path}
         title={mode === 'register' ? 'สมัครสมาชิก' : 'เข้าสู่ระบบ'}
