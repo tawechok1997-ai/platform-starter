@@ -1,6 +1,5 @@
 'use client';
 
-import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { memberApiFetch } from '../../member-api';
@@ -13,6 +12,7 @@ import {
 } from '../../lib/mobile-avatar-preference';
 import { useMemberRuntime } from '../../member-runtime-provider';
 import type { MemberBankAccount } from '../../types/member-finance';
+import ProfileActionPopupLayer, { type ProfileActionPopupKind } from './profile-action-popups';
 import styles from './avatar-page.module.css';
 
 const VIP_BADGE_SOURCE = 'https://cdn.zabbet.com/FEZX/grouptypes/bc954df4-70bb-460c-9ce8-c2cae326acbe.png';
@@ -24,6 +24,7 @@ export default function MobileAvatarPage() {
   const [selected, setSelected] = useState(DEFAULT_MOBILE_AVATAR);
   const [saved, setSaved] = useState(false);
   const [bank, setBank] = useState<MemberBankAccount | null>(null);
+  const [popup, setPopup] = useState<ProfileActionPopupKind>(null);
   const vipBadge = useMemo(
     () => resolveLocalAssetByBasename(VIP_BADGE_SOURCE, 'mobile')
       || resolveLocalAssetByBasename(VIP_BADGE_SOURCE, 'pc')
@@ -81,61 +82,71 @@ export default function MobileAvatarPage() {
   }
 
   return (
-    <main className={styles.root} data-mobile-avatar-owner="true">
-      <header className={styles.header}>
-        <button type="button" aria-label="ย้อนกลับ" onClick={() => router.back()}><BackIcon /></button>
-        <h1>รายละเอียดโปรไฟล์</h1>
-        <span aria-hidden="true" />
-      </header>
+    <>
+      <main className={styles.root} data-mobile-avatar-owner="true">
+        <header className={styles.header}>
+          <button type="button" aria-label="ย้อนกลับ" onClick={() => router.back()}><BackIcon /></button>
+          <h1>รายละเอียดโปรไฟล์</h1>
+          <span aria-hidden="true" />
+        </header>
 
-      <div className={styles.body}>
-        <section className={styles.profileHero} aria-label="ข้อมูลสมาชิก">
-          <img className={styles.currentAvatar} src={selected} alt="รูปโปรไฟล์ที่เลือก" />
-          <div className={styles.vipBadge}>
-            <div>
-              <span>{summary.vipLevel || 'New'}</span>
+        <div className={styles.body}>
+          <section className={styles.profileHero} aria-label="ข้อมูลสมาชิก">
+            <img className={styles.currentAvatar} src={selected} alt="รูปโปรไฟล์ที่เลือก" />
+            <div className={styles.vipBadge}>
+              <div>
+                <span>{summary.vipLevel || 'New'}</span>
+              </div>
+              <img src={vipBadge} alt="" aria-hidden="true" />
             </div>
-            <img src={vipBadge} alt="" aria-hidden="true" />
-          </div>
-          <strong className={styles.phone}>{phone}</strong>
-          <div className={styles.memberName}>{memberName}</div>
-          <div className={styles.bankLine}>
-            <img src={bankLogo(bankName)} alt="" aria-hidden="true" />
-            <span>{formatAccountNumber(bankAccount)}</span>
-          </div>
-        </section>
+            <strong className={styles.phone}>{phone}</strong>
+            <div className={styles.memberName}>{memberName}</div>
+            <div className={styles.bankLine}>
+              <img src={bankLogo(bankName)} alt="" aria-hidden="true" />
+              <span>{formatAccountNumber(bankAccount)}</span>
+            </div>
+          </section>
 
-        <section className={styles.actions} aria-label="ตั้งค่าบัญชี">
-          <Link href="/profile/edit"><HeadsetIcon /><span>แก้ไข บัญชี/เบอร์โทร</span></Link>
-          <Link href="/profile/password"><LockIcon /><span>แก้ไขรหัสผ่าน</span></Link>
-        </section>
+          <section className={styles.actions} aria-label="ตั้งค่าบัญชี">
+            <button type="button" onClick={() => setPopup('contact')}>
+              <HeadsetIcon />
+              <span>แก้ไข บัญชี/เบอร์โทร</span>
+            </button>
+            <button type="button" onClick={() => setPopup('password')}>
+              <LockIcon />
+              <span>แก้ไขรหัสผ่าน</span>
+            </button>
+          </section>
 
-        <section className={styles.avatarSection} aria-labelledby="avatar-selection-title">
-          <h2 id="avatar-selection-title">เลือกรูปโปรไฟล์</h2>
-          <div className={styles.avatarGrid}>
-            {MOBILE_AVATAR_OPTIONS.map((avatar, index) => {
-              const active = avatar === selected;
-              return (
-                <button
-                  key={avatar}
-                  type="button"
-                  className={active ? styles.avatarActive : ''}
-                  aria-label={`เลือกรูปโปรไฟล์ ${index + 1}`}
-                  aria-pressed={active}
-                  onClick={() => chooseAvatar(avatar)}
-                >
-                  <img src={avatar} alt="" />
-                  {active ? <img className={styles.selectedIcon} src={SELECTED_ICON} alt="เลือกแล้ว" /> : null}
-                </button>
-              );
-            })}
-          </div>
-          <span className={styles.savedStatus} role="status" aria-live="polite">
-            {saved ? 'บันทึกรูปโปรไฟล์แล้ว' : ''}
-          </span>
-        </section>
-      </div>
-    </main>
+          <section className={styles.avatarSection} aria-labelledby="avatar-selection-title">
+            <h2 id="avatar-selection-title">เลือกรูปโปรไฟล์</h2>
+            <div className={styles.avatarGrid}>
+              {MOBILE_AVATAR_OPTIONS.map((avatar, index) => {
+                const active = avatar === selected;
+                return (
+                  <button
+                    key={avatar}
+                    type="button"
+                    className={active ? styles.avatarActive : ''}
+                    aria-label={`เลือกรูปโปรไฟล์ ${index + 1}`}
+                    aria-pressed={active}
+                    onClick={() => chooseAvatar(avatar)}
+                  >
+                    <img src={avatar} alt="" />
+                    {active ? <img className={styles.selectedIcon} src={SELECTED_ICON} alt="เลือกแล้ว" /> : null}
+                  </button>
+                );
+              })}
+            </div>
+            <span className={styles.savedStatus} role="status" aria-live="polite">
+              {saved ? 'บันทึกรูปโปรไฟล์แล้ว' : ''}
+            </span>
+          </section>
+        </div>
+      </main>
+
+      <ProfileActionPopupLayer kind={popup} onChange={setPopup} />
+    </>
   );
 }
 
