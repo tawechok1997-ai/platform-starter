@@ -22,6 +22,11 @@ export default function MemberAuthOverlay({ mode, onModeChange, onClose, onSucce
   const exitTimerRef = useRef<number | null>(null);
   const closingRef = useRef(false);
   const authCompletionRef = useRef(false);
+  const onModeChangeRef = useRef(onModeChange);
+
+  useEffect(() => {
+    onModeChangeRef.current = onModeChange;
+  }, [onModeChange]);
 
   const clearExitTimer = useCallback(() => {
     if (exitTimerRef.current !== null) {
@@ -118,7 +123,7 @@ export default function MemberAuthOverlay({ mode, onModeChange, onClose, onSucce
       if (payload.type === 'member-auth-success') void completeAuth();
       if (payload.type === 'member-auth-ready') setFrameReady(true);
       if (payload.type === 'member-auth-switch' && (payload.mode === 'login' || payload.mode === 'register')) {
-        onModeChange(payload.mode);
+        onModeChangeRef.current(payload.mode);
       }
     };
 
@@ -143,7 +148,7 @@ export default function MemberAuthOverlay({ mode, onModeChange, onClose, onSucce
         html.style.scrollBehavior = previousHtmlStyles.scrollBehavior;
       });
     };
-  }, [clearExitTimer, completeAuth, onModeChange, requestClose]);
+  }, [clearExitTimer, completeAuth, requestClose]);
 
   const path = mode === 'register' ? '/register?embed=1' : '/login?embed=1';
 
@@ -168,7 +173,7 @@ export default function MemberAuthOverlay({ mode, onModeChange, onClose, onSucce
 
         clickEvent.preventDefault();
         clickEvent.stopPropagation();
-        onModeChange(nextMode);
+        onModeChangeRef.current(nextMode);
       }, true);
     }
 
