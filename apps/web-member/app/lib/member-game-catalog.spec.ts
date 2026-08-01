@@ -3,7 +3,7 @@ import test from 'node:test';
 import {
   collectMemberGameTags,
   mapMemberCatalogGame,
-} from './member-game-catalog';
+} from './member-game-catalog-model';
 
 test('maps every catalog icon and preserves searchable tags', () => {
   const item = {
