@@ -1,33 +1,6 @@
 'use client';
 
-import { useLayoutEffect } from 'react';
-
-const COMMISSION_POPUP_KIND = 'commission-income';
-const COMMISSION_LABELS = ['รายได้คอมมิชชั่น', 'รายได้จากคอมมิชชั่น', 'commission income'];
-
 export default function MobileCommissionPopupBridge() {
-  useLayoutEffect(() => {
-    const bindCommissionActions = () => {
-      document
-        .querySelectorAll<HTMLElement>('#mobile-home-drawer a, #mobile-home-drawer button, [data-mobile-income-popup="commission"]')
-        .forEach((action) => {
-          const label = action.textContent?.replace(/\s+/g, ' ').trim().toLowerCase() ?? '';
-          const isCommissionAction = action.dataset.mobileIncomePopup === 'commission'
-            || COMMISSION_LABELS.some((candidate) => label.includes(candidate));
-
-          if (isCommissionAction) {
-            action.dataset.mobileMemberPopup = COMMISSION_POPUP_KIND;
-          }
-        });
-    };
-
-    bindCommissionActions();
-
-    const observer = new MutationObserver(bindCommissionActions);
-    observer.observe(document.body, { childList: true, subtree: true });
-    return () => observer.disconnect();
-  }, []);
-
   return (
     <style jsx global>{`
       @media (max-width: 900px) {
