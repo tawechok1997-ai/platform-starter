@@ -47,7 +47,7 @@ test('authenticated drawer routes popup actions through the one mobile owner', (
   assert.match(runtime, /onClick=\{logout\}/);
   assert.match(runtime, /resolveLocalAssetByBasename\(VIP_BADGE_SOURCE/);
   assert.match(runtimeCss, /width:\s*min\(340px,\s*calc\(100vw - 20px\)\)/);
-  assert.match(runtimeCss, /padding:\s*20px 23px 28px/);
+  assert.match(runtimeCss, /padding:[\s\S]*max\(20px, env\(safe-area-inset-top\)\)[\s\S]*23px[\s\S]*max\(28px, env\(safe-area-inset-bottom\)\)/);
 });
 
 test('guest drawer slide behavior remains the only drawer motion owner', () => {
