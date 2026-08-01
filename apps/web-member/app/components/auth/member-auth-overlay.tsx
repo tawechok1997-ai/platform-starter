@@ -158,6 +158,8 @@ export default function MemberAuthOverlay({ mode, onModeChange, onClose, onSucce
   useEffect(() => {
     const body = document.body;
     const html = document.documentElement;
+    const scrollX = window.scrollX;
+    const scrollY = window.scrollY;
     const scrollbarWidth = Math.max(0, window.innerWidth - html.clientWidth);
     const computedBodyPaddingRight = Number.parseFloat(window.getComputedStyle(body).paddingRight) || 0;
 
@@ -165,6 +167,10 @@ export default function MemberAuthOverlay({ mode, onModeChange, onClose, onSucce
       overflow: body.style.overflow,
       overscrollBehavior: body.style.overscrollBehavior,
       paddingRight: body.style.paddingRight,
+      position: body.style.position,
+      top: body.style.top,
+      left: body.style.left,
+      width: body.style.width,
     };
     const previousHtmlStyles = {
       overflow: html.style.overflow,
@@ -173,6 +179,10 @@ export default function MemberAuthOverlay({ mode, onModeChange, onClose, onSucce
 
     body.style.overflow = 'hidden';
     body.style.overscrollBehavior = 'none';
+    body.style.position = 'fixed';
+    body.style.top = `-${scrollY}px`;
+    body.style.left = `-${scrollX}px`;
+    body.style.width = '100%';
     if (scrollbarWidth > 0) body.style.paddingRight = `${computedBodyPaddingRight + scrollbarWidth}px`;
     html.style.overflow = 'hidden';
     html.style.overscrollBehavior = 'none';
@@ -202,8 +212,13 @@ export default function MemberAuthOverlay({ mode, onModeChange, onClose, onSucce
       body.style.overflow = previousBodyStyles.overflow;
       body.style.overscrollBehavior = previousBodyStyles.overscrollBehavior;
       body.style.paddingRight = previousBodyStyles.paddingRight;
+      body.style.position = previousBodyStyles.position;
+      body.style.top = previousBodyStyles.top;
+      body.style.left = previousBodyStyles.left;
+      body.style.width = previousBodyStyles.width;
       html.style.overflow = previousHtmlStyles.overflow;
       html.style.overscrollBehavior = previousHtmlStyles.overscrollBehavior;
+      window.scrollTo(scrollX, scrollY);
     };
   }, [clearExitTimer, completeAuth, requestClose, switchMode]);
 
