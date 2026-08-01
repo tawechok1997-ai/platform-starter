@@ -102,7 +102,7 @@ import './member-public-modal-viewport-contract.css';
 import './member-v47-tournament-rank-badge-size-lock.css';
 import './member-leaderboard-source-match-lock.css';
 import './member-leaderboard-rank-number-lock.css';
-import './member-casino-transparent-source-match-lock.css';
+import './member-casino-transparent-source-match.css';
 import './member-source-game-transparent-surfaces.css';
 import './member-popup-responsive-unified.css';
 import './member-popup-responsive-current-runtime.css';
