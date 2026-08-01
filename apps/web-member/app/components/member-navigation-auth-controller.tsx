@@ -84,6 +84,7 @@ const CANONICAL_HREF_TARGETS: Readonly<Record<string, string>> = {
   '/promotions': '/browse/promotions?view=promotion',
   '/mobile-menu/promotions': '/browse/promotions?view=promotion',
   '/mobile-menu/activities': '/browse/promotions?view=activity',
+  '/mobile/member/activity': '/mobile/member/activity',
   '/mobile-menu/news': '/browse/promotions?view=news',
   '/mobile-menu/live': '/live',
   '/?category=live': '/live',
