@@ -106,7 +106,7 @@
   width: 100%;
   min-height: 58px;
   padding: 12px;
-  grid-template-columns: 40px minmax(0, 1fr) 88px;
+  grid-template-columns: 40px minmax(0, 1fr) 128px;
   align-items: center;
   gap: 10px;
   border: 2px solid rgb(244 244 245 / 10%);
@@ -150,7 +150,7 @@
 
 .contactButton {
   display: flex;
-  width: 88px;
+  width: 128px;
   height: 36px;
   align-items: center;
   justify-content: center;
@@ -379,7 +379,7 @@
 
   .contactCard {
     padding: 10px;
-    grid-template-columns: 34px minmax(0, 1fr) 70px;
+    grid-template-columns: 34px minmax(0, 1fr) 96px;
     gap: 8px;
   }
 
@@ -389,7 +389,7 @@
   }
 
   .contactButton {
-    width: 70px;
+    width: 96px;
     height: 32px;
     font-size: 12px;
   }
