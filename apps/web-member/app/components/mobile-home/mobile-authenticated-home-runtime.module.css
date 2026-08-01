@@ -1,6 +1,10 @@
 :global([data-mobile-home-root='true'][data-mobile-authenticated='true'] #mobile-home-drawer) {
   width: min(340px, calc(100vw - 20px)) !important;
-  padding: 20px 23px 28px !important;
+  padding:
+    max(20px, env(safe-area-inset-top))
+    23px
+    max(28px, env(safe-area-inset-bottom)) !important;
+  background: var(--mobile-source-bg-deep, #110e16) !important;
 }
 
 :global([data-mobile-authenticated-drawer-top='true']) {
@@ -24,7 +28,7 @@
   padding: 0;
   place-items: center;
   border-radius: 10px;
-  color: #bb5bea;
+  color: var(--mobile-source-accent, #bb5bea);
   background: #373147;
   text-decoration: none;
   -webkit-tap-highlight-color: transparent;
@@ -42,6 +46,7 @@
   z-index: 2;
   display: flex;
   min-width: 86px;
+  max-width: 132px;
   height: 35px;
   padding: 2px 8px 2px 2px;
   align-items: center;
@@ -49,7 +54,7 @@
   gap: 2px;
   overflow: visible;
   border-radius: 4px;
-  color: #fff;
+  color: var(--mobile-source-text, #fff);
   background: #373147;
   text-decoration: none;
   -webkit-tap-highlight-color: transparent;
@@ -95,7 +100,7 @@
   height: 72px;
   border-radius: 10px;
   object-fit: cover;
-  background: #251f31;
+  background: var(--mobile-source-surface-raised, #251f31);
 }
 
 .profileDetails {
@@ -186,7 +191,7 @@
   min-height: 20px;
   align-items: center;
   gap: 5px;
-  color: #fff;
+  color: var(--mobile-source-text, #fff);
   font-size: 12px;
   line-height: 16px;
 }
@@ -218,10 +223,10 @@
   align-items: center;
   justify-content: center;
   gap: 4px;
-  border: 1px solid #8b00ab;
+  border: 1px solid var(--mobile-source-border-accent, #8b00ab);
   border-radius: 7px;
-  color: #fff;
-  background: linear-gradient(#342f43 0%, rgb(0 0 0 / 0%) 100%);
+  color: var(--mobile-source-text, #fff);
+  background: var(--mobile-source-card-gradient-soft, linear-gradient(#342f43 0%, rgb(0 0 0 / 0%) 100%));
   font-size: 10px;
   font-weight: 700;
   line-height: 22px;
@@ -247,9 +252,9 @@
   padding: 4px;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 4px;
-  border: 1px solid #8b00ab;
+  border: 1px solid var(--mobile-source-border-accent, #8b00ab);
   border-radius: 7px;
-  background: linear-gradient(#342f43 0%, rgb(0 0 0 / 0%) 100%);
+  background: var(--mobile-source-card-gradient-soft, linear-gradient(#342f43 0%, rgb(0 0 0 / 0%) 100%));
 }
 
 .incomePanel::after {
@@ -258,7 +263,7 @@
   bottom: 4px;
   left: 50%;
   width: 1px;
-  background: #8b00ab;
+  background: var(--mobile-source-border-accent, #8b00ab);
   content: '';
 }
 
@@ -269,6 +274,8 @@
   grid-template-columns: 22px minmax(0, 1fr) 20px;
   align-items: center;
   gap: 4px;
+  color: inherit;
+  text-decoration: none;
 }
 
 .incomeIcon {
@@ -321,10 +328,10 @@
   grid-template-columns: auto minmax(0, 1fr) 18px;
   align-items: center;
   gap: 7px;
-  border: 1px solid #8b00ab;
+  border: 1px solid var(--mobile-source-border-accent, #8b00ab);
   border-radius: 7px;
-  color: #fff;
-  background: linear-gradient(#342f43 0%, rgb(0 0 0 / 0%) 100%);
+  color: var(--mobile-source-text, #fff);
+  background: var(--mobile-source-card-gradient-soft, linear-gradient(#342f43 0%, rgb(0 0 0 / 0%) 100%));
   text-decoration: none;
 }
 
@@ -359,9 +366,9 @@
   justify-content: center;
   gap: 8px;
   border: 1px solid #373540;
-  border-radius: 6px;
-  color: rgb(255 255 255 / 70%);
-  background: #15131a;
+  border-radius: var(--mobile-source-radius-control, 6px);
+  color: var(--mobile-source-text-muted, rgb(255 255 255 / 70%));
+  background: var(--mobile-source-surface, #15131a);
   font: inherit;
   font-size: 11px;
   font-weight: 500;
@@ -375,6 +382,11 @@
 }
 
 @media (max-width: 359px) {
+  :global([data-mobile-home-root='true'][data-mobile-authenticated='true'] #mobile-home-drawer) {
+    padding-right: 16px !important;
+    padding-left: 16px !important;
+  }
+
   .headerSearch {
     left: 46px;
   }
@@ -382,6 +394,7 @@
   .headerWallet {
     right: 6px;
     min-width: 78px;
+    max-width: 116px;
     padding-right: 5px;
   }
 
@@ -393,6 +406,7 @@
 
   .profileRow {
     grid-template-columns: 64px minmax(0, 1fr);
+    gap: 10px;
   }
 
   .avatar {
