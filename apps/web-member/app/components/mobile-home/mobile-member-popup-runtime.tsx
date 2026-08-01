@@ -1430,12 +1430,36 @@ function TitleStroke() {
 function BottomNavShape() {
   return (
     <svg className={styles.bottomNavShape} viewBox="0 0 640 60" preserveAspectRatio="none" aria-hidden="true">
-      <path
-        d="M0 6.68S197.5.383 320 .013C442.5-.356 640 6.68 640 6.68V60H0V6.68Z"
-        fill="url(#mobile-member-bottom-nav-fill)"
-      />
+      <g filter="url(#mobile-member-bottom-nav-inner-shadow)">
+        <path
+          d="M0 6.68S197.5.383 320 .013C442.5-.356 640 6.68 640 6.68V60H0V6.68Z"
+          fill="url(#mobile-member-bottom-nav-fill)"
+        />
+      </g>
       <defs>
-        <linearGradient id="mobile-member-bottom-nav-fill" x1="320" y1="0" x2="320" y2="60" gradientUnits="userSpaceOnUse">
+        <filter
+          id="mobile-member-bottom-nav-inner-shadow"
+          width="640"
+          height="62"
+          x="0"
+          y="0"
+          colorInterpolationFilters="sRGB"
+          filterUnits="userSpaceOnUse"
+        >
+          <feFlood floodOpacity="0" result="BackgroundImageFix" />
+          <feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape" />
+          <feColorMatrix
+            in="SourceAlpha"
+            result="hardAlpha"
+            values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"
+          />
+          <feOffset dy="2" />
+          <feGaussianBlur stdDeviation="2" />
+          <feComposite in2="hardAlpha" k2="-1" k3="1" operator="arithmetic" />
+          <feColorMatrix values="0 0 0 0 0.952943 0 0 0 0 0.952943 0 0 0 0 0.952943 0 0 0 0.15 0" />
+          <feBlend in2="shape" result="effect1_innerShadow" />
+        </filter>
+        <linearGradient id="mobile-member-bottom-nav-fill" x1="214" x2="214" y1="0" y2="60" gradientUnits="userSpaceOnUse">
           <stop stopColor="#bea7c5" />
           <stop offset="0.049" stopColor="#504867" />
           <stop offset="1" stopColor="#373147" />
