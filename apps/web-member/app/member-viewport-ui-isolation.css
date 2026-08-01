@@ -1,0 +1,38 @@
+/* Final visual boundary between the independently rendered Mobile and Desktop homes.
+ *
+ * MemberHome already mounts exactly one component tree through matchMedia. These
+ * guards are deliberately geometry-free: they only prevent a stale tree from
+ * becoming visible during hydration or a viewport-mode transition, so the
+ * current pixel output remains unchanged.
+ */
+
+html[data-member-viewport-mode='mobile'] :is(
+  .desktop-reference-home,
+  [data-ui-owner='desktop-home']
+) {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+html[data-member-viewport-mode='desktop'] :is(
+  [data-mobile-home-root='true'],
+  [data-ui-owner='mobile-home']
+) {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+/* A Mobile popup/navigation runtime is mounted only inside the Mobile tree.
+ * Keep a defensive visual lock in case a portal survives the same frame in
+ * which the viewport changes to Desktop.
+ */
+html[data-member-viewport-mode='desktop'] :is(
+  [data-mobile-popup-owner],
+  [data-mobile-member-bottom-navigation='true']
+) {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
