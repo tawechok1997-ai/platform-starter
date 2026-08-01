@@ -6,10 +6,13 @@ const exactCss = readFileSync(new URL('./auth-source-popup-exact.css', import.me
 const overlayCss = readFileSync(new URL('../../member-auth-overlay.css', import.meta.url), 'utf8');
 const authLayout = readFileSync(new URL('../../(auth)/layout.tsx', import.meta.url), 'utf8');
 
-test('exact auth popup remains the last embedded geometry owner', () => {
-  const exactImport = authLayout.indexOf("auth-source-popup-exact.css");
-  const unifiedImport = authLayout.indexOf("auth-unified-popup-final.css");
-  assert.ok(exactImport > unifiedImport);
+test('auth layout keeps one final mobile popup geometry owner', () => {
+  const singleOwnerImport = authLayout.indexOf('auth-popup-single-owner.css');
+  const mobileFinalImport = authLayout.indexOf('auth-popup-mobile-source-final.css');
+  const polishImport = authLayout.indexOf('auth-popup-polish.css');
+  assert.ok(singleOwnerImport >= 0);
+  assert.ok(mobileFinalImport > singleOwnerImport);
+  assert.ok(polishImport > mobileFinalImport);
   assert.match(exactCss, /Final Login\/Register geometry owner/);
 });
 
