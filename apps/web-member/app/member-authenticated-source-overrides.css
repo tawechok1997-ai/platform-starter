@@ -22,6 +22,158 @@
   .member-floating-contact[data-authenticated='true'] .member-floating-contact__contact-host {
     display: block;
   }
+
+  /* Network-income popup. Scoped to the first authenticated income action only. */
+  [data-mobile-popup-owner='network-income'] {
+    width: min(480px, 100%);
+    padding: 56px 16px 16px;
+    gap: 24px;
+    border-radius: 10px;
+    background: linear-gradient(0deg, rgb(27 24 36) -5.86%, rgb(63 59 75) 104.05%);
+    box-shadow: 0 1px 24px 4px rgb(90 90 90 / 20%);
+  }
+
+  [data-mobile-popup-owner='network-income'] [class*='incomeContent'] {
+    gap: 16px;
+  }
+
+  [data-mobile-popup-owner='network-income'] [class*='incomeBalance'] {
+    min-height: 75px;
+    padding: 8px 12px;
+    gap: 2px;
+    border: 1px solid rgb(98 98 98 / 70%);
+    border-radius: 7px;
+    background: rgb(21 19 26);
+  }
+
+  [data-mobile-popup-owner='network-income'] [class*='incomeBalance'] > span {
+    color: #fff;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 20px;
+  }
+
+  [data-mobile-popup-owner='network-income'] [class*='incomeBalance'] > strong {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 7px;
+    color: #fff;
+    font-size: clamp(22px, 6.55vw, 28px);
+    font-weight: 800;
+    line-height: 38px;
+  }
+
+  [data-mobile-popup-owner='network-income'] [class*='incomeBalance'] > strong::after {
+    width: 16px;
+    height: 14px;
+    flex: 0 0 16px;
+    content: '';
+    background: #757575;
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 14'%3E%3Cpath d='M13.667 2.89A7 7 0 0 0 1.038 6.264l-.069.663 1.326.139.069-.663A5.667 5.667 0 0 1 12.809 4h-2.476v1.333H15V.667h-1.333V2.89Zm.038 4.044-.07.663A5.667 5.667 0 0 1 3.191 10h2.476V8.667H1v4.666h1.333V11.11a7 7 0 0 0 12.628-3.374l.07-.663-1.326-.139Z'/%3E%3C/svg%3E") center / contain no-repeat;
+    opacity: .9;
+  }
+
+  [data-mobile-popup-owner='network-income'] [class*='amountSection'] {
+    gap: 8px;
+  }
+
+  [data-mobile-popup-owner='network-income'] [class*='amountSection'] > h3 {
+    color: #fff;
+    font-size: clamp(11px, 3.05vw, 13px);
+    font-weight: 600;
+    line-height: 20px;
+  }
+
+  [data-mobile-popup-owner='network-income'] [class*='amountInput'] {
+    height: 55px;
+    padding: 0 12px;
+    border: 1px solid rgb(49 47 57);
+    border-radius: 6px;
+    color: #fff;
+    background: rgb(21 19 26);
+    font-size: clamp(12px, 3.3vw, 14px);
+    font-weight: 400;
+    line-height: 20px;
+    text-align: left;
+  }
+
+  [data-mobile-popup-owner='network-income'] [class*='amountInput']::placeholder {
+    color: rgb(255 255 255 / 40%);
+    opacity: 1;
+  }
+
+  [data-mobile-popup-owner='network-income'] [class*='amountInput']:focus {
+    border-color: rgb(49 47 57);
+    box-shadow: none;
+  }
+
+  [data-mobile-popup-owner='network-income'] [class*='amountSection'] > h4 {
+    margin-top: 8px;
+    color: #fff;
+    font-size: clamp(12px, 3.3vw, 14px);
+    font-weight: 600;
+    line-height: 20px;
+  }
+
+  [data-mobile-popup-owner='network-income'] [class*='quickGrid'] {
+    gap: 8px;
+  }
+
+  [data-mobile-popup-owner='network-income'] [class*='quickGrid'] > button {
+    min-height: 45px;
+    border: 1px solid rgb(55 53 64);
+    border-radius: 6px;
+    color: #fff;
+    background: rgb(21 19 26);
+    font-size: clamp(12px, 3.3vw, 14px);
+    font-weight: 400;
+  }
+
+  [data-mobile-popup-owner='network-income'] [class*='quickGrid'] > button:disabled {
+    opacity: .4;
+  }
+
+  [data-mobile-popup-owner='network-income'] [class*='actionRow'] {
+    gap: 8px;
+  }
+
+  [data-mobile-popup-owner='network-income'] [class*='actionRow'] > button {
+    min-height: 48px;
+    border: 1px solid rgb(65 62 75);
+    border-radius: 6px;
+    color: rgb(107 111 119);
+    background: rgb(21 19 26);
+    font-size: clamp(12px, 3.3vw, 14px);
+    font-weight: 600;
+  }
+
+  [data-mobile-popup-owner='network-income'] [class*='actionRow'] > [class*='confirmButton']:disabled {
+    border-color: transparent;
+    color: rgb(85 85 85);
+    background: rgb(56 55 62);
+    box-shadow: none;
+    opacity: 1;
+  }
+
+  [data-mobile-popup-owner='network-income'] [class*='supportDivider'] {
+    height: 1px;
+    margin-top: 0;
+    background: linear-gradient(180deg, #efd596 0%, #ccbc98 45.83%, #b7a47c 93.23%);
+    opacity: .1;
+  }
+
+  [data-mobile-popup-owner='network-income'] [class*='supportFooter'] {
+    gap: 4px;
+    color: #909090;
+    font-size: 11px;
+    line-height: 16px;
+  }
+
+  [data-mobile-popup-owner='network-income'] [class*='supportFooter'] button {
+    color: rgb(113 0 189);
+    font-weight: 700;
+  }
 }
 
 @media (min-width: 901px) {
