@@ -1,0 +1,493 @@
+.page {
+  width: min(100%, 428px);
+  min-height: 100dvh;
+  margin: 0 auto;
+  color: #fff;
+  background: #141019;
+  font-family: inherit;
+}
+
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 51;
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr) 32px;
+  width: 100%;
+  height: 50px;
+  padding: 0 8px;
+  align-items: center;
+  background: #171422;
+}
+
+.header button {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  place-items: center;
+  border: 0;
+  color: #fff;
+  background: transparent;
+  cursor: pointer;
+}
+
+.header h1 {
+  margin: 0;
+  overflow: hidden;
+  font-size: 16px;
+  font-weight: 800;
+  line-height: 24px;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.body {
+  position: relative;
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 10px;
+  padding: 8px 16px 58px;
+}
+
+.incomeCard {
+  position: relative;
+  display: flex;
+  min-height: 220px;
+  padding: 40px 8px 8px;
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: 8px;
+  overflow: hidden;
+  border: 1px solid #413e4b;
+  border-radius: 10px;
+  background: #231f2b;
+  box-shadow: 0 1px 24px 4px rgb(90 90 90 / 20%);
+}
+
+.incomeBackground {
+  position: absolute;
+  inset: 0 0 auto;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  object-fit: fill;
+  opacity: .75;
+}
+
+.ribbon {
+  position: absolute;
+  top: -1px;
+  left: 50%;
+  display: grid;
+  width: 194px;
+  height: 38px;
+  place-items: center;
+  color: #fff;
+  transform: translateX(-50%);
+}
+
+.ribbon::before,
+.ribbon::after {
+  position: absolute;
+  inset: 0;
+  border-radius: 0 0 34px 34px;
+  content: '';
+  clip-path: polygon(0 0, 100% 0, 96% 50%, 92% 76%, 83% 93%, 70% 100%, 30% 100%, 17% 93%, 8% 76%, 4% 50%);
+}
+
+.ribbon::before {
+  background: linear-gradient(180deg, #313131 0%, #474747 68%, #505050 100%);
+}
+
+.ribbon::after {
+  inset: 1px;
+  border: 1px solid rgb(242 242 242 / 14%);
+}
+
+.ribbon span {
+  position: relative;
+  z-index: 1;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.balanceBox {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  min-height: 75px;
+  padding: 8px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  border: 1px solid #626262;
+  border-radius: 7px;
+  background: rgb(21 19 26 / 70%);
+}
+
+.balanceBox > div:first-child {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.balanceLabel {
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.balanceValue {
+  font-size: 26px;
+  font-weight: 900;
+  line-height: 34px;
+}
+
+.refreshButton {
+  display: grid;
+  width: 26px;
+  height: 32px;
+  margin-left: auto;
+  padding: 0;
+  place-items: center;
+  border: 0;
+  color: #757575;
+  background: transparent;
+  cursor: pointer;
+}
+
+.withdrawButton {
+  display: inline-flex;
+  width: 100px;
+  height: 37px;
+  padding: 0 10px;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 7px;
+  color: #fff;
+  background: linear-gradient(165deg, #944fe8 -17.16%, #7600a8 91.36%);
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.infoRows {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 6px;
+}
+
+.infoRow,
+.guideRow {
+  display: flex;
+  width: 100%;
+  min-height: 30px;
+  padding: 0 8px;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid #626262;
+  border-radius: 7px;
+  color: #fff;
+  background: rgb(21 19 26 / 70%);
+}
+
+.infoRow strong,
+.guideRow strong {
+  flex: 0 0 auto;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.infoRow > span {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  font-size: 9px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.infoRow button,
+.guideRow {
+  cursor: pointer;
+}
+
+.infoRow button {
+  display: grid;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  place-items: center;
+  border: 0;
+  color: #fff;
+  background: transparent;
+}
+
+.infoRow button:disabled {
+  opacity: .35;
+  cursor: default;
+}
+
+.guideRow {
+  justify-content: space-between;
+}
+
+.guideRow span {
+  display: grid;
+  width: 16px;
+  height: 16px;
+  place-items: center;
+  border-radius: 999px;
+  background: #fff;
+}
+
+.toast {
+  position: fixed;
+  z-index: 210;
+  left: 50%;
+  bottom: 76px;
+  padding: 9px 14px;
+  border: 1px solid #944fe8;
+  border-radius: 9px;
+  background: #17131f;
+  box-shadow: 0 0 12px rgb(148 79 232 / 45%);
+  font-size: 12px;
+  font-weight: 800;
+  transform: translateX(-50%);
+}
+
+.periodTabs {
+  display: grid;
+  width: 100%;
+  height: 24px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  overflow: hidden;
+  border: 1px solid #504a60;
+  border-radius: 2px;
+}
+
+.periodTabs button {
+  min-width: 0;
+  padding: 0 4px;
+  border: 0;
+  border-right: 1px solid #504a60;
+  color: #fff;
+  background: transparent;
+  font-size: 10px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.periodTabs button:last-child {
+  border-right: 0;
+}
+
+.periodTabs .activePeriod {
+  background: #504a60;
+}
+
+.summaryCard {
+  display: flex;
+  width: 100%;
+  min-height: 77px;
+  padding: 8px 12px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border: 1px solid #626262;
+  border-radius: 7px;
+  background: rgb(21 19 26 / 70%);
+}
+
+.summaryCard > div:first-child,
+.growth {
+  display: grid;
+  gap: 4px;
+}
+
+.summaryCard strong {
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.summaryCard b {
+  font-size: 18px;
+  font-weight: 900;
+}
+
+.growth {
+  justify-items: end;
+}
+
+.growth strong {
+  font-size: 14px;
+}
+
+.growth span {
+  color: #fff;
+  font-size: 11px;
+}
+
+.detailsSection {
+  display: grid;
+  gap: 10px;
+  padding-top: 2px;
+}
+
+.detailsHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.detailsHeader h2 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.detailsHeader button {
+  display: inline-flex;
+  height: 30px;
+  padding: 0 8px;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  border: 1px solid #38324e;
+  border-radius: 999px;
+  color: #fff;
+  background: transparent;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.tableFrame {
+  width: 100%;
+  overflow: hidden;
+  border: 1px solid #504a60;
+  border-radius: 7px;
+}
+
+.tableFrame table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.tableFrame thead {
+  background: #504a60;
+}
+
+.tableFrame th {
+  height: 32px;
+  padding: 0 14px;
+  font-weight: 800;
+  text-align: right;
+}
+
+.tableFrame th:first-child,
+.tableFrame td:first-child {
+  width: 30%;
+  text-align: left;
+}
+
+.tableFrame th:nth-child(2),
+.tableFrame td:nth-child(2),
+.tableFrame th:nth-child(3),
+.tableFrame td:nth-child(3) {
+  width: 35%;
+  text-align: right;
+}
+
+.tableFrame td {
+  padding: 10px 14px;
+  border-top: 1px solid rgb(80 74 96 / 45%);
+  color: #fff;
+}
+
+.tableFrame tbody tr:first-child td {
+  border-top: 0;
+}
+
+.emptyState {
+  display: flex;
+  min-height: 128px;
+  padding: 18px 0 12px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.emptyState svg {
+  width: 92px;
+  height: auto;
+}
+
+.emptyState span {
+  color: #a6a6a6;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.loadingState {
+  display: flex;
+  min-height: 128px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: #b9b5c2;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.loadingState span {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgb(255 255 255 / 22%);
+  border-top-color: #bb5bea;
+  border-radius: 999px;
+  animation: affiliateSpin .7s linear infinite;
+}
+
+.errorState {
+  display: grid;
+  min-height: 128px;
+  padding: 18px;
+  place-items: center;
+  gap: 10px;
+  color: #ffb4b4;
+  text-align: center;
+}
+
+.errorState button {
+  height: 30px;
+  padding: 0 14px;
+  border: 1px solid #944fe8;
+  border-radius: 7px;
+  color: #fff;
+  background: #7600a8;
+  font-weight: 800;
+}
+
+@keyframes affiliateSpin {
+  to { transform: rotate(360deg); }
+}
+
+@media (min-width: 390px) {
+  .header h1 { font-size: 18px; }
+  .balanceLabel { font-size: 12px; }
+  .balanceValue { font-size: 28px; }
+  .periodTabs button { font-size: 11px; }
+  .detailsHeader h2 { font-size: 16px; }
+}
+
+@media (min-width: 901px) {
+  .page { display: none; }
+}
