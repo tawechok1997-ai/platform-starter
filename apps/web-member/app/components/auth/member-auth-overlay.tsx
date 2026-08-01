@@ -13,6 +13,62 @@ type MemberAuthOverlayProps = {
 };
 
 const EXIT_DURATION_MS = 180;
+const AUTH_OVERLAY_MOTION_CSS = `
+@keyframes memberAuthBackdropEnter {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+html body .member-auth-overlay,
+html body .member-auth-overlay[data-state='open'],
+html body .member-auth-overlay[data-state='closing'] {
+  background-color: transparent !important;
+  background-image: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+html body .member-auth-overlay__backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  display: block;
+  background: rgb(0 0 0 / 80%);
+  opacity: 0;
+  pointer-events: none;
+  will-change: opacity;
+}
+
+html body .member-auth-overlay[data-state='open'] .member-auth-overlay__backdrop {
+  animation: memberAuthBackdropEnter 260ms cubic-bezier(.22, 1, .36, 1) both;
+}
+
+html body .member-auth-overlay[data-state='closing'] .member-auth-overlay__backdrop {
+  animation: none;
+  opacity: 0;
+  transition: opacity 160ms ease-out;
+}
+
+html body .member-auth-overlay__frame {
+  z-index: 1 !important;
+}
+
+@media (max-width: 900px) {
+  html body .member-auth-overlay__backdrop {
+    background: rgb(0 0 0 / 72%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html body .member-auth-overlay[data-state='open'] .member-auth-overlay__backdrop {
+    animation-duration: 1ms;
+  }
+
+  html body .member-auth-overlay[data-state='closing'] .member-auth-overlay__backdrop {
+    transition-duration: 1ms;
+  }
+}
+`;
 
 export default function MemberAuthOverlay({ mode, onModeChange, onClose, onSuccess }: MemberAuthOverlayProps) {
   const [activeMode, setActiveMode] = useState<MemberAuthMode>(mode);
@@ -82,11 +138,17 @@ export default function MemberAuthOverlay({ mode, onModeChange, onClose, onSucce
     setClosing(false);
     setVisible(false);
 
-    const animationFrame = window.requestAnimationFrame(() => {
-      setVisible(true);
+    let secondAnimationFrame = 0;
+    const firstAnimationFrame = window.requestAnimationFrame(() => {
+      secondAnimationFrame = window.requestAnimationFrame(() => {
+        setVisible(true);
+      });
     });
 
-    return () => window.cancelAnimationFrame(animationFrame);
+    return () => {
+      window.cancelAnimationFrame(firstAnimationFrame);
+      if (secondAnimationFrame) window.cancelAnimationFrame(secondAnimationFrame);
+    };
   }, [clearExitTimer]);
 
   useEffect(() => {
@@ -204,6 +266,8 @@ export default function MemberAuthOverlay({ mode, onModeChange, onClose, onSucce
       data-state={motionState}
       data-frame-ready={frameReady ? 'true' : 'false'}
     >
+      <style>{AUTH_OVERLAY_MOTION_CSS}</style>
+      <span className="member-auth-overlay__backdrop" aria-hidden="true" />
       <iframe
         className="member-auth-overlay__frame"
         src={path}
