@@ -13,6 +13,7 @@ const antiBotScripts = [
   'https://js.hcaptcha.com',
   'https://*.hcaptcha.com',
 ];
+const canonicalPcAssetRoot = '/assets/asset-pc/images';
 
 const contentSecurityPolicy = [
   "default-src 'self'",
@@ -48,39 +49,39 @@ const exactMobileAssetRewrites = [
   'faq.svg',
 ].map((fileName) => ({
   source: `/images/home/${fileName}`,
-  destination: `/assets/asset-pc/images/home/${fileName}`,
+  destination: `${canonicalPcAssetRoot}/home/${fileName}`,
 }));
 
 const depositAssetRewrites = [
   {
     source: '/images/deposit/method/:path*',
-    destination: '/assets/asset-pc/images/deposit/method/:path*',
+    destination: `${canonicalPcAssetRoot}/deposit/method/:path*`,
   },
   {
     source: '/images/close.svg',
-    destination: '/assets/asset-pc/images/close.svg',
+    destination: `${canonicalPcAssetRoot}/close.svg`,
   },
 ];
 
-const legacyMobileAssetRewrites = [
+const canonicalAssetRewrites = [
   {
     source: '/assets/asset-mobile/:path*',
-    destination: '/assets/asset-pc/:path*',
+    destination: `${canonicalPcAssetRoot}/:path*`,
   },
   {
     source: '/assets/asset-moblie/:path*',
-    destination: '/assets/asset-pc/:path*',
+    destination: `${canonicalPcAssetRoot}/:path*`,
+  },
+  {
+    source: '/assets/asset-pc/:path((?!images(?:/|$)).*)',
+    destination: `${canonicalPcAssetRoot}/:path`,
   },
 ];
 
 const missingAssetFallbackRewrites = [
   {
     source: '/images/:path*',
-    destination: '/assets/asset-pc/images/:path*',
-  },
-  {
-    source: '/assets/asset-pc/images/:path*',
-    destination: '/assets/asset-pc/:path*',
+    destination: `${canonicalPcAssetRoot}/:path*`,
   },
 ];
 
@@ -113,7 +114,7 @@ const nextConfig = {
   async rewrites() {
     return {
       beforeFiles: [
-        ...legacyMobileAssetRewrites,
+        ...canonicalAssetRewrites,
         ...exactMobileAssetRewrites,
         ...depositAssetRewrites,
       ],
