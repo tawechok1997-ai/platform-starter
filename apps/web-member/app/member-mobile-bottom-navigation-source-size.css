@@ -1,0 +1,113 @@
+/* Exact source geometry for the authenticated Mobile bottom navigation.
+ * The 640px artwork is centered and clipped by the 428px viewport, while the
+ * controls sit 7px above the bottom edge. Keep this as one visual owner. */
+@media (max-width: 900px) {
+  nav[data-mobile-member-bottom-navigation='true'] {
+    right: 0 !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    pointer-events: none !important;
+  }
+
+  nav[data-mobile-member-bottom-navigation='true'] > div {
+    position: relative !important;
+    width: min(428px, 100%) !important;
+    height: calc(60px + env(safe-area-inset-bottom, 0px)) !important;
+    margin: -8px auto 0 !important;
+    overflow: hidden !important;
+    pointer-events: auto !important;
+  }
+
+  nav[data-mobile-member-bottom-navigation='true'] > div > svg {
+    position: absolute !important;
+    right: auto !important;
+    bottom: calc(env(safe-area-inset-bottom, 0px) - 1px) !important;
+    left: 50% !important;
+    width: 640px !important;
+    min-width: 640px !important;
+    max-width: none !important;
+    height: 60px !important;
+    transform: translateX(-50%) !important;
+    transform-origin: center bottom !important;
+  }
+
+  nav[data-mobile-member-bottom-navigation='true'] > div > div {
+    position: absolute !important;
+    right: 0 !important;
+    bottom: calc(7px + env(safe-area-inset-bottom, 0px)) !important;
+    left: 0 !important;
+    z-index: 101 !important;
+    display: grid !important;
+    width: 100% !important;
+    height: auto !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  nav[data-mobile-member-bottom-navigation='true'] > div > div > button {
+    display: flex !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    padding: 0 !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    gap: 3px !important;
+    border: 0 !important;
+    color: #b5b5b5 !important;
+    background: transparent !important;
+    font-size: 9px !important;
+    font-weight: 500 !important;
+    line-height: 10px !important;
+  }
+
+  nav[data-mobile-member-bottom-navigation='true'] > div > div > button > span:first-child {
+    display: grid !important;
+    width: 32px !important;
+    height: 32px !important;
+    flex: 0 0 32px !important;
+    place-items: center !important;
+    transform: scale(1.2) !important;
+    transform-origin: center !important;
+  }
+
+  nav[data-mobile-member-bottom-navigation='true'] canvas[data-bottom-navigation-canvas] {
+    display: block !important;
+    width: 32px !important;
+    height: 32px !important;
+    max-width: none !important;
+    max-height: none !important;
+  }
+
+  nav[data-mobile-member-bottom-navigation='true'] > div > div > button > span:last-child {
+    color: #b5b5b5 !important;
+    font-size: 9px !important;
+    font-weight: 500 !important;
+    line-height: 10px !important;
+    text-align: center !important;
+    white-space: nowrap !important;
+  }
+}
+
+@media (min-width: 360px) and (max-width: 900px) {
+  nav[data-mobile-member-bottom-navigation='true'] > div > div > button,
+  nav[data-mobile-member-bottom-navigation='true'] > div > div > button > span:last-child {
+    font-size: 10px !important;
+  }
+}
+
+@media (min-width: 428px) and (max-width: 900px) {
+  nav[data-mobile-member-bottom-navigation='true'] > div > div > button > span:first-child {
+    transform: scale(1.35) !important;
+  }
+}
+
+@media (min-width: 640px) and (max-width: 900px) {
+  nav[data-mobile-member-bottom-navigation='true'] > div > div > button,
+  nav[data-mobile-member-bottom-navigation='true'] > div > div > button > span:last-child {
+    font-size: 11px !important;
+  }
+}
