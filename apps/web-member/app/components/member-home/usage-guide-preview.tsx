@@ -16,14 +16,14 @@ export default function UsageGuidePreview({ mobile = false }: UsageGuidePreviewP
       {mobile ? (
         <header className="v47-mobile-section-title">
           <span>
-            <img src={V47_ASSETS.openGold} alt="" aria-hidden="true" />
+            <img src={V47_ASSETS.mobileFaq} alt="" aria-hidden="true" />
             <strong>Guide</strong>
           </span>
         </header>
       ) : (
         <header className="reference-panel-heading">
           <span className="reference-heading-icon" aria-hidden="true">
-            <img src={V47_ASSETS.openGold} alt="" />
+            <img src={V47_ASSETS.mobileFaq} alt="" />
           </span>
           <strong>Guide</strong>
         </header>
