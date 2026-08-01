@@ -40,16 +40,29 @@ async function walk(directory, baseDirectory = directory) {
   return files;
 }
 
-function isLegacyMobileAssetPath(value) {
-  const normalized = value.toLowerCase();
-  return normalized.startsWith('asset-mobile/') || normalized.startsWith('asset-moblie/');
-}
-
 function candidateRank(value) {
   const normalized = value.toLowerCase().replace(/^\/+/, '');
   if (normalized.startsWith('asset-pc/') || normalized.includes('/asset-pc/')) return 0;
-  if (normalized.startsWith('reference-brand/') || normalized.includes('/reference-brand/')) return 1;
-  return 2;
+  if (
+    normalized.startsWith('asset-mobile/')
+    || normalized.includes('/asset-mobile/')
+    || normalized.startsWith('asset-moblie/')
+    || normalized.includes('/asset-moblie/')
+  ) return 1;
+  if (normalized.startsWith('reference-brand/') || normalized.includes('/reference-brand/')) return 2;
+  return 3;
+}
+
+function assetPlatform(value) {
+  const normalized = value.toLowerCase().replace(/^\/+/, '');
+  if (normalized.startsWith('asset-pc/') || normalized.includes('/asset-pc/')) return 'pc';
+  if (
+    normalized.startsWith('asset-mobile/')
+    || normalized.includes('/asset-mobile/')
+    || normalized.startsWith('asset-moblie/')
+    || normalized.includes('/asset-moblie/')
+  ) return 'mobile';
+  return 'other';
 }
 
 function serialize(map) {
@@ -76,16 +89,16 @@ function serialize(map) {
 
 const files = await walk(assetRoot);
 const byBasename = new Map();
+const platformCounts = { pc: 0, mobile: 0, other: 0 };
 let indexedAssetCount = 0;
 
 for (const relative of files) {
-  if (isLegacyMobileAssetPath(relative)) continue;
-
   const basename = path.posix.basename(relative).toLowerCase();
   const publicUrl = `/${path.posix.join('assets', relative)}`;
   const candidates = byBasename.get(basename) ?? [];
   candidates.push(publicUrl);
   byBasename.set(basename, candidates);
+  platformCounts[assetPlatform(relative)] += 1;
   indexedAssetCount += 1;
 }
 
@@ -94,5 +107,5 @@ await writeFile(outputPath, serialize(byBasename), 'utf8');
 
 const duplicateBasenames = [...byBasename.values()].filter((candidates) => candidates.length > 1).length;
 console.log(
-  `Generated ${path.relative(packageRoot, outputPath).replaceAll('\\', '/')} from ${indexedAssetCount} unified local assets (${byBasename.size} basenames, ${duplicateBasenames} duplicated basenames).`,
+  `Generated ${path.relative(packageRoot, outputPath).replaceAll('\\', '/')} from ${indexedAssetCount} local assets (${platformCounts.pc} PC, ${platformCounts.mobile} Mobile, ${platformCounts.other} other; ${byBasename.size} basenames, ${duplicateBasenames} duplicated basenames).`,
 );
