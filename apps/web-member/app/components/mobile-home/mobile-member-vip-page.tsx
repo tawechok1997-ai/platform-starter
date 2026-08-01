@@ -177,12 +177,14 @@ function TierCard({
   const localSource = resolveLocalAssetOrSource(tier.source, 'pc');
 
   return (
-    <article
+    <button
+      type="button"
       className={`${styles.tierCard} ${selected ? styles.tierCardSelected : ''}`}
       data-vip-tier-card={tier.key}
+      aria-pressed={selected}
       onClick={onSelect}
     >
-      <div className={styles.tierEmblemWrap}>
+      <span className={styles.tierEmblemWrap}>
         <img
           className={styles.tierEmblem}
           src={localSource}
@@ -192,26 +194,26 @@ function TierCard({
             if (event.currentTarget.src !== tier.source) event.currentTarget.src = tier.source;
           }}
         />
-      </div>
+      </span>
       <strong className={styles.tierName}>{tier.label}</strong>
-      <div className={styles.tierCardPanel}>
+      <span className={styles.tierCardPanel}>
         {unlocked ? (
-          <div className={styles.progressCopy}>
+          <span className={styles.progressCopy}>
             <CheckIcon />
             <strong>คุณได้รับสิทธิ์ระดับ {tier.label}</strong>
-            <div className={styles.progressTrack}><span style={{ width: `${progress}%` }} /></div>
+            <span className={styles.progressTrack}><span style={{ width: `${progress}%` }} /></span>
             <small>ยอดแทงสะสม {formatCredits(turnover)} / {formatCredits(tier.target)} เครดิต</small>
-          </div>
+          </span>
         ) : (
-          <div className={styles.lockedCopy}>
+          <span className={styles.lockedCopy}>
             <LockIcon />
             <strong>คุณมียอดแทงสะสมยังไม่ถึง {tier.label}</strong>
             <span>ต้องมียอดแทงครบ {formatCredits(tier.target)} เครดิต ขึ้นไป</span>
             {turnover > 0 ? <small>เหลืออีก {formatCredits(remaining)} เครดิต</small> : null}
-          </div>
+          </span>
         )}
-      </div>
-    </article>
+      </span>
+    </button>
   );
 }
 
@@ -235,8 +237,8 @@ function VipSection({
 
 function SectionPlate({ title }: { title: string }) {
   return (
-    <div className={styles.sectionPlate} aria-hidden="true">
-      <svg viewBox="0 0 194 38" fill="none">
+    <div className={styles.sectionPlate}>
+      <svg viewBox="0 0 194 38" fill="none" aria-hidden="true">
         <path
           d="M3 1H1.69l.346 1.264 4.651 17 .013.049.018.047c.032.083.832 2.148 2.35 4.745 1.505 2.576 3.771 5.735 6.883 7.783 3.45 2.27 7.534 3.299 10.622 3.786 1.557.245 2.882.326 3.824.346.47.01.845.004 1.106-.004l.301-.012.08-.004.022-.001h.006H53.375 96.25 139.125h21.438.006l.022.001.08.004.301.012c.261.008.636.014 1.106.004.942-.02 2.267-.101 3.824-.346 3.088-.487 7.172-1.516 10.622-3.786 3.112-2.048 5.378-5.207 6.883-7.783 1.518-2.597 2.318-4.662 2.35-4.745l.018-.047.013-.049 4.651-17L192.31 1H191 3Z"
           fill="url(#vip-section-fill)"
