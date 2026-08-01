@@ -57,7 +57,14 @@ const PUBLIC_COPY: Record<MemberLocale, {
   },
 };
 
-const STANDALONE_PUBLIC_PREFIXES = ['/clone-preview', '/login', '/register', '/maintenance', '/session-expired'];
+const STANDALONE_PUBLIC_PREFIXES = [
+  '/clone-preview',
+  '/login',
+  '/register',
+  '/maintenance',
+  '/session-expired',
+  '/mobile/member',
+];
 const MOBILE_CHROME_QUERY = '(max-width: 900px)';
 
 export default function MemberChrome({ children }: { children: ReactNode }) {
