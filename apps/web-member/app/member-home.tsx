@@ -12,6 +12,7 @@ import MemberGameSectionRuntimeController from './components/member-game-section
 import MemberHomeRuntimeController from './components/member-home-runtime-controller';
 import { CmsPopup } from './components/member-home-sections';
 import { DesktopHomeScaffold } from './components/member-home/desktop-home-scaffold';
+import MobileAuthenticatedAvatarRuntime from './components/mobile-home/mobile-authenticated-avatar-runtime';
 import MobileAuthenticatedHomeRuntime from './components/mobile-home/mobile-authenticated-home-runtime';
 import MobileCategoryTabRuntime from './components/mobile-home/mobile-category-tab-runtime';
 import MobileHomeMotionRuntime from './components/mobile-home/mobile-home-motion-runtime';
@@ -59,6 +60,7 @@ export default function MemberHome(props: MemberHomeProps) {
       <>
         <MobileHomeRoot content={props.cmsContent} showPromotion={props.showPromotion} />
         <MobileAuthenticatedHomeRuntime />
+        <MobileAuthenticatedAvatarRuntime />
         <MobileCategoryTabRuntime />
         <MobileHomeMotionRuntime contentVersion={mobileHomeMotionVersion(props.cmsContent)} />
       </>
