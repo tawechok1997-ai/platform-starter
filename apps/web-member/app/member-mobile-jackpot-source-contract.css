@@ -1,0 +1,91 @@
+/* Mobile Jackpot source contract.
+ * The source uses one full-width GIF with the live amount centered over it.
+ * Do not rebuild the frame with CSS or allow runtime artwork to change its geometry.
+ */
+@media (max-width: 900px) {
+  body:has(.public-game-shell[data-route='/'])
+    [data-mobile-section-owner='source-content']
+    > [class*='jackpotBanner'] {
+    position: relative !important;
+    display: block !important;
+    box-sizing: border-box !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    margin: 0 0 -4px !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    border: 0 !important;
+    border-radius: 8px !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    line-height: 0 !important;
+    isolation: isolate !important;
+  }
+
+  body:has(.public-game-shell[data-route='/'])
+    [data-mobile-section-owner='source-content']
+    > [class*='jackpotBanner']
+    > img {
+    position: static !important;
+    inset: auto !important;
+    z-index: 0 !important;
+    display: block !important;
+    box-sizing: border-box !important;
+    width: 100% !important;
+    min-width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 8px !important;
+    object-fit: contain !important;
+    object-position: center !important;
+    content: url('/assets/asset-pc/images/FEZX/highlight/1725948738165-4cb4f1ec-44ed-4b21-99ed-398fbb6d7b25.gif') !important;
+    transform: none !important;
+  }
+
+  body:has(.public-game-shell[data-route='/'])
+    [data-mobile-section-owner='source-content']
+    > [class*='jackpotBanner']
+    > strong {
+    position: absolute !important;
+    top: 50% !important;
+    right: auto !important;
+    bottom: auto !important;
+    left: 50% !important;
+    z-index: 2 !important;
+    display: block !important;
+    width: max-content !important;
+    max-width: 92% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    color: #fff !important;
+    font-family: 'Noto Sans', sans-serif !important;
+    font-size: 30px !important;
+    font-weight: 700 !important;
+    font-variant-numeric: tabular-nums !important;
+    letter-spacing: 0 !important;
+    line-height: 1 !important;
+    text-align: center !important;
+    text-overflow: clip !important;
+    text-shadow: none !important;
+    white-space: nowrap !important;
+    transform: translate(-50%, -50%) !important;
+    pointer-events: none !important;
+  }
+}
+
+@media (max-width: 360px) {
+  body:has(.public-game-shell[data-route='/'])
+    [data-mobile-section-owner='source-content']
+    > [class*='jackpotBanner']
+    > strong {
+    font-size: 24px !important;
+  }
+}
