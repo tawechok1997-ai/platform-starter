@@ -34,22 +34,22 @@ type MobileMenuIconName =
 type MobileCategoryId = 'home' | 'casino' | 'slot' | 'fishing' | 'sport' | 'card' | 'lottery';
 
 const PRIMARY_MENU = [
-  ['ระดับสมาชิก VIP', '/profile', 'vip'],
-  ['รายได้คอมมิชชั่น', '/affiliate', 'commission'],
-  ['แนะนำเพื่อน', '/affiliate', 'referral'],
+  ['ระดับสมาชิก VIP', '/mobile/member/vip', 'vip'],
+  ['รายได้คอมมิชชั่น', '/mobile/member/commission', 'commission'],
+  ['แนะนำเพื่อน', '/mobile/member/affiliate', 'referral'],
   ['คูปอง', '/bonus', 'coupon'],
-  ['โบนัสพิเศษ', '/bonus', 'bonus'],
-  ['ถ่ายทอดสด', '/live', 'live'],
+  ['โบนัสพิเศษ', '/mobile/member/bonus', 'bonus'],
+  ['ถ่ายทอดสด', '/mobile/member/live', 'live'],
 ] as const satisfies ReadonlyArray<readonly [string, string, MobileMenuIconName]>;
 
 const SECONDARY_MENU = [
-  ['โปรโมชั่น', '/promotions', 'promotion'],
-  ['ข่าวสาร', '/notifications', 'news'],
-  ['กิจกรรม', '/promotions', 'activity'],
-  ['ประวัติ', '/transactions', 'history'],
-  ['แจ้งเตือน', '/notifications', 'notification'],
+  ['โปรโมชั่น', '/mobile/member/promotions', 'promotion'],
+  ['ข่าวสาร', '/mobile/member/news', 'news'],
+  ['กิจกรรม', '/mobile/member/activity', 'activity'],
+  ['ประวัติ', '/mobile/member/history', 'history'],
+  ['แจ้งเตือน', '/mobile/member/notifications', 'notification'],
   ['วีดีโอแนะนำ', '/guide', 'video'],
-  ['แนะนำการใช้งาน', '/guide', 'guide'],
+  ['แนะนำการใช้งาน', '/mobile/member/guide', 'guide'],
 ] as const satisfies ReadonlyArray<readonly [string, string, MobileMenuIconName]>;
 
 const MOBILE_CATEGORY_ORDER = [
@@ -480,7 +480,12 @@ export default function MobileHomeRoot({ content, showPromotion }: MobileHomeRoo
 
           <nav className={styles.primaryMenu} aria-label={copy.memberServices}>
             {PRIMARY_MENU.map(([label, href, icon]) => (
-              <Link key={label} href={href} onClick={() => setMenuOpen(false)}>
+              <Link
+                key={label}
+                href={href}
+                data-mobile-member-popup={icon === 'coupon' ? 'coupon' : undefined}
+                onClick={() => setMenuOpen(false)}
+              >
                 <span className={styles.menuGlyph} aria-hidden="true">
                   <MobileMenuIcon name={icon} />
                 </span>
@@ -494,7 +499,12 @@ export default function MobileHomeRoot({ content, showPromotion }: MobileHomeRoo
 
           <nav className={styles.secondaryMenu} aria-label={copy.moreMenu}>
             {SECONDARY_MENU.map(([label, href, icon]) => (
-              <Link key={label} href={href} onClick={() => setMenuOpen(false)}>
+              <Link
+                key={label}
+                href={href}
+                data-mobile-member-popup={icon === 'video' ? 'video' : undefined}
+                onClick={() => setMenuOpen(false)}
+              >
                 <span className={styles.gridGlyph} aria-hidden="true">
                   <MobileMenuIcon name={icon} />
                 </span>
