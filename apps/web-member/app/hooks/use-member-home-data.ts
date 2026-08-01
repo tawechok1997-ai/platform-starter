@@ -1,12 +1,12 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
+import { getMemberGameCatalog, type MemberCatalogGame } from '../lib/member-game-catalog';
 import { requestJson } from '../member-api';
 import type { Game, GameLobbyPayload, LedgerItem, MoneyRequest } from '../types/member-api';
 
 const FAVORITES_KEY = 'member_favorite_game_ids';
 const RECENT_KEY = 'member_recent_game_ids';
-const USE_GAME_API = process.env.NEXT_PUBLIC_MEMBER_GAME_SOURCE === 'api';
 const EMPTY_MONEY_REQUESTS: MoneyRequest[] = [];
 const EMPTY_LEDGERS: LedgerItem[] = [];
 
@@ -15,22 +15,56 @@ export function useMemberHomeData(gamesEnabled: boolean) {
   const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
   const [recentIds, setRecentIds] = useState<string[]>([]);
   const [gamesMessage, setGamesMessage] = useState('');
-  const [isGamesLoading, setIsGamesLoading] = useState(gamesEnabled && USE_GAME_API);
+  const [isGamesLoading, setIsGamesLoading] = useState(gamesEnabled);
 
   const loadGames = useCallback(async () => {
-    if (!gamesEnabled || !USE_GAME_API) return;
+    if (!gamesEnabled) {
+      setLobby({});
+      setIsGamesLoading(false);
+      return;
+    }
 
     setIsGamesLoading(true);
     setGamesMessage('');
     try {
-      const payload = await requestJson<GameLobbyPayload>('/public/games', {
-        skipAuth: true,
-        suppressSessionExpiryRedirect: true,
+      const catalog = await getMemberGameCatalog('pc');
+      const items = catalog.map(toGame);
+      const featured = catalog
+        .filter((game) => game.tags.includes('hot') || game.tags.includes('popular') || game.popular)
+        .map(toGame);
+      const popular = [...catalog]
+        .sort((left, right) => gameScore(right) - gameScore(left))
+        .map(toGame);
+      const newest = catalog
+        .filter((game) => game.tags.includes('new') || game.fresh)
+        .map(toGame);
+      const categories = Array.from(new Set(catalog.flatMap((game) => [game.category, ...game.tags])));
+
+      setLobby({
+        items,
+        featured,
+        popular,
+        newest,
+        categories,
+        providers: Array.from(new Map(catalog
+          .filter((game) => game.provider)
+          .map((game) => [game.provider, {
+            code: game.provider,
+            name: game.providerName,
+            logoUrl: game.providerIcon,
+          }] as const)).values()),
       });
-      const nextLobby = payload && typeof payload === 'object' && !Array.isArray(payload) ? payload : {};
-      setLobby((currentLobby) => sameLobbyPayload(currentLobby, nextLobby) ? currentLobby : nextLobby);
-    } catch (error) {
-      setGamesMessage(error instanceof Error ? error.message : 'โหลดเกมไม่สำเร็จ');
+    } catch (catalogError) {
+      try {
+        const payload = await requestJson<GameLobbyPayload>('/public/games', {
+          skipAuth: true,
+          suppressSessionExpiryRedirect: true,
+        });
+        const nextLobby = payload && typeof payload === 'object' && !Array.isArray(payload) ? payload : {};
+        setLobby((currentLobby) => sameLobbyPayload(currentLobby, nextLobby) ? currentLobby : nextLobby);
+      } catch {
+        setGamesMessage(catalogError instanceof Error ? catalogError.message : 'โหลดเกมไม่สำเร็จ');
+      }
     } finally {
       setIsGamesLoading(false);
     }
@@ -73,6 +107,32 @@ export function useMemberHomeData(gamesEnabled: boolean) {
     isGamesLoading,
     reloadGames: loadGames,
   };
+}
+
+function toGame(item: MemberCatalogGame): Game {
+  return {
+    id: item.id,
+    providerGameCode: item.providerGameCode,
+    name: item.name,
+    category: item.category,
+    platform: item.platform,
+    imageUrl: item.image,
+    iconUrl: item.image,
+    isFeatured: item.popular || item.tags.includes('hot'),
+    isNew: item.fresh || item.tags.includes('new'),
+    isPopular: item.popular || item.tags.includes('popular'),
+    provider: {
+      code: item.provider,
+      name: item.providerName,
+      logoUrl: item.providerIcon,
+    },
+  };
+}
+
+function gameScore(item: MemberCatalogGame) {
+  return (item.popular ? 1_000_000 : 0)
+    + (item.fresh ? 100_000 : 0)
+    + item.players;
 }
 
 function readIds(key: string) {
