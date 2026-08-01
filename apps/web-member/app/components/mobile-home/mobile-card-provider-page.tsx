@@ -27,7 +27,8 @@ export default function MobileCardProviderPage() {
       title={{ th: 'ไพ่', en: 'Cards' }}
       providers={CARD_PROVIDER_SEEDS}
       catalogPlatform="pc"
-      assetPlatform="pc"
+      providerAssetPlatform="mobile"
+      gameAssetPlatform="pc"
       includeCatalogProviders
     />
   );
