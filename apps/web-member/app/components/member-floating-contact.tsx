@@ -1,13 +1,24 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
 import { useMemberSession } from '../member-session-provider';
 import { useMemberContactRuntime } from '../member-settings-runtime';
 import '../member-floating-contact.css';
 import '../member-authenticated-source-overrides.css';
+import '../member-floating-contact-home-effect.css';
 
 const CONTACT_ICON_URL = '/assets/asset-pc/images/footer/contact/icon-open-gold.webp';
 const LINE_ICON_URL = '/assets/asset-pc/images/line.png';
+
+const MOBILE_MENU_PAGE_ROUTES = new Set([
+  '/mobile/member/vip',
+  '/mobile/member/live',
+  '/mobile/member/promotions',
+  '/mobile/member/news',
+  '/mobile/member/activity',
+  '/mobile/member/guide',
+]);
 
 const MINI_TOOLS = [
   {
@@ -23,11 +34,16 @@ const MINI_TOOLS = [
 ] as const;
 
 export default function MemberFloatingContact() {
+  const pathname = usePathname() ?? '/';
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [miniToolsOpen, setMiniToolsOpen] = useState(false);
   const { ready: sessionReady, isLoggedIn } = useMemberSession();
   const { primary } = useMemberContactRuntime();
-  const showFloatingContact = sessionReady;
+  const normalizedPath = normalizePath(pathname);
+  const isMobileMenuPage = MOBILE_MENU_PAGE_ROUTES.has(normalizedPath);
+  const isHomePage = normalizedPath === '/';
+  const showFloatingContact = sessionReady && !isMobileMenuPage;
 
   useEffect(() => {
     if (!open) return;
@@ -42,17 +58,41 @@ export default function MemberFloatingContact() {
 
   useEffect(() => {
     setOpen(false);
-  }, [isLoggedIn]);
+    setMiniToolsOpen(false);
+  }, [isLoggedIn, normalizedPath]);
+
+  useEffect(() => {
+    if (!isMobileMenuPage) return;
+
+    const returnToMobileHome = (event: MouseEvent) => {
+      if (!(event.target instanceof Element)) return;
+      const backButton = event.target.closest<HTMLButtonElement>(
+        '[data-mobile-member-page] button[aria-label="ย้อนกลับ"]',
+      );
+      if (!backButton) return;
+
+      event.preventDefault();
+      event.stopPropagation();
+      event.stopImmediatePropagation();
+      router.replace('/');
+    };
+
+    document.addEventListener('click', returnToMobileHome, true);
+    return () => document.removeEventListener('click', returnToMobileHome, true);
+  }, [isMobileMenuPage, router]);
 
   const activateMiniTool = (id: (typeof MINI_TOOLS)[number]['id']) => {
     window.dispatchEvent(new CustomEvent('member:mini-tool', { detail: { id } }));
   };
+
+  if (isMobileMenuPage) return null;
 
   return (
     <aside
       className="member-floating-contact"
       data-open={open ? 'true' : 'false'}
       data-authenticated={isLoggedIn ? 'true' : 'false'}
+      data-home={isHomePage ? 'true' : 'false'}
       aria-label="เครื่องมือสมาชิกและช่องทางติดต่อ"
     >
       <div
@@ -135,4 +175,9 @@ export default function MemberFloatingContact() {
       ) : null}
     </aside>
   );
+}
+
+function normalizePath(pathname: string) {
+  if (pathname === '/') return pathname;
+  return pathname.replace(/\/+$/, '') || '/';
 }
