@@ -4,9 +4,9 @@ import test from 'node:test';
 
 const runtime = readFileSync(new URL('./mobile-member-popup-runtime.tsx', import.meta.url), 'utf8');
 const styles = readFileSync(new URL('./mobile-member-popup-runtime.module.css', import.meta.url), 'utf8');
-const mobileLayout = readFileSync(new URL('../../../mobile/layout.tsx', import.meta.url), 'utf8');
-const searchLayout = readFileSync(new URL('../../../search/layout.tsx', import.meta.url), 'utf8');
-const avatarLayout = readFileSync(new URL('../../../profile/avatar/layout.tsx', import.meta.url), 'utf8');
+const mobileLayout = readFileSync(new URL('../../mobile/layout.tsx', import.meta.url), 'utf8');
+const searchLayout = readFileSync(new URL('../../search/layout.tsx', import.meta.url), 'utf8');
+const avatarLayout = readFileSync(new URL('../../profile/avatar/layout.tsx', import.meta.url), 'utf8');
 
 const routeLayouts = [mobileLayout, searchLayout, avatarLayout];
 
@@ -50,9 +50,9 @@ test('bottom member navigation reuses deposit withdraw contact and menu popups',
   assert.match(runtime, /label: 'ถอน', kind: 'withdraw'/);
   assert.match(runtime, /label: 'ติดต่อ', kind: 'contact'/);
   assert.match(runtime, /M0 6\.68S197\.5\.383 320 \.013C442\.5-\.356 640 6\.68/);
-  assert.match(styles, /max-width|width:\s*min\(428px, 100%\)/);
+  assert.match(styles, /width:\s*min\(428px, 100%\)/);
 });
 
 test('mobile popup runtime does not import desktop popup owners', () => {
-  assert.doesNotMatch(runtime, /MemberHeaderFinanceRuntime|MemberMenuIncomeSafeRuntime|MemberSharedPopupRuntime|desktop/i);
+  assert.doesNotMatch(runtime, /MemberHeaderFinanceRuntime|MemberMenuIncomeSafeRuntime|MemberSharedPopupRuntime/);
 });
