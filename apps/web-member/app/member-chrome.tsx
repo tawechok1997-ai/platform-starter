@@ -219,7 +219,6 @@ export default function MemberChrome({ children }: { children: ReactNode }) {
       {authMode ? (
         <MemberAuthOverlay
           mode={authMode}
-          onModeChange={(mode) => openAuth(mode, authNextOverride)}
           onClose={closeAuth}
           onSuccess={completeAuth}
         />
