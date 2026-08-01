@@ -355,7 +355,7 @@ export default function MobileHomeRoot({ content, showPromotion }: MobileHomeRoo
           </section>
         ) : null}
 
-        <nav
+        <div
           className={styles.highlightTabs}
           data-mobile-section-owner="highlight-tabs"
           aria-label="หัวข้อหน้าแรก"
@@ -379,10 +379,10 @@ export default function MobileHomeRoot({ content, showPromotion }: MobileHomeRoo
               </button>
             );
           })}
-        </nav>
+        </div>
 
         <div className={styles.categoryContent}>
-          <nav
+          <div
             className={styles.categoryRail}
             data-mobile-section-owner="category-menu"
             aria-label={locale === 'th' ? 'หมวดเกม' : 'Game categories'}
@@ -410,7 +410,7 @@ export default function MobileHomeRoot({ content, showPromotion }: MobileHomeRoo
                 </button>
               );
             })}
-          </nav>
+          </div>
 
           <section
             id="mobile-highlight-content"
