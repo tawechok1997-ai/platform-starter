@@ -192,3 +192,53 @@ html body .member-auth-overlay[data-state='closing'] .member-auth-overlay__frame
     transform: translate3d(0, 0, 0) scale(1) !important;
   }
 }
+
+/* Final smooth-motion owner. The full-screen iframe only fades; the embedded
+   dialog owns the small translate/scale entrance so text stays sharp and the
+   browser does not composite a blurred viewport-sized layer. */
+html body .member-auth-overlay {
+  backdrop-filter: blur(3px) !important;
+  transition: background-color 180ms cubic-bezier(.22, 1, .36, 1) !important;
+}
+
+html body .member-auth-overlay[data-state='open'] {
+  background-color: rgb(0 0 0 / 80%) !important;
+  backdrop-filter: blur(3px) !important;
+}
+
+html body .member-auth-overlay[data-state='closing'] {
+  background-color: rgb(0 0 0 / 0%) !important;
+  backdrop-filter: blur(3px) !important;
+}
+
+html body .member-auth-overlay__frame,
+html body .member-auth-overlay[data-state='closing'] .member-auth-overlay__frame {
+  transform: none !important;
+  filter: none !important;
+  will-change: opacity !important;
+  transition:
+    opacity 160ms ease-out,
+    visibility 0s linear 160ms !important;
+}
+
+html body .member-auth-overlay[data-state='open'][data-frame-ready='true'] .member-auth-overlay__frame {
+  transform: none !important;
+  filter: none !important;
+  transition-delay: 0s !important;
+}
+
+html body .member-auth-overlay[data-state='closing'] .member-auth-overlay__frame {
+  transition-duration: 140ms !important;
+}
+
+@media (max-width: 900px) {
+  html body .member-auth-overlay,
+  html body .member-auth-overlay[data-state='open'],
+  html body .member-auth-overlay[data-state='closing'] {
+    backdrop-filter: none !important;
+  }
+
+  html body .member-auth-overlay[data-state='open'] {
+    background-color: rgb(0 0 0 / 72%) !important;
+  }
+}
