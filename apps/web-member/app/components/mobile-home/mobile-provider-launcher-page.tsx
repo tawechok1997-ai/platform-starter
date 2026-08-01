@@ -47,7 +47,7 @@ export default function MobileProviderLauncherPage({
 
   return (
     <section
-      className={styles.root}
+      className={`${styles.root} ${styles.providerLauncherRoot}`}
       data-mobile-provider-launcher-page="true"
       data-provider-category={category}
       data-category-launch-mode="provider"
