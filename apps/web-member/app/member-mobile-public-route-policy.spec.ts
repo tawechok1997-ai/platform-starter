@@ -46,5 +46,5 @@ test('member-only mobile pages are not accidentally made public', () => {
 test('mobile public route matching is exact instead of exposing every member child route', () => {
   assert.match(routePolicy, /PUBLIC_MOBILE_MEMBER_ROUTES\.has\(safePathname\)/);
   assert.doesNotMatch(routePolicy, /prefix:\s*'\/mobile\/member'[^\n]*public:\s*true/);
-  assert.match(routePolicy, /value\.replace\(\/\\\/+\$\/, ''\)/);
+  assert.ok(routePolicy.includes("value.replace(/\\/+$/, '')"));
 });
