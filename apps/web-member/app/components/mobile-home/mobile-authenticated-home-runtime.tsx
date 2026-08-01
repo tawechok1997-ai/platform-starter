@@ -4,6 +4,11 @@ import Link from 'next/link';
 import { useEffect, useLayoutEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { resolveLocalAssetByBasename } from '../../lib/local-asset-by-basename';
+import {
+  MOBILE_AVATAR_EVENT,
+  MOBILE_AVATAR_OPTIONS,
+  MOBILE_AVATAR_STORAGE_KEY,
+} from '../../lib/mobile-avatar-preference';
 import { useMemberRuntime } from '../../member-runtime-provider';
 import { useMemberSession } from '../../member-session-provider';
 import MobileCommissionPopupBridge from './mobile-commission-popup-bridge';
@@ -34,6 +39,7 @@ export default function MobileAuthenticatedHomeRuntime() {
   const { logout } = useMemberSession();
   const [targets, setTargets] = useState<PortalTargets | null>(null);
   const [referralToast, setReferralToast] = useState(false);
+  const [preferredAvatar, setPreferredAvatar] = useState('');
   const vipBadge = useMemo(
     () => resolveLocalAssetByBasename(VIP_BADGE_SOURCE, 'mobile')
       || resolveLocalAssetByBasename(VIP_BADGE_SOURCE, 'pc')
@@ -47,12 +53,37 @@ export default function MobileAuthenticatedHomeRuntime() {
     return () => window.clearTimeout(timer);
   }, [referralToast]);
 
+  useEffect(() => {
+    const syncStoredAvatar = () => {
+      try {
+        const value = window.localStorage.getItem(MOBILE_AVATAR_STORAGE_KEY)?.trim() ?? '';
+        setPreferredAvatar(MOBILE_AVATAR_OPTIONS.includes(value) ? value : '');
+      } catch {
+        setPreferredAvatar('');
+      }
+    };
+
+    const syncAvatarEvent = (event: Event) => {
+      const value = (event as CustomEvent<{ avatar?: string }>).detail?.avatar ?? '';
+      if (MOBILE_AVATAR_OPTIONS.includes(value)) setPreferredAvatar(value);
+      else syncStoredAvatar();
+    };
+
+    syncStoredAvatar();
+    window.addEventListener(MOBILE_AVATAR_EVENT, syncAvatarEvent);
+    window.addEventListener('storage', syncStoredAvatar);
+    return () => {
+      window.removeEventListener(MOBILE_AVATAR_EVENT, syncAvatarEvent);
+      window.removeEventListener('storage', syncStoredAvatar);
+    };
+  }, []);
+
   const profileData = profile as unknown as Record<string, unknown> | null;
   const summaryData = summary as unknown as Record<string, unknown>;
   const memberName = summary.displayName || summary.username || profile?.phone || 'สมาชิก';
   const walletAmount = summary.walletAvailable || '0.00';
   const walletMeta = [summary.walletCurrency || 'THB', summary.walletStatus].filter(Boolean).join(' • ');
-  const memberAvatar = textValue(profileData?.avatarUrl) || MEMBER_AVATAR_FALLBACK;
+  const memberAvatar = preferredAvatar || textValue(profileData?.avatarUrl) || MEMBER_AVATAR_FALLBACK;
   const affiliateBalance = textValue(summaryData.affiliateBalance) || '0.00';
   const commissionBalance = textValue(summaryData.commissionBalance) || '0.00';
   const referralLink = textValue(summaryData.referralLink) || textValue(profileData?.referralLink) || '/affiliate';
@@ -164,7 +195,7 @@ export default function MobileAuthenticatedHomeRuntime() {
               </div>
               <div className={styles.memberNameRow}>
                 <strong>{memberName}</strong>
-                <Link href="/mobile/member/profile" aria-label="แก้ไขโปรไฟล์"><EditIcon /></Link>
+                <Link href="/profile/avatar" aria-label="แก้ไขโปรไฟล์" data-mobile-profile-avatar-trigger="true"><EditIcon /></Link>
               </div>
               <div className={styles.accountLine}>
                 <img src={WALLET_ICON} alt="" aria-hidden="true" />
