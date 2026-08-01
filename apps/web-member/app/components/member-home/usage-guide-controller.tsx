@@ -1,9 +1,12 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import MobileVideoGuidePopup from './mobile-video-guide-popup';
 import UsageGuideModal from './usage-guide-modal';
 
 const OPEN_GUIDE_EVENT = 'open-member-usage-guide';
+const MOBILE_QUERY = '(max-width: 900px)';
+const VIDEO_TRIGGER_SELECTOR = '[data-mobile-member-popup="video"]';
 
 function isInternalGuideLink(link: HTMLAnchorElement) {
   try {
@@ -16,6 +19,37 @@ function isInternalGuideLink(link: HTMLAnchorElement) {
 
 export default function UsageGuideController() {
   const [open, setOpen] = useState(false);
+  const [videoOpen, setVideoOpen] = useState(false);
+  const closeVideo = useCallback(() => setVideoOpen(false), []);
+
+  useEffect(() => {
+    const handleVideoClick = (event: MouseEvent) => {
+      if (
+        event.defaultPrevented
+        || event.button !== 0
+        || event.metaKey
+        || event.ctrlKey
+        || event.shiftKey
+        || event.altKey
+        || !(event.target instanceof Element)
+        || !window.matchMedia(MOBILE_QUERY).matches
+      ) return;
+
+      const trigger = event.target.closest<HTMLElement>(VIDEO_TRIGGER_SELECTOR);
+      if (!trigger) return;
+
+      event.preventDefault();
+      event.stopPropagation();
+      event.stopImmediatePropagation();
+      setOpen(false);
+      setVideoOpen(true);
+    };
+
+    // Window capture runs before the authenticated drawer runtime. This keeps
+    // one active owner for the video guide before and after login.
+    window.addEventListener('click', handleVideoClick, true);
+    return () => window.removeEventListener('click', handleVideoClick, true);
+  }, []);
 
   useEffect(() => {
     const handleGuideClick = (event: MouseEvent) => {
@@ -38,10 +72,14 @@ export default function UsageGuideController() {
       if (guideLink?.target && guideLink.target !== '_self') return;
 
       event.preventDefault();
+      setVideoOpen(false);
       setOpen(true);
     };
 
-    const openFromEvent = () => setOpen(true);
+    const openFromEvent = () => {
+      setVideoOpen(false);
+      setOpen(true);
+    };
 
     document.addEventListener('click', handleGuideClick);
     window.addEventListener(OPEN_GUIDE_EVENT, openFromEvent);
@@ -52,5 +90,10 @@ export default function UsageGuideController() {
     };
   }, []);
 
-  return <UsageGuideModal open={open} onClose={() => setOpen(false)} />;
+  return (
+    <>
+      <UsageGuideModal open={open} onClose={() => setOpen(false)} />
+      <MobileVideoGuidePopup open={videoOpen} onClose={closeVideo} />
+    </>
+  );
 }
