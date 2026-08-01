@@ -1,13 +1,23 @@
 @import './member-mobile-withdraw-source-contract.css';
 
-/* Mobile category rail follows the viewport like the Desktop Jackpot rail,
- * but remains bounded by the category-content column and stops before the
- * shortcut/footer area. This is intentionally sticky, never fixed, so there
- * is still one navigation owner and no overlay geometry to synchronize. */
+/* Match the source Mobile category rail contract:
+ * - the page owns the vertical scroll
+ * - the category rail is sticky at the 60px header edge
+ * - no nested rail scroller or fixed overlay is introduced
+ */
 @media (max-width: 900px) {
+  html[data-member-viewport-mode='mobile'],
+  html[data-member-viewport-mode='mobile'] body {
+    overflow-x: clip !important;
+  }
+
+  html[data-member-viewport-mode='mobile'] #member-desktop-scale-shell,
+  html[data-member-viewport-mode='mobile'] #member-desktop-scale-canvas,
+  html[data-member-viewport-mode='mobile'] .public-game-shell,
+  html[data-member-viewport-mode='mobile'] .public-game-shell__content,
   html[data-member-viewport-mode='mobile'] [data-mobile-home-root='true'],
   html[data-member-viewport-mode='mobile'] [data-mobile-home-root='true'] *:has(> [data-mobile-section-owner='category-menu']) {
-    overflow: visible !important;
+    overflow-y: visible !important;
     contain: none !important;
   }
 
@@ -19,19 +29,14 @@
   html[data-member-viewport-mode='mobile'] [data-mobile-section-owner='category-menu'] {
     position: -webkit-sticky !important;
     position: sticky !important;
-    top: calc(64px + env(safe-area-inset-top, 0px)) !important;
-    z-index: 100 !important;
+    top: 60px !important;
+    z-index: 98 !important;
     align-self: start !important;
-    height: fit-content !important;
-    max-height: calc(100dvh - 72px - env(safe-area-inset-top, 0px)) !important;
-    overflow-x: hidden !important;
-    overflow-y: auto !important;
-    overscroll-behavior: contain !important;
-    scrollbar-width: none !important;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  html[data-member-viewport-mode='mobile'] [data-mobile-section-owner='category-menu']::-webkit-scrollbar {
-    display: none !important;
+    height: max-content !important;
+    max-height: none !important;
+    overflow: visible !important;
+    overscroll-behavior: auto !important;
+    scrollbar-width: auto !important;
+    -webkit-overflow-scrolling: auto;
   }
 }
