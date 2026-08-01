@@ -11,6 +11,21 @@ export default function MemberImageFallbackController() {
     const recoverImage = (event: Event) => {
       const image = event.target;
       if (!(image instanceof HTMLImageElement)) return;
+
+      const originalMobileSource = image.dataset.mobileOriginalSource;
+      const attemptedLocalSource = image.dataset.mobileLocalSource;
+      if (
+        originalMobileSource
+        && attemptedLocalSource
+        && image.getAttribute('src') === attemptedLocalSource
+      ) {
+        delete image.dataset.mobileLocalSource;
+        image.src = originalMobileSource;
+        const originalSourceSet = image.dataset.mobileOriginalSourceSet;
+        if (originalSourceSet) image.setAttribute('srcset', originalSourceSet);
+        return;
+      }
+
       if (image.dataset.noFallback === 'true' || image.dataset.fallbackApplied === 'true') return;
       if (image.src.includes(MEMBER_IMAGE_FALLBACK)) return;
 
