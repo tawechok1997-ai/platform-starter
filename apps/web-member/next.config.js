@@ -14,6 +14,7 @@ const antiBotScripts = [
   'https://*.hcaptcha.com',
 ];
 const canonicalPcAssetRoot = '/assets/asset-pc/images';
+const canonicalMobileAssetRoot = '/assets/asset-mobile';
 
 const contentSecurityPolicy = [
   "default-src 'self'",
@@ -65,12 +66,8 @@ const depositAssetRewrites = [
 
 const canonicalAssetRewrites = [
   {
-    source: '/assets/asset-mobile/:path*',
-    destination: `${canonicalPcAssetRoot}/:path*`,
-  },
-  {
     source: '/assets/asset-moblie/:path*',
-    destination: `${canonicalPcAssetRoot}/:path*`,
+    destination: `${canonicalMobileAssetRoot}/:path*`,
   },
   {
     source: '/assets/asset-pc/:path((?!images(?:/|$)).*)',
