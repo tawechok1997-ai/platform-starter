@@ -1,10 +1,12 @@
-/* Mobile deposit popup sizing and motion contract.
- * Deposit keeps the source-style shell, but the title inset and method rows
- * must fit compact mobile screens without clipping or overlapping labels.
+/* Mobile member popup sizing contract.
+ * Every popup opened from the member menu fits its content and keeps a
+ * title-safe inset. The source menu popup itself is intentionally excluded.
  */
 @media (max-width: 900px) {
   html[data-member-viewport-mode='mobile'] body
-    > [data-ui-owner='mobile-popup'][role='presentation']:has(> [data-mobile-popup-owner='deposit']) {
+    > [data-ui-owner='mobile-popup'][role='presentation']:has(
+      > [data-mobile-popup-owner]:not([data-mobile-popup-owner='menu'])
+    ) {
     position: fixed !important;
     inset: 0 !important;
     z-index: 201 !important;
@@ -28,20 +30,20 @@
 
   html[data-member-viewport-mode='mobile'] body
     > [data-ui-owner='mobile-popup'][role='presentation']
-    > [data-mobile-popup-owner='deposit'][role='dialog'] {
+    > [data-mobile-popup-owner]:not([data-mobile-popup-owner='menu'])[role='dialog'] {
     position: relative !important;
     inset: auto !important;
     display: flex !important;
     box-sizing: border-box !important;
     width: min(480px, calc(100vw - 24px)) !important;
-    min-width: min(480px, calc(100vw - 24px)) !important;
+    min-width: 0 !important;
     max-width: min(480px, calc(100vw - 24px)) !important;
     height: auto !important;
     min-height: 0 !important;
     max-height: calc(100dvh - 24px) !important;
     margin: 0 !important;
     padding: 44px 14px 14px !important;
-    flex: 0 0 auto !important;
+    flex: 0 1 auto !important;
     flex-direction: column !important;
     align-items: center !important;
     gap: 0 !important;
@@ -58,7 +60,8 @@
     isolation: isolate !important;
   }
 
-  html[data-member-viewport-mode='mobile'] [data-mobile-popup-owner='deposit']
+  html[data-member-viewport-mode='mobile']
+    [data-mobile-popup-owner]:not([data-mobile-popup-owner='menu'])
     > div:last-child {
     box-sizing: border-box !important;
     width: 100% !important;
@@ -75,7 +78,8 @@
     -webkit-overflow-scrolling: touch !important;
   }
 
-  html[data-member-viewport-mode='mobile'] [data-mobile-popup-owner='deposit']
+  html[data-member-viewport-mode='mobile']
+    [data-mobile-popup-owner]:not([data-mobile-popup-owner='menu'])
     > div:last-child::-webkit-scrollbar {
     display: none !important;
   }
@@ -139,28 +143,20 @@
     min-height: 44px !important;
     height: auto !important;
   }
-
-  html[data-member-viewport-mode='mobile'] [data-mobile-popup-owner='deposit']
-    strong,
-  html[data-member-viewport-mode='mobile'] [data-mobile-popup-owner='deposit']
-    span {
-    overflow-wrap: normal;
-    word-break: normal;
-  }
 }
 
 @media (max-width: 359px) {
   html[data-member-viewport-mode='mobile'] body
     > [data-ui-owner='mobile-popup'][role='presentation']
-    > [data-mobile-popup-owner='deposit'][role='dialog'] {
+    > [data-mobile-popup-owner]:not([data-mobile-popup-owner='menu'])[role='dialog'] {
     width: calc(100vw - 16px) !important;
-    min-width: calc(100vw - 16px) !important;
     max-width: calc(100vw - 16px) !important;
     max-height: calc(100dvh - 16px) !important;
     padding: 42px 10px 10px !important;
   }
 
-  html[data-member-viewport-mode='mobile'] [data-mobile-popup-owner='deposit']
+  html[data-member-viewport-mode='mobile']
+    [data-mobile-popup-owner]:not([data-mobile-popup-owner='menu'])
     > div:last-child {
     max-height: calc(100dvh - 60px) !important;
   }
