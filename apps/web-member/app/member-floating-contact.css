@@ -7,244 +7,14 @@
   pointer-events: none;
 }
 
-.member-floating-contact__contact-host {
-  position: relative;
-  width: 60px;
-  height: 60px;
-  margin-left: auto;
-  pointer-events: auto;
-}
-
-.member-floating-contact__contact-stage {
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  z-index: 10;
-  pointer-events: none;
-}
-
-.member-floating-contact__contact-spacer {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transform: translateY(56px);
-  pointer-events: auto;
-}
-
-.member-floating-contact__contact-motion {
-  z-index: 10;
-  transform: translateY(64px);
-  transition: all 300ms ease;
-}
-
-.member-floating-contact__contact-content {
-  width: 100%;
-}
-
 .member-floating-contact__mini-shell {
   display: none;
 }
 
-.member-floating-contact__channels {
-  display: flex;
-  width: fit-content;
-  margin: 0 auto;
-  flex-direction: column;
-  gap: 16px;
-  pointer-events: none;
-}
-
-.member-floating-contact__line {
-  position: relative;
-  display: block;
-  width: 60px;
-  height: 0;
-  overflow: visible;
-  border-radius: 999px;
-  opacity: 0;
-  transition:
-    height 200ms ease-out,
-    opacity 200ms ease-out;
-  pointer-events: none;
-}
-
-.member-floating-contact__line img {
-  display: block;
-  width: 60px;
-  height: 60px;
-  border-radius: 999px;
-  object-fit: contain;
-  transform: translateY(50%) scale(0);
-  transform-origin: center;
-  transition: transform 200ms ease-out;
-}
-
-.member-floating-contact[data-open='true'] .member-floating-contact__line {
-  height: 60px;
-  opacity: 1;
-  pointer-events: auto;
-}
-
-.member-floating-contact[data-open='true'] .member-floating-contact__line img {
-  transform: translateY(0) scale(1);
-}
-
-.member-floating-contact__line:hover img {
-  filter: brightness(1.08);
-}
-
-.member-floating-contact__line:focus-visible,
-.member-floating-contact__toggle:focus-visible,
 .member-floating-contact__mini-toggle:focus-visible,
 .member-floating-contact__mini-card:focus-visible {
   outline: 2px solid #ffd86b;
   outline-offset: 3px;
-}
-
-.member-floating-contact__toggle {
-  position: relative;
-  display: flex;
-  width: 120px;
-  height: 120px;
-  margin: 0 -16px -8px;
-  padding: 0;
-  flex-wrap: wrap;
-  align-content: center;
-  border: 0;
-  border-radius: 999px;
-  background: transparent;
-  cursor: pointer;
-  transition: transform 300ms ease;
-  pointer-events: auto;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.member-floating-contact__toggle:active {
-  transform: scale(0.96);
-  transition-duration: 90ms;
-}
-
-.member-floating-contact__ring {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 68px;
-  height: 68px;
-  border: 1px solid rgb(244 196 75 / 68%);
-  border-radius: 999px;
-  box-shadow: 0 0 12px rgb(244 196 75 / 20%);
-  opacity: 0;
-  transform: translate(-50%, -50%) scale(0.72);
-  animation: member-contact-ring 2.7s ease-out infinite;
-  pointer-events: none;
-}
-
-.member-floating-contact__ring--1 {
-  pointer-events: auto;
-}
-
-.member-floating-contact__ring--2 {
-  animation-delay: 0.9s;
-}
-
-.member-floating-contact__ring--3 {
-  animation-delay: 1.8s;
-}
-
-.member-floating-contact__button-face {
-  position: relative;
-  display: grid;
-  width: 80px;
-  height: 80px;
-  margin: auto;
-  place-items: center;
-  overflow: hidden;
-  border-radius: 999px;
-  filter: drop-shadow(0 8px 18px rgb(0 0 0 / 34%));
-  pointer-events: none;
-}
-
-.member-floating-contact__button-face > .contact-icon-btn,
-.member-floating-contact__close-canvas {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 80px;
-  height: 80px;
-  padding: 4px;
-  transform: translate(-50%, -50%) rotate(0deg);
-  transition:
-    opacity 300ms ease,
-    transform 300ms ease;
-}
-
-.member-floating-contact__button-face > .contact-icon-btn {
-  object-fit: contain;
-  opacity: 1;
-}
-
-.member-floating-contact__close-canvas {
-  padding: 6px;
-  opacity: 0;
-}
-
-.member-floating-contact[data-open='true'] .member-floating-contact__button-face > .contact-icon-btn {
-  opacity: 0;
-  transform: translate(-50%, -50%) rotate(90deg);
-}
-
-.member-floating-contact[data-open='true'] .member-floating-contact__close-canvas {
-  opacity: 1;
-  transform: translate(-50%, -50%) rotate(90deg);
-}
-
-.member-floating-contact__scroll-top {
-  display: flex;
-  width: 60px;
-  height: 60px;
-  padding: 0;
-  align-items: center;
-  justify-content: center;
-  border: 0;
-  background: transparent;
-  cursor: pointer;
-  opacity: 0;
-  transition: all 300ms ease;
-  pointer-events: none;
-}
-
-.member-floating-contact__scroll-top-icon {
-  display: flex;
-  width: 60px;
-  height: 60px;
-  align-items: center;
-  justify-content: center;
-  border-radius: 999px;
-  background: #fff;
-  box-shadow:
-    rgb(0 0 0 / 25%) 0 4px 4px,
-    rgb(0 0 0 / 25%) 0 4px 4px,
-    rgb(0 0 0 / 25%) -4px -4px 4px inset;
-}
-
-.member-floating-contact__scroll-top-icon svg {
-  transform: scale(1.7);
-}
-
-@keyframes member-contact-ring {
-  0% {
-    opacity: 0.72;
-    transform: translate(-50%, -50%) scale(0.66);
-  }
-
-  72% {
-    opacity: 0.12;
-  }
-
-  100% {
-    opacity: 0;
-    transform: translate(-50%, -50%) scale(1.75);
-  }
 }
 
 @media (max-width: 900px) {
@@ -255,19 +25,6 @@
     width: min(428px, 100vw);
     min-height: 260px;
     transform: translateX(-50%);
-  }
-
-  .member-floating-contact__contact-host {
-    position: absolute;
-    right: 0;
-    bottom: calc(64px + env(safe-area-inset-bottom));
-    width: 60px;
-    height: 60px;
-  }
-
-  .member-floating-contact__contact-stage {
-    right: 0;
-    bottom: 0;
   }
 
   .member-floating-contact__mini-shell {
@@ -402,12 +159,6 @@
   }
 }
 
-@media (min-width: 901px) {
-  .member-floating-contact__contact-motion {
-    transform: translateY(0);
-  }
-}
-
 @media (max-width: 360px) {
   .member-floating-contact__mini-panel {
     padding-right: 14px;
@@ -416,20 +167,8 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .member-floating-contact__contact-motion,
-  .member-floating-contact__line,
-  .member-floating-contact__line img,
-  .member-floating-contact__toggle,
-  .member-floating-contact__button-face > .contact-icon-btn,
-  .member-floating-contact__close-canvas,
-  .member-floating-contact__scroll-top,
   .member-floating-contact__mini-panel,
   .member-floating-contact__mini-toggle-arrow {
     transition: none;
-  }
-
-  .member-floating-contact__ring {
-    animation: none;
-    opacity: 0.28;
   }
 }
