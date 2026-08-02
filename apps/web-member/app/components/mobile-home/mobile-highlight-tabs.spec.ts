@@ -4,19 +4,12 @@ import test from 'node:test';
 
 const root = readFileSync(new URL('./mobile-home-root.tsx', import.meta.url), 'utf8');
 const css = readFileSync(new URL('./mobile-home-root.module.css', import.meta.url), 'utf8');
-const navigationController = readFileSync(
-  new URL('../member-navigation-auth-controller.tsx', import.meta.url),
-  'utf8',
-);
+const navigationController = readFileSync(new URL('../member-navigation-auth-controller.tsx', import.meta.url), 'utf8');
 
 test('mobile highlight rail owns four in-place tabs', () => {
-  assert.match(
-    root,
-    /const HIGHLIGHT_TABS = \['highlights', 'promotions', 'activities', 'news'\]/,
-  );
+  assert.match(root, /const HIGHLIGHT_TABS = \['highlights', 'promotions', 'activities', 'news'\]/);
   assert.match(root, /data-mobile-section-owner="highlight-tabs"/);
-  assert.match(root, /<button[\s\S]*role="tab"[\s\S]*onClick=\{\(\) => selectHighlightTab\(tab\)\}/);
-  assert.doesNotMatch(root, /HIGHLIGHT_TABS\.map[\s\S]*?<Link/);
+  assert.match(root, /HIGHLIGHT_TABS\.map[\s\S]*?<button[\s\S]*?role="tab"[\s\S]*?selectHighlightTab\(tab\)[\s\S]*?<\/button>/);
   assert.match(root, /<MobileHighlightTabContent activeTab=\{activeTab\} \/>/);
 });
 
@@ -26,10 +19,7 @@ test('mobile highlight rail remains horizontally scrollable', () => {
   assert.match(css, /\.highlightTabs button\s*\{[\s\S]*white-space:\s*nowrap/);
 });
 
-test('global navigation never reinterprets highlight tab labels as routes', () => {
-  assert.match(
-    navigationController,
-    /closest\('\[data-mobile-section-owner="highlight-tabs"\]'\)\) return/,
-  );
+test('global navigation ignores the dedicated highlight-tab owner', () => {
+  assert.match(navigationController, /closest\('\[data-mobile-section-owner="highlight-tabs"\]'\)\) return/);
   assert.doesNotMatch(navigationController, /'โปรโมชั่นแนะนำ':\s*'\/mobile\/member\/promotions'/);
 });

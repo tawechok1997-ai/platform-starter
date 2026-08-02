@@ -8,33 +8,25 @@ const mobileLayout = readFileSync(new URL('../../mobile/layout.tsx', import.meta
 const searchLayout = readFileSync(new URL('../../search/layout.tsx', import.meta.url), 'utf8');
 const avatarLayout = readFileSync(new URL('../../profile/avatar/layout.tsx', import.meta.url), 'utf8');
 
-const routeLayouts = [mobileLayout, searchLayout, avatarLayout];
-
 test('mobile member popup kinds match the source page versus popup contract', () => {
-  assert.match(runtime, /\| 'menu'/);
-  assert.match(runtime, /\| 'contact'/);
-  assert.match(runtime, /\| 'password'/);
-  assert.match(runtime, /\| 'deposit'/);
-  assert.match(runtime, /\| 'withdraw'/);
-  assert.match(runtime, /\| 'network-income'/);
-  assert.match(runtime, /\| 'commission-income'/);
-  assert.match(runtime, /\| 'coupon'/);
-  assert.match(runtime, /\| 'language'/);
-  assert.match(runtime, /\| 'video'/);
+  for (const kind of ['menu', 'contact', 'password', 'deposit', 'withdraw', 'network-income', 'commission-income', 'coupon', 'language', 'video']) {
+    assert.match(runtime, new RegExp(`\\| '${kind}'`));
+  }
   assert.doesNotMatch(runtime, /\| 'bonus'/);
   assert.match(runtime, /\['โบนัสพิเศษ', 'bonus'\]/);
   assert.match(runtime, /\['รายได้คอมมิชชั่น', 'commission'\]/);
 });
 
-test('all mobile surfaces reuse the same popup runtime component', () => {
-  routeLayouts.forEach((source) => {
+test('mobile and avatar surfaces mount one popup owner while search remains owner-free', () => {
+  for (const source of [mobileLayout, avatarLayout]) {
     assert.match(source, /MobileMemberPopupRuntime/);
     assert.equal((source.match(/<MobileMemberPopupRuntime\s*\/>/g) ?? []).length, 1);
-  });
+  }
+  assert.doesNotMatch(searchLayout, /MobileMemberPopupRuntime/);
   assert.equal((runtime.match(/function SourcePopupShell/g) ?? []).length, 1);
 });
 
-test('source popup shell keeps the exact mobile geometry and chrome', () => {
+test('source popup shell keeps the mobile geometry and chrome', () => {
   assert.match(styles, /width:\s*min\(480px, 100%\)/);
   assert.match(styles, /padding:\s*56px 16px 16px/);
   assert.match(styles, /border-radius:\s*10px/);

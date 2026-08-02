@@ -4,7 +4,9 @@ import test from 'node:test';
 
 const sourceRuntime = readFileSync(new URL('./mobile-source-runtime.ts', import.meta.url), 'utf8');
 const sourceContent = readFileSync(new URL('./mobile-source-content.tsx', import.meta.url), 'utf8');
-const categoryRuntime = readFileSync(new URL('./mobile-category-tab-runtime.tsx', import.meta.url), 'utf8');
+const providerLauncher = readFileSync(new URL('./mobile-provider-launcher-page.tsx', import.meta.url), 'utf8');
+const providerGames = readFileSync(new URL('./mobile-provider-games-category-page.tsx', import.meta.url), 'utf8');
+const slotPage = readFileSync(new URL('./mobile-slot-provider-page.tsx', import.meta.url), 'utf8');
 const highlightContent = readFileSync(new URL('./mobile-highlight-tab-content.tsx', import.meta.url), 'utf8');
 const mobileRoot = readFileSync(new URL('./mobile-home-root.tsx', import.meta.url), 'utf8');
 const catalog = readFileSync(new URL('../../lib/member-game-catalog.ts', import.meta.url), 'utf8');
@@ -16,20 +18,26 @@ const desktopJackpot = readFileSync(new URL('../member-home/desktop-jackpot-card
 
 test('mobile home and category catalogs request mobile records only', () => {
   assert.match(sourceRuntime, /getMemberGameCatalog\('mobile'\)/);
-  assert.match(categoryRuntime, /platform:\s*'mobile'/);
   assert.doesNotMatch(sourceRuntime, /getMemberGameCatalog\('pc'\)/);
-  assert.doesNotMatch(categoryRuntime, /platform:\s*'pc'/);
+  assert.match(providerLauncher, /loadSourceCategoryCatalog\(category, sourceProviders, 'mobile', controller\.signal\)/);
+  assert.match(providerGames, /loadSourceCategoryCatalog\(catalogSlug, sourceProviders, catalogPlatform, controller\.signal\)/);
+  assert.match(slotPage, /catalogPlatform="mobile"/);
   assert.match(catalog, /Promise\.allSettled/);
   assert.match(catalog, /DEFAULT_CATEGORIES/);
 });
 
-test('mobile game cards delegate guest login and member launch to the canonical controller', () => {
-  for (const source of [sourceContent, categoryRuntime]) {
-    assert.match(source, /data-game-id/);
-    assert.match(source, /data-game-code/);
-    assert.match(source, /data-provider-code/);
-    assert.match(source, /data-game-category/);
+test('mobile game and provider cards expose launch identifiers at the correct stage', () => {
+  for (const token of ['data-game-id', 'data-game-code', 'data-provider-code', 'data-game-category']) {
+    assert.match(sourceContent, new RegExp(token));
   }
+  assert.match(providerLauncher, /data-provider-launch="true"/);
+  assert.match(providerLauncher, /data-provider-code=\{provider\.code\}/);
+  assert.match(providerLauncher, /data-game-id=\{firstGame\?\.id\}/);
+  assert.match(providerLauncher, /data-game-platform="mobile"/);
+  assert.match(providerGames, /data-provider-select="true"/);
+  assert.match(providerGames, /data-next-step="games"/);
+  assert.match(providerGames, /data-game-id=\{game\.id\}/);
+  assert.match(providerGames, /data-game-code=\{game\.id\}/);
   assert.match(gameController, /openMemberProviderGame/);
   assert.match(gameController, /currentUrl\.searchParams\.set\('auth', 'login'\)/);
 });
