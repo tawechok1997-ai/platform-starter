@@ -112,6 +112,7 @@ async function installApiMock(page: Page) {
         body: JSON.stringify({
           ok: true,
           launchUrl: 'https://game.example.test/launch/mobile-fortune-tiger',
+          requiresTransfer: true,
           session: { id: 'session-browser-1' },
         }),
       });

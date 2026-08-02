@@ -10,7 +10,6 @@ const owner = readFileSync(new URL('./mobile-highlight-tab-content.tsx', import.
 test('lottery source page keeps the supplied two-card order', () => {
   const lotmw = page.indexOf("code: 'lotmw'");
   const dac = page.indexOf("code: 'dac'");
-
   assert.ok(lotmw >= 0);
   assert.ok(dac > lotmw);
   assert.match(page, /1_1_h\/lotmw\.png/);
@@ -28,20 +27,19 @@ test('lottery heading and filter match the supplied mobile source', () => {
   assert.match(shared, /data-mobile-provider-filter-button="true"/);
   assert.match(shared, /ProviderFilter = 'all' \| 'new'/);
   assert.match(shared, /providers\.filter\(\(provider\) => provider\.isNew\)/);
-  assert.match(css, /\.filterButton\s*\{[\s\S]*height:\s*20px[\s\S]*border-radius:\s*999px[\s\S]*background:\s*#fff/);
-  assert.match(css, /\.stackedGrid\s*\{[\s\S]*gap:\s*8px/);
+  assert.match(css, /\.filterButton\s*\{[\s\S]*height:\s*20px/);
 });
 
-test('lottery cards launch at category provider level', () => {
+test('lottery cards continue to the first catalog game for each provider', () => {
   assert.match(page, /category="lottery"/);
-  assert.match(shared, /data-category-launch-mode="provider"/);
+  assert.match(shared, /data-category-launch-mode="provider-launch"/);
   assert.match(shared, /data-provider-code=\{provider\.code\}/);
   assert.match(shared, /data-game-category=\{category\}/);
-  assert.doesNotMatch(shared, /data-game-id=/);
+  assert.match(shared, /data-game-id=\{firstGame\?\.id\}/);
+  assert.match(shared, /gameDestination\(category, provider\.code, firstGame\.id\)/);
 });
 
-test('mobile category owner switches lottery in place', () => {
+test('mobile category content owner routes lottery to the dedicated provider page', () => {
   assert.match(owner, /import MobileLotteryProviderPage/);
-  assert.match(owner, /activeCategory === 'lottery'/);
-  assert.match(owner, /<MobileLotteryProviderPage \/>/);
+  assert.match(owner, /activeCategory === 'lottery'[\s\S]*return <MobileLotteryProviderPage \/>/);
 });

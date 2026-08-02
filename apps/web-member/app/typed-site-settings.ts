@@ -2,12 +2,23 @@ import type { PublicSiteSettings } from './site-settings';
 import type { TypedPublicSiteSettings } from './site-settings-types';
 import { cmsContentSetting, defaultSettings } from './site-settings';
 import { REFERENCE_PUBLIC_SETTINGS_DEFAULTS } from './brand/reference-public-settings-defaults';
+import {
+  mergePresentationCmsContent,
+  mergePresentationPromotions,
+  presentationDemoEnabled,
+} from './member-presentation-defaults';
+import { PRESENTATION_ICON_DEFAULTS } from './member-presentation-icons';
 
 export function normalizeTypedSiteSettings(settings: PublicSiteSettings): TypedPublicSiteSettings {
   const features = {
     ...defaultSettings.features,
     ...(settings.features ?? {}),
-  };
+  } as Record<string, unknown>;
+  const demoEnabled = presentationDemoEnabled(features);
+  const cmsContent = cmsContentSetting({ ...settings, features });
+  const promotionCampaigns = Array.isArray(features.promotion_campaigns)
+    ? features.promotion_campaigns
+    : defaultSettings.features?.promotion_campaigns;
 
   const merged = {
     ...defaultSettings,
@@ -25,6 +36,7 @@ export function normalizeTypedSiteSettings(settings: PublicSiteSettings): TypedP
     theme: { ...defaultSettings.theme, ...(settings.theme ?? {}) },
     icons: {
       ...defaultSettings.icons,
+      ...PRESENTATION_ICON_DEFAULTS,
       ...REFERENCE_PUBLIC_SETTINGS_DEFAULTS.icons,
       ...(settings.icons ?? {}),
     },
@@ -33,13 +45,17 @@ export function normalizeTypedSiteSettings(settings: PublicSiteSettings): TypedP
     maintenance: { ...defaultSettings.maintenance, ...(settings.maintenance ?? {}) },
     features: {
       ...features,
-      cms_content: cmsContentSetting({ ...settings, features }),
-      promotion_campaigns: Array.isArray(features.promotion_campaigns)
-        ? features.promotion_campaigns
-        : defaultSettings.features?.promotion_campaigns,
+      presentation_demo_enabled: demoEnabled,
+      cms_content: demoEnabled ? mergePresentationCmsContent(cmsContent) : cmsContent,
+      promotion_campaigns: demoEnabled
+        ? mergePresentationPromotions(promotionCampaigns)
+        : promotionCampaigns,
     },
     legal: { ...(defaultSettings.legal ?? {}), ...(settings.legal ?? {}) },
   };
 
-  return merged as TypedPublicSiteSettings;
+  // The layered defaults above establish every required typed field before
+  // caller and CMS overrides are applied. PublicSiteSettings intentionally
+  // remains loose at the network boundary, so narrow only after normalization.
+  return merged as unknown as TypedPublicSiteSettings;
 }

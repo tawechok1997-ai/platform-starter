@@ -19,7 +19,7 @@ test('authenticated mobile shell reuses the guest header and drawer owners', () 
   assert.match(runtime, /querySelector<HTMLElement>\('#mobile-home-drawer'\)/);
   assert.match(runtime, /createPortal\(/);
   assert.doesNotMatch(runtime, /<aside|drawerBackdrop|data-mobile-drawer-dismiss/);
-  assert.doesNotMatch(runtimeCss, /transform\s*:/);
+  assert.doesNotMatch(runtime, /translateX|translate3d|setMenuOpen/);
 });
 
 test('logged-in header replaces only guest language and auth controls', () => {
@@ -60,7 +60,7 @@ test('profile pages and shared dialogs do not create a second mobile popup owner
   assert.doesNotMatch(sharedPopupRuntime, /public-member-menu-grid--secondary button/);
 });
 
-test('profile pencil opens the source avatar page and selected avatar returns to the drawer', () => {
+test('profile pencil opens the source avatar page and selected avatar keeps account actions reusable', () => {
   assert.match(runtime, /href="\/profile\/avatar"/);
   assert.match(runtime, /data-mobile-profile-avatar-trigger="true"/);
   assert.match(runtime, /MOBILE_AVATAR_EVENT/);
@@ -71,8 +71,9 @@ test('profile pencil opens the source avatar page and selected avatar returns to
   assert.match(avatarPage, /memberApiFetch\('\/member\/bank-accounts'\)/);
   assert.match(avatarPage, /MOBILE_AVATAR_OPTIONS\.map/);
   assert.match(avatarPage, /writeMobileAvatarPreference\(avatar\)/);
-  assert.match(avatarPage, /href="\/profile\/edit"/);
-  assert.match(avatarPage, /href="\/profile\/password"/);
+  assert.match(avatarPage, /setPopup\('contact'\)/);
+  assert.match(avatarPage, /setPopup\('password'\)/);
+  assert.match(avatarPage, /<ProfileActionPopupLayer kind=\{popup\}/);
   assert.match(avatarCss, /max-width:\s*428px/);
   assert.match(avatarCss, /\.profileHero\s*\{[\s\S]*align-items:\s*center/);
   assert.match(avatarCss, /\.actions\s*\{[\s\S]*grid-template-columns:\s*repeat\(2, minmax\(0, 1fr\)\)/);

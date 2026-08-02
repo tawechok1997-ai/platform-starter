@@ -27,12 +27,18 @@ type CatalogMedia = {
   sourceUrl?: string | null;
   cachedUrl?: string | null;
   status?: string | null;
+  metadata?: unknown;
 };
 
 type CatalogProvider = {
   code?: string | null;
   name?: string | null;
   logoUrl?: string | null;
+  badgeUrl?: string | null;
+  cardUrl?: string | null;
+  backgroundUrl?: string | null;
+  titleUrl?: string | null;
+  avatarUrl?: string | null;
 };
 
 export type RawCatalogGame = {
@@ -76,12 +82,12 @@ export function mapMemberCatalogGame(
   ).toUpperCase();
   const id = firstText(item.providerGameCode, item.code, item.id);
   const name = firstText(item.name);
-  const readyMedia = item.media?.find((media) => media.status === 'READY');
+  const selectedMedia = selectMedia(item.media, requestedPlatform);
   const firstMedia = item.media?.[0];
   const imageSource = firstText(
-    readyMedia?.cachedUrl,
     item.imageUrl,
-    readyMedia?.sourceUrl,
+    selectedMedia?.cachedUrl,
+    selectedMedia?.sourceUrl,
     item.iconUrl,
     firstMedia?.cachedUrl,
     firstMedia?.sourceUrl,
@@ -89,6 +95,7 @@ export function mapMemberCatalogGame(
   if (!id || !name || !imageSource) return null;
 
   const providerIconSource = firstText(
+    providerObject?.badgeUrl,
     item.providerLogoUrl,
     providerObject?.logoUrl,
     provider ? `https://cdn.zabbet.com/providers/set/1_1_badge/${provider}.png` : null,
@@ -159,6 +166,22 @@ export function normalizeMemberGameCategory(value: unknown) {
   if (category === 'lotto') return 'lottery';
   if (category === 'live') return 'casino';
   return category || 'slot';
+}
+
+function selectMedia(items: readonly CatalogMedia[] | null | undefined, platform: MemberGamePlatform) {
+  if (!items?.length) return undefined;
+  const ready = items.filter((item) => item.status === 'READY' || item.status === 'FALLBACK' || !item.status);
+  const exact = ready.find((item) => mediaPlatform(item.metadata) === platform);
+  if (exact) return exact;
+  const shared = ready.find((item) => ['shared', 'both', ''].includes(mediaPlatform(item.metadata)));
+  return shared ?? ready[0] ?? items[0];
+}
+
+function mediaPlatform(metadata: unknown) {
+  if (!metadata || typeof metadata !== 'object' || Array.isArray(metadata)) return '';
+  const source = metadata as Record<string, unknown>;
+  const value = String(source.platform ?? source.targetPlatform ?? '').trim().toLowerCase();
+  return value === 'desktop' ? 'pc' : value;
 }
 
 function readTags(value: unknown) {

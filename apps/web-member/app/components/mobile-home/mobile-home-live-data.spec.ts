@@ -6,6 +6,8 @@ const sourceRuntime = readFileSync(new URL('./mobile-source-runtime.ts', import.
 const sourceContent = readFileSync(new URL('./mobile-source-content.tsx', import.meta.url), 'utf8');
 const categoryRuntime = readFileSync(new URL('./mobile-category-tab-runtime.tsx', import.meta.url), 'utf8');
 const highlightContent = readFileSync(new URL('./mobile-highlight-tab-content.tsx', import.meta.url), 'utf8');
+const providerLauncher = readFileSync(new URL('./mobile-provider-launcher-page.tsx', import.meta.url), 'utf8');
+const providerGames = readFileSync(new URL('./mobile-provider-games-category-page.tsx', import.meta.url), 'utf8');
 const mobileRoot = readFileSync(new URL('./mobile-home-root.tsx', import.meta.url), 'utf8');
 const catalog = readFileSync(new URL('../../lib/member-game-catalog.ts', import.meta.url), 'utf8');
 const homeDataRuntime = readFileSync(new URL('../../member-home-data-runtime.ts', import.meta.url), 'utf8');
@@ -16,32 +18,34 @@ const desktopJackpot = readFileSync(new URL('../member-home/desktop-jackpot-card
 
 test('mobile home and category catalogs request mobile records only', () => {
   assert.match(sourceRuntime, /getMemberGameCatalog\('mobile'\)/);
-  assert.match(categoryRuntime, /platform:\s*'mobile'/);
+  assert.match(providerLauncher, /loadSourceCategoryCatalog\(category, sourceProviders, 'mobile', controller\.signal\)/);
+  assert.match(providerLauncher, /platform: 'mobile'/);
+  assert.match(providerGames, /loadSourceCategoryCatalog\(catalogSlug, sourceProviders, catalogPlatform, controller\.signal\)/);
   assert.doesNotMatch(sourceRuntime, /getMemberGameCatalog\('pc'\)/);
-  assert.doesNotMatch(categoryRuntime, /platform:\s*'pc'/);
+  assert.doesNotMatch(categoryRuntime, /memberApiFetch|loadSourceCategoryCatalog|getMemberGameCatalog/);
   assert.match(catalog, /Promise\.allSettled/);
   assert.match(catalog, /DEFAULT_CATEGORIES/);
 });
 
-test('mobile game cards delegate guest login and member launch to the canonical controller', () => {
-  for (const source of [sourceContent, categoryRuntime]) {
-    assert.match(source, /data-game-id/);
-    assert.match(source, /data-game-code/);
-    assert.match(source, /data-provider-code/);
-    assert.match(source, /data-game-category/);
-  }
+test('mobile game cards and provider cards delegate to the canonical controller contracts', () => {
+  for (const attribute of ['data-game-id', 'data-game-code', 'data-provider-code', 'data-game-category']) assert.match(sourceContent, new RegExp(attribute));
+  assert.match(providerLauncher, /data-provider-launch="true"/);
+  assert.match(providerLauncher, /data-provider-code=\{provider\.code\}/);
+  assert.match(providerLauncher, /data-game-category=\{category\}/);
+  assert.match(providerGames, /data-game-id=\{game\.id\}/);
+  assert.doesNotMatch(categoryRuntime, /data-provider-launch|data-game-id|data-provider-code/);
   assert.match(gameController, /openMemberProviderGame/);
   assert.match(gameController, /currentUrl\.searchParams\.set\('auth', 'login'\)/);
 });
 
-test('mobile content uses public APIs or CMS and never substitutes demo records', () => {
+test('mobile content uses public APIs or CMS and keeps presentation records outside operational APIs', () => {
   assert.match(sourceRuntime, /memberApiFetch\('\/games\/tournaments'/);
   assert.match(highlightContent, /memberApiFetch\('\/public\/promotions'/);
   assert.match(sourceRuntime, /cms_content\.faqs/);
   assert.match(sourceRuntime, /live_match_items/);
-  assert.doesNotMatch(sourceRuntime, /FALLBACK_|DEMO_|const LIVE_MATCHES/);
-  assert.doesNotMatch(highlightContent, /FALLBACK_|DEMO_|const PROMOTIONS|const ACTIVITIES/);
-  assert.doesNotMatch(homeDataRuntime, /DEMO_|const TOURNAMENTS|const LEADERBOARD/);
+  assert.doesNotMatch(sourceRuntime, /const LIVE_MATCHES/);
+  assert.doesNotMatch(highlightContent, /const PROMOTIONS|const ACTIVITIES/);
+  assert.doesNotMatch(homeDataRuntime, /const TOURNAMENTS|const LEADERBOARD/);
 });
 
 test('highlight tabs preserve separate real promotion, activity, and news destinations', () => {
@@ -63,9 +67,7 @@ test('Android and iOS shortcut controls have install and manual Home Screen path
 });
 
 test('mobile home, drawer, data states, and game launch overlay include English copy', () => {
-  for (const phrase of ['Open member menu', 'Register', 'Sign in', 'Payment methods', 'Add on Android']) {
-    assert.match(mobileRoot, new RegExp(phrase));
-  }
+  for (const phrase of ['Open member menu', 'Register', 'Sign in', 'Payment methods', 'Add on Android']) assert.match(mobileRoot, new RegExp(phrase));
   assert.match(sourceContent, /Unable to load games/);
   assert.match(highlightContent, /No published activities yet/);
   assert.match(gameController, /Connecting to the game provider/);

@@ -29,13 +29,8 @@ test('mobile motion runtime adds behavior without rendering another UI owner', (
 
 test('mobile upper structure has one owner per section', () => {
   for (const owner of ['header', 'hero', 'auth-actions', 'announcement', 'highlight-tabs']) {
-    assert.equal(
-      (mobileRoot.match(new RegExp(`data-mobile-section-owner="${owner}"`, 'g')) ?? []).length,
-      1,
-      `${owner} must have one Mobile owner`,
-    );
+    assert.equal((mobileRoot.match(new RegExp(`data-mobile-section-owner="${owner}"`, 'g')) ?? []).length, 1, `${owner} must have one Mobile owner`);
   }
-
   assert.equal((mobileRoot.match(/id="mobile-home-drawer"/g) ?? []).length, 1);
   assert.equal((mobileRoot.match(/data-mobile-content-slot="after-highlight"/g) ?? []).length, 1);
 });
@@ -104,27 +99,16 @@ test('mobile announcements come from central CMS and scroll continuously at runt
 
 test('mobile bottom structure has one shortcut and one footer owner', () => {
   assert.equal((mobileRoot.match(/data-mobile-bottom-owner="true"/g) ?? []).length, 1);
-
   for (const owner of ['shortcut', 'footer']) {
-    assert.equal(
-      (mobileRoot.match(new RegExp(`data-mobile-section-owner="${owner}"`, 'g')) ?? []).length,
-      1,
-      `${owner} must have one Mobile owner`,
-    );
+    assert.equal((mobileRoot.match(new RegExp(`data-mobile-section-owner="${owner}"`, 'g')) ?? []).length, 1, `${owner} must have one Mobile owner`);
   }
-
   assert.equal((mobileRoot.match(/<footer\s/g) ?? []).length, 1);
   assert.match(mobileRoot, /const BANKS = \[/);
   assert.match(mobileRoot, /Copyright © NOAH345, All Rights Reserved\./);
 });
 
 test('mobile home owner does not import desktop or legacy UI', () => {
-  assert.doesNotMatch(mobileRoot, /DesktopHomeScaffold/);
-  assert.doesNotMatch(mobileRoot, /MemberFooter/);
-  assert.doesNotMatch(mobileRoot, /DesktopAllianceBand/);
-  assert.doesNotMatch(mobileRoot, /PublicHomeHeader/);
-  assert.doesNotMatch(mobileRoot, /PublicMobileSourceHeader/);
-  assert.doesNotMatch(mobileRoot, /MutationObserver/);
+  assert.doesNotMatch(mobileRoot, /DesktopHomeScaffold|MemberFooter|DesktopAllianceBand|PublicHomeHeader|PublicMobileSourceHeader|MutationObserver/);
 });
 
 test('mobile geometry preserves the supplied upper structure', () => {
@@ -145,13 +129,12 @@ test('mobile bottom structure stays attached to the page bottom', () => {
 test('final layout owner exposes the Mobile root instead of hiding the shell', () => {
   assert.match(mobileLayoutOwner, /#member-desktop-scale-shell/);
   assert.match(mobileLayoutOwner, /display:\s*block\s*!important/);
-  assert.doesNotMatch(
-    mobileLayoutOwner,
-    /#member-desktop-scale-shell[\s\S]{0,160}display:\s*none\s*!important/,
-  );
+  assert.doesNotMatch(mobileLayoutOwner, /#member-desktop-scale-shell[\s\S]{0,160}display:\s*none\s*!important/);
 });
 
 test('legacy shared UI stays out of the mobile home route', () => {
   assert.match(memberFooter, /viewport === 'mobile'[\s\S]*window\.location\.pathname === '\/'[\s\S]*return null/);
-  assert.match(floatingContact, /pathname === '\/' && isMobile !== false[\s\S]*return null/);
+  assert.match(floatingContact, /MOBILE_MENU_PAGE_ROUTES/);
+  assert.match(floatingContact, /return null/);
+  assert.doesNotMatch(floatingContact, /member-floating-contact__toggle|member-floating-contact__contact-stage/);
 });

@@ -24,8 +24,10 @@ export default function MobileLocalAssetRuntime() {
       if (!isRemoteMedia(currentSource)) return;
       if (image.dataset.mobileLocalFailedSource === currentSource) return;
 
-      const localSource = resolveLocalAssetByBasename(currentSource, 'mobile')
-        || resolveLocalAssetByBasename(currentSource, 'pc');
+      // asset-pc is the checked-in shared library for both viewports. Explicit
+      // Mobile Admin URLs reach the element before this basename fallback runs.
+      const localSource = resolveLocalAssetByBasename(currentSource, 'pc')
+        || resolveLocalAssetByBasename(currentSource, 'mobile');
       if (!localSource || localSource === currentSource) return;
 
       image.dataset.mobileOriginalSource ||= image.getAttribute('src') || currentSource;
@@ -60,8 +62,8 @@ export default function MobileLocalAssetRuntime() {
       if (!isRemoteMedia(poster)) return;
       if (video.dataset.mobileLocalFailedPoster === poster) return;
 
-      const localPoster = resolveLocalAssetByBasename(poster, 'mobile')
-        || resolveLocalAssetByBasename(poster, 'pc');
+      const localPoster = resolveLocalAssetByBasename(poster, 'pc')
+        || resolveLocalAssetByBasename(poster, 'mobile');
       if (!localPoster || localPoster === poster) return;
 
       video.dataset.mobileOriginalPoster ||= poster;

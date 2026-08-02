@@ -2,24 +2,18 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
 
-const responsiveCss = readFileSync(
-  new URL('../../member-responsive-contract.css', import.meta.url),
-  'utf8',
-);
-const navigationController = readFileSync(
-  new URL('../member-navigation-auth-controller.tsx', import.meta.url),
-  'utf8',
-);
-const mobileMenuRoute = readFileSync(
-  new URL('../../mobile-menu/[section]/page.tsx', import.meta.url),
-  'utf8',
-);
+const responsiveCss = readFileSync(new URL('../../member-responsive-contract.css', import.meta.url), 'utf8');
+const navigationController = readFileSync(new URL('../member-navigation-auth-controller.tsx', import.meta.url), 'utf8');
+const mobileMenuRoute = readFileSync(new URL('../../mobile-menu/[section]/page.tsx', import.meta.url), 'utf8');
 
-test('mobile drawer uses the same real destinations and auth guard as desktop navigation', () => {
+test('mobile drawer uses real destinations while legacy mobile-menu URLs remain aliases only', () => {
   assert.match(navigationController, /#mobile-home-drawer a\[href\]/);
   assert.doesNotMatch(navigationController, /MOBILE_REFERENCE_TARGETS/);
   assert.doesNotMatch(navigationController, /MOBILE_LOGIN_TARGETS/);
-  assert.doesNotMatch(navigationController, /\/mobile-menu\//);
+  assert.match(navigationController, /'\/mobile-menu\/promotions': '\/mobile\/member\/promotions'/);
+  assert.match(navigationController, /'\/mobile-menu\/activities': '\/mobile\/member\/activity'/);
+  assert.match(navigationController, /'\/mobile-menu\/news': '\/mobile\/member\/news'/);
+  assert.match(navigationController, /'\/mobile-menu\/live': '\/mobile\/member\/live'/);
   assert.match(navigationController, /navigation\s*\.filter\(\(item\) => item\.requiresAuth\)/);
 });
 

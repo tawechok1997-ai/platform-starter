@@ -20,12 +20,14 @@ const activeRuntimeNavigationContract = [
   mobileHeader.includes('runtime.navigation.filter'),
   mobileHeader.includes('item.mobile'),
 ].every(Boolean);
-const intentionalMobileResetContract = [
+const intentionalMobileSplitContract = [
   !fs.existsSync(mobileHeaderPath),
   mobileHeaderOwner.includes('return null'),
-  memberHome.includes("if (viewportMode !== 'desktop') return null"),
+  memberHome.includes("if (viewportMode === 'mobile')"),
+  memberHome.includes('<MobileHomeRoot'),
+  memberHome.includes('return <DesktopMemberHome'),
 ].every(Boolean);
-const runtimeNavigationContract = activeRuntimeNavigationContract || intentionalMobileResetContract;
+const runtimeNavigationContract = activeRuntimeNavigationContract || intentionalMobileSplitContract;
 
 const checks = [
   ['shared container', responsive.includes('.ui-container')],

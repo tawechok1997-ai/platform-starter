@@ -18,22 +18,29 @@ export type MobileProviderLauncherCard = {
   isNew?: boolean;
 };
 
+type ProviderFilter = 'all' | 'new';
+
 type MobileProviderLauncherPageProps = {
   category: 'casino' | 'sport' | 'lottery';
   title: Readonly<{ th: string; en: string }>;
   providers: readonly MobileProviderLauncherCard[];
   countLabel?: Readonly<{ th: string; en: string }>;
   stacked?: boolean;
+  filterable?: boolean;
 };
 
 export default function MobileProviderLauncherPage({
   category,
   title,
   providers,
+  countLabel,
   stacked = false,
+  filterable = false,
 }: MobileProviderLauncherPageProps) {
   const { locale } = useMemberLocale();
   const copy = COPY[locale];
+  const [filter, setFilter] = useState<ProviderFilter>('all');
+  const [filterOpen, setFilterOpen] = useState(false);
   const [catalog, setCatalog] = useState<SourceCategoryCatalog | null>(null);
 
   const sourceProviders = useMemo<SourceGameProvider[]>(
@@ -68,13 +75,18 @@ export default function MobileProviderLauncherPage({
   }, [category, sourceProviders]);
 
   const firstGameByProvider = useMemo(() => {
-    const result = new Map<string, NonNullable<SourceCategoryCatalog>['games'][number]>();
+    const result = new Map<string, SourceCategoryCatalog['games'][number]>();
     for (const game of catalog?.games ?? []) {
       const code = normalizeProviderCode(game.provider ?? '');
       if (code && !result.has(code)) result.set(code, game);
     }
     return result;
   }, [catalog?.games]);
+
+  const visibleProviders = useMemo(
+    () => filter === 'new' ? providers.filter((provider) => provider.isNew) : providers,
+    [filter, providers],
+  );
 
   return (
     <section
@@ -84,8 +96,49 @@ export default function MobileProviderLauncherPage({
       data-category-launch-mode="provider-launch"
       aria-label={title[locale]}
     >
+      {countLabel || filterable ? (
+        <div className={styles.headingRow}>
+          <h2 className={styles.heading}>
+            {title[locale]}
+            {countLabel ? <span> {visibleProviders.length} {countLabel[locale]}</span> : null}
+          </h2>
+          {filterable ? (
+            <div className={styles.filterWrap}>
+              <button
+                type="button"
+                className={styles.filterButton}
+                data-mobile-provider-filter-button="true"
+                aria-expanded={filterOpen}
+                onClick={() => setFilterOpen((value) => !value)}
+              >
+                <span>{filter === 'new' ? copy.newOnly : copy.all}</span>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10l5 5 5-5H7z" /></svg>
+              </button>
+              {filterOpen ? (
+                <div className={styles.filterMenu} role="menu">
+                  {(['all', 'new'] as const).map((key) => (
+                    <button
+                      key={key}
+                      type="button"
+                      role="menuitem"
+                      data-active={filter === key ? 'true' : 'false'}
+                      onClick={() => {
+                        setFilter(key);
+                        setFilterOpen(false);
+                      }}
+                    >
+                      {key === 'new' ? copy.newOnly : copy.all}
+                    </button>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+          ) : null}
+        </div>
+      ) : null}
+
       <div className={`${styles.grid} ${stacked ? styles.stackedGrid : ''}`}>
-        {providers.map((provider) => {
+        {visibleProviders.map((provider) => {
           const resolvedSource = resolveLocalAssetOrSource(provider.source, 'mobile');
           const className = [
             styles.card,
@@ -170,6 +223,6 @@ function NewBadge({ label }: { label: string }) {
 }
 
 const COPY = {
-  th: { open: 'เข้าเล่น' },
-  en: { open: 'Open' },
+  th: { open: 'เข้าเล่น', all: 'ทั้งหมด', newOnly: 'เกมใหม่' },
+  en: { open: 'Open', all: 'All', newOnly: 'New' },
 } as const;

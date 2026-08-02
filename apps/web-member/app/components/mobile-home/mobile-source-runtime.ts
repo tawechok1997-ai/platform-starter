@@ -3,6 +3,10 @@
 import { useEffect, useMemo, useState } from 'react';
 import { getMemberGameCatalog, type MemberCatalogGame } from '../../lib/member-game-catalog';
 import { memberApiFetch } from '../../member-api';
+import {
+  PRESENTATION_LIVE_MATCHES,
+  presentationDemoEnabled,
+} from '../../member-presentation-defaults';
 import { useMemberRuntime } from '../../member-runtime-provider';
 import { useSiteSettings } from '../../site-settings-provider';
 
@@ -193,10 +197,14 @@ export function useMobileSourceRuntime() {
       classic: byId.get('classic'),
     };
   }, [gameSections]);
-  const liveMatches = useMemo(
-    () => normalizeLiveMatches((typedSettings.features as Record<string, unknown>).live_match_items),
-    [typedSettings.features],
-  );
+  const liveMatches = useMemo(() => {
+    const featureSettings = typedSettings.features as Record<string, unknown>;
+    const configured = normalizeLiveMatches(featureSettings.live_match_items);
+    if (configured.length > 0) return configured;
+    return presentationDemoEnabled(featureSettings)
+      ? normalizeLiveMatches(PRESENTATION_LIVE_MATCHES)
+      : [];
+  }, [typedSettings.features]);
   const guides = useMemo<MobileSourceGuide[]>(
     () => typedSettings.features.cms_content.faqs
       .filter((item) => item.enabled && item.lifecycle !== 'draft' && item.lifecycle !== 'archived' && item.question.trim())
@@ -310,7 +318,7 @@ function normalizeLiveMatches(value: unknown): MobileSourceLiveMatch[] {
       away: text(item.away ?? item.awayTeam, ''),
       homeLogo: text(item.homeLogo ?? item.homeLogoUrl, ''),
       awayLogo: text(item.awayLogo ?? item.awayLogoUrl, ''),
-      watchHref: safeHref(item.watchHref ?? item.href) || '/live',
+      watchHref: safeHref(item.watchHref ?? item.href) || '/mobile/member/live',
       playHref: safeHref(item.playHref ?? item.betHref) || '/browse/games?category=sport',
     };
   }).filter((item) => item.league && item.home && item.away);

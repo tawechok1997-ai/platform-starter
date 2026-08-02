@@ -1,3 +1,4 @@
+import { ApiClientError, createApiClient } from '@platform/api-client';
 import { API_URL } from '../../member-api';
 
 export type LiveMatch = {
@@ -35,22 +36,33 @@ export async function loadCentralLiveMatches(timezone: string, signal?: AbortSig
   url.searchParams.set('timezone', timezone);
   url.searchParams.set('sport', 'football');
 
-  const response = await fetch(url.toString(), {
+  const client = createApiClient({
+    baseUrl: url.origin,
     cache: 'no-store',
-    credentials: 'include',
-    headers: { accept: 'application/json' },
-    signal,
+    retry: 0,
   });
 
-  if (response.status === 204 || response.status === 404) {
-    return { items: [], timezone, updatedAt: new Date().toISOString() };
+  let payload: unknown;
+  try {
+    payload = await client.request(`${url.pathname}${url.search}`, {
+      auth: false,
+      cache: 'no-store',
+      credentials: 'include',
+      headers: { accept: 'application/json' },
+      signal,
+    });
+  } catch (error) {
+    if (error instanceof ApiClientError && error.status === 404) {
+      return emptyLiveMatchResult(timezone);
+    }
+    if (error instanceof ApiClientError) {
+      const root = asRecord(error.payload);
+      throw new Error(firstString(root?.message, root?.error, error.message, 'โหลดรายการถ่ายทอดสดไม่สำเร็จ'));
+    }
+    throw error;
   }
 
-  const payload = await response.json().catch(() => null);
-  if (!response.ok) {
-    const root = asRecord(payload);
-    throw new Error(firstString(root?.message, root?.error, 'โหลดรายการถ่ายทอดสดไม่สำเร็จ'));
-  }
+  if (payload === null) return emptyLiveMatchResult(timezone);
 
   const root = asRecord(payload);
   const items = collectMatches(payload)
@@ -75,6 +87,10 @@ export function groupLiveMatches(items: LiveMatch[]) {
   });
 
   return Array.from(groups.values());
+}
+
+function emptyLiveMatchResult(timezone: string): LiveMatchResult {
+  return { items: [], timezone, updatedAt: new Date().toISOString() };
 }
 
 function resolveEndpoint(endpoint: string) {

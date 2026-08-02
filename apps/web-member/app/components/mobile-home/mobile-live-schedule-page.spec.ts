@@ -14,9 +14,11 @@ test('mobile live route uses the dedicated central schedule owner', () => {
   assert.match(livePage, /loadCentralLiveMatches\(TIMEZONE/);
 });
 
-test('central live loader calls the same-platform API proxy and supports empty results', () => {
+test('central live loader uses the shared API client and supports empty results', () => {
   assert.match(liveData, /DEFAULT_LIVE_MATCH_PATH = '\/games\/live-events'/);
-  assert.match(liveData, /response\.status === 204 \|\| response\.status === 404/);
+  assert.match(liveData, /createApiClient/);
+  assert.match(liveData, /error instanceof ApiClientError && error\.status === 404/);
+  assert.match(liveData, /payload === null/);
   assert.match(liveData, /collectMatches\(payload\)/);
   assert.match(liveData, /timezone/);
 });

@@ -4,6 +4,10 @@ import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { RequirePermission } from '../../common/decorators/require-permission.decorator';
 import { AdminAuthGuard } from '../../common/guards/admin-auth.guard';
 import { PermissionsGuard } from '../../common/guards/permissions.guard';
+import type {
+  ActivityLotteryNumbersInput,
+  ActivityMetricBatchInput,
+} from './activity-inputs';
 import { MemberActivitiesService } from './member-activities.service';
 
 @UseGuards(AdminAuthGuard, PermissionsGuard)
@@ -31,7 +35,7 @@ export class AdminActivitiesController {
 
   @RequirePermission('settings.features.update')
   @Post('metrics')
-  async recordMetrics(@Body() body: ActivityMetricBody | ActivityMetricBody[]) {
+  async recordMetrics(@Body() body: ActivityMetricBatchInput) {
     const items = Array.isArray(body) ? body : [body];
     const results = [];
     for (const item of items.slice(0, 500)) results.push(await this.service.recordMetric(item));
@@ -43,23 +47,11 @@ export class AdminActivitiesController {
   publishLotteryResult(
     @CurrentUser() user: AuthenticatedAdminActor,
     @Param('roundCode') roundCode: string,
-    @Body() body: { topNumber?: unknown; bottomNumber?: unknown },
+    @Body() body: ActivityLotteryNumbersInput,
   ) {
     return this.service.publishLotteryResult(user, roundCode, body);
   }
 }
-
-type ActivityMetricBody = {
-  memberId: string;
-  metricCode: string;
-  category?: string;
-  value: number;
-  sourceType: string;
-  sourceId?: string;
-  idempotencyKey: string;
-  occurredAt?: string;
-  metadata?: Record<string, unknown>;
-};
 
 function numberQuery(value: string | undefined, fallback: number) {
   const parsed = Number(value);

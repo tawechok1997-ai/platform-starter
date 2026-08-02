@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import MobileMemberActivityPage, {
   type MobileActivityContentItem,
 } from '../../../components/mobile-home/mobile-member-activity-page';
-import { API_URL } from '../../../site-settings';
+import { memberApiFetch } from '../../../member-api';
 
 type UnknownRecord = Record<string, unknown>;
 
@@ -17,10 +17,11 @@ export default function MobileActivityRoute() {
   useEffect(() => {
     const controller = new AbortController();
 
-    fetch(`${API_URL}/public/activities`, {
+    memberApiFetch('/public/activities', {
       cache: 'no-store',
       headers: { accept: 'application/json' },
       signal: controller.signal,
+      skipAuth: true,
     }).then(async (response) => {
       const payload = await response.json().catch(() => null);
       if (!response.ok) return;
