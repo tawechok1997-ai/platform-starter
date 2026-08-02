@@ -34,7 +34,7 @@ export default function MobileProviderLauncherPage({
       className={`${styles.root} ${styles.providerLauncherRoot}`}
       data-mobile-provider-launcher-page="true"
       data-provider-category={category}
-      data-category-launch-mode="provider-only"
+      data-category-launch-mode="provider"
       aria-label={title[locale]}
     >
       <div className={`${styles.grid} ${stacked ? styles.stackedGrid : ''}`}>
@@ -46,10 +46,16 @@ export default function MobileProviderLauncherPage({
             provider.layout === 'wide-banner' ? styles.banner : styles.hero,
           ].filter(Boolean).join(' ');
 
+          const destination = new URLSearchParams({
+            category,
+            provider: provider.code,
+            platform: 'mobile',
+          });
+
           return (
             <a
               key={provider.code}
-              href={`/browse/games?category=${encodeURIComponent(category)}&provider=${encodeURIComponent(provider.code)}&platform=mobile`}
+              href={`/games?${destination.toString()}`}
               className={className}
               data-provider-launch="true"
               data-provider-code={provider.code}
