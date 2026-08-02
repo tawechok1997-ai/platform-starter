@@ -97,17 +97,3 @@ CREATE TABLE IF NOT EXISTS "activity_lottery_results" (
 );
 
 CREATE UNIQUE INDEX IF NOT EXISTS "activity_lottery_results_round_code_key" ON "activity_lottery_results"("round_code");
-
-INSERT INTO "site_settings" (
-  "id", "key", "value_json", "group", "type", "is_public", "is_sensitive", "created_at", "updated_at"
-) VALUES
-  (gen_random_uuid(), 'features.activity_system_enabled', 'true'::jsonb, 'FEATURES', 'BOOLEAN', true, false, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-  (gen_random_uuid(), 'features.activity_timezone', '"Asia/Bangkok"'::jsonb, 'FEATURES', 'STRING', true, false, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-  (gen_random_uuid(), 'features.daily_login_enabled', 'true'::jsonb, 'FEATURES', 'BOOLEAN', true, false, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-  (gen_random_uuid(), 'features.daily_login_cycle_days', '28'::jsonb, 'FEATURES', 'NUMBER', true, false, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-  (gen_random_uuid(), 'features.daily_login_reset_hour', '4'::jsonb, 'FEATURES', 'NUMBER', true, false, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-  (gen_random_uuid(), 'features.daily_login_cycle_anchor', '"2026-08-01T04:30:00+07:00"'::jsonb, 'FEATURES', 'STRING', true, false, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-  (gen_random_uuid(), 'features.missions_enabled', 'true'::jsonb, 'FEATURES', 'BOOLEAN', true, false, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-  (gen_random_uuid(), 'features.turnover_rewards_enabled', 'true'::jsonb, 'FEATURES', 'BOOLEAN', true, false, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-  (gen_random_uuid(), 'features.lottery_prediction_enabled', 'true'::jsonb, 'FEATURES', 'BOOLEAN', true, false, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
-ON CONFLICT ("key") DO NOTHING;
