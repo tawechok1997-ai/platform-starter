@@ -7,7 +7,10 @@ import { resolveLocalAssetOrSource } from '../../lib/local-asset-by-basename';
 import { MOBILE_GUIDE_SECTIONS, type MobileGuideItem } from './mobile-member-guide-source-data';
 import styles from './mobile-home-guide-preview.module.css';
 
-const GUIDE_ITEMS = MOBILE_GUIDE_SECTIONS.flatMap((section) => section.items);
+const HOME_GUIDE_PREVIEW_LIMIT = 5;
+const GUIDE_PREVIEW_ITEMS = MOBILE_GUIDE_SECTIONS
+  .find((section) => section.id === 'section-1')
+  ?.items.slice(0, HOME_GUIDE_PREVIEW_LIMIT) ?? [];
 
 export default function MobileHomeGuidePreview() {
   const [target, setTarget] = useState<HTMLElement | null>(null);
@@ -53,8 +56,8 @@ function GuidePreviewContent() {
     <section
       className={styles.preview}
       data-mobile-home-guide-preview="true"
-      data-guide-section-count={MOBILE_GUIDE_SECTIONS.length}
-      data-guide-item-count={GUIDE_ITEMS.length}
+      data-guide-preview-limit={HOME_GUIDE_PREVIEW_LIMIT}
+      data-guide-item-count={GUIDE_PREVIEW_ITEMS.length}
       aria-labelledby="mobile-home-guide-title"
     >
       <header className={styles.titleBar}>
@@ -63,7 +66,7 @@ function GuidePreviewContent() {
       </header>
 
       <div className={styles.list}>
-        {GUIDE_ITEMS.map((item) => {
+        {GUIDE_PREVIEW_ITEMS.map((item) => {
           const expanded = openItemId === item.id;
           const panelId = `mobile-home-guide-panel-${item.id}`;
           return (
