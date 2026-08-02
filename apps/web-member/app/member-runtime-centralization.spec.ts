@@ -33,8 +33,9 @@ test('desktop and mobile home consume one structured runtime controller', () => 
   assert.match(controllerSource, /runtimeSource = 'desktop-primary'/);
   assert.doesNotMatch(controllerSource, /features\.tournament && runtime\.features\.activity/);
   assert.match(mobileHomeSource, /useMemberRuntime\(\)/);
-  assert.match(mobileHomeSource, /runtime\.features\.registration/);
-  assert.match(mobileHomeSource, /runtime\.features\.login/);
+  assert.match(mobileHomeSource, /const \{ navigation \} = useMemberRuntime\(\)/);
+  assert.match(mobileHomeSource, /navigation\.find\(\(candidate\) => candidate\.id === id && candidate\.mobile\)/);
+  assert.equal((mobileHomeSource.match(/function MobileAuthActions\(/g) ?? []).length, 1);
 });
 
 test('game sections enforce shared desktop and mobile limits', () => {
@@ -73,19 +74,22 @@ test('configured navigation handles locale visibility order feature and auth con
   assert.match(navigationStateSource, /isMemberNavigationActive/);
   assert.match(navigationStateSource, /aria-current/);
   assert.match(navigationAuthSource, /requiresAuth/);
-  assert.match(navigationAuthSource, /auth=login&next=/);
+  assert.match(navigationAuthSource, /url\.searchParams\.set\('auth', mode\)/);
+  assert.match(navigationAuthSource, /safeNextTarget\(next\)/);
+  assert.match(navigationAuthSource, /url\.searchParams\.set\('next', safeNext\)/);
+  assert.match(navigationAuthSource, /router\.replace\(`\$\{url\.pathname\}\$\{url\.search\}\$\{url\.hash\}`/);
 });
 
-test('home data has one parser and production-safe demo fallback for all viewports', () => {
+test('home data has one parser and fails empty instead of inventing production records', () => {
   assert.match(homeDataSource, /tournament_items_json/);
   assert.match(homeDataSource, /leaderboard_items_json/);
   assert.match(homeDataSource, /mini_games_json/);
   assert.match(homeDataSource, /normalizeTournaments/);
   assert.match(homeDataSource, /normalizeLeaderboard/);
   assert.match(homeDataSource, /normalizeMiniGames/);
-  assert.match(homeDataSource, /DESKTOP_TOURNAMENT_MOCKS/);
-  assert.match(homeDataSource, /DEMO_TOURNAMENT_DATA_ENABLED/);
-  assert.match(homeDataSource, /NEXT_PUBLIC_ENABLE_DEMO_TOURNAMENT_DATA/);
-  assert.match(homeDataSource, /emptyPlayers/);
-  assert.match(homeDataSource, /Demo defaults are available only outside production unless explicitly enabled/);
+  assert.match(homeDataSource, /function firstStructured/);
+  assert.match(homeDataSource, /Invalid CMS JSON is ignored/);
+  assert.match(homeDataSource, /if \(!Array\.isArray\(value\)\) return \[\]/);
+  assert.match(homeDataSource, /return fallback/);
+  assert.doesNotMatch(homeDataSource, /DESKTOP_TOURNAMENT_MOCKS|DEMO_TOURNAMENT_DATA_ENABLED|NEXT_PUBLIC_ENABLE_DEMO_TOURNAMENT_DATA/);
 });
