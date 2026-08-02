@@ -4,6 +4,12 @@ import type {
   MemberLeaderboardEntry,
   MemberMiniGameRuntime,
 } from './member-runtime-contract';
+import {
+  PRESENTATION_LEADERBOARD,
+  PRESENTATION_MINI_GAMES,
+  PRESENTATION_TOURNAMENTS,
+  presentationDemoEnabled,
+} from './member-presentation-defaults';
 
 export type MemberTournamentPlayerRuntime = {
   rank: number;
@@ -33,13 +39,28 @@ export function buildMemberHomeDataRuntime(
   home: MemberHomeContentRuntime,
 ): MemberHomeDataRuntime {
   const features = settings.features as Record<string, unknown>;
+  const demoEnabled = presentationDemoEnabled(features);
+  const tournaments = normalizeTournaments(
+    firstStructured(features.tournament_items, features.tournament_items_json),
+  );
+  const leaderboard = normalizeLeaderboard(
+    firstStructured(features.leaderboard_items, features.leaderboard_items_json),
+  );
+  const miniGames = normalizeMiniGames(
+    firstStructured(features.mini_games, features.mini_games_json),
+    home.miniGames,
+  );
+
   return {
-    tournaments: normalizeTournaments(firstStructured(features.tournament_items, features.tournament_items_json)),
-    leaderboard: normalizeLeaderboard(firstStructured(features.leaderboard_items, features.leaderboard_items_json)),
-    miniGames: normalizeMiniGames(
-      firstStructured(features.mini_games, features.mini_games_json),
-      home.miniGames,
-    ),
+    tournaments: tournaments.length > 0
+      ? tournaments
+      : demoEnabled ? cloneTournaments(PRESENTATION_TOURNAMENTS) : [],
+    leaderboard: leaderboard.length > 0
+      ? leaderboard
+      : demoEnabled ? PRESENTATION_LEADERBOARD.map((item) => ({ ...item })) : [],
+    miniGames: miniGames.length > 0
+      ? miniGames
+      : demoEnabled ? PRESENTATION_MINI_GAMES.map((item) => ({ ...item })) : [],
   };
 }
 
@@ -113,6 +134,16 @@ function normalizeMiniGames(value: unknown, fallback: MemberMiniGameRuntime[]) {
   return fallback;
 }
 
+function cloneTournaments(items: readonly MemberTournamentRuntime[]) {
+  return items.map((item) => ({
+    ...item,
+    players: item.players.map((player) => ({
+      ...player,
+      stats: [...player.stats] as MemberTournamentPlayerRuntime['stats'],
+    })),
+  }));
+}
+
 function firstStructured(...values: unknown[]) {
   for (const value of values) {
     if (Array.isArray(value)) return value;
@@ -121,7 +152,7 @@ function firstStructured(...values: unknown[]) {
         const parsed = JSON.parse(value);
         if (Array.isArray(parsed)) return parsed;
       } catch {
-        // Invalid CMS JSON is ignored. The UI renders an empty state instead of demo records.
+        // Invalid CMS JSON is ignored; configured or presentation fallbacks are used.
       }
     }
   }
