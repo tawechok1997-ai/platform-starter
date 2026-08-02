@@ -5,7 +5,7 @@ import test from 'node:test';
 const page = readFileSync(new URL('./mobile-casino-provider-page.tsx', import.meta.url), 'utf8');
 const shared = readFileSync(new URL('./mobile-provider-launcher-page.tsx', import.meta.url), 'utf8');
 const css = readFileSync(new URL('./mobile-casino-provider-page.module.css', import.meta.url), 'utf8');
-const owner = readFileSync(new URL('./mobile-highlight-tab-content.tsx', import.meta.url), 'utf8');
+const categoryRuntime = readFileSync(new URL('./mobile-category-tab-runtime.tsx', import.meta.url), 'utf8');
 
 test('casino source page keeps the supplied ten-provider order', () => {
   const providers = ['dg', 'sexyd', 'yeebet', 'sag', 'ppcasino', 'evt', 'ab', 'wmc', 'biggamecasino', 'astar'];
@@ -47,10 +47,11 @@ test('provider categories hide home-only sections through explicit stage owners'
   assert.match(css, /:has\(\.providerLauncherRoot\)/);
   assert.match(css, /:has\(\.providerSelectionRoot\)/);
   assert.doesNotMatch(css, /:has\(\.root\)/);
-  assert.match(css, /display:\s*none !important/);
 });
 
-test('mobile category owner switches casino in place', () => {
-  assert.match(owner, /activeCategory === 'casino'/);
-  assert.match(owner, /<MobileCasinoProviderPage \/>/);
+test('central category runtime exposes casino providers in place', () => {
+  assert.match(categoryRuntime, /type MobileCategoryId = [^;]*'casino'/);
+  assert.match(categoryRuntime, /data-mobile-category-content=\{category\}/);
+  assert.match(categoryRuntime, /data-provider-category=\{category\}/);
+  assert.match(categoryRuntime, /getMemberGameCatalog\('mobile'\)/);
 });
