@@ -18,28 +18,38 @@ export default function MobileHomeGuidePreview() {
 
   useLayoutEffect(() => {
     const root = document.querySelector<HTMLElement>('[data-mobile-home-root="true"]');
-    const bottomStructure = root?.querySelector<HTMLElement>('[data-mobile-bottom-owner="true"]');
-    if (!root || !bottomStructure) return;
+    const contentSlot = root?.querySelector<HTMLElement>('[data-mobile-content-slot="after-highlight"]');
+    if (!root || !contentSlot) return;
 
     const host = document.createElement('div');
     host.dataset.mobileHomeGuidePreviewHost = 'true';
-    const shortcut = bottomStructure.querySelector<HTMLElement>(':scope > [data-mobile-section-owner="shortcut"]');
-    bottomStructure.insertBefore(host, shortcut ?? bottomStructure.firstChild);
+    host.dataset.mobileSectionOwner = 'guide-preview';
+    contentSlot.append(host);
     setTarget(host);
+
+    const syncPlacement = () => {
+      if (host.parentElement !== contentSlot || host.nextSibling) contentSlot.append(host);
+    };
 
     const syncVisibility = () => {
       setVisible((root.dataset.mobileActiveCategory ?? 'home') === 'home');
     };
 
-    const observer = new MutationObserver(syncVisibility);
-    observer.observe(root, {
+    const rootObserver = new MutationObserver(syncVisibility);
+    rootObserver.observe(root, {
       attributes: true,
       attributeFilter: ['data-mobile-active-category'],
     });
+
+    const contentObserver = new MutationObserver(syncPlacement);
+    contentObserver.observe(contentSlot, { childList: true });
+
+    syncPlacement();
     syncVisibility();
 
     return () => {
-      observer.disconnect();
+      rootObserver.disconnect();
+      contentObserver.disconnect();
       host.remove();
       setTarget(null);
     };
