@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 import test from 'node:test';
 
 const preview = readFileSync(new URL('./mobile-home-guide-preview.tsx', import.meta.url), 'utf8');
+const css = readFileSync(new URL('./mobile-home-guide-preview.module.css', import.meta.url), 'utf8');
 const home = readFileSync(new URL('../../member-home.tsx', import.meta.url), 'utf8');
 const root = readFileSync(new URL('./mobile-home-root.tsx', import.meta.url), 'utf8');
 
@@ -11,6 +12,14 @@ test('mobile home mounts the compact guide preview before the persistent bottom 
   assert.match(home, /<MobileHomeGuidePreview \/>/);
   assert.match(preview, /data-mobile-home-guide-preview="true"/);
   assert.match(preview, /bottomStructure\.insertBefore\(host, shortcut \?\? bottomStructure\.firstChild\)/);
+});
+
+test('home hides the duplicate legacy guide and keeps the source accordion in its place', () => {
+  assert.match(css, /data-mobile-section-owner='source-content'/);
+  assert.match(css, /section\[aria-labelledby='mobile-guide-heading'\]/);
+  assert.match(css, /display:\s*none\s*!important/);
+  assert.match(preview, /<header className=\{styles\.titleBar\}>/);
+  assert.match(preview, /<h2 id="mobile-home-guide-title">Guide<\/h2>/);
 });
 
 test('guide preview starts collapsed and toggles one item at a time', () => {
