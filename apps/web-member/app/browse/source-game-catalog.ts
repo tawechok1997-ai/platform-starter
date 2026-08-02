@@ -10,6 +10,7 @@ type CatalogMedia = {
   sourceUrl?: string | null;
   cachedUrl?: string | null;
   status?: string | null;
+  metadata?: unknown;
 };
 
 export type SourceCatalogPlatform = 'pc' | 'mobile';
@@ -18,6 +19,11 @@ type CatalogProvider = {
   code?: string | null;
   name?: string | null;
   logoUrl?: string | null;
+  badgeUrl?: string | null;
+  cardUrl?: string | null;
+  backgroundUrl?: string | null;
+  titleUrl?: string | null;
+  avatarUrl?: string | null;
 };
 
 export type CatalogGame = {
@@ -30,6 +36,7 @@ export type CatalogGame = {
   iconUrl?: string | null;
   isNew?: boolean | null;
   isPopular?: boolean | null;
+  isFeatured?: boolean | null;
   metadata?: unknown;
   provider?: CatalogProvider | null;
   media?: CatalogMedia[] | null;
@@ -185,13 +192,13 @@ export function mapCatalogGame(
   const configuredProvider = configuredProviders.find(
     (provider) => normalizeProviderCode(provider.code) === providerCode,
   );
-  const readyMedia = item.media?.find((media) => media.status === 'READY');
+  const selectedMedia = selectMedia(item.media, requestedPlatform);
   const firstMedia = item.media?.[0];
   const image = resolveAssetForPlatform(
     requestedPlatform,
-    readyMedia?.cachedUrl,
     item.imageUrl,
-    readyMedia?.sourceUrl,
+    selectedMedia?.cachedUrl,
+    selectedMedia?.sourceUrl,
     item.iconUrl,
     firstMedia?.cachedUrl,
     firstMedia?.sourceUrl,
@@ -202,6 +209,7 @@ export function mapCatalogGame(
   const tags = catalogTags(item);
   const providerBadge = resolveAssetForPlatform(
     requestedPlatform,
+    item.provider?.badgeUrl,
     item.provider?.logoUrl,
     configuredProvider?.badge,
     providerCode ? providerAssetSource('badge', providerCode) : undefined,
@@ -213,7 +221,7 @@ export function mapCatalogGame(
     provider: providerCode || null,
     ...(providerBadge ? { providerBadge } : {}),
     isNew: item.isNew === true || tags.includes('new'),
-    isHot: item.isPopular === true || tags.includes('hot'),
+    isHot: item.isPopular === true || item.isFeatured === true || tags.includes('hot'),
     tags,
     origin: 'catalog',
     platform: normalizeCatalogPlatform(item.platform, requestedPlatform),
@@ -241,7 +249,7 @@ function catalogTags(item: CatalogGame) {
   const name = firstText(item.name);
   if (/buy feature|buy bonus|free spin|ฟรีสปิน/i.test(name)) tags.add('buy');
   if (item.isNew) tags.add('new');
-  if (item.isPopular) tags.add('hot');
+  if (item.isPopular || item.isFeatured) tags.add('hot');
   return Array.from(tags);
 }
 
@@ -271,33 +279,65 @@ function buildCatalogProviders(
     const code = normalizeProviderCode(firstText(item.provider?.code));
     if (!code || providers.has(code)) continue;
     const configuredProvider = configured.get(code);
-    if (configuredProvider) {
-      providers.set(code, {
-        ...configuredProvider,
-        name: firstText(item.provider?.name, configuredProvider.name, code.toUpperCase()),
-        badge: resolveAssetForPlatform(platform, item.provider?.logoUrl, configuredProvider.badge),
-      });
-      continue;
-    }
-
     const firstGame = firstGameByProvider.get(code);
     const badge = resolveAssetForPlatform(
       platform,
+      item.provider?.badgeUrl,
       item.provider?.logoUrl,
+      configuredProvider?.badge,
       firstGame?.providerBadge,
       providerAssetSource('badge', code),
     );
-    providers.set(code, {
+    const resolved: SourceGameProvider = {
       code,
-      name: firstText(item.provider?.name, code.toUpperCase()),
+      name: firstText(item.provider?.name, configuredProvider?.name, code.toUpperCase()),
       badge,
-      card: resolveAssetForPlatform(platform, providerAssetSource('card', code), firstGame?.image, badge),
-      background: resolveAssetForPlatform(platform, providerAssetSource('bg', code)),
-      title: resolveAssetForPlatform(platform, providerAssetSource('title', code)),
-      avatar: resolveAssetForPlatform(platform, providerAssetSource('avatar', code)),
-    });
+      card: resolveAssetForPlatform(
+        platform,
+        item.provider?.cardUrl,
+        configuredProvider?.card,
+        providerAssetSource('card', code),
+        firstGame?.image,
+        badge,
+      ),
+      background: resolveAssetForPlatform(
+        platform,
+        item.provider?.backgroundUrl,
+        configuredProvider?.background,
+        providerAssetSource('bg', code),
+      ),
+      title: resolveAssetForPlatform(
+        platform,
+        item.provider?.titleUrl,
+        configuredProvider?.title,
+        providerAssetSource('title', code),
+      ),
+      avatar: resolveAssetForPlatform(
+        platform,
+        item.provider?.avatarUrl,
+        configuredProvider?.avatar,
+        providerAssetSource('avatar', code),
+      ),
+    };
+    providers.set(code, resolved);
   }
   return Array.from(providers.values());
+}
+
+function selectMedia(items: readonly CatalogMedia[] | null | undefined, platform: SourceCatalogPlatform) {
+  if (!items?.length) return undefined;
+  const ready = items.filter((item) => item.status === 'READY' || item.status === 'FALLBACK' || !item.status);
+  const exact = ready.find((item) => mediaPlatform(item.metadata) === platform);
+  if (exact) return exact;
+  const shared = ready.find((item) => ['shared', 'both', ''].includes(mediaPlatform(item.metadata)));
+  return shared ?? ready[0] ?? items[0];
+}
+
+function mediaPlatform(metadata: unknown) {
+  if (!metadata || typeof metadata !== 'object' || Array.isArray(metadata)) return '';
+  const source = metadata as Record<string, unknown>;
+  const value = String(source.platform ?? source.targetPlatform ?? '').trim().toLowerCase();
+  return value === 'desktop' ? 'pc' : value;
 }
 
 function localizeProvider(
