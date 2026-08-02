@@ -1,6 +1,7 @@
 import { Type } from 'class-transformer';
 import {
   ArrayMaxSize,
+  ArrayMinSize,
   IsArray,
   IsEmail,
   IsIn,
@@ -59,15 +60,54 @@ export class CreateAdminInvitationDto {
   @MaxLength(320)
   email!: string;
 
+  @IsOptional()
   @IsString()
   @MaxLength(128)
-  roleId!: string;
+  roleId?: string;
+
+  @IsOptional()
+  @IsArray()
+  @ArrayMinSize(1)
+  @ArrayMaxSize(8)
+  @IsString({ each: true })
+  @MaxLength(128, { each: true })
+  roleIds?: string[];
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(128)
+  primaryRoleId?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(120)
+  department?: string;
 
   @Type(() => Number)
   @IsInt()
   @Min(1)
   @Max(24 * 30)
   expiresInHours!: number;
+}
+
+export class PreviewAdminRoleSelectionDto {
+  @IsArray()
+  @ArrayMinSize(1)
+  @ArrayMaxSize(8)
+  @IsString({ each: true })
+  @MaxLength(128, { each: true })
+  roleIds!: string[];
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(128)
+  primaryRoleId?: string;
+}
+
+export class SyncAdminRolesDto extends PreviewAdminRoleSelectionDto {
+  @IsString()
+  @MaxLength(500)
+  reason!: string;
 }
 
 export class ChangeAdminStatusDto {

@@ -11,6 +11,7 @@ import { AdminInvitationAdminService } from './admin-invitation-admin.service';
 import { AdminInvitationController } from './admin-invitation.controller';
 import { AdminInvitationService } from './admin-invitation.service';
 import { AdminOwnershipCommandService } from './admin-ownership-command.service';
+import { AdminRoleAssignmentService } from './admin-role-assignment.service';
 
 @Module({
   imports: [DatabaseModule, JwtModule.register({}), AdminAuthModule],
@@ -22,6 +23,7 @@ import { AdminOwnershipCommandService } from './admin-ownership-command.service'
     AdminOwnershipCommandService,
     AdminInvitationService,
     AdminInvitationAdminService,
+    AdminRoleAssignmentService,
   ],
 })
 export class AdminAccessModule {}

@@ -31,7 +31,7 @@ Admin ต้องใช้ระบบกลางชุดเดียวก�
 | Phase | ขอบเขต | สถานะ | PR |
 |---|---|---|---|
 | P1 | Appearance foundation และ Theme owner กลาง | Merge แล้ว | #445 |
-| P2 | Role 5 แบบ, Multi-role และ Team | เริ่มแล้ว | - |
+| P2 | Role 5 แบบ, Multi-role และ Team | กำลังพัฒนา Batch 1 | - |
 | P3 | Navigation registry และ Dashboard ตามตำแหน่ง | ยังไม่เริ่ม | - |
 | P4 | Chart system และ Widget registry | ยังไม่เริ่ม | - |
 | P5 | Table, Form และ Detail drawer กลาง | ยังไม่เริ่ม | - |
@@ -111,7 +111,7 @@ Branch: `agent/admin-phase-2-role-multirole-team`
 
 Base: latest `main` หลัง Merge PR `#445` และอัปเดตเอกสารผล Merge
 
-Status: เริ่ม Phase แล้ว ยังไม่มี PR
+Status: กำลังพัฒนา Batch 1 ยังไม่มี PR
 
 ## เป้าหมาย
 
@@ -124,6 +124,38 @@ Status: เริ่ม Phase แล้ว ยังไม่มี PR
 - หัวหน้าสร้างลูกน้องและแจกสิทธิ์ได้ไม่เกินสิทธิ์ตนเอง
 - Preview เมนูและสิทธิ์ก่อนสร้างผู้ใช้
 - Audit การสร้างและแก้ไขผู้ใช้
+
+## Batch 1 ทำแล้ว
+
+- เพิ่ม Role template กลาง 5 แบบ: `finance`, `deposit_withdrawal`, `marketing`, `manager`, `system_admin`
+- เพิ่ม Permission สำหรับ Team, Subordinate และ Permission override
+- Seed Role template แบบ deterministic พร้อมตรวจ Permission ที่หายก่อนเขียนฐานข้อมูล
+- เพิ่ม Multi-role policy กลาง รวม Permission แบบไม่ซ้ำและกำหนด Primary role
+- เพิ่มกฎห้ามแจก Role ที่สูงกว่า Permission หรือระดับของผู้กระทำ
+- เพิ่ม Access preview ก่อนสร้างหรือแก้ผู้ใช้
+- ขยาย Admin invitation ให้เลือกหลาย Role และ Primary role ได้
+- ใช้ `AdminUser.position` เป็น Primary role owner ใน Batch แรกโดยไม่เพิ่ม Owner ซ้ำ
+- เก็บ Department ของผู้ใช้จากขั้นตอน Invitation
+- เพิ่ม Role synchronization สำหรับแก้หลาย Role ในคำสั่งเดียว
+- Revoke session หลัง Role synchronization
+- เพิ่ม Audit สำหรับ Role synchronization และ Manager-created invitation
+- เพิ่ม Unit tests สำหรับ 5 templates, permission union, primary role และ protected role guard
+
+## Endpoint ที่เพิ่มใน Batch 1
+
+- `POST /admin/access/role-preview`
+- `PATCH /admin/access/admin-users/:adminUserId/roles`
+- `POST /admin/access/invitations` รองรับ `roleIds`, `primaryRoleId` และ `department`
+
+## งานที่เหลือใน P2
+
+- เพิ่ม Team hierarchy model และ API จัดการ Team
+- เพิ่ม Manager/Subordinate relation แบบถาวรในฐานข้อมูล
+- เพิ่ม Permission override รายผู้ใช้แบบ Allow และ Deny โดย Deny ชนะ Allow
+- เพิ่ม Scope และวงเงินรายผู้ใช้
+- เชื่อมหน้า `admin-accounts`, `admin-roles` และ `admin-invitations` กับ API ชุดใหม่
+- เพิ่ม Preview เมนูจริงจาก Navigation registry เมื่อ P3 เริ่ม
+- เพิ่ม Integration tests กับ PostgreSQL และ Permission guard ทุก Route
 
 ## จุดที่ต้องตรวจ
 
