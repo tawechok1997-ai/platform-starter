@@ -40,6 +40,20 @@
     overscroll-behavior: contain;
   }
 
+  /* The menu bridge previously forced visible overflow. On short screens that
+     let rows escape the dialog, so the body now scrolls below the cap instead. */
+  html body section[data-mobile-popup-owner='menu'][data-mobile-menu-source='true'] > div:last-child {
+    max-height: calc(100dvh - 136px) !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  html body section[data-mobile-popup-owner='menu'][data-mobile-menu-source='true'] > div:last-child::-webkit-scrollbar {
+    display: none;
+  }
+
   /* The shared guest/member language selector has the same cap shape but a
      separate portal owner. Reserve the same lane and scroll only its grid. */
   html body [data-mobile-global-overlay='language'] > section[role='dialog'] {
@@ -70,7 +84,8 @@
     --member-mobile-popup-cap-gap: 28px;
   }
 
-  html body section[data-mobile-popup-owner] > div:last-child {
+  html body section[data-mobile-popup-owner] > div:last-child,
+  html body section[data-mobile-popup-owner='menu'][data-mobile-menu-source='true'] > div:last-child {
     max-height: calc(100dvh - 118px) !important;
   }
 
