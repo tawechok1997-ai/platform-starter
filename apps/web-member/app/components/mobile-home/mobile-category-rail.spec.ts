@@ -5,6 +5,7 @@ import test from 'node:test';
 const root = readFileSync(new URL('./mobile-home-root.tsx', import.meta.url), 'utf8');
 const css = readFileSync(new URL('./mobile-home-root.module.css', import.meta.url), 'utf8');
 const layoutOwner = readFileSync(new URL('../../member-mobile-home-bottom-owner.css', import.meta.url), 'utf8');
+const followOwner = readFileSync(new URL('../../member-mobile-category-follow.css', import.meta.url), 'utf8');
 
 test('mobile category rail has one owner and reads central navigation', () => {
   assert.equal((root.match(/data-mobile-section-owner="category-menu"/g) ?? []).length, 1);
@@ -15,30 +16,29 @@ test('mobile category rail has one owner and reads central navigation', () => {
 
 test('mobile category rail keeps the supplied order and labels', () => {
   assert.match(root, /'home',[\s\S]*'casino',[\s\S]*'slot',[\s\S]*'fishing',[\s\S]*'sport',[\s\S]*'card',[\s\S]*'lottery'/);
-  for (const label of ['หน้าแรก', 'คาสิโน', 'สล็อต', 'ยิงปลา', 'กีฬา', 'ไพ่', 'หวย']) {
-    assert.match(root, new RegExp(label));
+  for (const label of ['หน้าแรก', 'คาสิโน', 'สล็อต', 'เริ่มเกมยิงปลา', 'กีฬา', 'ไพ่', 'หวย']) {
+    const accepted = label === 'เริ่มเกมยิงปลา' ? /ยิงปลา/ : new RegExp(label);
+    assert.match(root, accepted);
   }
 });
 
-test('mobile category rail remains in-flow and keeps responsive sizes', () => {
-  assert.match(css, /\.categoryRail\s*\{[\s\S]*position:\s*relative/);
-  assert.match(css, /\.categoryRail\s*\{[\s\S]*top:\s*0/);
+test('mobile category rail keeps responsive sizes', () => {
   assert.match(css, /\.categoryRail\s*\{[\s\S]*z-index:\s*98/);
   assert.match(css, /\.categoryItem\s*\{[\s\S]*width:\s*45px[\s\S]*height:\s*45px/);
   assert.match(css, /@media \(min-width: 360px\)[\s\S]*width:\s*55px[\s\S]*height:\s*55px/);
   assert.match(css, /@media \(min-width: 430px\)[\s\S]*width:\s*60px[\s\S]*height:\s*60px/);
 });
 
-test('mobile category rail follows every scroll owner without leaving the grid flow', () => {
-  assert.match(root, /categoryContentRef = useRef<HTMLDivElement>/);
-  assert.match(root, /categoryRailRef = useRef<HTMLDivElement>/);
-  assert.match(root, /document\.addEventListener\('scroll', scheduleSync, \{ capture: true, passive: true \}\)/);
-  assert.match(root, /requestAnimationFrame\(syncRail\)/);
-  assert.match(root, /const scaleY = contentHeight > 0 \? contentRect\.height \/ contentHeight : 1/);
-  assert.match(root, /const maxOffset = Math\.max\(0, contentHeight - railHeight\)/);
-  assert.match(root, /Math\.min\(requestedOffset, maxOffset\)/);
-  assert.match(root, /translate3d\(0, \$\{Math\.round\(offset\)\}px, 0\)/);
-  assert.doesNotMatch(root, /style\.setProperty\('--mobile-category-rail-left'/);
+test('mobile category rail uses native sticky scrolling without per-frame work', () => {
+  assert.match(followOwner, /position:\s*-webkit-sticky\s*!important/);
+  assert.match(followOwner, /position:\s*sticky\s*!important/);
+  assert.match(followOwner, /top:\s*60px\s*!important/);
+  assert.match(followOwner, /transform:\s*none\s*!important/);
+  assert.match(followOwner, /touch-action:\s*pan-y\s*!important/);
+  assert.doesNotMatch(root, /document\.addEventListener\('scroll'/);
+  assert.doesNotMatch(root, /requestAnimationFrame\(syncRail\)/);
+  assert.doesNotMatch(root, /getBoundingClientRect\(\)/);
+  assert.doesNotMatch(root, /new ResizeObserver\(scheduleSync\)/);
   assert.match(root, /data-mobile-category-follow="start"/);
 });
 
