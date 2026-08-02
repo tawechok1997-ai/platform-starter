@@ -9,10 +9,10 @@ const contentOwner = readFileSync(new URL('./mobile-highlight-tab-content.tsx', 
 
 test('mobile category runtime switches selection without route navigation', () => {
   assert.equal((memberHome.match(/<MobileCategoryTabRuntime\s*\/>/g) ?? []).length, 1);
-  assert.match(categoryRuntime, /event\.preventDefault\(\)/);
-  assert.match(categoryRuntime, /event\.stopPropagation\(\)/);
+  assert.match(categoryRuntime, /root\.addEventListener\('click', switchCategory, true\)/);
   assert.match(categoryRuntime, /setActiveCategory\(category\)/);
   assert.match(categoryRuntime, /member:mobile-category-select/);
+  assert.doesNotMatch(categoryRuntime, /event\.preventDefault\(\)|event\.stopPropagation\(\)/);
   assert.doesNotMatch(categoryRuntime, /window\.location|router\.push|router\.replace/);
 });
 
