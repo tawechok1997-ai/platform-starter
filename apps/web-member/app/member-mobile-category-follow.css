@@ -3,9 +3,10 @@
 @import './member-home-section-icons.css';
 
 /* Mobile category rail contract:
- * - the document owns vertical scrolling
- * - the browser owns sticky positioning below the 60px header
- * - no nested scroller or per-frame translated follower is allowed
+ * - Home keeps the existing document scroll behaviour.
+ * - Game categories make the Mobile root the explicit vertical scroll owner.
+ * - The browser keeps the category rail below the fixed 60px header.
+ * - Horizontal provider rails must not block a vertical page gesture.
  */
 @media (max-width: 900px) {
   html[data-member-viewport-mode='mobile'],
@@ -22,14 +23,53 @@
   html[data-member-viewport-mode='mobile'] [data-mobile-home-root='true'],
   html[data-member-viewport-mode='mobile'] [data-mobile-home-root='true'] *:has(> [data-mobile-section-owner='category-menu']) {
     overflow-x: clip !important;
-    overflow-y: visible !important;
     contain: none !important;
     transform: none !important;
   }
 
   html[data-member-viewport-mode='mobile'] [data-mobile-home-root='true'] *:has(> [data-mobile-section-owner='category-menu']) {
     position: relative !important;
+    overflow-y: visible !important;
     align-items: start !important;
+  }
+
+  html[data-member-viewport-mode='mobile']
+    [data-mobile-home-root='true'][data-mobile-active-category]:not([data-mobile-active-category='home']) {
+    width: 100% !important;
+    height: 100dvh !important;
+    min-height: 100dvh !important;
+    max-height: 100dvh !important;
+    overflow-x: clip !important;
+    overflow-y: auto !important;
+    overscroll-behavior-x: none !important;
+    overscroll-behavior-y: auto !important;
+    scrollbar-width: none !important;
+    touch-action: pan-y !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  html[data-member-viewport-mode='mobile']
+    [data-mobile-home-root='true'][data-mobile-active-category]:not([data-mobile-active-category='home'])::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  html[data-member-viewport-mode='mobile']
+    [data-mobile-home-root='true'][data-mobile-active-category]:not([data-mobile-active-category='home'])
+    [data-mobile-content-slot='after-highlight'] {
+    height: auto !important;
+    min-height: calc(100dvh - 60px) !important;
+    max-height: none !important;
+    overflow: visible !important;
+    touch-action: pan-y !important;
+  }
+
+  html[data-member-viewport-mode='mobile']
+    [data-mobile-home-root='true'][data-mobile-active-category]:not([data-mobile-active-category='home'])
+    [data-provider-games-stage] {
+    height: auto !important;
+    max-height: none !important;
+    overflow-y: visible !important;
+    touch-action: pan-y !important;
   }
 
   html[data-member-viewport-mode='mobile'] [data-mobile-section-owner='category-menu'] {
@@ -42,13 +82,18 @@
     z-index: 98 !important;
     align-self: start !important;
     height: max-content !important;
-    max-height: none !important;
-    overflow: visible !important;
+    max-height: calc(100dvh - 68px) !important;
+    overflow-x: hidden !important;
+    overflow-y: visible !important;
     overscroll-behavior: auto !important;
-    scrollbar-width: auto !important;
+    scrollbar-width: none !important;
     transform: none !important;
     will-change: auto !important;
     touch-action: pan-y !important;
     -webkit-overflow-scrolling: auto;
+  }
+
+  html[data-member-viewport-mode='mobile'] [data-mobile-section-owner='category-menu']::-webkit-scrollbar {
+    display: none !important;
   }
 }

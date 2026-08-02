@@ -28,6 +28,16 @@ test('mobile category rail keeps responsive sizes', () => {
   assert.match(css, /@media \(min-width: 430px\)[\s\S]*width:\s*60px[\s\S]*height:\s*60px/);
 });
 
+test('game categories own a full-height vertical scroller', () => {
+  assert.match(followOwner, /data-mobile-active-category[^\n]*not\(\[data-mobile-active-category='home'\]\)/);
+  assert.match(followOwner, /height:\s*100dvh\s*!important/);
+  assert.match(followOwner, /max-height:\s*100dvh\s*!important/);
+  assert.match(followOwner, /overflow-y:\s*auto\s*!important/);
+  assert.match(followOwner, /-webkit-overflow-scrolling:\s*touch\s*!important/);
+  assert.match(followOwner, /data-mobile-content-slot='after-highlight'[\s\S]*overflow:\s*visible\s*!important/);
+  assert.match(followOwner, /data-provider-games-stage[\s\S]*touch-action:\s*pan-y\s*!important/);
+});
+
 test('mobile category rail uses native sticky scrolling without per-frame work', () => {
   assert.match(followOwner, /position:\s*-webkit-sticky\s*!important/);
   assert.match(followOwner, /position:\s*sticky\s*!important/);
