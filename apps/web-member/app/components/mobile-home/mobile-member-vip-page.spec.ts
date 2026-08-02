@@ -9,7 +9,11 @@ const sectionPage = readFileSync(new URL('./mobile-member-section-page.tsx', imp
 test('VIP member route uses its dedicated source page', () => {
   assert.match(sectionPage, /if \(section === 'vip'\)/);
   assert.match(sectionPage, /<MobileMemberVipPage/);
-  assert.doesNotMatch(sectionPage, /section === 'vip' \|\| section === 'profile'/);
+  assert.match(sectionPage, /payload=\{isLoggedIn \? payload : null\}/);
+
+  const vipBranchIndex = sectionPage.indexOf("if (section === 'vip')");
+  const genericPageIndex = sectionPage.indexOf('<main className={styles.page}');
+  assert.ok(vipBranchIndex >= 0 && genericPageIndex > vipBranchIndex);
 });
 
 test('guest VIP renders the public programme without requesting private profile data', () => {
