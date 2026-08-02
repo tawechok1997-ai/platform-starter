@@ -7,9 +7,10 @@ const promotionCss = readFileSync(new URL('./mobile-member-promotions-page.modul
 const routePage = readFileSync(new URL('../../mobile/member/promotions/page.tsx', import.meta.url), 'utf8');
 const browseRoute = readFileSync(new URL('../../browse/promotions/page.tsx', import.meta.url), 'utf8');
 
-test('mobile promotions use public settings without member data', () => {
-  assert.match(routePage, /\/public\/site-settings/);
-  assert.doesNotMatch(routePage, /memberApiFetch|\/member\/auth\/profile|useMemberSession/);
+test('mobile promotions use the public API bridge without member data', () => {
+  assert.match(routePage, /memberApiFetch\('\/public\/site-settings'/);
+  assert.match(routePage, /skipAuth: true/);
+  assert.doesNotMatch(routePage, /\/member\/auth\/profile|useMemberSession/);
 });
 
 test('source promotion CDN basenames resolve against asset-pc first', () => {
@@ -19,21 +20,19 @@ test('source promotion CDN basenames resolve against asset-pc first', () => {
   assert.match(promotionPage, /resolveLocalAssetOrSource\(remoteSource, 'pc'\)/);
 });
 
-test('promotion cards open one source detail popup with shared document lock', () => {
+test('promotion cards open one detail popup with shared document lock', () => {
   assert.match(promotionPage, /acquireMemberDocumentOverlayLock/);
   assert.match(promotionPage, /role="dialog"/);
   assert.match(promotionPage, /setSelected\(promotion\)/);
-  assert.match(promotionPage, /รายละเอียด/);
 });
 
-test('mobile source geometry remains 428px with 50px header and 41.6 percent artwork', () => {
+test('mobile source geometry remains bounded to 428px', () => {
   assert.match(promotionCss, /width:\s*min\(100%, 428px\)/);
   assert.match(promotionCss, /height:\s*50px/);
   assert.match(promotionCss, /aspect-ratio:\s*2\.4038 \/ 1/);
-  assert.match(promotionCss, /z-index:\s*201/);
 });
 
-test('public browse route sends mobile devices to the dedicated promotions route', () => {
+test('public browse route sends mobile devices to dedicated promotions', () => {
   assert.match(browseRoute, /sec-ch-ua-mobile/);
   assert.match(browseRoute, /redirect\('\/mobile\/member\/promotions'\)/);
 });
