@@ -4,13 +4,17 @@ import test from 'node:test';
 
 const menu = readFileSync(new URL('./mobile-home-root.tsx', import.meta.url), 'utf8');
 const highlight = readFileSync(new URL('./mobile-highlight-tab-content.tsx', import.meta.url), 'utf8');
+const tournamentEntry = readFileSync(new URL('./mobile-tournament-entry-bridge.tsx', import.meta.url), 'utf8');
 const promotions = readFileSync(new URL('./mobile-member-promotions-page.tsx', import.meta.url), 'utf8');
 const promotionSource = readFileSync(new URL('./mobile-member-promotion-source.ts', import.meta.url), 'utf8');
 const news = readFileSync(new URL('./mobile-member-news-page.tsx', import.meta.url), 'utf8');
 const activity = readFileSync(new URL('./mobile-member-activity-page.tsx', import.meta.url), 'utf8');
+const homeRoute = readFileSync(new URL('../../page.tsx', import.meta.url), 'utf8');
 const promotionRoute = readFileSync(new URL('../../mobile/member/promotions/page.tsx', import.meta.url), 'utf8');
 const newsRoute = readFileSync(new URL('../../mobile/member/news/page.tsx', import.meta.url), 'utf8');
 const activityRoute = readFileSync(new URL('../../mobile/member/activity/page.tsx', import.meta.url), 'utf8');
+const tournamentRoute = readFileSync(new URL('../../mobile/member/tournament/page.tsx', import.meta.url), 'utf8');
+const tournamentStyles = readFileSync(new URL('../../mobile/member/tournament/mobile-tournament-page.module.css', import.meta.url), 'utf8');
 
 test('mobile drawer keeps promotion news and activity inside the current home content', () => {
   assert.match(menu, /\['โปรโมชั่น', '\/mobile\/member\/promotions', 'promotion'\]/);
@@ -26,6 +30,30 @@ test('mobile drawer keeps promotion news and activity inside the current home co
   assert.match(promotionRoute, /MobileMemberPromotionsPage/);
   assert.match(newsRoute, /MobileMemberNewsPage/);
   assert.match(activityRoute, /MobileMemberActivityPage/);
+});
+
+test('mobile tournament artwork requires login and continues to the source page', () => {
+  assert.match(homeRoute, /MobileTournamentEntryBridge/);
+  assert.match(tournamentEntry, /tournament-mobile-source\.svg/);
+  assert.match(tournamentEntry, /MOBILE_TOURNAMENT_ROUTE = '\/mobile\/member\/tournament'/);
+  assert.match(tournamentEntry, /MEMBER_AUTH_OPEN_EVENT = 'member:auth-open'/);
+  assert.match(tournamentEntry, /detail: \{ mode: 'login', next: MOBILE_TOURNAMENT_ROUTE \}/);
+  assert.match(tournamentEntry, /router\.push\(MOBILE_TOURNAMENT_ROUTE\)/);
+  assert.match(tournamentEntry, /event\.key !== 'Enter' && event\.key !== ' '/);
+});
+
+test('mobile tournament page matches the source shell and empty states', () => {
+  assert.match(tournamentRoute, /data-mobile-member-page="tournament"/);
+  assert.match(tournamentRoute, /<h1>ทัวร์นาเมนต์<\/h1>/);
+  assert.match(tournamentRoute, /ทัวร์นาเมนต์ขณะนี้/);
+  assert.match(tournamentRoute, /ทัวร์นาเมนต์ที่จบลงแล้ว/);
+  assert.match(tournamentRoute, /ยังไม่มีรายการทัวร์นาเมนต์ในขณะนี้/);
+  assert.match(tournamentRoute, /memberApiFetch\('\/games\/tournaments'/);
+  assert.match(tournamentRoute, /detail: \{ mode: 'login', next: MOBILE_TOURNAMENT_ROUTE \}/);
+  assert.match(tournamentStyles, /max-width: 428px/);
+  assert.match(tournamentStyles, /height: 50px/);
+  assert.match(tournamentStyles, /#944fe8/);
+  assert.match(tournamentStyles, /#7600a8/);
 });
 
 test('promotion page keeps the source category and card contract', () => {
