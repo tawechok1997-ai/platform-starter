@@ -1,3 +1,5 @@
+@import './member-mobile-popup-backdrop-standard.css';
+
 :root {
   --member-font-sans: 'Noto Sans Thai', 'Noto Sans', sans-serif;
   --font-family-sans: var(--member-font-sans);
