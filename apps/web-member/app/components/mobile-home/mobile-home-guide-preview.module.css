@@ -1,0 +1,207 @@
+.preview {
+  width: 100%;
+  padding: 0 12px 16px;
+  color: #fff;
+  background: #181523;
+}
+
+.titleBar {
+  position: relative;
+  display: flex;
+  width: 100%;
+  height: 27px;
+  align-items: center;
+  gap: 8px;
+  overflow: hidden;
+  padding: 0 12px;
+  border-radius: 4px;
+  isolation: isolate;
+}
+
+.titleBar::before,
+.titleBar::after {
+  position: absolute;
+  left: 0;
+  z-index: -1;
+  width: 100%;
+  content: '';
+  opacity: .44;
+  background: linear-gradient(90deg, rgb(24 21 35 / 60%) -6.21%, #bb5bea 4.41%, rgb(24 21 35 / 60%) 83.01%);
+}
+
+.titleBar::before {
+  inset-block: 0;
+}
+
+.titleBar::after {
+  bottom: 0;
+  height: 1px;
+}
+
+.titleBar img {
+  width: 26px;
+  height: 26px;
+  object-fit: contain;
+}
+
+.titleBar h2 {
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 20px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.list {
+  width: 100%;
+  padding: 4px 0 16px;
+}
+
+.item {
+  width: 100%;
+  margin-top: 12px;
+}
+
+.trigger {
+  display: flex;
+  width: 100%;
+  min-height: 36px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 10px 8px 14px;
+  border: 1px solid #4f495d;
+  border-radius: 4px;
+  color: #fff;
+  background: #373147;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 18px;
+  text-align: left;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.item[data-expanded='true'] .trigger {
+  border-radius: 4px 4px 0 0;
+}
+
+.trigger > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.chevron,
+.chevronOpen {
+  width: 20px;
+  height: 20px;
+  flex: 0 0 20px;
+  fill: currentColor;
+  transition: transform 180ms ease;
+}
+
+.chevron {
+  transform: rotate(180deg);
+}
+
+.chevronOpen {
+  transform: rotate(0deg);
+}
+
+.panel {
+  width: 100%;
+  max-height: min(62dvh, 620px);
+  padding: 14px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  border: 1px solid #4f495d;
+  border-top: 0;
+  border-radius: 0 0 4px 4px;
+  color: #fff;
+  background: #211d31;
+  font-size: 13px;
+  line-height: 1.55;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  -webkit-overflow-scrolling: touch;
+}
+
+.copy {
+  overflow-wrap: anywhere;
+}
+
+.copy + .copy,
+.image + .copy,
+.copy + .image,
+.image + .image {
+  margin-top: 12px;
+}
+
+.copy :is(p, ul, ol) {
+  margin: 0;
+  padding-left: 0;
+}
+
+.copy :is(ul, ol) {
+  padding-left: 18px;
+}
+
+.copy span + span {
+  margin-left: 4px;
+}
+
+.image {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 4px;
+  object-fit: contain;
+}
+
+.moreRow {
+  display: flex;
+  justify-content: center;
+}
+
+.moreRow a {
+  display: inline-flex;
+  width: 112px;
+  height: 32px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #bb5bea;
+  border-radius: 8px;
+  color: #bb5bea;
+  background: transparent;
+  box-shadow: 0 0 7px #7400b0;
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+@media (max-width: 359px) {
+  .preview {
+    padding-inline: 8px;
+  }
+
+  .trigger {
+    padding-inline: 10px 8px;
+    font-size: 11px;
+  }
+
+  .panel {
+    padding: 10px;
+    font-size: 12px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chevron,
+  .chevronOpen {
+    transition: none;
+  }
+}
