@@ -5,10 +5,14 @@ on:
     branches: [main]
   pull_request:
 
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 40
     services:
       postgres:
         image: postgres:16
@@ -71,6 +75,36 @@ jobs:
 
       - name: Audit authenticated Admin UI workflow
         run: node --test tools/admin-authenticated-ui-workflow.test.mjs
+
+      - name: Audit shared API client usage
+        run: pnpm audit:shared-api-client
+
+      - name: Test shared API client contracts
+        run: pnpm --filter @platform/api-client test
+
+      - name: Build shared API client
+        run: pnpm --filter @platform/api-client build
+
+      - name: Audit finance workflow safety
+        run: pnpm audit:finance-workflows
+
+      - name: Audit admin token storage
+        run: pnpm audit:admin-token-storage
+
+      - name: Audit Admin UI XSS boundaries
+        run: pnpm audit:admin-xss
+
+      - name: Test stable API error contracts
+        run: pnpm --filter @platform/api exec jest error-code-resolver.spec.ts --runInBand
+
+      - name: Test provider readiness contracts
+        run: pnpm --filter @platform/api exec jest provider-readiness.spec.ts --runInBand
+
+      - name: Audit P4 closure
+        run: pnpm audit:p4-closure
+
+      - name: Audit cleanup inventory
+        run: pnpm audit:r14-cleanup-inventory
 
       - name: Audit architecture inventory
         run: pnpm audit:architecture-inventory
