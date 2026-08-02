@@ -4,6 +4,7 @@ import { PermissionsGuard } from '../../common/guards/permissions.guard';
 import { RequirePermission } from '../../common/decorators/require-permission.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { AdminRequestContext, AuthenticatedAdminActor } from '../../common/actors';
+import { validateActivitySettingsUpdate } from './activity-settings.validation';
 import { validateIconSettingsUpdate } from './icon-settings.validation';
 import { SettingsService } from './settings.service';
 
@@ -95,7 +96,9 @@ export class SettingsController {
   @UseGuards(AdminAuthGuard, PermissionsGuard) @RequirePermission('settings.features.view') @Get('admin/settings/features')
   getFeatures() { return this.settingsService.getAdminGroup('features'); }
   @UseGuards(AdminAuthGuard, PermissionsGuard) @RequirePermission('settings.features.update') @Put('admin/settings/features')
-  updateFeatures(@Body() body: SettingsUpdateRequest, @CurrentUser() user: AuthenticatedAdminActor, @Req() req: AdminRequestContext) { return this.update('features', body, user, req); }
+  updateFeatures(@Body() body: SettingsUpdateRequest, @CurrentUser() user: AuthenticatedAdminActor, @Req() req: AdminRequestContext) {
+    return this.update('features', validateActivitySettingsUpdate(body), user, req);
+  }
 
   @UseGuards(AdminAuthGuard, PermissionsGuard) @RequirePermission('settings.legal.view') @Get('admin/settings/legal')
   getLegal() { return this.settingsService.getAdminGroup('legal'); }
