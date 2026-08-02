@@ -16,9 +16,8 @@ test('mobile category rail has one owner and reads central navigation', () => {
 
 test('mobile category rail keeps the supplied order and labels', () => {
   assert.match(root, /'home',[\s\S]*'casino',[\s\S]*'slot',[\s\S]*'fishing',[\s\S]*'sport',[\s\S]*'card',[\s\S]*'lottery'/);
-  for (const label of ['หน้าแรก', 'คาสิโน', 'สล็อต', 'เริ่มเกมยิงปลา', 'กีฬา', 'ไพ่', 'หวย']) {
-    const accepted = label === 'เริ่มเกมยิงปลา' ? /ยิงปลา/ : new RegExp(label);
-    assert.match(root, accepted);
+  for (const label of ['หน้าแรก', 'คาสิโน', 'สล็อต', 'ยิงปลา', 'กีฬา', 'ไพ่', 'หวย']) {
+    assert.match(root, new RegExp(label));
   }
 });
 
