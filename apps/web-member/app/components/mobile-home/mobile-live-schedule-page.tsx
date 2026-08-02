@@ -1,6 +1,12 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import {
+  LIVE_ROUTE,
+  LIVE_SERVICE_COPY,
+  LIVE_SERVICE_STATUS,
+} from '../../lib/live-service-status';
+import { useMemberLocale } from '../../member-locale-provider';
 import { groupLiveMatches, loadCentralLiveMatches, type LiveMatch } from './live-match-data';
 import styles from './mobile-live-schedule-page.module.css';
 
@@ -10,13 +16,23 @@ type SortMode = 'league' | 'time';
 const TIMEZONE = 'Asia/Bangkok';
 
 export default function MobileLiveSchedulePage({ onBack }: Props) {
+  const { locale } = useMemberLocale();
+  const copy = LIVE_SERVICE_COPY[locale];
+  const maintenance = LIVE_SERVICE_STATUS.mode === 'maintenance';
   const [matches, setMatches] = useState<LiveMatch[]>([]);
   const [sortMode, setSortMode] = useState<SortMode>('league');
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!maintenance);
   const [error, setError] = useState('');
   const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
+    if (maintenance) {
+      setMatches([]);
+      setLoading(false);
+      setError('');
+      return undefined;
+    }
+
     const controller = new AbortController();
     setLoading(true);
     setError('');
@@ -33,7 +49,7 @@ export default function MobileLiveSchedulePage({ onBack }: Props) {
       });
 
     return () => controller.abort();
-  }, [refreshKey]);
+  }, [maintenance, refreshKey]);
 
   const orderedMatches = useMemo(() => {
     const next = [...matches];
@@ -47,58 +63,76 @@ export default function MobileLiveSchedulePage({ onBack }: Props) {
   const groups = useMemo(() => groupLiveMatches(orderedMatches), [orderedMatches]);
 
   return (
-    <main className={styles.page} data-mobile-live-page="true">
+    <main
+      className={styles.page}
+      data-mobile-live-page="true"
+      data-live-service-status={LIVE_SERVICE_STATUS.mode}
+    >
       <header className={styles.header}>
         <button type="button" aria-label="ย้อนกลับ" onClick={onBack}><BackIcon /></button>
-        <h1>ตารางถ่ายทอดสด</h1>
+        <h1>{copy.scheduleTitle}</h1>
       </header>
 
       <div className={styles.sportTabs}>
-        <span aria-current="page">ฟุตบอล</span>
+        <span aria-current="page">{copy.football}</span>
       </div>
 
       <section className={styles.content}>
-        <div className={styles.toolbar}>
-          <h2>ฟุตบอล</h2>
-          <div className={styles.sort} aria-label="เรียงรายการถ่ายทอดสด">
-            <button type="button" className={sortMode === 'time' ? styles.active : ''} onClick={() => setSortMode('time')}>เรียงเวลา</button>
-            <button type="button" className={sortMode === 'league' ? styles.active : ''} onClick={() => setSortMode('league')}>เรียงลีก</button>
+        {maintenance ? (
+          <div className={styles.state} role="status" aria-live="polite">
+            <strong>{copy.badge}</strong>
+            <span>{copy.description}</span>
+            <span>{copy.tableDescription}</span>
+            <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 8 }}>
+              <button type="button" onClick={() => window.location.assign(LIVE_ROUTE)}>{copy.details}</button>
+              <button type="button" onClick={() => window.location.assign('/')}>{copy.home}</button>
+            </div>
           </div>
-        </div>
+        ) : (
+          <>
+            <div className={styles.toolbar}>
+              <h2>{copy.football}</h2>
+              <div className={styles.sort} aria-label="เรียงรายการถ่ายทอดสด">
+                <button type="button" className={sortMode === 'time' ? styles.active : ''} onClick={() => setSortMode('time')}>เรียงเวลา</button>
+                <button type="button" className={sortMode === 'league' ? styles.active : ''} onClick={() => setSortMode('league')}>เรียงลีก</button>
+              </div>
+            </div>
 
-        {loading ? <LiveScheduleSkeleton /> : null}
+            {loading ? <LiveScheduleSkeleton /> : null}
 
-        {!loading && error ? (
-          <div className={styles.state} role="alert">
-            <strong>โหลดรายการถ่ายทอดสดไม่สำเร็จ</strong>
-            <span>{error}</span>
-            <button type="button" onClick={() => setRefreshKey((value) => value + 1)}>ลองใหม่</button>
-          </div>
-        ) : null}
+            {!loading && error ? (
+              <div className={styles.state} role="alert">
+                <strong>โหลดรายการถ่ายทอดสดไม่สำเร็จ</strong>
+                <span>{error}</span>
+                <button type="button" onClick={() => setRefreshKey((value) => value + 1)}>ลองใหม่</button>
+              </div>
+            ) : null}
 
-        {!loading && !error && groups.length === 0 ? (
-          <div className={styles.state}>
-            <strong>ยังไม่พบรายการถ่ายทอดสด</strong>
-            <span>โซนเวลา: ไทย (GMT+7)</span>
-            <button type="button" onClick={() => setRefreshKey((value) => value + 1)}>ส่งใหม่</button>
-          </div>
-        ) : null}
+            {!loading && !error && groups.length === 0 ? (
+              <div className={styles.state}>
+                <strong>ยังไม่พบรายการถ่ายทอดสด</strong>
+                <span>โซนเวลา: ไทย (GMT+7)</span>
+                <button type="button" onClick={() => setRefreshKey((value) => value + 1)}>โหลดใหม่</button>
+              </div>
+            ) : null}
 
-        {!loading && !error && groups.length > 0 ? (
-          <div className={styles.leagueList}>
-            {groups.map((group) => (
-              <section className={styles.league} key={`${group.league}-${group.date}`}>
-                <header>
-                  <strong>{group.league}</strong>
-                  <time>{group.date}</time>
-                </header>
-                <div>
-                  {group.matches.map((match) => <MatchRow key={match.id} match={match} />)}
-                </div>
-              </section>
-            ))}
-          </div>
-        ) : null}
+            {!loading && !error && groups.length > 0 ? (
+              <div className={styles.leagueList}>
+                {groups.map((group) => (
+                  <section className={styles.league} key={`${group.league}-${group.date}`}>
+                    <header>
+                      <strong>{group.league}</strong>
+                      <time>{group.date}</time>
+                    </header>
+                    <div>
+                      {group.matches.map((match) => <MatchRow key={match.id} match={match} />)}
+                    </div>
+                  </section>
+                ))}
+              </div>
+            ) : null}
+          </>
+        )}
       </section>
     </main>
   );

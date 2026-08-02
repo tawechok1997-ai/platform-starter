@@ -1,0 +1,7 @@
+/* Remove the redundant API empty/error panel below source provider artwork. */
+@media (max-width: 900px) {
+  [data-mobile-home-root='true']
+    [data-mobile-section-owner='category-content']:has(> [role='status']) {
+    display: none !important;
+  }
+}

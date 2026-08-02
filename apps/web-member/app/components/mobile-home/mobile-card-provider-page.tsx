@@ -29,7 +29,6 @@ export default function MobileCardProviderPage() {
       catalogPlatform="mobile"
       providerAssetPlatform="mobile"
       gameAssetPlatform="pc"
-      includeCatalogProviders
     />
   );
 }

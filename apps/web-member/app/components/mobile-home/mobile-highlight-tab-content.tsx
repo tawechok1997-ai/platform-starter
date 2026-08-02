@@ -2,11 +2,17 @@
 
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
-import { resolveLocalAssetOrSource } from '../../lib/local-asset-by-basename';
 import { memberApiFetch } from '../../member-api';
 import { useMemberLocale } from '../../member-locale-provider';
 import { useMemberRuntime } from '../../member-runtime-provider';
+import { resolveLocalAssetOrSource } from '../../lib/local-asset-by-basename';
+import MobileCardProviderPage from './mobile-card-provider-page';
+import MobileCasinoProviderPage from './mobile-casino-provider-page';
+import MobileFishingProviderPage from './mobile-fishing-provider-page';
+import MobileLotteryProviderPage from './mobile-lottery-provider-page';
+import MobileSlotProviderPage from './mobile-slot-provider-page';
 import MobileSourceContent from './mobile-source-content';
+import MobileSportProviderPage from './mobile-sport-provider-page';
 import styles from './mobile-highlight-tab-content.module.css';
 
 export type MobileHighlightTab = 'highlights' | 'promotions' | 'activities' | 'news';
@@ -155,10 +161,33 @@ export default function MobileHighlightTabContent({ activeTab }: MobileHighlight
   const news = useMemo(() => home.news.map(runtimeItem), [home.news]);
   const copy = COPY[locale];
 
-  // A game category adds its provider icon grid above this shared content.
-  // It must not replace the tournament, jackpot, leaderboard and other lower
-  // sections. This remains one shared feed for every category.
-  if (activeCategory !== 'home') return <MobileSourceContent />;
+  if (activeCategory === 'casino') {
+    return <MobileCasinoProviderPage />;
+  }
+
+  if (activeCategory === 'slot') {
+    return <MobileSlotProviderPage />;
+  }
+
+  if (activeCategory === 'fishing') {
+    return <MobileFishingProviderPage />;
+  }
+
+  if (activeCategory === 'sport') {
+    return <MobileSportProviderPage />;
+  }
+
+  if (activeCategory === 'card') {
+    return <MobileCardProviderPage />;
+  }
+
+  if (activeCategory === 'lottery') {
+    return <MobileLotteryProviderPage />;
+  }
+
+  if (activeCategory !== 'home') {
+    return <MobileSourceContent />;
+  }
 
   if (activeTab === 'promotions') {
     return (

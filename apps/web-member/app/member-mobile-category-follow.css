@@ -3,15 +3,16 @@
 @import './member-home-section-icons.css';
 
 /* Mobile category rail contract:
- * - the rail always remains in its grid column
- * - JavaScript moves it with a scale-aware translate offset
- * - the offset is clamped to the category content boundary
- * Keeping the rail in-flow avoids fixed-position regressions inside the scaled shell.
+ * - the document owns vertical scrolling
+ * - the browser owns sticky positioning below the 60px header
+ * - no nested scroller or per-frame translated follower is allowed
  */
 @media (max-width: 900px) {
   html[data-member-viewport-mode='mobile'],
   html[data-member-viewport-mode='mobile'] body {
     overflow-x: clip !important;
+    overscroll-behavior-y: auto !important;
+    touch-action: pan-x pan-y !important;
   }
 
   html[data-member-viewport-mode='mobile'] #member-desktop-scale-shell,
@@ -23,6 +24,7 @@
     overflow-x: clip !important;
     overflow-y: visible !important;
     contain: none !important;
+    transform: none !important;
   }
 
   html[data-member-viewport-mode='mobile'] [data-mobile-home-root='true'] *:has(> [data-mobile-section-owner='category-menu']) {
@@ -31,8 +33,9 @@
   }
 
   html[data-member-viewport-mode='mobile'] [data-mobile-section-owner='category-menu'] {
-    position: relative !important;
-    top: 0 !important;
+    position: -webkit-sticky !important;
+    position: sticky !important;
+    top: 60px !important;
     right: auto !important;
     bottom: auto !important;
     left: 0 !important;
@@ -43,6 +46,9 @@
     overflow: visible !important;
     overscroll-behavior: auto !important;
     scrollbar-width: auto !important;
+    transform: none !important;
+    will-change: auto !important;
+    touch-action: pan-y !important;
     -webkit-overflow-scrolling: auto;
   }
 }

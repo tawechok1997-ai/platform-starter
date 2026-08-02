@@ -128,7 +128,7 @@ export default function MobileProviderLauncherPage({
                     image.src = provider.source;
                     return;
                   }
-                  image.hidden = true;
+                  hideProviderCard(image);
                 }}
               />
             </a>
@@ -137,6 +137,16 @@ export default function MobileProviderLauncherPage({
       </div>
     </section>
   );
+}
+
+function hideProviderCard(image: HTMLImageElement) {
+  const card = image.closest<HTMLElement>('[data-provider-launch="true"]');
+  if (!card) {
+    image.hidden = true;
+    return;
+  }
+  card.hidden = true;
+  card.setAttribute('aria-hidden', 'true');
 }
 
 function NewBadge({ label }: { label: string }) {
