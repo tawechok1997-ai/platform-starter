@@ -15,26 +15,13 @@ export default function MobileCategoryRailFollowRuntime() {
 
     let animationFrame = 0;
 
-    const resetRail = () => {
-      rail.style.setProperty('--mobile-category-rail-offset', '0px');
-      rail.dataset.mobileCategoryFollow = 'start';
-    };
-
     const syncRail = () => {
       animationFrame = 0;
 
-      const category = root.dataset.mobileActiveCategory;
-      if (!category || category === 'home') {
-        resetRail();
-        return;
-      }
-
-      const rootRect = root.getBoundingClientRect();
       const contentRect = content.getBoundingClientRect();
-      const contentTop = contentRect.top - rootRect.top + root.scrollTop;
       const contentHeight = Math.max(content.offsetHeight, content.scrollHeight);
       const maxOffset = Math.max(0, contentHeight - rail.offsetHeight);
-      const requestedOffset = root.scrollTop + MOBILE_HEADER_HEIGHT - contentTop;
+      const requestedOffset = MOBILE_HEADER_HEIGHT - contentRect.top;
       const offset = Math.min(Math.max(0, requestedOffset), maxOffset);
 
       rail.style.setProperty('--mobile-category-rail-offset', `${Math.round(offset)}px`);
