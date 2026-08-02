@@ -7,7 +7,7 @@ const mobileRoot = readFileSync(new URL('./mobile-home-root.tsx', import.meta.ur
 const categoryRuntime = readFileSync(new URL('./mobile-category-tab-runtime.tsx', import.meta.url), 'utf8');
 const categoryStyles = readFileSync(new URL('./mobile-category-tab-runtime.module.css', import.meta.url), 'utf8');
 
-test('mobile category menu switches content without navigating to another page', () => {
+test('mobile category menu switches content in place', () => {
   assert.equal((memberHome.match(/<MobileCategoryTabRuntime\s*\/>/g) ?? []).length, 1);
   assert.match(categoryRuntime, /event\.preventDefault\(\)/);
   assert.match(categoryRuntime, /event\.stopPropagation\(\)/);
@@ -15,35 +15,33 @@ test('mobile category menu switches content without navigating to another page',
   assert.doesNotMatch(categoryRuntime, /window\.location|router\.push|router\.replace/);
 });
 
-test('category content is mounted only into the existing after-highlight slot', () => {
+test('category content mounts into the existing after-highlight slot', () => {
   assert.equal((mobileRoot.match(/data-mobile-content-slot="after-highlight"/g) ?? []).length, 1);
   assert.match(categoryRuntime, /querySelector<HTMLElement>\('\[data-mobile-content-slot="after-highlight"\]'\)/);
   assert.match(categoryRuntime, /createPortal\(/);
   assert.equal((categoryRuntime.match(/data-mobile-section-owner="category-content"/g) ?? []).length, 1);
 });
 
-test('category switching never owns or replaces shortcut and footer structures', () => {
+test('non-home categories replace the home bottom structure and restore it on cleanup', () => {
   assert.equal((mobileRoot.match(/data-mobile-bottom-owner="true"/g) ?? []).length, 1);
-  assert.equal((mobileRoot.match(/data-mobile-section-owner="shortcut"/g) ?? []).length, 1);
-  assert.equal((mobileRoot.match(/data-mobile-section-owner="footer"/g) ?? []).length, 1);
-  assert.doesNotMatch(categoryRuntime, /bottomStructure|data-mobile-bottom-owner|mobileFooter|<footer/);
-  assert.doesNotMatch(categoryStyles, /bottomStructure|data-mobile-bottom-owner|mobileFooter|footer/);
+  assert.match(categoryRuntime, /bottomStructure\.hidden = activeCategory !== 'home'/);
+  assert.match(categoryRuntime, /bottomStructure\.setAttribute\('aria-hidden', 'true'\)/);
+  assert.match(categoryRuntime, /bottomStructure\.style\.setProperty\('display', 'none', 'important'\)/);
+  assert.match(categoryRuntime, /bottomStructure\.hidden = false/);
+  assert.match(categoryRuntime, /bottomStructure\.removeAttribute\('aria-hidden'\)/);
 });
 
-test('every non-home category reads central catalog data and has no static game records', () => {
-  assert.match(categoryRuntime, /memberApiFetch\(`\/games\/catalog\?\$\{params\.toString\(\)\}`/);
+test('every non-home category reads the central mobile catalog and resolves provider covers locally first', () => {
+  assert.match(categoryRuntime, /const API_CATEGORIES/);
   assert.match(categoryRuntime, /platform:\s*'mobile'/);
-  assert.match(categoryRuntime, /casino:\s*\['casino'\]/);
-  assert.match(categoryRuntime, /slot:\s*\['slot'\]/);
-  assert.match(categoryRuntime, /fishing:\s*\['fishing'\]/);
-  assert.match(categoryRuntime, /sport:\s*\['sport',\s*'sports'\]/);
-  assert.match(categoryRuntime, /card:\s*\['card'\]/);
-  assert.match(categoryRuntime, /lottery:\s*\['lottery'\]/);
+  assert.match(categoryRuntime, /memberApiFetch\(`\/games\/catalog\?\$\{params\.toString\(\)\}`/);
+  assert.match(categoryRuntime, /skipAuth:\s*true/);
+  assert.match(categoryRuntime, /resolveMobileProviderCover\(category, provider\.code\)/);
+  assert.match(categoryRuntime, /resolveLocalAssetByBasename\(cover\.sourceUrl, 'pc'\)/);
+  assert.match(categoryRuntime, /data-category-flow="provider-only"/);
+  assert.match(categoryRuntime, /data-provider-launch="true"/);
+  assert.match(categoryRuntime, /platform=mobile/);
   assert.doesNotMatch(categoryRuntime, /FALLBACK_|LIVE_MATCHES|GUIDES/);
-});
-
-test('home content is hidden only while a non-home category is active', () => {
-  assert.match(categoryStyles, /data-mobile-active-category/);
-  assert.match(categoryStyles, /:not\(\[data-mobile-active-category='home'\]\)/);
-  assert.match(categoryStyles, /data-mobile-section-owner='source-content'/);
+  assert.match(categoryStyles, /\.providerCoverGrid/);
+  assert.match(categoryStyles, /\.providerCoverMedia/);
 });

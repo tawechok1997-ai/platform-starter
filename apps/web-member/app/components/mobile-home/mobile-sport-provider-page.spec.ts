@@ -8,14 +8,12 @@ const owner = readFileSync(new URL('./mobile-highlight-tab-content.tsx', import.
 
 test('sport source page keeps the supplied five-provider order', () => {
   const providers = ['sbo', 'lali', 'bcs', 'muay', 'saba'];
-
   let previous = -1;
   for (const provider of providers) {
     const current = page.indexOf(`code: '${provider}'`);
     assert.ok(current > previous, `${provider} must keep the source order`);
     previous = current;
   }
-
   assert.match(page, /1_1_h\/sbo\.png/);
   assert.match(page, /1_1_l\/lali\.png/);
   assert.match(page, /code: 'bcs'[\s\S]*isNew: true/);
@@ -23,11 +21,14 @@ test('sport source page keeps the supplied five-provider order', () => {
   assert.match(page, /code: 'saba'[\s\S]*layout: 'half'/);
 });
 
-test('sport uses provider launch mode without game-level identifiers', () => {
+test('sport uses provider-only mobile launch destinations', () => {
   assert.match(page, /category="sport"/);
   assert.match(page, /title=\{\{ th: 'กีฬา', en: 'Sports' \}\}/);
-  assert.match(shared, /data-category-launch-mode="provider"/);
+  assert.match(shared, /data-category-launch-mode="provider-only"/);
   assert.match(shared, /data-provider-launch="true"/);
+  assert.match(shared, /data-provider-code=\{provider\.code\}/);
+  assert.match(shared, /\/browse\/games\?category=/);
+  assert.match(shared, /platform=mobile/);
   assert.doesNotMatch(shared, /data-game-id=/);
 });
 

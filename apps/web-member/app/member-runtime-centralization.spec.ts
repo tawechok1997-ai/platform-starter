@@ -12,7 +12,8 @@ const navigationSource = readFileSync(new URL('./member-navigation-runtime.ts', 
 const navigationStateSource = readFileSync(new URL('./components/member-navigation-state-controller.tsx', import.meta.url), 'utf8');
 const navigationAuthSource = readFileSync(new URL('./components/member-navigation-auth-controller.tsx', import.meta.url), 'utf8');
 const homeDataSource = readFileSync(new URL('./member-home-data-runtime.ts', import.meta.url), 'utf8');
-const mobileHeaderSource = readFileSync(new URL('./components/public-mobile-source-header.tsx', import.meta.url), 'utf8');
+const mobileHomeSource = readFileSync(new URL('./components/mobile-home/mobile-home-root.tsx', import.meta.url), 'utf8');
+const mobileAuthenticatedSource = readFileSync(new URL('./components/mobile-home/mobile-authenticated-home-runtime.tsx', import.meta.url), 'utf8');
 
 test('provider exposes one runtime for settings, session, navigation and home data', () => {
   assert.match(providerSource, /useSiteSettings\(\)/);
@@ -29,12 +30,12 @@ test('desktop and mobile home consume one structured runtime controller', () => 
   assert.match(controllerSource, /runtime\.homeData\.tournaments/);
   assert.match(controllerSource, /runtime\.homeData\.leaderboard/);
   assert.match(controllerSource, /runtime\.homeData\.miniGames/);
-  assert.match(controllerSource, /\.source-tournament__slide/);
-  assert.match(controllerSource, /\.v47-mobile-rank-panel/);
-  assert.match(controllerSource, /\.reference-leaderboard/);
-  assert.match(controllerSource, /\.v47-mobile-board-row/);
   assert.match(controllerSource, /runtimeSource = 'desktop-primary'/);
   assert.doesNotMatch(controllerSource, /features\.tournament && runtime\.features\.activity/);
+  assert.match(mobileHomeSource, /useMemberRuntime\(\)/);
+  assert.match(mobileHomeSource, /const \{ navigation \} = useMemberRuntime\(\)/);
+  assert.match(mobileHomeSource, /navigation\.find\(\(candidate\) => candidate\.id === id && candidate\.mobile\)/);
+  assert.equal((mobileHomeSource.match(/function MobileAuthActions\(/g) ?? []).length, 1);
 });
 
 test('game sections enforce shared desktop and mobile limits', () => {
@@ -44,14 +45,15 @@ test('game sections enforce shared desktop and mobile limits', () => {
   assert.match(gameSectionSource, /runtimeLimitHidden/);
 });
 
-test('shell navigation and member summary are runtime owned', () => {
+test('shell and authenticated mobile surfaces consume runtime-owned summary data', () => {
   assert.match(shellSource, /useMemberRuntime\(\)/);
   assert.match(shellSource, /runtime\.navigation/);
   assert.match(shellSource, /runtime\.summary\.pendingCount/);
   assert.match(shellSource, /runtime\.summary\.walletAvailable/);
-  assert.match(mobileHeaderSource, /runtime\.navigation\.filter/);
-  assert.match(mobileHeaderSource, /runtime\.summary\.displayName/);
-  assert.match(mobileHeaderSource, /MemberDrawer/);
+  assert.match(mobileAuthenticatedSource, /useMemberRuntime\(\)/);
+  assert.match(mobileAuthenticatedSource, /summary\.displayName \|\| summary\.username/);
+  assert.match(mobileAuthenticatedSource, /summary\.walletAvailable/);
+  assert.match(mobileAuthenticatedSource, /summary\.vipLevel/);
 });
 
 test('shared overlay system covers modal sheet and drawer accessibility', () => {
@@ -72,19 +74,22 @@ test('configured navigation handles locale visibility order feature and auth con
   assert.match(navigationStateSource, /isMemberNavigationActive/);
   assert.match(navigationStateSource, /aria-current/);
   assert.match(navigationAuthSource, /requiresAuth/);
-  assert.match(navigationAuthSource, /auth=login&next=/);
+  assert.match(navigationAuthSource, /url\.searchParams\.set\('auth', mode\)/);
+  assert.match(navigationAuthSource, /safeNextTarget\(next\)/);
+  assert.match(navigationAuthSource, /url\.searchParams\.set\('next', safeNext\)/);
+  assert.match(navigationAuthSource, /router\.replace\(`\$\{url\.pathname\}\$\{url\.search\}\$\{url\.hash\}`/);
 });
 
-test('home data has one parser and production-safe demo fallback for all viewports', () => {
+test('home data has one parser and fails empty instead of inventing production records', () => {
   assert.match(homeDataSource, /tournament_items_json/);
   assert.match(homeDataSource, /leaderboard_items_json/);
   assert.match(homeDataSource, /mini_games_json/);
   assert.match(homeDataSource, /normalizeTournaments/);
   assert.match(homeDataSource, /normalizeLeaderboard/);
   assert.match(homeDataSource, /normalizeMiniGames/);
-  assert.match(homeDataSource, /DESKTOP_TOURNAMENT_MOCKS/);
-  assert.match(homeDataSource, /DEMO_TOURNAMENT_DATA_ENABLED/);
-  assert.match(homeDataSource, /NEXT_PUBLIC_ENABLE_DEMO_TOURNAMENT_DATA/);
-  assert.match(homeDataSource, /emptyPlayers/);
-  assert.match(homeDataSource, /Demo defaults are available only outside production unless explicitly enabled/);
+  assert.match(homeDataSource, /function firstStructured/);
+  assert.match(homeDataSource, /Invalid CMS JSON is ignored/);
+  assert.equal((homeDataSource.match(/if \(!Array\.isArray\(value\)\) return \[\];/g) ?? []).length, 2);
+  assert.match(homeDataSource, /return fallback/);
+  assert.doesNotMatch(homeDataSource, /DESKTOP_TOURNAMENT_MOCKS|DEMO_TOURNAMENT_DATA_ENABLED|NEXT_PUBLIC_ENABLE_DEMO_TOURNAMENT_DATA/);
 });

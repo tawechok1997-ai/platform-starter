@@ -16,20 +16,22 @@ const desktopJackpot = readFileSync(new URL('../member-home/desktop-jackpot-card
 
 test('mobile home and category catalogs request mobile records only', () => {
   assert.match(sourceRuntime, /getMemberGameCatalog\('mobile'\)/);
-  assert.match(categoryRuntime, /platform:\s*'mobile'/);
   assert.doesNotMatch(sourceRuntime, /getMemberGameCatalog\('pc'\)/);
+  assert.match(categoryRuntime, /platform:\s*'mobile'/);
+  assert.match(categoryRuntime, /memberApiFetch\(`\/games\/catalog\?\$\{params\.toString\(\)\}`/);
   assert.doesNotMatch(categoryRuntime, /platform:\s*'pc'/);
   assert.match(catalog, /Promise\.allSettled/);
   assert.match(catalog, /DEFAULT_CATEGORIES/);
 });
 
-test('mobile game cards delegate guest login and member launch to the canonical controller', () => {
-  for (const source of [sourceContent, categoryRuntime]) {
-    assert.match(source, /data-game-id/);
-    assert.match(source, /data-game-code/);
-    assert.match(source, /data-provider-code/);
-    assert.match(source, /data-game-category/);
+test('mobile game and provider cards expose the identifiers required by their launch level', () => {
+  for (const token of ['data-game-id', 'data-game-code', 'data-provider-code', 'data-game-category']) {
+    assert.match(sourceContent, new RegExp(token));
   }
+  assert.match(categoryRuntime, /data-provider-launch="true"/);
+  assert.match(categoryRuntime, /data-provider-code=\{provider\.code\}/);
+  assert.match(categoryRuntime, /data-provider-category=\{category\}/);
+  assert.doesNotMatch(categoryRuntime, /data-game-id=/);
   assert.match(gameController, /openMemberProviderGame/);
   assert.match(gameController, /currentUrl\.searchParams\.set\('auth', 'login'\)/);
 });

@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import MobileMemberPromotionsPage from '../../../components/mobile-home/mobile-member-promotions-page';
 import { SOURCE_PROMOTION_PAYLOAD } from '../../../components/mobile-home/mobile-member-promotion-source';
-import { API_URL } from '../../../site-settings';
+import { requestJson } from '../../../member-api';
 
 type UnknownRecord = Record<string, unknown>;
 
@@ -19,13 +19,11 @@ export default function MobilePromotionsRoute() {
     setLoading(true);
     setError('');
 
-    fetch(`${API_URL}/public/site-settings`, {
+    requestJson<unknown>('/public/site-settings', {
       cache: 'no-store',
-      headers: { accept: 'application/json' },
       signal: controller.signal,
-    }).then(async (response) => {
-      const data = await response.json().catch(() => null);
-      if (!response.ok) throw new Error(typeof data?.message === 'string' ? data.message : 'โหลดโปรโมชั่นไม่สำเร็จ');
+      skipAuth: true,
+    }).then((data) => {
       setPayload(hasPromotionCampaigns(data) ? data : SOURCE_PROMOTION_PAYLOAD);
     }).catch((reason) => {
       if (controller.signal.aborted) return;
