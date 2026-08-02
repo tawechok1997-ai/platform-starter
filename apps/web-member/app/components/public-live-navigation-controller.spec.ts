@@ -10,7 +10,7 @@ test('desktop live actions always navigate to the live page', () => {
   assert.match(controller, /const LIVE_ROUTE = '\/live'/);
   assert.match(controller, /\.source-live-card__watch/);
   assert.match(controller, /\.source-live-card__bet/);
-  assert.match(controller, /a\[href="\/#live"\]/);
+  assert.match(controller, /a\[href="?\/#live"?\]/);
   assert.match(controller, /router\.push\(LIVE_ROUTE\)/);
   assert.doesNotMatch(controller, /category=sport/);
   assert.doesNotMatch(controller, /SPORT_ROUTE/);
