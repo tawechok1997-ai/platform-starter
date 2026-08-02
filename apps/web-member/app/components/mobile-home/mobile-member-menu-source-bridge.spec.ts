@@ -44,9 +44,11 @@ test('bottom navigation is limited to the mobile home surface', () => {
   assert.match(bridge, /padding-bottom: 0 !important/);
 });
 
-test('header and popup menu actions reuse the member drawer action source', () => {
-  assert.match(bridge, /button\[aria-label="เปิดเมนูสมาชิก"\]/);
-  assert.match(bridge, /detail: \{ kind: 'menu' \}/);
+test('hamburger keeps the native drawer while popup items reuse drawer actions', () => {
+  assert.doesNotMatch(bridge, /button\[aria-label="เปิดเมนูสมาชิก"\]/);
+  assert.doesNotMatch(bridge, /button\[aria-label="Open member menu"\]/);
+  assert.doesNotMatch(bridge, /member:mobile-popup-open/);
+  assert.doesNotMatch(bridge, /detail: \{ kind: 'menu' \}/);
   assert.match(bridge, /findMemberDrawerAction/);
   assert.match(bridge, /#mobile-home-drawer nav a, #mobile-home-drawer nav button/);
   assert.match(bridge, /queueMicrotask\(\(\) => drawerAction\.click\(\)\)/);
