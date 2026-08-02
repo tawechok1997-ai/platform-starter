@@ -90,6 +90,18 @@
     text-align: center !important;
     white-space: nowrap !important;
   }
+
+  /* The bottom navigation belongs to the Mobile home route only. The runtime is
+   * global because its popups are shared, so route ownership must be enforced
+   * independently from the popup owner. This also covers standalone pages that
+   * intentionally render without the persistent public-game-shell. */
+  html body:not(:has(.public-game-shell[data-route='/']))
+    nav[data-ui-owner='mobile-navigation'][data-mobile-member-bottom-navigation='true'] {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+  }
 }
 
 @media (min-width: 360px) and (max-width: 900px) {
