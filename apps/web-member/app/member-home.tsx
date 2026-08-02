@@ -21,6 +21,7 @@ import MobileCouponPopupBridge from './components/mobile-home/mobile-coupon-popu
 import MobileHomeMotionRuntime from './components/mobile-home/mobile-home-motion-runtime';
 import MobileHomeRoot from './components/mobile-home/mobile-home-root';
 import MobileMemberMenuSourceBridge from './components/mobile-home/mobile-member-menu-source-bridge';
+import MobileScrollComfortGuard from './components/mobile-home/mobile-scroll-comfort-guard';
 import { openMemberSharedPopup } from './components/member-shared-popup-runtime';
 import { useMemberHomeData } from './hooks/use-member-home-data';
 
@@ -69,6 +70,7 @@ export default function MemberHome(props: MemberHomeProps) {
         <MobileAuthenticatedAvatarRuntime />
         <MobileCategoryTabRuntime />
         <MobileCategoryFooterGuard />
+        <MobileScrollComfortGuard />
         <MobileHomeMotionRuntime contentVersion={mobileHomeMotionVersion(props.cmsContent)} />
       </>
     );
