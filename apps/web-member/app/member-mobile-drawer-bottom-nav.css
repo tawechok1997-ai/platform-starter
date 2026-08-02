@@ -1,0 +1,13 @@
+@media (max-width: 900px) {
+  html:has(button[aria-controls='mobile-home-drawer'][aria-expanded='true'])
+    [data-mobile-member-bottom-navigation='true'] {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+  }
+
+  html:has(button[aria-controls='mobile-home-drawer'][aria-expanded='true']) body {
+    padding-bottom: 0 !important;
+  }
+}
