@@ -28,22 +28,26 @@ Admin ต้องใช้หน้าตาและระบบกลาง�
 
 ## สถานะรวม
 
-| Phase | ขอบเขต | สถานะ |
-|---|---|---|
-| P1 | Appearance foundation และ Theme owner กลาง | พร้อมตรวจ CI |
-| P2 | Role 5 แบบ, Multi-role, Team และหัวหน้าสร้างลูกน้อง | ยังไม่เริ่ม |
-| P3 | Sidebar, Navigation registry และ Dashboard ตามตำแหน่ง | ยังไม่เริ่ม |
-| P4 | Chart system, Widget registry และ Analytics | ยังไม่เริ่ม |
-| P5 | Table, Form และ Detail drawer กลาง | ยังไม่เริ่ม |
-| P6 | Settings migration และ System Settings | ยังไม่เริ่ม |
-| P7 | CSS cleanup และย้ายทุกหน้าเข้า Design System ใหม่ | ยังไม่เริ่ม |
-| P8 | Security, Approval, Session, Accessibility และ Browser Matrix | ยังไม่เริ่ม |
+| Phase | ขอบเขต | สถานะ | PR |
+|---|---|---|---|
+| P1 | Appearance foundation และ Theme owner กลาง | รอ CI | #474 |
+| P2 | Role 5 แบบ, Multi-role, Team และหัวหน้าสร้างลูกน้อง | ยังไม่เริ่ม | - |
+| P3 | Sidebar, Navigation registry และ Dashboard ตามตำแหน่ง | ยังไม่เริ่ม | - |
+| P4 | Chart system, Widget registry และ Analytics | ยังไม่เริ่ม | - |
+| P5 | Table, Form และ Detail drawer กลาง | ยังไม่เริ่ม | - |
+| P6 | Settings migration และ System Settings | ยังไม่เริ่ม | - |
+| P7 | CSS cleanup และย้ายทุกหน้าเข้า Design System ใหม่ | ยังไม่เริ่ม | - |
+| P8 | Security, Approval, Session, Accessibility และ Browser Matrix | ยังไม่เริ่ม | - |
 
 ---
 
 # P1: Appearance Foundation
 
+PR: `#474`
+
 Branch: `agent/admin-appearance-foundation-main`
+
+Head commit: อัปเดตตาม commit ล่าสุดของ PR
 
 ## ทำแล้ว
 
