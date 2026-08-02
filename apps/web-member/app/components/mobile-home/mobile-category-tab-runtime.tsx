@@ -21,8 +21,8 @@ export default function MobileCategoryTabRuntime() {
       const category = trigger.dataset.mobileCategoryId;
       if (!isMobileCategoryId(category)) return;
 
-      event.preventDefault();
-      event.stopPropagation();
+      // Observe the category click without consuming it. MobileHomeRoot owns the
+      // visible active class, so its React onClick must receive the same event.
       setActiveCategory(category);
     };
 
