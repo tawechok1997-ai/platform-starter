@@ -1,6 +1,6 @@
 .preview {
   width: 100%;
-  padding: 0 12px 16px;
+  padding: 0 8px 10px;
   color: #fff;
   background: #181523;
 }
@@ -9,11 +9,11 @@
   position: relative;
   display: flex;
   width: 100%;
-  height: 27px;
+  height: 25px;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   overflow: hidden;
-  padding: 0 12px;
+  padding: 0 9px;
   border-radius: 4px;
   isolation: isolate;
 }
@@ -39,8 +39,8 @@
 }
 
 .titleBar img {
-  width: 26px;
-  height: 26px;
+  width: 22px;
+  height: 22px;
   object-fit: contain;
 }
 
@@ -48,39 +48,39 @@
   min-width: 0;
   margin: 0;
   overflow: hidden;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
-  line-height: 20px;
+  line-height: 18px;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .list {
   width: 100%;
-  padding: 4px 0 16px;
+  padding: 3px 0 8px;
 }
 
 .item {
   width: 100%;
-  margin-top: 12px;
+  margin-top: 8px;
 }
 
 .trigger {
   display: flex;
   width: 100%;
-  min-height: 36px;
+  min-height: 34px;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  padding: 8px 10px 8px 14px;
+  gap: 10px;
+  padding: 7px 8px 7px 12px;
   border: 1px solid #4f495d;
   border-radius: 4px;
   color: #fff;
   background: #373147;
   font: inherit;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
-  line-height: 18px;
+  line-height: 16px;
   text-align: left;
   cursor: pointer;
   touch-action: manipulation;
@@ -97,9 +97,9 @@
 
 .chevron,
 .chevronOpen {
-  width: 20px;
-  height: 20px;
-  flex: 0 0 20px;
+  width: 16px;
+  height: 16px;
+  flex: 0 0 16px;
   fill: currentColor;
   transition: transform 180ms ease;
 }
@@ -115,7 +115,7 @@
 .panel {
   width: 100%;
   max-height: min(62dvh, 620px);
-  padding: 14px;
+  padding: 12px;
   overflow-x: hidden;
   overflow-y: auto;
   border: 1px solid #4f495d;
@@ -123,8 +123,8 @@
   border-radius: 0 0 4px 4px;
   color: #fff;
   background: #211d31;
-  font-size: 13px;
-  line-height: 1.55;
+  font-size: 12px;
+  line-height: 1.5;
   overscroll-behavior: contain;
   scrollbar-width: thin;
   -webkit-overflow-scrolling: touch;
@@ -138,7 +138,7 @@
 .image + .copy,
 .copy + .image,
 .image + .image {
-  margin-top: 12px;
+  margin-top: 10px;
 }
 
 .copy :is(p, ul, ol) {
@@ -147,7 +147,7 @@
 }
 
 .copy :is(ul, ol) {
-  padding-left: 18px;
+  padding-left: 16px;
 }
 
 .copy span + span {
@@ -165,37 +165,38 @@
 .moreRow {
   display: flex;
   justify-content: center;
+  padding-bottom: 2px;
 }
 
 .moreRow a {
   display: inline-flex;
-  width: 112px;
-  height: 32px;
+  width: 78px;
+  height: 28px;
   align-items: center;
   justify-content: center;
   border: 1px solid #bb5bea;
-  border-radius: 8px;
+  border-radius: 7px;
   color: #bb5bea;
   background: transparent;
   box-shadow: 0 0 7px #7400b0;
-  font-size: 12px;
+  font-size: 10px;
   font-weight: 700;
   text-decoration: none;
 }
 
 @media (max-width: 359px) {
   .preview {
-    padding-inline: 8px;
+    padding-inline: 6px;
   }
 
   .trigger {
-    padding-inline: 10px 8px;
-    font-size: 11px;
+    padding-inline: 9px 7px;
+    font-size: 10px;
   }
 
   .panel {
     padding: 10px;
-    font-size: 12px;
+    font-size: 11px;
   }
 }
 
