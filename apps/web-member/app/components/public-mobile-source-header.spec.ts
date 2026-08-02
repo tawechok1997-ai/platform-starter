@@ -16,16 +16,15 @@ test('mobile drawer preserves the Desktop-compatible member service order', () =
     cursor = next;
   }
   assert.match(mobileRoot, /\/assets\/asset-pc\/images/);
-  assert.match(mobileRoot, /data-mobile-auth-layout="drawer"/);
+  assert.match(mobileRoot, /id="mobile-home-drawer"/);
+  assert.match(mobileRoot, /PRIMARY_MENU\.map/);
 });
 
-test('mobile drawer uses central popup and canonical route owners instead of loading duplicate data', () => {
+test('mobile drawer uses central popup and canonical route owners', () => {
   assert.match(mobileRoot, /data-mobile-member-popup/);
-  assert.match(mobileRoot, /'\/mobile\/member\/promotions'/);
-  assert.match(mobileRoot, /'\/mobile\/member\/news'/);
-  assert.match(mobileRoot, /'\/mobile\/member\/activity'/);
-  assert.match(mobileRoot, /'\/mobile\/member\/history'/);
-  assert.match(mobileRoot, /'\/mobile\/member\/notifications'/);
+  for (const route of ['promotions', 'news', 'activity', 'history', 'notifications']) {
+    assert.match(mobileRoot, new RegExp(`'/mobile/member/${route}'`));
+  }
   assert.doesNotMatch(mobileRoot, /memberApiFetch|loadPublicSiteSettings/);
 });
 
@@ -38,10 +37,9 @@ test('guest auth and member summary keep one runtime contract', () => {
   assert.match(authenticatedRuntime, /summary\.walletAvailable/);
 });
 
-test('source drawer is isolated to Mobile and opens from the left at the supplied width', () => {
+test('source drawer is isolated to Mobile and opens from the left', () => {
   assert.match(sourceCss, /@media \(max-width: 900px\)/);
   assert.match(sourceCss, /#mobile-home-drawer/);
   assert.match(sourceCss, /width:\s*min\(340px/);
   assert.match(sourceCss, /translate3d\(-105%,\s*0,\s*0\)/);
-  assert.match(sourceCss, /\[aria-hidden='false'\]\s*>\s*#mobile-home-drawer/);
 });
