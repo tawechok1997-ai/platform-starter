@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState, type CSSProperties } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useState, type CSSProperties } from 'react';
 import { createPortal } from 'react-dom';
 import { memberApiFetch } from '../../member-api';
 import { useMemberLocale } from '../../member-locale-provider';
@@ -14,60 +14,23 @@ import {
 import styles from './mobile-category-tab-runtime.module.css';
 
 type MobileCategoryId = 'home' | 'casino' | 'slot' | 'fishing' | 'sport' | 'card' | 'lottery';
-type GameBadge = 'HOT' | 'NEW' | '';
 
-type CategoryGame = {
-  id: string;
-  providerGameCode: string;
-  name: string;
-  category: string;
-  providerCode: string;
-  providerName: string;
-  providerIcon: string;
-  image: string;
-  badge: GameBadge;
-  players: number;
-};
-
-type CategoryProvider = {
+type CategoryProviderSeed = {
   code: string;
   name: string;
-  icon: string;
+};
+
+type CategoryProvider = CategoryProviderSeed & {
   cover: string;
   coverLayout: MobileProviderCoverLayout;
   coverAspectRatio: number;
   badge: MobileProviderCoverBadge;
-  games: CategoryGame[];
-};
-
-type CatalogMedia = {
-  sourceUrl?: string | null;
-  cachedUrl?: string | null;
-  status?: string | null;
 };
 
 type CatalogGame = {
-  id?: string | null;
-  providerGameCode?: string | null;
-  code?: string | null;
-  name?: string | null;
-  category?: string | null;
   providerId?: string | null;
-  provider?: string | { code?: string | null; name?: string | null; logoUrl?: string | null } | null;
-  providerLogoUrl?: string | null;
-  imageUrl?: string | null;
-  mobileImageUrl?: string | null;
-  iconUrl?: string | null;
-  media?: CatalogMedia[] | null;
-  onlinePlayers?: number | null;
-  playerCount?: number | null;
-  isPopular?: boolean | null;
-  isFeatured?: boolean | null;
-  isNew?: boolean | null;
-  tags?: string[] | null;
-  metadata?: { tags?: unknown } | null;
+  provider?: string | { code?: string | null; name?: string | null } | null;
   status?: string | null;
-  rawPayload?: { assetSource?: string | null } | null;
 };
 
 type CatalogPayload = {
@@ -89,7 +52,7 @@ const CATEGORY_LABELS: Record<'th' | 'en', Record<MobileCategoryId, string>> = {
     home: 'หน้าแรก',
     casino: 'คาสิโน',
     slot: 'สล็อต',
-    fishing: 'ยิงปลา',
+    fishing: 'ตกปลา',
     sport: 'กีฬา',
     card: 'ไพ่',
     lottery: 'หวย',
@@ -117,7 +80,10 @@ const API_CATEGORIES: Record<Exclude<MobileCategoryId, 'home'>, readonly string[
 const PAGE_LIMIT = 250;
 const MAX_PAGES_PER_CATEGORY = 40;
 const PAGE_BATCH_SIZE = 4;
-const categoryCache = new Map<Exclude<MobileCategoryId, 'home'>, Promise<CategoryGame[]>>();
+const categoryCache = new Map<
+  Exclude<MobileCategoryId, 'home'>,
+  Promise<CategoryProviderSeed[]>
+>();
 const MOBILE_CATEGORY_SELECT_EVENT = 'member:mobile-category-select';
 
 export default function MobileCategoryTabRuntime() {
@@ -161,7 +127,7 @@ export default function MobileCategoryTabRuntime() {
     };
   }, []);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const root = document.querySelector<HTMLElement>('[data-mobile-home-root="true"]');
     if (!root) return;
 
@@ -173,9 +139,26 @@ export default function MobileCategoryTabRuntime() {
       else item.removeAttribute('aria-current');
     });
 
+    const bottomStructure = root.querySelector<HTMLElement>('[data-mobile-bottom-owner="true"]');
+    if (bottomStructure) {
+      bottomStructure.hidden = activeCategory !== 'home';
+      if (activeCategory === 'home') {
+        bottomStructure.removeAttribute('aria-hidden');
+        bottomStructure.style.removeProperty('display');
+      } else {
+        bottomStructure.setAttribute('aria-hidden', 'true');
+        bottomStructure.style.setProperty('display', 'none', 'important');
+      }
+    }
+
     return () => {
       if (root.dataset.mobileActiveCategory === activeCategory) {
         delete root.dataset.mobileActiveCategory;
+      }
+      if (bottomStructure) {
+        bottomStructure.hidden = false;
+        bottomStructure.removeAttribute('aria-hidden');
+        bottomStructure.style.removeProperty('display');
       }
     };
   }, [activeCategory]);
@@ -183,7 +166,7 @@ export default function MobileCategoryTabRuntime() {
   if (!portalTarget || activeCategory === 'home') return null;
 
   return createPortal(
-    <CategoryPanel
+    <CategoryProviderPanel
       key={activeCategory}
       category={activeCategory}
       label={CATEGORY_LABELS[locale][activeCategory]}
@@ -193,7 +176,7 @@ export default function MobileCategoryTabRuntime() {
   );
 }
 
-function CategoryPanel({
+function CategoryProviderPanel({
   category,
   label,
   locale,
@@ -202,24 +185,22 @@ function CategoryPanel({
   label: string;
   locale: 'th' | 'en';
 }) {
-  const [games, setGames] = useState<CategoryGame[]>([]);
+  const [providerSeeds, setProviderSeeds] = useState<CategoryProviderSeed[]>([]);
   const [loading, setLoading] = useState(true);
   const [failed, setFailed] = useState(false);
-  const [activeProvider, setActiveProvider] = useState('all');
 
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
     setFailed(false);
-    setActiveProvider('all');
 
-    void getCategoryGames(category)
+    void getCategoryProviders(category)
       .then((items) => {
-        if (!cancelled) setGames(items);
+        if (!cancelled) setProviderSeeds(items);
       })
       .catch(() => {
         if (!cancelled) {
-          setGames([]);
+          setProviderSeeds([]);
           setFailed(true);
         }
       })
@@ -232,132 +213,68 @@ function CategoryPanel({
     };
   }, [category]);
 
-  const providers = useMemo(() => buildCategoryProviders(category, games), [category, games]);
-  const visibleProviders = useMemo(() => {
-    if (activeProvider === 'all') return providers;
-    return providers.filter((provider) => provider.code === activeProvider);
-  }, [activeProvider, providers]);
-  const visibleGameCount = visibleProviders.reduce((total, provider) => total + provider.games.length, 0);
+  const providers = useMemo(
+    () => buildCategoryProviders(category, providerSeeds),
+    [category, providerSeeds],
+  );
 
   return (
     <section
       className={styles.panel}
       data-mobile-section-owner="category-content"
       data-mobile-category-content={category}
-      aria-labelledby="mobile-category-content-title"
+      data-mobile-provider-artwork-only="true"
+      data-category-flow="provider-only"
+      aria-label={label}
       aria-live="polite"
     >
-      <header className={styles.heading}>
-        <div>
-          <span>{locale === 'th' ? 'หมวดเกม' : 'Game category'}</span>
-          <h2 id="mobile-category-content-title">{label}</h2>
-        </div>
-        {!loading ? <strong>{visibleGameCount}</strong> : null}
-      </header>
-
       {!loading && providers.length > 0 ? (
-        <section className={styles.providerPicker} aria-label={locale === 'th' ? 'เลือกค่ายเกม' : 'Choose provider'}>
-          <div className={styles.providerPickerHeading}>
-            <strong>{locale === 'th' ? 'ค่ายเกม' : 'Providers'}</strong>
-            <button
-              type="button"
-              className={activeProvider === 'all' ? styles.providerAllActive : ''}
-              onClick={() => setActiveProvider('all')}
-              aria-pressed={activeProvider === 'all'}
-            >
-              {locale === 'th' ? 'ทั้งหมด' : 'All'}
-            </button>
-          </div>
-          <div className={styles.providerCoverGrid}>
-            {providers.map((provider) => {
-              const active = activeProvider === provider.code;
-              const coverStyle: ProviderCoverStyle = {
-                '--provider-cover-ratio': `${provider.coverAspectRatio}%`,
-              };
-              return (
-                <button
-                  key={provider.code}
-                  type="button"
-                  className={`${styles.providerCoverCard} ${provider.coverLayout === 'full' ? styles.providerCoverFull : styles.providerCoverHalf}${active ? ` ${styles.providerCoverActive}` : ''}`}
-                  style={coverStyle}
-                  onClick={() => setActiveProvider((current) => current === provider.code ? 'all' : provider.code)}
-                  aria-pressed={active}
-                  aria-label={`${provider.name} ${provider.games.length} ${locale === 'th' ? 'เกม' : 'games'}`}
-                >
-                  <span className={styles.providerCoverMedia}>
-                    <img src={provider.cover} alt={provider.name} loading="lazy" />
-                    {provider.badge ? <b data-badge={provider.badge}>{provider.badge}</b> : null}
-                    <small>{provider.games.length}</small>
-                  </span>
-                  <span className={styles.providerCoverName}>{provider.name}</span>
-                </button>
-              );
-            })}
-          </div>
-        </section>
+        <div
+          className={styles.providerCoverGrid}
+          aria-label={locale === 'th' ? `ค่ายเกม${label}` : `${label} providers`}
+        >
+          {providers.map((provider) => {
+            const coverStyle: ProviderCoverStyle = {
+              '--provider-cover-ratio': `${provider.coverAspectRatio}%`,
+            };
+            const href = `/browse/games?category=${encodeURIComponent(category)}&provider=${encodeURIComponent(provider.code)}&platform=mobile`;
+
+            return (
+              <a
+                key={provider.code}
+                href={href}
+                className={`${styles.providerCoverCard} ${provider.coverLayout === 'full' ? styles.providerCoverFull : styles.providerCoverHalf}`}
+                style={coverStyle}
+                data-provider-launch="true"
+                data-provider-code={provider.code}
+                data-provider-category={category}
+                aria-label={provider.name}
+              >
+                <span className={styles.providerCoverMedia}>
+                  <img src={provider.cover} alt={provider.name} loading="lazy" />
+                  {provider.badge ? <b data-badge={provider.badge}>{provider.badge}</b> : null}
+                </span>
+              </a>
+            );
+          })}
+        </div>
       ) : null}
 
       {loading ? (
-        <div className={styles.loadingGrid} aria-label={locale === 'th' ? 'กำลังโหลดเกม' : 'Loading games'}>
+        <div className={styles.loadingGrid} aria-label={locale === 'th' ? 'กำลังโหลดค่ายเกม' : 'Loading providers'}>
           {Array.from({ length: 8 }, (_, index) => <span key={index} />)}
         </div>
       ) : null}
 
       {!loading && failed ? (
         <div className={styles.stateCard} role="status">
-          <strong>{locale === 'th' ? 'โหลดข้อมูลไม่สำเร็จ' : 'Unable to load games'}</strong>
-          <span>{locale === 'th' ? 'ระบบจะลองใหม่เมื่อเปิดหมวดนี้อีกครั้ง' : 'The catalog will retry when this category is opened again.'}</span>
+          <strong>{locale === 'th' ? 'โหลดข้อมูลค่ายเกมไม่สำเร็จ' : 'Unable to load providers'}</strong>
         </div>
       ) : null}
 
       {!loading && !failed && providers.length === 0 ? (
         <div className={styles.stateCard} role="status">
-          <strong>{locale === 'th' ? 'ยังไม่มีเกมในหมวดนี้' : 'No games in this category yet'}</strong>
-          <span>{locale === 'th' ? 'ไม่มีการนำข้อมูลจำลองมาแสดงแทนข้อมูลกลาง' : 'No mock records are shown in place of central data.'}</span>
-        </div>
-      ) : null}
-
-      {!loading && visibleProviders.length > 0 ? (
-        <div className={styles.providerGameGroups}>
-          {visibleProviders.map((provider) => (
-            <section key={provider.code} className={styles.providerGameGroup} aria-label={provider.name}>
-              <header className={styles.providerGameHeading}>
-                {provider.icon ? <img src={provider.icon} alt="" loading="lazy" /> : <span aria-hidden="true" />}
-                <div>
-                  <strong>{provider.name}</strong>
-                  <small>{provider.games.length} {locale === 'th' ? 'เกม' : 'games'}</small>
-                </div>
-              </header>
-              <div className={styles.gameGrid}>
-                {provider.games.map((game) => (
-                  <button
-                    key={`${game.providerCode}:${game.id}`}
-                    type="button"
-                    className={styles.gameCard}
-                    data-game-id={game.id}
-                    data-game-code={game.providerGameCode}
-                    data-game-name={game.name}
-                    data-provider-code={game.providerCode}
-                    data-game-category={game.category}
-                    aria-label={`${locale === 'th' ? 'เล่น' : 'Play'} ${game.name}`}
-                  >
-                    <div className={styles.poster}>
-                      <img src={game.image} alt={game.name} loading="lazy" />
-                      {game.badge ? <span data-badge={game.badge}>{game.badge}</span> : null}
-                      {game.players > 0 ? <small>{game.players.toLocaleString('en-US')} {locale === 'th' ? 'ออนไลน์' : 'online'}</small> : null}
-                    </div>
-                    <div className={styles.meta}>
-                      {game.providerIcon ? <img src={game.providerIcon} alt="" loading="lazy" /> : <span aria-hidden="true" />}
-                      <div>
-                        <strong>{game.name}</strong>
-                        <small>{game.providerName || '-'}</small>
-                      </div>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </section>
-          ))}
+          <strong>{locale === 'th' ? 'ยังไม่มีค่ายเกมในหมวดนี้' : 'No providers in this category yet'}</strong>
         </div>
       ) : null}
     </section>
@@ -366,28 +283,17 @@ function CategoryPanel({
 
 function buildCategoryProviders(
   category: Exclude<MobileCategoryId, 'home'>,
-  games: CategoryGame[],
+  providerSeeds: CategoryProviderSeed[],
 ): CategoryProvider[] {
-  const groups = new Map<string, CategoryGame[]>();
-  games.forEach((game) => {
-    const current = groups.get(game.providerCode) ?? [];
-    current.push(game);
-    groups.set(game.providerCode, current);
-  });
-
-  return Array.from(groups.entries())
-    .map(([code, providerGames]) => {
-      const first = providerGames[0]!;
-      const cover = resolveMobileProviderCover(category, code);
+  return providerSeeds
+    .map((provider) => {
+      const cover = resolveMobileProviderCover(category, provider.code);
       return {
-        code,
-        name: first.providerName || code.toUpperCase(),
-        icon: first.providerIcon,
+        ...provider,
         cover: resolveLocalAssetByBasename(cover.sourceUrl, 'pc') || cover.sourceUrl,
         coverLayout: cover.layout,
         coverAspectRatio: cover.aspectRatio,
         badge: cover.badge,
-        games: providerGames,
       };
     })
     .sort((left, right) => {
@@ -396,10 +302,10 @@ function buildCategoryProviders(
     });
 }
 
-async function getCategoryGames(category: Exclude<MobileCategoryId, 'home'>) {
+async function getCategoryProviders(category: Exclude<MobileCategoryId, 'home'>) {
   let request = categoryCache.get(category);
   if (!request) {
-    request = loadCategoryGames(category).catch((error) => {
+    request = loadCategoryProviders(category).catch((error) => {
       categoryCache.delete(category);
       throw error;
     });
@@ -408,17 +314,23 @@ async function getCategoryGames(category: Exclude<MobileCategoryId, 'home'>) {
   return request;
 }
 
-async function loadCategoryGames(category: Exclude<MobileCategoryId, 'home'>): Promise<CategoryGame[]> {
+async function loadCategoryProviders(
+  category: Exclude<MobileCategoryId, 'home'>,
+): Promise<CategoryProviderSeed[]> {
   const outcomes = await Promise.allSettled(
     API_CATEGORIES[category].map((apiCategory) => loadCatalogCategory(apiCategory)),
   );
-  const successful = outcomes.filter((outcome): outcome is PromiseFulfilledResult<CatalogGame[]> => outcome.status === 'fulfilled');
-  if (successful.length === 0) throw new Error(`Unable to load mobile catalog for ${category}`);
+  const successful = outcomes.filter(
+    (outcome): outcome is PromiseFulfilledResult<CatalogGame[]> => outcome.status === 'fulfilled',
+  );
+  if (successful.length === 0) throw new Error(`Unable to load mobile providers for ${category}`);
 
-  const items = successful.flatMap((outcome) => outcome.value)
-    .map(mapCatalogGame)
-    .filter((item): item is CategoryGame => Boolean(item));
-  return dedupeGames(items);
+  const providers = successful
+    .flatMap((outcome) => outcome.value)
+    .map(mapCatalogProvider)
+    .filter((item): item is CategoryProviderSeed => Boolean(item));
+
+  return dedupeProviders(providers);
 }
 
 async function loadCatalogCategory(category: string): Promise<CatalogGame[]> {
@@ -458,7 +370,9 @@ async function fetchCatalogPage(category: string, page: number): Promise<Catalog
 function extractCatalogItems(payload: CatalogPayload | null): CatalogGame[] {
   if (Array.isArray(payload?.items)) return payload.items;
   if (Array.isArray(payload?.data)) return payload.data;
-  if (payload?.data && !Array.isArray(payload.data) && Array.isArray(payload.data.items)) return payload.data.items;
+  if (payload?.data && !Array.isArray(payload.data) && Array.isArray(payload.data.items)) {
+    return payload.data.items;
+  }
   return [];
 }
 
@@ -470,23 +384,8 @@ function readTotalPages(payload: CatalogPayload | null, fallbackItemCount: numbe
   return Math.max(1, Math.ceil(total / PAGE_LIMIT));
 }
 
-function mapCatalogGame(item: CatalogGame): CategoryGame | null {
-  const id = firstText(item.id, item.providerGameCode, item.code);
-  const providerGameCode = firstText(item.providerGameCode, item.code);
-  const name = firstText(item.name);
-  const readyMedia = item.media?.find((media) => media.status === 'READY');
-  const sourceImage = firstText(
-    item.mobileImageUrl,
-    item.imageUrl,
-    item.iconUrl,
-    readyMedia?.cachedUrl,
-    readyMedia?.sourceUrl,
-    item.media?.[0]?.cachedUrl,
-    item.media?.[0]?.sourceUrl,
-  );
-  if (!id || !name || !sourceImage) return null;
+function mapCatalogProvider(item: CatalogGame): CategoryProviderSeed | null {
   if (item.status && /disabled|maintenance|inactive/i.test(item.status)) return null;
-  if (item.rawPayload?.assetSource === 'generated-svg' || sourceImage.includes('/provider-simulator/icons/')) return null;
 
   const providerObject = item.provider && typeof item.provider === 'object' ? item.provider : null;
   const providerCode = normalizeProviderCode(firstText(
@@ -503,35 +402,17 @@ function mapCatalogGame(item: CatalogGame): CategoryGame | null {
     item.providerId,
     typeof item.provider === 'string' ? item.provider : null,
   );
-  const sourceProviderIcon = firstText(item.providerLogoUrl, providerObject?.logoUrl);
-  const tags = readTags(item);
-  const hot = item.isPopular === true || item.isFeatured === true || tags.some((tag) => /hot|popular|ยอดนิยม/.test(tag));
-  const fresh = item.isNew === true || tags.some((tag) => /new|ใหม่/.test(tag));
 
   return {
-    id,
-    providerGameCode,
-    name,
-    category: normalizeCategory(item.category),
-    providerCode,
-    providerName: providerName || providerCode.toUpperCase(),
-    image: resolveLocalAssetByBasename(sourceImage, 'any') || sourceImage,
-    providerIcon: resolveLocalAssetByBasename(sourceProviderIcon, 'any') || sourceProviderIcon,
-    badge: hot ? 'HOT' : fresh ? 'NEW' : '',
-    players: positiveInteger(item.onlinePlayers ?? item.playerCount),
+    code: providerCode,
+    name: providerName || providerCode.toUpperCase(),
   };
 }
 
-function readTags(item: CatalogGame) {
-  const tags = Array.isArray(item.tags) ? item.tags.map((tag) => String(tag).toLowerCase()) : [];
-  const metadataTags = item.metadata && Array.isArray(item.metadata.tags)
-    ? item.metadata.tags.filter((tag): tag is string => typeof tag === 'string').map((tag) => tag.toLowerCase())
-    : [];
-  return [...tags, ...metadataTags];
-}
-
-function dedupeGames(items: CategoryGame[]) {
-  return Array.from(new Map(items.map((item) => [`${item.providerCode}:${item.id}`.toLowerCase(), item] as const)).values());
+function dedupeProviders(items: CategoryProviderSeed[]) {
+  return Array.from(
+    new Map(items.map((item) => [item.code.toLowerCase(), item] as const)).values(),
+  );
 }
 
 function normalizeProviderCode(value: string) {
@@ -540,20 +421,6 @@ function normalizeProviderCode(value: string) {
     .toLowerCase()
     .replace(/\.(?:png|jpe?g|webp|svg)$/i, '')
     .replace(/[^a-z0-9_-]+/g, '');
-}
-
-function normalizeCategory(value: unknown) {
-  const category = String(value ?? '').trim().toLowerCase();
-  if (category === 'sports') return 'sport';
-  if (category === 'fish') return 'fishing';
-  if (category === 'table') return 'card';
-  if (category === 'lotto') return 'lottery';
-  return category;
-}
-
-function positiveInteger(value: unknown) {
-  const number = Number(value);
-  return Number.isFinite(number) && number > 0 ? Math.round(number) : 0;
 }
 
 function firstText(...values: unknown[]) {
