@@ -14,7 +14,7 @@ test('mobile home mounts one unified member menu bridge', () => {
 });
 
 test('member menu popup follows the source geometry and seven-item contract', () => {
-  assert.match(bridge, /data-mobile-popup-owner=\"menu\"/);
+  assert.match(bridge, /data-mobile-popup-owner="menu"/);
   assert.match(bridge, /min\(480px, calc\(100vw - 32px\)\)/);
   assert.match(bridge, /padding: 56px 16px 16px/);
   assert.match(bridge, /grid-template-columns: repeat\(3, minmax\(0, 1fr\)\)/);
@@ -36,8 +36,8 @@ test('member menu popup follows the source geometry and seven-item contract', ()
 });
 
 test('bottom navigation is limited to the mobile home surface', () => {
-  assert.match(bridge, /data-mobile-member-bottom-navigation=\"true\"/);
-  assert.match(bridge, /data-mobile-category-id\]\[aria-selected=\"true\"\]/);
+  assert.match(bridge, /data-mobile-member-bottom-navigation="true"/);
+  assert.match(bridge, /data-mobile-category-id\]\[aria-selected="true"\]/);
   assert.match(bridge, /activeCategory === 'home'/);
   assert.match(bridge, /isHomePath\(window\.location\.pathname\)/);
   assert.match(bridge, /navigation\.hidden = true/);
@@ -45,7 +45,7 @@ test('bottom navigation is limited to the mobile home surface', () => {
 });
 
 test('header and popup menu actions reuse the member drawer action source', () => {
-  assert.match(bridge, /button\[aria-label=\"เปิดเมนูสมาชิก\"\]/);
+  assert.match(bridge, /button\[aria-label="เปิดเมนูสมาชิก"\]/);
   assert.match(bridge, /detail: \{ kind: 'menu' \}/);
   assert.match(bridge, /findMemberDrawerAction/);
   assert.match(bridge, /#mobile-home-drawer nav a, #mobile-home-drawer nav button/);
