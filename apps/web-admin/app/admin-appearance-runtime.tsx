@@ -80,17 +80,32 @@ export function AdminAppearanceRuntime() {
     applyPreferences(stored);
     setMounted(true);
 
-    const findTarget = () => setPortalTarget(document.querySelector<HTMLElement>('.admin-topbar-actions'));
-    findTarget();
-    const observer = new MutationObserver(findTarget);
-    observer.observe(document.body, { childList: true, subtree: true });
-    return () => observer.disconnect();
+    let observer: MutationObserver | null = null;
+    const findTarget = () => {
+      const target = document.querySelector<HTMLElement>('.admin-topbar-actions');
+      if (!target) return false;
+      setPortalTarget(target);
+      observer?.disconnect();
+      observer = null;
+      return true;
+    };
+
+    if (!findTarget()) {
+      observer = new MutationObserver(findTarget);
+      observer.observe(document.body, { childList: true, subtree: true });
+    }
+
+    return () => observer?.disconnect();
   }, []);
 
   useEffect(() => {
     if (!mounted) return;
     applyPreferences(preferences);
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(preferences));
+    try {
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(preferences));
+    } catch {
+      // Appearance remains active for the current session when storage is unavailable.
+    }
   }, [mounted, preferences]);
 
   useEffect(() => {
