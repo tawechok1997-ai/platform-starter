@@ -6,7 +6,7 @@ const page = readFileSync(new URL('./page.tsx', import.meta.url), 'utf8');
 const css = readFileSync(new URL('./game-assets.module.css', import.meta.url), 'utf8');
 const nav = readFileSync(new URL('../admin-nav.ts', import.meta.url), 'utf8');
 const providerSettings = readFileSync(new URL('../simple-game-settings/page.tsx', import.meta.url), 'utf8');
-const workspaces = readFileSync(new URL('../../../../src/features/admin-modernization/workspaces.ts', import.meta.url), 'utf8');
+const workspaces = readFileSync(new URL('../../../src/features/admin-modernization/workspaces.ts', import.meta.url), 'utf8');
 
 test('asset workspace loads real games providers and permissions', () => {
   assert.match(page, /adminApiFetch\('\/admin\/game-providers\?take=100'\)/);
