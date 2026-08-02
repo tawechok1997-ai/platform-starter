@@ -31,7 +31,7 @@ Admin ต้องใช้ระบบกลางชุดเดียวก�
 | Phase | ขอบเขต | สถานะ | PR |
 |---|---|---|---|
 | P1 | Appearance foundation และ Theme owner กลาง | Merge แล้ว | #445 |
-| P2 | Role 5 แบบ, Multi-role และ Team | กำลังพัฒนา Batch 1 | - |
+| P2 | Role 5 แบบ, Multi-role และ Team | กำลังพัฒนา Batch 1 | #477 Draft |
 | P3 | Navigation registry และ Dashboard ตามตำแหน่ง | ยังไม่เริ่ม | - |
 | P4 | Chart system และ Widget registry | ยังไม่เริ่ม | - |
 | P5 | Table, Form และ Detail drawer กลาง | ยังไม่เริ่ม | - |
@@ -107,11 +107,13 @@ Merged: `2026-08-03`
 
 # P2: Role, Multi-role และ Team
 
+PR: `#477` Draft
+
 Branch: `agent/admin-phase-2-role-multirole-team`
 
 Base: latest `main` หลัง Merge PR `#445` และอัปเดตเอกสารผล Merge
 
-Status: กำลังพัฒนา Batch 1 ยังไม่มี PR
+Status: กำลังพัฒนา Batch 1
 
 ## เป้าหมาย
 
