@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 import test from 'node:test';
 
 const runtime = readFileSync(new URL('./mobile-category-tab-runtime.tsx', import.meta.url), 'utf8');
+const homeRoot = readFileSync(new URL('./mobile-home-root.tsx', import.meta.url), 'utf8');
 const highlights = readFileSync(new URL('./mobile-highlight-tab-content.tsx', import.meta.url), 'utf8');
 const launcher = readFileSync(new URL('./mobile-provider-launcher-page.tsx', import.meta.url), 'utf8');
 const providerGames = readFileSync(new URL('./mobile-provider-games-category-page.tsx', import.meta.url), 'utf8');
@@ -14,6 +15,15 @@ test('category runtime only owns category selection and never renders duplicate 
   assert.doesNotMatch(runtime, /createPortal/);
   assert.doesNotMatch(runtime, /CategoryProviderPanel/);
   assert.doesNotMatch(runtime, /data-mobile-provider-artwork-only/);
+});
+
+test('category clicks reach the source menu owner so its active item moves', () => {
+  assert.match(runtime, /root\.addEventListener\('click', switchCategory, true\)/);
+  assert.doesNotMatch(runtime, /event\.stopPropagation\(\)/);
+  assert.doesNotMatch(runtime, /event\.preventDefault\(\)/);
+  assert.match(homeRoot, /onClick=\{\(\) => setActiveCategory\(item\.id\)\}/);
+  assert.match(homeRoot, /active \? styles\.categoryItemActive : ''/);
+  assert.match(homeRoot, /aria-selected=\{active\}/);
 });
 
 test('all six categories use the single highlight content owners', () => {
