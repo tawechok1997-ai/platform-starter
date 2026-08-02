@@ -14,6 +14,10 @@ import MemberNavigationStateController from './components/member-navigation-stat
 import { useMemberLocale } from './member-locale-provider';
 import { memberApiFetch } from './member-api';
 import { buildMemberHomeDataRuntime, type MemberHomeDataRuntime } from './member-home-data-runtime';
+import {
+  applyMemberHomeContentPolicy,
+  applyMemberHomeDataPolicy,
+} from './member-home-runtime-policy';
 import { buildConfiguredMemberNavigation } from './member-navigation-runtime';
 import { useMemberSession } from './member-session-provider';
 import { useSiteSettings } from './site-settings-provider';
@@ -70,13 +74,21 @@ export function MemberRuntimeProvider({ children }: { children: ReactNode }) {
     () => buildConfiguredMemberNavigation(typedSettings, locale, features, icons),
     [features, icons, locale, typedSettings],
   );
-  const home = useMemo(
+  const rawHome = useMemo(
     () => buildMemberHomeContentRuntime(typedSettings, content, locale, icons, features),
     [content, features, icons, locale, typedSettings],
   );
-  const homeData = useMemo(
+  const home = useMemo(
+    () => applyMemberHomeContentPolicy(typedSettings, rawHome),
+    [rawHome, typedSettings],
+  );
+  const rawHomeData = useMemo(
     () => buildMemberHomeDataRuntime(typedSettings, home),
     [home, typedSettings],
+  );
+  const homeData = useMemo(
+    () => applyMemberHomeDataPolicy(typedSettings, rawHomeData),
+    [rawHomeData, typedSettings],
   );
   const gameSections = useMemo(
     () => buildMemberGameSections(home, icons, features),
