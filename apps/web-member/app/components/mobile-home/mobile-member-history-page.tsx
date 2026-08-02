@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import MobileMemberEmptyState from './mobile-member-empty-state';
 import styles from './mobile-member-history-page.module.css';
 
@@ -50,8 +50,41 @@ export default function MobileMemberHistoryPage({ payload, loading, error, onBac
     [category, customDate, period, rows],
   );
 
+  useEffect(() => {
+    const keepHistoryControlsLocal = (event: MouseEvent) => {
+      if (!(event.target instanceof Element)) return;
+
+      const action = event.target.closest<HTMLButtonElement>(
+        '[data-history-category],[data-history-period]',
+      );
+      if (!action || !action.closest('[data-mobile-member-page="history"]')) return;
+
+      const nextCategory = action.dataset.historyCategory;
+      const nextPeriod = action.dataset.historyPeriod;
+      if (!isHistoryCategory(nextCategory) && !isHistoryPeriod(nextPeriod)) return;
+
+      // The authenticated popup runtime intentionally supports text-based legacy
+      // navigation. History labels such as "ฝากเงิน" and "โปรโมชั่น" are data
+      // filters, not navigation actions, so capture them before the global owner.
+      event.preventDefault();
+      event.stopPropagation();
+      event.stopImmediatePropagation();
+      action.focus({ preventScroll: true });
+
+      if (isHistoryCategory(nextCategory)) setCategory(nextCategory);
+      if (isHistoryPeriod(nextPeriod)) setPeriod(nextPeriod);
+    };
+
+    window.addEventListener('click', keepHistoryControlsLocal, true);
+    return () => window.removeEventListener('click', keepHistoryControlsLocal, true);
+  }, []);
+
   return (
-    <main className={styles.page} data-mobile-member-page="history">
+    <main
+      className={styles.page}
+      data-mobile-member-page="history"
+      data-mobile-navigation-scope="local"
+    >
       <header className={styles.header}>
         <button type="button" aria-label="ย้อนกลับ" onClick={onBack}><BackIcon /></button>
         <h1>ประวัติการทำรายการ</h1>
@@ -62,6 +95,7 @@ export default function MobileMemberHistoryPage({ payload, loading, error, onBac
           <button
             key={item.id}
             type="button"
+            data-history-category={item.id}
             className={category === item.id ? styles.activeCategory : ''}
             aria-pressed={category === item.id}
             onClick={() => setCategory(item.id)}
@@ -77,6 +111,7 @@ export default function MobileMemberHistoryPage({ payload, loading, error, onBac
             <button
               key={item.id}
               type="button"
+              data-history-period={item.id}
               className={period === item.id ? styles.activePeriod : ''}
               aria-pressed={period === item.id}
               onClick={() => setPeriod(item.id)}
@@ -238,6 +273,14 @@ function BackIcon() {
 
 function CalendarIcon() {
   return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 2v3M17 2v3M3.5 9h17M5.5 4h13a2 2 0 0 1 2 2v13a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" /></svg>;
+}
+
+function isHistoryCategory(value: unknown): value is Category {
+  return CATEGORIES.some((item) => item.id === value);
+}
+
+function isHistoryPeriod(value: unknown): value is Exclude<Period, 'custom'> {
+  return PERIODS.some((item) => item.id === value);
 }
 
 function asRecord(value: unknown): UnknownRecord | null {
