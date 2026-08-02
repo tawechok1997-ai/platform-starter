@@ -21,37 +21,47 @@ const FISHING_PROVIDER_ORDER = [
   'sppfish', 'spgfish', 'wmfish', 'kagafish', 'r88fish', 'fsfish', 'askfish', 'acewinfish',
 ] as const;
 
-test('slot keeps the supplied provider order and Mobile artwork contract', () => {
+test('slot keeps the supplied provider order and merges providers returned by the catalog API', () => {
   let previous = -1;
   for (const provider of SLOT_PROVIDER_ORDER) {
     const current = slot.indexOf(`code: '${provider}'`);
     assert.ok(current > previous, `${provider} must keep the supplied source order`);
     previous = current;
   }
+
   assert.equal(SLOT_PROVIDER_ORDER.length, 42);
+  assert.match(slot, /code: 'ygr'[\s\S]*layout: 'wide-hero'[\s\S]*badge: 'hot'/);
+  assert.match(slot, /code: 'hotdog'[\s\S]*layout: 'wide-banner'[\s\S]*badge: 'new'/);
   assert.match(slot, /catalogPlatform="mobile"/);
   assert.match(slot, /providerAssetPlatform="mobile"/);
   assert.match(slot, /gameAssetPlatform="mobile"/);
+  assert.match(slot, /includeCatalogProviders/);
 });
 
-test('fishing keeps Mobile provider artwork and PC game artwork', () => {
+test('fishing keeps source providers and merges the complete Mobile catalog', () => {
   let previous = -1;
   for (const provider of FISHING_PROVIDER_ORDER) {
     const current = fishing.indexOf(`code: '${provider}'`);
     assert.ok(current > previous, `${provider} must keep the supplied source order`);
     previous = current;
   }
+
   assert.equal(FISHING_PROVIDER_ORDER.length, 15);
+  assert.match(fishing, /code: 'ygrfish'[\s\S]*layout: 'wide-hero'[\s\S]*badge: 'hot'/);
+  assert.match(fishing, /code: 'misoltfish'[\s\S]*layout: 'wide-banner'/);
   assert.match(fishing, /catalogPlatform="mobile"/);
   assert.match(fishing, /providerAssetPlatform="mobile"/);
-  assert.match(fishing, /gameAssetPlatform="pc"/);
+  assert.match(fishing, /gameAssetPlatform="mobile"/);
+  assert.match(fishing, /includeCatalogProviders/);
 });
 
-test('card uses only verified Mobile provider artwork while game icons resolve from PC', () => {
-  assert.doesNotMatch(card, /includeCatalogProviders/);
+test('card merges API providers and resolves provider and game artwork for Mobile', () => {
+  assert.match(card, /code: 'kingm'[\s\S]*layout: 'wide-hero'/);
+  assert.match(card, /code: 'amb'[\s\S]*layout: 'wide-banner'/);
+  assert.match(card, /includeCatalogProviders/);
   assert.match(card, /catalogPlatform="mobile"/);
   assert.match(card, /providerAssetPlatform="mobile"/);
-  assert.match(card, /gameAssetPlatform="pc"/);
+  assert.match(card, /gameAssetPlatform="mobile"/);
 });
 
 test('shared provider flow selects a provider before exposing its games', () => {
@@ -59,7 +69,6 @@ test('shared provider flow selects a provider before exposing its games', () => 
   assert.match(shared, /data-provider-games-stage="providers"/);
   assert.match(shared, /data-provider-select="true"/);
   assert.match(shared, /data-next-step="games"/);
-  assert.match(shared, /onClick=\{\(\) => onSelect\(provider\)\}/);
   assert.match(shared, /setSelectedCode\(normalizeProviderCode\(provider\.code\)\)/);
   assert.match(shared, /data-provider-games-stage="games"/);
   assert.match(shared, /backToProviders/);
@@ -83,7 +92,10 @@ test('game cards preserve the chosen game through login and real launch', () => 
   assert.match(shared, /data-game-icon-platform=\{gameAssetPlatform\}/);
 });
 
-test('Mobile provider games keep the three-column game layout', () => {
+test('Mobile provider games match the slot three-column layout', () => {
+  assert.match(css, /\.grid\s*\{[\s\S]*flex-wrap:\s*wrap[\s\S]*gap:\s*10px/);
+  assert.match(css, /\.card\s*\{[\s\S]*width:\s*calc\(50% - 5px\)/);
+  assert.match(css, /\.wide\s*\{[\s\S]*width:\s*100%/);
   assert.match(css, /\.providerRail\s*\{[\s\S]*overflow-x:\s*auto/);
   assert.match(css, /\.slotGameGrid\s*\{[\s\S]*grid-template-columns:\s*repeat\(3, minmax\(0, 1fr\)\)/);
   assert.match(css, /:has\(\.providerSelectionRoot\)/);
