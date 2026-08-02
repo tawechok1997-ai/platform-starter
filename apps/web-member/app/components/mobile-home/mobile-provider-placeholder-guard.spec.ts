@@ -11,12 +11,12 @@ test('card category only renders providers with verified configured artwork', ()
   assert.match(cardPage, /providers=\{CARD_PROVIDER_SEEDS\}/);
 });
 
-test('broken provider artwork collapses the complete provider card', () => {
+test('broken artwork collapses the complete provider or game card', () => {
   assert.match(launcher, /function hideProviderCard/);
   assert.match(launcher, /card\.hidden = true/);
   assert.match(launcher, /card\.setAttribute\('aria-hidden', 'true'\)/);
 
-  assert.match(providerGames, /image\.closest<HTMLElement>\('\[data-provider-launch="true"\]'\)/);
+  assert.match(providerGames, /\[data-provider-select="true"\], \[data-game-id\]/);
   assert.match(providerGames, /card\.hidden = true/);
   assert.match(providerGames, /card\.setAttribute\('aria-hidden', 'true'\)/);
 });
