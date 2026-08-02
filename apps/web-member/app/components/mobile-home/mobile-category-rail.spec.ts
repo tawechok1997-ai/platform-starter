@@ -4,6 +4,8 @@ import test from 'node:test';
 
 const root = readFileSync(new URL('./mobile-home-root.tsx', import.meta.url), 'utf8');
 const css = readFileSync(new URL('./mobile-home-root.module.css', import.meta.url), 'utf8');
+const follower = readFileSync(new URL('./mobile-category-rail-follow-runtime.tsx', import.meta.url), 'utf8');
+const home = readFileSync(new URL('../../member-home.tsx', import.meta.url), 'utf8');
 const layoutOwner = readFileSync(new URL('../../member-mobile-home-bottom-owner.css', import.meta.url), 'utf8');
 const followOwner = readFileSync(new URL('../../member-mobile-category-follow.css', import.meta.url), 'utf8');
 
@@ -38,16 +40,18 @@ test('game categories own a full-height vertical scroller', () => {
   assert.match(followOwner, /data-provider-games-stage[\s\S]*touch-action:\s*pan-y\s*!important/);
 });
 
-test('mobile category rail uses native sticky scrolling without per-frame work', () => {
-  assert.match(followOwner, /position:\s*-webkit-sticky\s*!important/);
-  assert.match(followOwner, /position:\s*sticky\s*!important/);
-  assert.match(followOwner, /top:\s*60px\s*!important/);
-  assert.match(followOwner, /transform:\s*none\s*!important/);
-  assert.match(followOwner, /touch-action:\s*pan-y\s*!important/);
-  assert.doesNotMatch(root, /document\.addEventListener\('scroll'/);
-  assert.doesNotMatch(root, /requestAnimationFrame\(syncRail\)/);
-  assert.doesNotMatch(root, /getBoundingClientRect\(\)/);
-  assert.doesNotMatch(root, /new ResizeObserver\(scheduleSync\)/);
+test('category rail follows both the page and game-category scroll owners', () => {
+  assert.match(home, /MobileCategoryRailFollowRuntime/);
+  assert.match(followOwner, /position:\s*relative\s*!important/);
+  assert.match(followOwner, /--mobile-category-rail-offset/);
+  assert.match(followOwner, /translate3d\(0, var\(--mobile-category-rail-offset, 0px\), 0\)/);
+  assert.match(follower, /root\.addEventListener\('scroll', scheduleSync/);
+  assert.match(follower, /document\.addEventListener\('scroll', scheduleSync/);
+  assert.match(follower, /requestAnimationFrame\(syncRail\)/);
+  assert.match(follower, /MOBILE_HEADER_HEIGHT - contentRect\.top/);
+  assert.match(follower, /Math\.max\(0, contentHeight - rail\.offsetHeight\)/);
+  assert.match(follower, /new MutationObserver\(scheduleSync\)/);
+  assert.match(follower, /new ResizeObserver\(scheduleSync\)/);
   assert.match(root, /data-mobile-category-follow="start"/);
 });
 
