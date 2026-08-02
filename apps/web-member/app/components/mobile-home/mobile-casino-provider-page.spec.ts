@@ -8,26 +8,13 @@ const css = readFileSync(new URL('./mobile-casino-provider-page.module.css', imp
 const owner = readFileSync(new URL('./mobile-highlight-tab-content.tsx', import.meta.url), 'utf8');
 
 test('casino source page keeps the supplied ten-provider order', () => {
-  const providers = [
-    'dg',
-    'sexyd',
-    'yeebet',
-    'sag',
-    'ppcasino',
-    'evt',
-    'ab',
-    'wmc',
-    'biggamecasino',
-    'astar',
-  ];
-
+  const providers = ['dg', 'sexyd', 'yeebet', 'sag', 'ppcasino', 'evt', 'ab', 'wmc', 'biggamecasino', 'astar'];
   let previous = -1;
   for (const provider of providers) {
     const current = page.indexOf(`code: '${provider}'`);
     assert.ok(current > previous, `${provider} must keep the source order`);
     previous = current;
   }
-
   assert.match(page, /1_1_h\/dg\.png/);
   assert.match(page, /1_1_l\/sexyd\.png/);
   assert.match(page, /code: 'yeebet'[\s\S]*isNew: true/);
@@ -53,11 +40,13 @@ test('provider grid matches the source full-row and two-column geometry', () => 
   assert.match(css, /\.newBadge\s*\{[\s\S]*height:\s*17px[\s\S]*background:\s*#00d719/);
 });
 
-test('provider categories hide home-only sections and begin below the mobile header', () => {
+test('provider categories hide home-only sections through explicit stage owners', () => {
   for (const ownerName of ['hero', 'auth-actions', 'announcement', 'highlight-tabs']) {
     assert.match(css, new RegExp(`data-mobile-section-owner='${ownerName}'`));
   }
-  assert.match(css, /:has\(\.root\)/);
+  assert.match(css, /:has\(\.providerLauncherRoot\)/);
+  assert.match(css, /:has\(\.providerSelectionRoot\)/);
+  assert.doesNotMatch(css, /:has\(\.root\)/);
   assert.match(css, /display:\s*none !important/);
 });
 
