@@ -1,0 +1,386 @@
+:root {
+  --admin-control-height: 42px;
+  --admin-card-padding: 22px;
+  --admin-page-gap: 20px;
+  --admin-focus-ring: 0 0 0 3px rgba(109, 94, 252, 0.28);
+}
+
+:root[data-admin-theme='dark'] {
+  --color-canvas: #070b12;
+  --color-surface: #0c1420;
+  --color-surface-raised: #111c2a;
+  --color-surface-overlay: #172437;
+  --color-text-primary: #f7f9fc;
+  --color-text-secondary: #9caac0;
+  --color-text-inverse: #0b1220;
+  --color-brand-primary: #7667ff;
+  --color-brand-strong: #9388ff;
+  --color-brand-soft: rgba(118, 103, 255, 0.16);
+  --color-border-subtle: rgba(148, 163, 184, 0.14);
+  --color-border-strong: rgba(148, 163, 184, 0.26);
+  --color-backdrop: rgba(2, 6, 12, 0.74);
+  --bg: var(--color-canvas);
+  --surface: var(--color-surface);
+  --surface2: var(--color-surface-raised);
+  --card: var(--color-surface-raised);
+  --card2: var(--color-surface-overlay);
+  --line: var(--color-border-subtle);
+  --line2: var(--color-border-strong);
+  --text: var(--color-text-primary);
+  --muted: var(--color-text-secondary);
+  --brand: var(--color-brand-primary);
+  --brand2: var(--color-brand-strong);
+}
+
+:root[data-admin-theme='light'] {
+  --color-canvas: #f3f6fb;
+  --color-surface: #ffffff;
+  --color-surface-raised: #ffffff;
+  --color-surface-overlay: #f7f9fc;
+  --color-text-primary: #102036;
+  --color-text-secondary: #5f6f84;
+  --color-text-inverse: #ffffff;
+  --color-brand-primary: #5e55e7;
+  --color-brand-strong: #493ecb;
+  --color-brand-soft: rgba(94, 85, 231, 0.12);
+  --color-success: #15803d;
+  --color-success-soft: rgba(21, 128, 61, 0.1);
+  --color-warning: #b45309;
+  --color-warning-soft: rgba(180, 83, 9, 0.1);
+  --color-danger: #c2414a;
+  --color-danger-soft: rgba(194, 65, 74, 0.1);
+  --color-info: #0369a1;
+  --color-info-soft: rgba(3, 105, 161, 0.1);
+  --color-border-subtle: #dfe6ef;
+  --color-border-strong: #c9d3e0;
+  --color-backdrop: rgba(15, 23, 42, 0.46);
+  --bg: var(--color-canvas);
+  --surface: var(--color-surface);
+  --surface2: var(--color-surface-raised);
+  --card: var(--color-surface-raised);
+  --card2: var(--color-surface-overlay);
+  --line: var(--color-border-subtle);
+  --line2: var(--color-border-strong);
+  --text: var(--color-text-primary);
+  --muted: var(--color-text-secondary);
+  --brand: var(--color-brand-primary);
+  --brand2: var(--color-brand-strong);
+  --shadow-card: 0 12px 32px rgba(30, 45, 70, 0.08);
+  --shadow-overlay: 0 24px 64px rgba(30, 45, 70, 0.18);
+}
+
+html,
+body,
+.admin-shell,
+.admin-main-shell,
+.admin-content-shell,
+.admin-drawer,
+.admin-topbar,
+.admin-card,
+.ui-card,
+.ui-input,
+input,
+select,
+textarea,
+button {
+  transition-property: background-color, border-color, color, box-shadow, opacity, transform;
+  transition-duration: 160ms;
+  transition-timing-function: ease;
+}
+
+body[data-app-surface='admin'] {
+  background: var(--color-canvas);
+  color: var(--color-text-primary);
+}
+
+:root[data-admin-theme='light'] body[data-app-surface='admin'] {
+  background-image: radial-gradient(circle at 88% -10%, rgba(94, 85, 231, 0.08), transparent 32%);
+}
+
+:root[data-admin-theme='light'] .admin-drawer,
+:root[data-admin-theme='light'] .admin-topbar,
+:root[data-admin-theme='light'] .admin-profile-menu,
+:root[data-admin-theme='light'] .admin-notification-popover,
+:root[data-admin-theme='light'] .admin-command-dialog,
+:root[data-admin-theme='light'] .admin-auth-card {
+  background-color: rgba(255, 255, 255, 0.96);
+  border-color: var(--color-border-subtle);
+  color: var(--color-text-primary);
+  box-shadow: var(--shadow-overlay);
+}
+
+:root[data-admin-theme='light'] .admin-card,
+:root[data-admin-theme='light'] .ui-card,
+:root[data-admin-theme='light'] [class*='metric'],
+:root[data-admin-theme='light'] [class*='panel'] {
+  border-color: var(--color-border-subtle);
+}
+
+:root[data-admin-theme='light'] input,
+:root[data-admin-theme='light'] select,
+:root[data-admin-theme='light'] textarea {
+  background-color: #ffffff;
+  border-color: var(--color-border-subtle);
+  color: var(--color-text-primary);
+}
+
+:root[data-admin-theme='light'] input::placeholder,
+:root[data-admin-theme='light'] textarea::placeholder {
+  color: #8a98aa;
+}
+
+:root[data-admin-density='compact'] {
+  --admin-control-height: 36px;
+  --admin-card-padding: 16px;
+  --admin-page-gap: 14px;
+}
+
+:root[data-admin-density='compact'] .admin-content-shell {
+  padding-top: 16px;
+  padding-bottom: 18px;
+}
+
+:root[data-admin-density='compact'] .admin-card,
+:root[data-admin-density='compact'] .ui-card,
+:root[data-admin-density='compact'] [class*='panel'] {
+  padding-top: var(--admin-card-padding);
+  padding-bottom: var(--admin-card-padding);
+}
+
+:root[data-admin-density='compact'] input,
+:root[data-admin-density='compact'] select,
+:root[data-admin-density='compact'] textarea,
+:root[data-admin-density='compact'] button {
+  min-height: var(--admin-control-height);
+}
+
+:root[data-admin-contrast='high'] {
+  --color-border-subtle: color-mix(in srgb, var(--color-text-primary) 34%, transparent);
+  --color-border-strong: color-mix(in srgb, var(--color-text-primary) 58%, transparent);
+  --color-text-secondary: color-mix(in srgb, var(--color-text-primary) 78%, transparent);
+  --admin-focus-ring: 0 0 0 4px color-mix(in srgb, var(--color-brand-primary) 44%, transparent);
+}
+
+:root[data-admin-contrast='high'] button:focus-visible,
+:root[data-admin-contrast='high'] a:focus-visible,
+:root[data-admin-contrast='high'] input:focus-visible,
+:root[data-admin-contrast='high'] select:focus-visible,
+:root[data-admin-contrast='high'] textarea:focus-visible {
+  outline: 2px solid var(--color-text-primary);
+  outline-offset: 2px;
+  box-shadow: var(--admin-focus-ring);
+}
+
+:root[data-admin-motion='reduced'] *,
+:root[data-admin-motion='reduced'] *::before,
+:root[data-admin-motion='reduced'] *::after {
+  scroll-behavior: auto !important;
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+}
+
+.admin-appearance-control {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  z-index: 80;
+}
+
+.admin-appearance-trigger {
+  min-height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 0 11px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--color-surface-raised) 86%, transparent);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+}
+
+.admin-appearance-trigger:hover,
+.admin-appearance-trigger[aria-expanded='true'] {
+  border-color: color-mix(in srgb, var(--color-brand-primary) 52%, var(--color-border-subtle));
+  background: var(--color-brand-soft);
+  color: var(--color-text-primary);
+}
+
+.admin-appearance-trigger:focus-visible,
+.admin-appearance-choice:focus-visible,
+.admin-appearance-panel header > button:focus-visible {
+  outline: none;
+  box-shadow: var(--admin-focus-ring);
+}
+
+.admin-appearance-trigger svg {
+  width: 17px;
+  height: 17px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.admin-appearance-trigger svg path:first-child {
+  fill: currentColor;
+  stroke: currentColor;
+}
+
+.admin-appearance-trigger__label {
+  font-size: 12px;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+.admin-appearance-panel {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  width: min(340px, calc(100vw - 24px));
+  padding: 16px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--color-surface-raised) 97%, transparent);
+  color: var(--color-text-primary);
+  box-shadow: var(--shadow-overlay, 0 24px 64px rgba(0, 0, 0, 0.32));
+  backdrop-filter: blur(18px);
+}
+
+.admin-appearance-panel > header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 14px;
+  margin-bottom: 12px;
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.admin-appearance-panel > header div {
+  display: grid;
+  gap: 3px;
+}
+
+.admin-appearance-panel > header strong {
+  font-size: 15px;
+}
+
+.admin-appearance-panel > header span {
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.admin-appearance-panel > header > button {
+  width: 32px;
+  height: 32px;
+  min-height: 32px;
+  border: 0;
+  border-radius: 9px;
+  background: var(--color-surface-overlay);
+  color: var(--color-text-secondary);
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.admin-appearance-group {
+  min-width: 0;
+  margin: 0;
+  padding: 10px 0;
+  border: 0;
+}
+
+.admin-appearance-group legend {
+  margin-bottom: 7px;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.admin-appearance-group > div {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(78px, 1fr));
+  gap: 7px;
+}
+
+.admin-appearance-choice {
+  min-height: 38px;
+  padding: 7px 10px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 10px;
+  background: var(--color-surface-overlay);
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.admin-appearance-choice:hover {
+  color: var(--color-text-primary);
+  border-color: var(--color-border-strong);
+}
+
+.admin-appearance-choice[data-active='true'] {
+  color: var(--color-text-primary);
+  border-color: color-mix(in srgb, var(--color-brand-primary) 64%, var(--color-border-subtle));
+  background: var(--color-brand-soft);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-brand-primary) 22%, transparent);
+}
+
+.admin-appearance-floating {
+  position: fixed;
+  top: 12px;
+  right: 12px;
+  z-index: 2500;
+}
+
+.admin-appearance-floating .admin-appearance-panel {
+  position: fixed;
+  top: 58px;
+  right: 12px;
+}
+
+@media (max-width: 900px) {
+  .admin-appearance-trigger__label {
+    display: none;
+  }
+
+  .admin-appearance-trigger {
+    width: 38px;
+    padding: 0;
+  }
+}
+
+@media (max-width: 560px) {
+  .admin-appearance-panel,
+  .admin-appearance-floating .admin-appearance-panel {
+    position: fixed;
+    top: auto;
+    right: 10px;
+    bottom: 10px;
+    left: 10px;
+    width: auto;
+    max-height: min(680px, calc(100vh - 20px));
+    overflow: auto;
+    border-radius: 18px;
+  }
+
+  .admin-appearance-group > div {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root[data-admin-motion='system'] *,
+  :root[data-admin-motion='system'] *::before,
+  :root[data-admin-motion='system'] *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
