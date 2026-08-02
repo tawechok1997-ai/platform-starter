@@ -20,9 +20,18 @@ for (const [name, command] of Object.entries(apiScripts)) {
   }
 }
 
+const adminReferenceSync = String(adminScripts['sync:reference-assets'] ?? '');
+const adminReferenceWrite = String(adminScripts['write:reference-assets'] ?? '');
+if (!adminReferenceSync.trim() || adminReferenceSync.includes('--write')) {
+  failures.push('apps/web-admin sync:reference-assets must remain read-only');
+}
+if (!adminReferenceWrite.includes('--write')) {
+  failures.push('apps/web-admin write:reference-assets must require an explicit --write flag');
+}
+
 for (const name of ['build', 'analyze', 'verify']) {
   const command = String(adminScripts[name] ?? '');
-  if (command.includes('sync:reference-assets') && !command.includes('check:reference-assets')) {
+  if (command.includes('write:reference-assets') || command.includes('--write')) {
     failures.push(`apps/web-admin package script ${name} may mutate reference assets`);
   }
 }

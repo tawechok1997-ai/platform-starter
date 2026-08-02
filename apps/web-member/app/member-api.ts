@@ -128,6 +128,10 @@ function isSessionCreatingPath(path: string) {
   return path === '/member/auth/login' || path === '/member/auth/register';
 }
 
+function resolveApiRequestUrl(path: string) {
+  return /^https?:\/\//i.test(path) ? path : joinApiUrl(API_URL, path);
+}
+
 async function normalizeSessionResponse(path: string, response: Response) {
   if (!response.ok || !isSessionCreatingPath(path)) return response;
 
@@ -186,8 +190,9 @@ export async function memberApiFetch(path: string, options: ApiOptions = {}) {
     headers,
     ...(signal !== undefined ? { signal } : {}),
   };
+  const requestUrl = resolveApiRequestUrl(path);
 
-  const res = await fetch(joinApiUrl(API_URL, path), fetchOptions);
+  const res = await fetch(requestUrl, fetchOptions);
   if (res.status !== 401 || skipAuth) return normalizeSessionResponse(path, res);
 
   const refreshed = await refreshMemberToken();
@@ -198,7 +203,7 @@ export async function memberApiFetch(path: string, options: ApiOptions = {}) {
   }
 
   headers.set('Authorization', `Bearer ${refreshed}`);
-  const retry = await fetch(joinApiUrl(API_URL, path), fetchOptions);
+  const retry = await fetch(requestUrl, fetchOptions);
   if (retry.status === 401) {
     clearMemberSession();
     if (!suppressSessionExpiryRedirect) expireMemberSession();
