@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 import test from 'node:test';
 
 const preview = readFileSync(new URL('./mobile-home-guide-preview.tsx', import.meta.url), 'utf8');
+const previewCss = readFileSync(new URL('./mobile-home-guide-preview.module.css', import.meta.url), 'utf8');
 const fullGuidePage = readFileSync(new URL('./mobile-member-guide-page.tsx', import.meta.url), 'utf8');
 const guideData = readFileSync(new URL('./mobile-member-guide-source-data.ts', import.meta.url), 'utf8');
 const sourceContent = readFileSync(new URL('./mobile-source-content.tsx', import.meta.url), 'utf8');
@@ -42,6 +43,15 @@ test('home Guide preview stays compact with the five source items from the origi
   assert.match(preview, /data-guide-item-count=\{GUIDE_PREVIEW_ITEMS\.length\}/);
   assert.doesNotMatch(preview, /MOBILE_GUIDE_SECTIONS\.flatMap/);
   assert.doesNotMatch(preview, /GUIDE_ITEMS\.map/);
+});
+
+test('home Guide spacing matches the compact source layout', () => {
+  assert.match(previewCss, /\.preview\s*\{[\s\S]*?padding:\s*0 8px 10px;/);
+  assert.match(previewCss, /\.item\s*\{[\s\S]*?margin-top:\s*8px;/);
+  assert.match(previewCss, /\.trigger\s*\{[\s\S]*?min-height:\s*34px;/);
+  assert.match(previewCss, /\.moreRow a\s*\{[\s\S]*?width:\s*78px;[\s\S]*?height:\s*28px;/);
+  assert.doesNotMatch(previewCss, /width:\s*112px;/);
+  assert.doesNotMatch(previewCss, /margin-top:\s*12px;/);
 });
 
 test('the dedicated Guide page retains every source section and item', () => {
