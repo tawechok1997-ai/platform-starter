@@ -7,10 +7,11 @@ const mobileRoot = readFileSync(new URL('./mobile-home-root.tsx', import.meta.ur
 const categoryRuntime = readFileSync(new URL('./mobile-category-tab-runtime.tsx', import.meta.url), 'utf8');
 const highlightOwner = readFileSync(new URL('./mobile-highlight-tab-content.tsx', import.meta.url), 'utf8');
 
-test('mobile category controller switches active state in place', () => {
+test('mobile category controller observes selection without blocking the menu owner', () => {
   assert.equal((memberHome.match(/<MobileCategoryTabRuntime\s*\/>/g) ?? []).length, 1);
-  assert.match(categoryRuntime, /event\.preventDefault\(\)/);
-  assert.match(categoryRuntime, /event\.stopPropagation\(\)/);
+  assert.match(categoryRuntime, /root\.addEventListener\('click', switchCategory, true\)/);
+  assert.doesNotMatch(categoryRuntime, /event\.preventDefault\(\)/);
+  assert.doesNotMatch(categoryRuntime, /event\.stopPropagation\(\)/);
   assert.match(categoryRuntime, /setActiveCategory\(category\)/);
   assert.match(categoryRuntime, /MOBILE_CATEGORY_SELECT_EVENT/);
   assert.doesNotMatch(categoryRuntime, /window\.location|router\.push|router\.replace/);
