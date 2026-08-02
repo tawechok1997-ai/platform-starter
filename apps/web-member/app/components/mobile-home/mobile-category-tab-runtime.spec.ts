@@ -22,12 +22,14 @@ test('category content is mounted only into the existing after-highlight slot', 
   assert.equal((categoryRuntime.match(/data-mobile-section-owner="category-content"/g) ?? []).length, 1);
 });
 
-test('category switching never owns or replaces shortcut and footer structures', () => {
+test('category switching only toggles the existing shortcut and footer owner', () => {
   assert.equal((mobileRoot.match(/data-mobile-bottom-owner="true"/g) ?? []).length, 1);
   assert.equal((mobileRoot.match(/data-mobile-section-owner="shortcut"/g) ?? []).length, 1);
   assert.equal((mobileRoot.match(/data-mobile-section-owner="footer"/g) ?? []).length, 1);
-  assert.doesNotMatch(categoryRuntime, /bottomStructure|data-mobile-bottom-owner|mobileFooter|<footer/);
-  assert.doesNotMatch(categoryStyles, /bottomStructure|data-mobile-bottom-owner|mobileFooter|footer/);
+  assert.match(categoryRuntime, /querySelector<HTMLElement>\('\[data-mobile-bottom-owner="true"\]'\)/);
+  assert.match(categoryRuntime, /bottomStructure\.hidden = activeCategory !== 'home'/);
+  assert.doesNotMatch(categoryRuntime, /mobileFooter|<footer/);
+  assert.doesNotMatch(categoryStyles, /mobileFooter|footer\s*\{/);
 });
 
 test('every non-home category reads central catalog data and has no static game records', () => {
