@@ -18,6 +18,7 @@ const TABLE_RANK = new Map([
   ['risk_alerts', 10],
   ['promotion_settlements', 10],
   ['bonus_ledgers', 10],
+  ['member_activity_reward_claims', 10],
   ['admin_users', 20],
   ['users', 20],
   ['wallets', 30],
