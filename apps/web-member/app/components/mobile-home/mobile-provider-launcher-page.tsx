@@ -1,5 +1,6 @@
 'use client';
 
+import { useMemo, useState } from 'react';
 import { useMemberLocale } from '../../member-locale-provider';
 import { resolveLocalAssetOrSource } from '../../lib/local-asset-by-basename';
 import styles from './mobile-casino-provider-page.module.css';
@@ -12,22 +13,33 @@ export type MobileProviderLauncherCard = {
   isNew?: boolean;
 };
 
+type ProviderFilter = 'all' | 'new';
+
 type MobileProviderLauncherPageProps = {
   category: 'casino' | 'sport' | 'lottery';
   title: Readonly<{ th: string; en: string }>;
   providers: readonly MobileProviderLauncherCard[];
   countLabel?: Readonly<{ th: string; en: string }>;
   stacked?: boolean;
+  filterable?: boolean;
 };
 
 export default function MobileProviderLauncherPage({
   category,
   title,
   providers,
+  countLabel,
   stacked = false,
+  filterable = false,
 }: MobileProviderLauncherPageProps) {
   const { locale } = useMemberLocale();
   const copy = COPY[locale];
+  const [filter, setFilter] = useState<ProviderFilter>('all');
+  const [filterOpen, setFilterOpen] = useState(false);
+  const visibleProviders = useMemo(
+    () => filter === 'new' ? providers.filter((provider) => provider.isNew) : providers,
+    [filter, providers],
+  );
 
   return (
     <section
@@ -37,15 +49,55 @@ export default function MobileProviderLauncherPage({
       data-category-launch-mode="provider"
       aria-label={title[locale]}
     >
+      {countLabel || filterable ? (
+        <div className={styles.headingRow}>
+          <h2 className={styles.heading}>
+            {title[locale]}
+            {countLabel ? <span> {visibleProviders.length} {countLabel[locale]}</span> : null}
+          </h2>
+          {filterable ? (
+            <div className={styles.filterWrap}>
+              <button
+                type="button"
+                className={styles.filterButton}
+                data-mobile-provider-filter-button="true"
+                aria-expanded={filterOpen}
+                onClick={() => setFilterOpen((value) => !value)}
+              >
+                <span>{filter === 'new' ? copy.newOnly : copy.all}</span>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10l5 5 5-5H7z" /></svg>
+              </button>
+              {filterOpen ? (
+                <div className={styles.filterMenu} role="menu">
+                  {(['all', 'new'] as const).map((key) => (
+                    <button
+                      key={key}
+                      type="button"
+                      role="menuitem"
+                      data-active={filter === key ? 'true' : 'false'}
+                      onClick={() => {
+                        setFilter(key);
+                        setFilterOpen(false);
+                      }}
+                    >
+                      {key === 'new' ? copy.newOnly : copy.all}
+                    </button>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+          ) : null}
+        </div>
+      ) : null}
+
       <div className={`${styles.grid} ${stacked ? styles.stackedGrid : ''}`}>
-        {providers.map((provider) => {
+        {visibleProviders.map((provider) => {
           const resolvedSource = resolveLocalAssetOrSource(provider.source, 'mobile');
           const className = [
             styles.card,
             provider.layout !== 'half' ? styles.wide : '',
             provider.layout === 'wide-banner' ? styles.banner : styles.hero,
           ].filter(Boolean).join(' ');
-
           const destination = new URLSearchParams({
             category,
             provider: provider.code,
@@ -99,6 +151,6 @@ function NewBadge({ label }: { label: string }) {
 }
 
 const COPY = {
-  th: { open: 'เข้าเล่น' },
-  en: { open: 'Open' },
+  th: { open: 'เข้าเล่น', all: 'ทั้งหมด', newOnly: 'เกมใหม่' },
+  en: { open: 'Open', all: 'All', newOnly: 'New' },
 } as const;
