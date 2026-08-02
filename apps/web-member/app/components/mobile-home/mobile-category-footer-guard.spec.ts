@@ -11,9 +11,9 @@ test('mobile home mounts the persistent category footer guard', () => {
 });
 
 test('game categories hide home-only bottom content but never the footer', () => {
-  assert.match(guard, /data-mobile-bottom-owner=\"true\"/);
-  assert.match(guard, /data-mobile-section-owner=\"footer\"/);
-  assert.match(guard, /:not\(\[data-mobile-section-owner=\"footer\"\]\)/);
+  assert.match(guard, /data-mobile-bottom-owner="true"/);
+  assert.match(guard, /data-mobile-section-owner="footer"/);
+  assert.match(guard, /:not\(\[data-mobile-section-owner="footer"\]\)/);
   assert.match(guard, /forceVisible\(bottomStructure\)/);
   assert.match(guard, /forceVisible\(footer\)/);
   assert.match(guard, /activeCategory !== 'home'/);
