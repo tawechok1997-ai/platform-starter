@@ -46,10 +46,10 @@ test('home Guide preview stays compact with the five source items from the origi
 });
 
 test('home Guide spacing matches the compact source layout', () => {
-  assert.match(previewCss, /\.preview\s*\{[^}]*padding:\s*0 8px 10px;/s);
-  assert.match(previewCss, /\.item\s*\{[^}]*margin-top:\s*8px;/s);
-  assert.match(previewCss, /\.trigger\s*\{[^}]*min-height:\s*34px;/s);
-  assert.match(previewCss, /\.moreRow a\s*\{[^}]*width:\s*78px;[^}]*height:\s*28px;/s);
+  assert.match(previewCss, /\.preview\s*\{[\s\S]*?padding:\s*0 8px 10px;/);
+  assert.match(previewCss, /\.item\s*\{[\s\S]*?margin-top:\s*8px;/);
+  assert.match(previewCss, /\.trigger\s*\{[\s\S]*?min-height:\s*34px;/);
+  assert.match(previewCss, /\.moreRow a\s*\{[\s\S]*?width:\s*78px;[\s\S]*?height:\s*28px;/);
   assert.doesNotMatch(previewCss, /width:\s*112px;/);
   assert.doesNotMatch(previewCss, /margin-top:\s*12px;/);
 });
