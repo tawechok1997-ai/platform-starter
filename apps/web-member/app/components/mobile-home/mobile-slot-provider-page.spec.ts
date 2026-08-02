@@ -21,7 +21,7 @@ const FISHING_PROVIDER_ORDER = [
   'sppfish', 'spgfish', 'wmfish', 'kagafish', 'r88fish', 'fsfish', 'askfish', 'acewinfish',
 ] as const;
 
-test('slot keeps the supplied 42-provider order and source geometry', () => {
+test('slot keeps the supplied provider order and merges providers returned by the catalog API', () => {
   let previous = -1;
   for (const provider of SLOT_PROVIDER_ORDER) {
     const current = slot.indexOf(`code: '${provider}'`);
@@ -35,9 +35,10 @@ test('slot keeps the supplied 42-provider order and source geometry', () => {
   assert.match(slot, /catalogPlatform="mobile"/);
   assert.match(slot, /providerAssetPlatform="mobile"/);
   assert.match(slot, /gameAssetPlatform="mobile"/);
+  assert.match(slot, /includeCatalogProviders/);
 });
 
-test('fishing keeps 15 providers and uses PC icons only for game cards', () => {
+test('fishing keeps source providers and merges the complete Mobile catalog', () => {
   let previous = -1;
   for (const provider of FISHING_PROVIDER_ORDER) {
     const current = fishing.indexOf(`code: '${provider}'`);
@@ -50,16 +51,17 @@ test('fishing keeps 15 providers and uses PC icons only for game cards', () => {
   assert.match(fishing, /code: 'misoltfish'[\s\S]*layout: 'wide-banner'/);
   assert.match(fishing, /catalogPlatform="mobile"/);
   assert.match(fishing, /providerAssetPlatform="mobile"/);
-  assert.match(fishing, /gameAssetPlatform="pc"/);
+  assert.match(fishing, /gameAssetPlatform="mobile"/);
+  assert.match(fishing, /includeCatalogProviders/);
 });
 
-test('card keeps Mobile provider artwork while game icons resolve from PC', () => {
+test('card merges API providers and resolves provider and game artwork for Mobile', () => {
   assert.match(card, /code: 'kingm'[\s\S]*layout: 'wide-hero'/);
   assert.match(card, /code: 'amb'[\s\S]*layout: 'wide-banner'/);
   assert.match(card, /includeCatalogProviders/);
   assert.match(card, /catalogPlatform="mobile"/);
   assert.match(card, /providerAssetPlatform="mobile"/);
-  assert.match(card, /gameAssetPlatform="pc"/);
+  assert.match(card, /gameAssetPlatform="mobile"/);
 });
 
 test('shared provider flow selects a provider before exposing its games', () => {

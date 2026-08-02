@@ -59,6 +59,7 @@ export default function MobileSlotProviderPage() {
       catalogPlatform="mobile"
       providerAssetPlatform="mobile"
       gameAssetPlatform="mobile"
+      includeCatalogProviders
     />
   );
 }

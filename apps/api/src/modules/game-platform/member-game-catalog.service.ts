@@ -5,6 +5,8 @@ import {
   assetUrl,
   GAME_CATALOG,
   PROVIDER_DISPLAY_NAMES,
+  type SimulatorCatalogPlatform,
+  type SimulatorGameCatalogItem,
 } from '../provider-simulator/provider-simulator-catalog';
 
 type MemberGamePlatform = 'mobile' | 'pc';
@@ -64,11 +66,20 @@ export class MemberGameCatalogService {
       },
     });
 
+    const normalizedDatabaseItems = databaseItems
+      .map((item) => ({ ...item, platform: readDatabasePlatform(item.metadata) }))
+      .filter((item) => matchesPlatform(item.platform, platform));
+
+    // A PC-only database record must not suppress the corresponding projected
+    // Mobile catalog item. De-duplicate only against records visible to this
+    // platform request.
     const databaseCodes = new Set(
-      databaseItems.map((item) => `${item.provider.code.toLowerCase()}:${item.providerGameCode.toLowerCase()}`),
+      normalizedDatabaseItems.map(
+        (item) => `${item.provider.code.toLowerCase()}:${item.providerGameCode.toLowerCase()}`,
+      ),
     );
 
-    const generatedItems = GAME_CATALOG
+    const generatedItems = catalogForPlatform(GAME_CATALOG, platform)
       .filter((item) => !databaseCodes.has(`${item.provider.toLowerCase()}:${item.code.toLowerCase()}`))
       .map((item) => this.generatedItem(item))
       .filter((item) => matchesPlatform(item.platform, platform))
@@ -80,10 +91,6 @@ export class MemberGameCatalogService {
           .toLocaleLowerCase('th')
           .includes(search);
       });
-
-    const normalizedDatabaseItems = databaseItems
-      .map((item) => ({ ...item, platform: readDatabasePlatform(item.metadata) }))
-      .filter((item) => matchesPlatform(item.platform, platform));
 
     const allItems = [...normalizedDatabaseItems, ...generatedItems];
     const start = (page - 1) * limit;
@@ -121,17 +128,18 @@ export class MemberGameCatalogService {
     };
   }
 
-  private generatedItem(item: (typeof GAME_CATALOG)[number]) {
+  private generatedItem(item: SimulatorGameCatalogItem) {
     const providerName = PROVIDER_DISPLAY_NAMES[item.provider] ?? item.provider;
     const tags = item.tags ?? [];
     const isNew = tags.some(isNewTag);
     const isPopular = tags.some(isPopularTag);
+    const platform = normalizeGeneratedPlatform(item.platform);
     return {
-      id: `catalog:${item.platform}:${item.provider}:${item.code}`,
+      id: `catalog:${platform}:${item.provider}:${item.code}`,
       providerGameCode: item.code,
       name: item.name,
       category: item.category,
-      platform: item.platform,
+      platform,
       status: 'CATALOG_ONLY',
       isFeatured: false,
       isNew,
@@ -148,7 +156,7 @@ export class MemberGameCatalogService {
       media: item.assetPath
         ? [
             {
-              id: `catalog-media:${item.platform}:${item.provider}:${item.code}`,
+              id: `catalog-media:${platform}:${item.provider}:${item.code}`,
               type: 'COVER',
               sourceUrl: assetUrl(item.assetPath, ''),
               cachedUrl: assetUrl(item.assetPath, ''),
@@ -161,6 +169,50 @@ export class MemberGameCatalogService {
       iconUrl: assetUrl(item.assetPath, ''),
     };
   }
+}
+
+/**
+ * The recovered source inventory is primarily tagged as PC, while the Mobile
+ * lobby is expected to expose the same provider/game inventory using Mobile
+ * assets when available and source CDN media otherwise. Native Mobile records
+ * always win; only missing provider/game pairs are projected from PC.
+ */
+export function catalogForPlatform(
+  catalog: readonly SimulatorGameCatalogItem[],
+  platform: MemberGamePlatformFilter,
+): readonly SimulatorGameCatalogItem[] {
+  if (platform !== 'mobile') return catalog;
+
+  const projected = new Map<string, SimulatorGameCatalogItem>();
+
+  for (const item of catalog) {
+    const itemPlatform = normalizeGeneratedPlatform(item.platform);
+    if (itemPlatform !== 'mobile' && itemPlatform !== 'both') continue;
+    projected.set(catalogProjectionKey(item), {
+      ...item,
+      platform: itemPlatform,
+    });
+  }
+
+  for (const item of catalog) {
+    if (normalizeGeneratedPlatform(item.platform) !== 'pc') continue;
+    const key = catalogProjectionKey(item);
+    if (projected.has(key)) continue;
+    projected.set(key, {
+      ...item,
+      platform: 'mobile',
+    });
+  }
+
+  return Array.from(projected.values());
+}
+
+function catalogProjectionKey(item: Pick<SimulatorGameCatalogItem, 'provider' | 'code'>) {
+  return `${item.provider.trim().toLowerCase()}:${item.code.trim().toLowerCase()}`;
+}
+
+function normalizeGeneratedPlatform(value: SimulatorCatalogPlatform): MemberGamePlatform | 'both' {
+  return value === 'desktop' || value === 'pc' ? 'pc' : value;
 }
 
 function isNewTag(tag: string) {
