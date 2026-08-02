@@ -36,8 +36,10 @@ type MobileProviderGamesCategoryPageProps = {
   includeCatalogProviders?: boolean;
 };
 
-const INITIAL_GAME_COUNT = 120;
-const GAME_PAGE_STEP = 120;
+type GameFilter = 'all' | 'hot' | 'new';
+
+const INITIAL_GAME_COUNT = 60;
+const GAME_PAGE_STEP = 60;
 
 export default function MobileProviderGamesCategoryPage({
   category,
@@ -54,6 +56,8 @@ export default function MobileProviderGamesCategoryPage({
   const [catalog, setCatalog] = useState<SourceCategoryCatalog | null>(null);
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading');
   const [visibleCount, setVisibleCount] = useState(INITIAL_GAME_COUNT);
+  const [filter, setFilter] = useState<GameFilter>('all');
+  const [filterOpen, setFilterOpen] = useState(false);
 
   const sourceProviders = useMemo<SourceGameProvider[]>(
     () => configuredCards.map(sourceProvider),
@@ -68,16 +72,14 @@ export default function MobileProviderGamesCategoryPage({
 
     void loadSourceCategoryCatalog(catalogSlug, sourceProviders, catalogPlatform, controller.signal)
       .then((result) => {
-        if (!cancelled) {
-          setCatalog(result);
-          setStatus('ready');
-        }
+        if (cancelled) return;
+        setCatalog(result);
+        setStatus('ready');
       })
       .catch((error: unknown) => {
-        if (!cancelled && !isAbortError(error)) {
-          setCatalog(null);
-          setStatus('error');
-        }
+        if (cancelled || isAbortError(error)) return;
+        setCatalog(null);
+        setStatus('error');
       });
 
     return () => {
@@ -89,6 +91,8 @@ export default function MobileProviderGamesCategoryPage({
   useEffect(() => {
     setSelectedCode(null);
     setVisibleCount(INITIAL_GAME_COUNT);
+    setFilter('all');
+    setFilterOpen(false);
   }, [category]);
 
   const providerCards = useMemo(() => {
@@ -118,14 +122,29 @@ export default function MobileProviderGamesCategoryPage({
     );
   }, [catalog?.games, selectedCode]);
 
+  const filteredGames = useMemo(() => {
+    if (filter === 'hot') return selectedGames.filter((game) => game.isHot);
+    if (filter === 'new') return selectedGames.filter((game) => game.isNew);
+    return selectedGames;
+  }, [filter, selectedGames]);
+
   const visibleGames = useMemo(
-    () => selectedGames.slice(0, visibleCount),
-    [selectedGames, visibleCount],
+    () => filteredGames.slice(0, visibleCount),
+    [filteredGames, visibleCount],
   );
 
   const selectProvider = (provider: MobileProviderGamesCard) => {
     setSelectedCode(normalizeProviderCode(provider.code));
     setVisibleCount(INITIAL_GAME_COUNT);
+    setFilter('all');
+    setFilterOpen(false);
+  };
+
+  const backToProviders = () => {
+    setSelectedCode(null);
+    setVisibleCount(INITIAL_GAME_COUNT);
+    setFilter('all');
+    setFilterOpen(false);
   };
 
   if (!selectedProvider) {
@@ -136,7 +155,6 @@ export default function MobileProviderGamesCategoryPage({
         providers={providerCards}
         providerAssetPlatform={providerAssetPlatform}
         locale={locale}
-        loading={status === 'loading'}
         onSelect={selectProvider}
       />
     );
@@ -155,23 +173,84 @@ export default function MobileProviderGamesCategoryPage({
       data-game-asset-platform={gameAssetPlatform}
       aria-labelledby={`mobile-${category}-games-heading`}
     >
+      <div className={styles.providerRail} role="tablist" aria-label={copy.changeProvider}>
+        {providerCards.map((provider) => {
+          const code = normalizeProviderCode(provider.code);
+          const active = code === selectedCode;
+          const iconSource = provider.iconSource || providerIconSource(provider.code);
+          const resolvedIcon = resolveLocalAssetOrSource(iconSource, providerAssetPlatform);
+          return (
+            <button
+              key={provider.code}
+              type="button"
+              role="tab"
+              aria-selected={active}
+              data-active={active}
+              data-provider-switch={provider.code}
+              onClick={() => selectProvider(provider)}
+            >
+              <img
+                src={resolvedIcon}
+                alt={provider.name}
+                loading="lazy"
+                onError={(event) => fallbackImage(event.currentTarget, resolvedIcon, iconSource)}
+              />
+            </button>
+          );
+        })}
+      </div>
+
       <div className={styles.slotGamesToolbar}>
         <button
           type="button"
           className={styles.backButton}
-          onClick={() => setSelectedCode(null)}
+          onClick={backToProviders}
           aria-label={copy.backToProviders}
         >
           <span aria-hidden="true">‹</span>
         </button>
         <h2 id={`mobile-${category}-games-heading`}>
           {title[locale]} | {selectedProvider.name}
-          <span>{status === 'ready' ? `(${selectedGames.length} ${copy.games})` : ''}</span>
+          <span>{status === 'ready' ? `(${filteredGames.length} ${copy.games})` : ''}</span>
         </h2>
+
+        <div className={styles.filterWrap}>
+          <button
+            type="button"
+            className={styles.filterButton}
+            aria-haspopup="menu"
+            aria-expanded={filterOpen}
+            onClick={() => setFilterOpen((current) => !current)}
+          >
+            <span>{copy.filter}</span>
+            <FilterIcon />
+          </button>
+          {filterOpen ? (
+            <div className={styles.filterMenu} role="menu" aria-label={copy.filter}>
+              {(['all', 'hot', 'new'] as const).map((value) => (
+                <button
+                  key={value}
+                  type="button"
+                  role="menuitemradio"
+                  aria-checked={filter === value}
+                  data-active={filter === value}
+                  onClick={() => {
+                    setFilter(value);
+                    setVisibleCount(INITIAL_GAME_COUNT);
+                    setFilterOpen(false);
+                  }}
+                >
+                  {copy.filters[value]}
+                </button>
+              ))}
+            </div>
+          ) : null}
+        </div>
       </div>
 
       {status === 'loading' ? <GameState message={copy.loading} /> : null}
       {status === 'error' ? <GameState message={copy.error} /> : null}
+      {status === 'ready' && filteredGames.length === 0 ? <GameState message={copy.empty} /> : null}
 
       {visibleGames.length > 0 ? (
         <div className={styles.slotGameGrid}>
@@ -188,11 +267,11 @@ export default function MobileProviderGamesCategoryPage({
         </div>
       ) : null}
 
-      {visibleCount < selectedGames.length ? (
+      {visibleCount < filteredGames.length ? (
         <button
           type="button"
           className={styles.loadMoreButton}
-          onClick={() => setVisibleCount((current) => Math.min(selectedGames.length, current + GAME_PAGE_STEP))}
+          onClick={() => setVisibleCount((current) => Math.min(filteredGames.length, current + GAME_PAGE_STEP))}
         >
           {copy.loadMore}
         </button>
@@ -207,7 +286,6 @@ function ProviderSelection({
   providers,
   providerAssetPlatform,
   locale,
-  loading,
   onSelect,
 }: {
   category: 'slot' | 'fishing' | 'card';
@@ -215,7 +293,6 @@ function ProviderSelection({
   providers: readonly MobileProviderGamesCard[];
   providerAssetPlatform: SourceCatalogPlatform;
   locale: 'th' | 'en';
-  loading: boolean;
   onSelect: (provider: MobileProviderGamesCard) => void;
 }) {
   return (
@@ -232,8 +309,6 @@ function ProviderSelection({
           {title} <span>({providers.length} {locale === 'th' ? 'ค่ายเกม' : 'providers'})</span>
         </h2>
       </div>
-
-      {loading && providers.length === 0 ? <GameState message={locale === 'th' ? 'กำลังโหลดค่ายเกม...' : 'Loading providers...'} /> : null}
 
       <div className={styles.grid}>
         {providers.map((provider) => {
@@ -307,6 +382,7 @@ function GameCard({
       data-provider-code={providerCode}
       data-game-category={category}
       data-game-platform="mobile"
+      data-game-icon-platform={gameAssetPlatform}
       aria-label={`${locale === 'th' ? 'เข้าเล่น' : 'Play'} ${game.name}`}
     >
       <span className={styles.slotGameImage}>
@@ -344,10 +420,12 @@ function mergeProviderCards(
     if (!code) return;
     const existing = merged.get(code);
     if (existing) {
-      merged.set(code, { ...existing, name: provider.name || existing.name });
+      merged.set(code, {
+        ...existing,
+        name: provider.name || existing.name,
+      });
       return;
     }
-
     if (!provider.card) return;
     merged.set(code, {
       code,
@@ -396,7 +474,7 @@ function fallbackImage(image: HTMLImageElement, resolved: string, remote: string
     return;
   }
 
-  const card = image.closest<HTMLElement>('[data-provider-select="true"], [data-game-id]');
+  const card = image.closest<HTMLElement>('[data-provider-select="true"], [data-game-id], [data-provider-switch]');
   if (!card) {
     image.hidden = true;
     return;
@@ -433,19 +511,37 @@ function NewBadge() {
   );
 }
 
+function FilterIcon() {
+  return (
+    <svg viewBox="0 0 512 512" aria-hidden="true">
+      <path d="M32 384h272v32H32zM400 384h80v32h-80zM384 447.5c0 17.949-14.327 32.5-32 32.5-17.673 0-32-14.551-32-32.5v-95c0-17.949 14.327-32.5 32-32.5 17.673 0 32 14.551 32 32.5v95z" />
+      <path d="M32 240h80v32H32zM208 240h272v32H208zM192 303.5c0 17.949-14.327 32.5-32 32.5-17.673 0-32-14.551-32-32.5v-95c0-17.949 14.327-32.5 32-32.5 17.673 0 32 14.551 32 32.5v95z" />
+      <path d="M32 96h272v32H32zM400 96h80v32H400zM384 159.5c0 17.949-14.327 32.5-32 32.5-17.673 0-32-14.551-32-32.5v-95c0-17.949 14.327-32.5 32-32.5 17.673 0 32 14.551 32 32.5v95z" />
+    </svg>
+  );
+}
+
 const COPY = {
   th: {
     games: 'เกม',
     loading: 'กำลังโหลดเกมของค่าย...',
     error: 'โหลดรายการเกมไม่สำเร็จ กรุณาลองใหม่อีกครั้ง',
+    empty: 'ค่ายนี้ยังไม่มีเกมที่พร้อมแสดง',
     loadMore: 'โหลดเกมเพิ่มเติม',
     backToProviders: 'กลับไปเลือกค่ายเกม',
+    changeProvider: 'เปลี่ยนค่ายเกม',
+    filter: 'กรอง',
+    filters: { all: 'ทั้งหมด', hot: 'เกมฮิต', new: 'เกมใหม่' },
   },
   en: {
     games: 'games',
     loading: 'Loading provider games...',
     error: 'Unable to load games. Please try again.',
+    empty: 'This provider has no games available yet.',
     loadMore: 'Load more games',
     backToProviders: 'Back to providers',
+    changeProvider: 'Change provider',
+    filter: 'Filter',
+    filters: { all: 'All', hot: 'Hot games', new: 'New games' },
   },
 } as const;
