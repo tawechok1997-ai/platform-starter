@@ -5,10 +5,14 @@ on:
   push:
     branches: [main]
 
+concurrency:
+  group: r006-quality-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   quality:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 35
     env:
       DATABASE_URL: postgresql://postgres:postgres@localhost:5432/platform_ci?schema=public
     steps:
@@ -23,7 +27,7 @@ jobs:
           node-version: 22
           cache: pnpm
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile=false
+        run: pnpm install --frozen-lockfile --prefer-offline
       - name: Detect changed scopes
         id: scope
         env:
@@ -61,6 +65,12 @@ jobs:
           pnpm audit:r9-repository-boundaries
           pnpm audit:r9-repository-boundaries:json > r009-repository-boundaries.json
           pnpm audit:r9-repository-boundaries:strict
+      - name: R-009 critical repository ports
+        run: node tools/audit-r009-critical-repository-ports.mjs
+      - name: R-009 withdrawal completion transaction
+        run: node tools/audit-r009-withdrawal-completion-transaction.mjs
+      - name: R-009 withdrawal completion rollback
+        run: node tools/audit-r009-withdrawal-completion-rollback.mjs
       - name: R-009 boundary closure structure
         run: pnpm audit:r9-boundary-closure
       - name: R-009 transaction escape inventory
@@ -121,7 +131,7 @@ jobs:
             echo "- Member scope: ${{ steps.scope.outputs.member || 'unknown' }}"
             echo "- Packages scope: ${{ steps.scope.outputs.packages || 'unknown' }}"
             echo '- R-001 architecture inventory, R-002 boundaries, R-003 regression safety and R-006 quality closure gates execute unconditionally'
-            echo '- R-009 controller, repository type and lock-order boundaries are strict and protected by closure audits'
+            echo '- R-009 controller, repository type, critical port, withdrawal transaction and lock-order boundaries execute in this owner'
             echo '- R-009 transaction-escape and schema inventories remain review-only'
           } >> "$GITHUB_STEP_SUMMARY"
       - name: Upload quality failure evidence
