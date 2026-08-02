@@ -28,13 +28,41 @@ const APPROVED_MENU_ICONS: Readonly<Record<string, string>> = {
   card: '/assets/reference-brand/menu/card.png',
 };
 
+const CANONICAL_MEMBER_NAVIGATION_HREFS: Readonly<Record<string, string>> = {
+  home: '/',
+  casino: '/browse/games?category=casino',
+  slot: '/browse/games?category=slot',
+  fishing: '/browse/games?category=fishing',
+  sport: '/browse/games?category=sport',
+  card: '/browse/games?category=card',
+  lottery: '/browse/games?category=lottery',
+  live: '/?category=live#live',
+};
+
+const NAVIGATION_ID_ALIASES: Readonly<Record<string, string>> = {
+  sports: 'sport',
+  lotto: 'lottery',
+};
+
+const PUBLIC_GAME_NAVIGATION_IDS = new Set(Object.keys(CANONICAL_MEMBER_NAVIGATION_HREFS));
+
+export function canonicalMemberNavigationHref(id: string, href: string) {
+  return CANONICAL_MEMBER_NAVIGATION_HREFS[canonicalNavigationId(id)] ?? href;
+}
+
 export function buildConfiguredMemberNavigation(
   settings: TypedPublicSiteSettings,
   locale: MemberLocale,
   features: MemberFeatureVisibilityRuntime,
   icons: MemberIconRuntime,
 ): MemberNavigationItem[] {
-  const fallback = buildMemberNavigationRuntime(locale, features, icons).map(applyApprovedMenuIcon);
+  const fallback = buildMemberNavigationRuntime(locale, features, icons)
+    .map((item) => ({
+      ...item,
+      href: canonicalMemberNavigationHref(item.id, item.href),
+      requiresAuth: isPublicGameNavigationId(item.id) ? false : item.requiresAuth,
+    }))
+    .map(applyApprovedMenuIcon);
   const configured = readItems(
     (settings.features as Record<string, unknown>).navigation_items,
     (settings.features as Record<string, unknown>).navigation_items_json,
@@ -57,7 +85,7 @@ function normalizeItem(
   icons: MemberIconRuntime,
   fallbackById: Map<string, MemberNavigationItem>,
 ): (MemberNavigationItem & { order: number }) | null {
-  const id = slug(raw.id ?? raw.key ?? `nav-${index + 1}`);
+  const id = canonicalNavigationId(slug(raw.id ?? raw.key ?? `nav-${index + 1}`));
   const fallback = fallbackById.get(id);
   const enabled = raw.enabled !== false;
   if (!enabled) return null;
@@ -69,7 +97,7 @@ function normalizeItem(
   const label = locale === 'th'
     ? firstText(raw.labelTh, raw.label_th, raw.label, fallback?.label, id)
     : firstText(raw.labelEn, raw.label_en, raw.label, fallback?.label, id);
-  const href = safeHref(raw.href) || fallback?.href || '/';
+  const href = canonicalMemberNavigationHref(id, safeHref(raw.href) || fallback?.href || '/');
   const icon = APPROVED_MENU_ICONS[id]
     ?? resolveIcon(raw.iconKey ?? raw.icon_key ?? raw.icon, icons, fallback?.icon ?? icons.home);
   const badge = optionalText(raw.badge);
@@ -82,7 +110,9 @@ function normalizeItem(
     ...(feature ? { feature } : {}),
     desktop: boolean(raw.desktop, fallback?.desktop ?? true),
     mobile: boolean(raw.mobile, fallback?.mobile ?? true),
-    requiresAuth: boolean(raw.requiresAuth ?? raw.requires_auth, fallback?.requiresAuth ?? false),
+    requiresAuth: isPublicGameNavigationId(id)
+      ? false
+      : boolean(raw.requiresAuth ?? raw.requires_auth, fallback?.requiresAuth ?? false),
     ...(badge ? { badge } : {}),
     order: finite(raw.order ?? raw.sequence, index),
   };
@@ -131,6 +161,15 @@ function safeHref(value: unknown) {
   if (typeof value !== 'string') return '';
   const href = value.trim();
   return href.startsWith('/') || /^https?:\/\//i.test(href) ? href : '';
+}
+
+function canonicalNavigationId(id: string) {
+  const normalized = slug(id);
+  return NAVIGATION_ID_ALIASES[normalized] ?? normalized;
+}
+
+function isPublicGameNavigationId(id: string) {
+  return PUBLIC_GAME_NAVIGATION_IDS.has(canonicalNavigationId(id));
 }
 
 function boolean(value: unknown, fallback: boolean) {
