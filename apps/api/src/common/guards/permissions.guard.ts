@@ -20,8 +20,13 @@ export class PermissionsGuard implements CanActivate {
 
     const request = context.switchToHttp().getRequest();
     const permissions: string[] = request.user?.permissions ?? [];
-    const hasSuperAccess = permissions.includes(SUPER_PERMISSION);
-    const allowed = hasSuperAccess || required.every((permission) => permissions.includes(permission));
+    const deniedPermissions: string[] = request.user?.deniedPermissions ?? [];
+    const denyAll = deniedPermissions.includes(SUPER_PERMISSION);
+    const hasSuperAccess = permissions.includes(SUPER_PERMISSION) && !denyAll;
+    const allowed = !denyAll && required.every((permission) => {
+      if (deniedPermissions.includes(permission)) return false;
+      return hasSuperAccess || permissions.includes(permission);
+    });
 
     if (!allowed) {
       throw new ForbiddenException('Permission denied');
