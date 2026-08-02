@@ -4,10 +4,21 @@ import * as argon2 from 'argon2';
 import { randomBytes } from 'crypto';
 import { buildAdminAuditData } from '../../common/audit/admin-audit.builder';
 import { PrismaService } from '../../database/prisma.service';
+import {
+  evaluateRoleGrant,
+  normalizeRoleSelection,
+  type AdminRolePolicyRole,
+} from './admin-role-policy';
+import { ADMIN_ROLE_TEMPLATE_CODE_SET } from './admin-role-templates';
 
-const SUPER_PERMISSION = '*';
 const PROTECTED_ROLE_CODES = new Set(['owner', 'super_admin']);
 const ADMIN_INVITE_TARGET_PREFIX = 'ADMIN_INVITE:';
+const MAX_ASSIGNED_ROLES = 8;
+
+type CreateInvitationOptions = {
+  primaryRoleId?: string;
+  department?: string;
+};
 
 @Injectable()
 export class AdminInvitationAdminService {
@@ -23,36 +34,58 @@ export class AdminInvitationAdminService {
     ]);
     if (!actor) throw new ForbiddenException('Acting admin account not found');
 
+    const actorRoles = actor.roles.map((item) => this.toPolicyRole(item.role));
     const items = roles
       .filter((role) => !PROTECTED_ROLE_CODES.has(role.code))
-      .filter((role) => this.canGrantRole(actor, role))
+      .filter((role) => evaluateRoleGrant(actorRoles, [this.toPolicyRole(role)]).allowed)
       .map((role) => ({
         id: role.id,
         code: role.code,
         name: role.name,
         level: role.level,
-        hasWildcard: role.permissions.some((item) => item.permission.code === SUPER_PERMISSION),
+        template: ADMIN_ROLE_TEMPLATE_CODE_SET.has(role.code),
+        positionLabel: role.name,
+        hasWildcard: role.permissions.some((item) => item.permission.code === '*'),
       }));
 
-    return { items };
+    return { items, maxAssignedRoles: MAX_ASSIGNED_ROLES };
   }
 
-  async create(actorAdminId: string, emailInput: string, roleId: string, expiresInHours = 24) {
+  async create(
+    actorAdminId: string,
+    emailInput: string,
+    roleIdOrIds: string | string[],
+    expiresInHours = 24,
+    options: CreateInvitationOptions = {},
+  ) {
     const email = String(emailInput ?? '').trim().toLowerCase();
     if (!/^\S+@\S+\.\S+$/.test(email)) throw new BadRequestException('A valid email is required');
-    if (!roleId) throw new BadRequestException('Role is required');
 
-    const [actor, role, existing] = await Promise.all([
+    const roleIds = this.normalizeRoleIds(Array.isArray(roleIdOrIds) ? roleIdOrIds : [roleIdOrIds]);
+    const [actor, roles, existing] = await Promise.all([
       this.findAdminWithPermissions(actorAdminId),
-      this.prisma.role.findUnique({ where: { id: roleId }, include: { permissions: { include: { permission: true } } } }),
+      this.prisma.role.findMany({
+        where: { id: { in: roleIds } },
+        include: { permissions: { include: { permission: true } } },
+        orderBy: [{ level: 'asc' }, { code: 'asc' }],
+      }),
       this.prisma.adminUser.findUnique({ where: { email } }),
     ]);
     if (!actor) throw new ForbiddenException('Acting admin account not found');
-    if (!role) throw new NotFoundException('Role not found');
+    if (roles.length !== roleIds.length) {
+      const foundIds = new Set(roles.map((role) => role.id));
+      throw new NotFoundException(`Role not found: ${roleIds.filter((roleId) => !foundIds.has(roleId)).join(', ')}`);
+    }
     if (existing) throw new ConflictException('An admin account with this email already exists');
 
-    this.assertCanGrantRole(actor, role);
+    const selection = this.resolveSelection(roles.map((role) => this.toPolicyRole(role)), options.primaryRoleId);
+    const evaluation = evaluateRoleGrant(
+      actor.roles.map((item) => this.toPolicyRole(item.role)),
+      selection.roles,
+    );
+    if (!evaluation.allowed) throw new ForbiddenException(evaluation.reason ?? 'Selected roles cannot be granted');
 
+    const department = this.normalizeDepartment(options.department);
     const safeHours = Math.min(Math.max(Number(expiresInHours) || 24, 1), 168);
     const expiresAt = new Date(Date.now() + safeHours * 60 * 60 * 1000);
     const rawToken = randomBytes(48).toString('base64url');
@@ -67,9 +100,11 @@ export class AdminInvitationAdminService {
           email,
           passwordHash: unusablePasswordHash,
           status: 'LOCKED',
-          roles: { create: { roleId } },
+          position: selection.primaryRole.code,
+          department,
+          roles: { create: selection.roles.map((role) => ({ roleId: role.id })) },
         },
-        select: { id: true, email: true, status: true, createdAt: true },
+        select: { id: true, email: true, status: true, createdAt: true, position: true, department: true },
       });
       await tx.verificationToken.create({
         data: {
@@ -85,7 +120,16 @@ export class AdminInvitationAdminService {
           action: 'CREATE_ADMIN_INVITATION',
           module: 'admin-access',
           targetId: admin.id,
-          newData: { email, roleId, roleCode: role.code, expiresAt: expiresAt.toISOString() },
+          newData: {
+            email,
+            roleIds: selection.roles.map((role) => role.id),
+            roleCodes: selection.roles.map((role) => role.code),
+            primaryRoleId: selection.primaryRole.id,
+            primaryRoleCode: selection.primaryRole.code,
+            department,
+            createdByManagerAdminId: actorAdminId,
+            expiresAt: expiresAt.toISOString(),
+          } as Prisma.InputJsonObject,
         }),
       });
       return admin;
@@ -96,7 +140,10 @@ export class AdminInvitationAdminService {
         adminUserId: created.id,
         email: created.email,
         status: created.status,
-        role: { id: role.id, code: role.code, name: role.name },
+        department: created.department,
+        primaryRole: this.presentRole(selection.primaryRole),
+        roles: selection.roles.map((role) => this.presentRole(role)),
+        permissionCodes: selection.permissionCodes,
         expiresAt,
       },
       token: rawToken,
@@ -127,6 +174,8 @@ export class AdminInvitationAdminService {
             email: true,
             username: true,
             status: true,
+            position: true,
+            department: true,
             createdAt: true,
             roles: { include: { role: true } },
           },
@@ -137,17 +186,22 @@ export class AdminInvitationAdminService {
       items: admins.map((admin) => {
         const token = latestByAdmin.get(admin.id)!;
         const state = token.usedAt ? 'REVOKED_OR_USED' : token.expiresAt <= now ? 'EXPIRED' : 'ACTIVE';
+        const orderedRoles = [...admin.roles].sort((left, right) => left.role.level - right.role.level || left.role.code.localeCompare(right.role.code));
+        const primaryRole = orderedRoles.find((item) => item.role.code === admin.position)?.role ?? orderedRoles[0]?.role ?? null;
         return {
           adminUserId: admin.id,
           email: admin.email,
           username: admin.username,
           accountStatus: admin.status,
           invitationStatus: state,
+          position: admin.position,
+          department: admin.department,
+          primaryRole: primaryRole ? { id: primaryRole.id, code: primaryRole.code, name: primaryRole.name, level: primaryRole.level } : null,
           createdAt: token.createdAt,
           expiresAt: token.expiresAt,
           usedAt: token.usedAt,
           protected: admin.roles.some((item) => PROTECTED_ROLE_CODES.has(item.role.code)),
-          roles: admin.roles.map((item) => ({ id: item.role.id, code: item.role.code, name: item.role.name, level: item.role.level })),
+          roles: orderedRoles.map((item) => ({ id: item.role.id, code: item.role.code, name: item.role.name, level: item.role.level })),
         };
       }),
     };
@@ -193,7 +247,11 @@ export class AdminInvitationAdminService {
       throw new ForbiddenException('Protected owner invitation cannot be reissued here');
     }
 
-    for (const item of target.roles) this.assertCanGrantRole(actor, item.role);
+    const evaluation = evaluateRoleGrant(
+      actor.roles.map((item) => this.toPolicyRole(item.role)),
+      target.roles.map((item) => this.toPolicyRole(item.role)),
+    );
+    if (!evaluation.allowed) throw new ForbiddenException(evaluation.reason ?? 'Invitation roles are above the acting admin');
 
     const safeHours = Math.min(Math.max(Number(expiresInHours) || 24, 1), 168);
     const expiresAt = new Date(Date.now() + safeHours * 60 * 60 * 1000);
@@ -231,6 +289,30 @@ export class AdminInvitationAdminService {
     return { adminUserId, email: target.email, expiresAt, token: rawToken, tokenVisibleOnce: true };
   }
 
+  private normalizeRoleIds(roleIdsInput: string[]) {
+    const roleIds = Array.from(new Set((roleIdsInput ?? []).map((roleId) => String(roleId).trim()).filter(Boolean)));
+    if (roleIds.length === 0) throw new BadRequestException('At least one role is required');
+    if (roleIds.length > MAX_ASSIGNED_ROLES) {
+      throw new BadRequestException(`An admin user can hold at most ${MAX_ASSIGNED_ROLES} roles`);
+    }
+    return roleIds;
+  }
+
+  private normalizeDepartment(departmentInput?: string) {
+    const department = String(departmentInput ?? '').trim();
+    if (!department) return null;
+    if (department.length > 120) throw new BadRequestException('Department must not exceed 120 characters');
+    return department;
+  }
+
+  private resolveSelection(roles: AdminRolePolicyRole[], primaryRoleIdInput?: string) {
+    try {
+      return normalizeRoleSelection(roles, primaryRoleIdInput);
+    } catch (error) {
+      throw new BadRequestException(error instanceof Error ? error.message : 'Invalid role selection');
+    }
+  }
+
   private readAdminUserId(target: string) {
     if (!target.startsWith(ADMIN_INVITE_TARGET_PREFIX)) return null;
     return target.slice(ADMIN_INVITE_TARGET_PREFIX.length).split(':')[0] || null;
@@ -243,40 +325,28 @@ export class AdminInvitationAdminService {
     });
   }
 
-  private permissionCodes(admin: { roles: Array<{ role: { permissions: Array<{ permission: { code: string } }> } }> }) {
-    return new Set(admin.roles.flatMap((item) => item.role.permissions.map((permission) => permission.permission.code)));
+  private toPolicyRole(role: {
+    id: string;
+    code: string;
+    name: string;
+    level: number;
+    permissions: Array<{ permission: { code: string; module: string; name: string } }>;
+  }): AdminRolePolicyRole {
+    return {
+      id: role.id,
+      code: role.code,
+      name: role.name,
+      level: role.level,
+      permissions: role.permissions.map((item) => ({
+        code: item.permission.code,
+        module: item.permission.module,
+        name: item.permission.name,
+      })),
+    };
   }
 
-  private canGrantRole(
-    actor: { roles: Array<{ role: { code: string; level: number; permissions: Array<{ permission: { code: string } }> } }> },
-    role: { code: string; level: number; permissions: Array<{ permission: { code: string } }> },
-  ) {
-    try {
-      this.assertCanGrantRole(actor, role);
-      return true;
-    } catch {
-      return false;
-    }
-  }
-
-  private assertCanGrantRole(
-    actor: { roles: Array<{ role: { code: string; level: number; permissions: Array<{ permission: { code: string } }> } }> },
-    role: { code: string; level: number; permissions: Array<{ permission: { code: string } }> },
-  ) {
-    const actorPermissions = this.permissionCodes(actor);
-    const actorHasWildcard = actorPermissions.has(SUPER_PERMISSION);
-    const actorProtected = actor.roles.some((item) => PROTECTED_ROLE_CODES.has(item.role.code));
-    const assigningProtectedRole = PROTECTED_ROLE_CODES.has(role.code) || role.permissions.some((item) => item.permission.code === SUPER_PERMISSION);
-
-    if (assigningProtectedRole && (!actorHasWildcard || !actorProtected)) {
-      throw new ForbiddenException('Only a protected owner-level admin can manage this invitation');
-    }
-    if (!actorHasWildcard) {
-      const missing = role.permissions.map((item) => item.permission.code).filter((permission) => !actorPermissions.has(permission));
-      if (missing.length > 0) throw new ForbiddenException('Cannot manage an invitation with permissions above the acting admin');
-      const actorBestLevel = Math.min(...actor.roles.map((item) => item.role.level));
-      if (role.level < actorBestLevel) throw new ForbiddenException('Cannot manage an invitation above the acting admin level');
-    }
+  private presentRole(role: AdminRolePolicyRole) {
+    return { id: role.id, code: role.code, name: role.name, level: role.level };
   }
 
   private async audit(actorAdminId: string, action: string, targetId: string, newData: Prisma.InputJsonObject) {
