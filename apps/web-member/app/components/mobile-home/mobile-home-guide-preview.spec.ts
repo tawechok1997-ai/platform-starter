@@ -15,10 +15,16 @@ test('mobile home mounts the compact guide preview before the persistent bottom 
   assert.match(preview, /bottomStructure\.insertBefore\(host, shortcut \?\? bottomStructure\.firstChild\)/);
 });
 
-test('mobile home has one Guide owner and no obsolete CSS owner hook', () => {
+test('Guide mount does not depend on a removed CSS module owner class', () => {
+  assert.match(preview, /if \(!root \|\| !bottomStructure\) return;/);
+  assert.doesNotMatch(preview, /styles\.owner/);
+  assert.doesNotMatch(preview, /ownerClassName/);
+  assert.doesNotMatch(preview, /classList\.(?:add|remove)/);
+});
+
+test('mobile home has one Guide owner and no legacy source-content guide', () => {
   assert.match(preview, /<header className=\{styles\.titleBar\}>/);
   assert.match(preview, /<h2 id="mobile-home-guide-title">Guide<\/h2>/);
-  assert.doesNotMatch(preview, /styles\.owner|classList\.add|classList\.remove/);
   assert.doesNotMatch(sourceContent, /runtime\.features\.usageGuide/);
   assert.doesNotMatch(sourceContent, /mobile-guide-heading/);
   assert.doesNotMatch(sourceContent, /styles\.guideSection/);
