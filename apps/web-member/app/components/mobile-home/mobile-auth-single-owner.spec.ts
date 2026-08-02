@@ -28,7 +28,9 @@ test('member chrome owns exactly one query-driven authentication popup', () => {
 test('the shared popup owns one iframe and keeps embedded auth navigation inside the single owner', () => {
   assert.equal((authOverlay.match(/<iframe\b/g) ?? []).length, 1);
   assert.match(authOverlay, /activeMode === 'register' \? '\/register\?embed=1' : '\/login\?embed=1'/);
-  assert.match(authOverlay, /key=\{path\}/);
+  assert.match(authOverlay, /src=\{path\}/);
+  assert.match(authOverlay, /embeddedDocument\.addEventListener\('click'/);
+  assert.match(authOverlay, /switchMode\(nextMode\)/);
   assert.match(authOverlay, /payload\.type === 'member-auth-switch'/);
   assert.match(authOverlay, /switchMode\(payload\.mode\)/);
   assert.match(authOverlay, /member-auth-close/);
