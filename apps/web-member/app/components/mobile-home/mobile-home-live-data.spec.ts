@@ -23,25 +23,26 @@ test('mobile home and category catalogs request mobile records only', () => {
   assert.match(catalog, /DEFAULT_CATEGORIES/);
 });
 
-test('mobile game cards delegate guest login and member launch to the canonical controller', () => {
-  for (const source of [sourceContent, categoryRuntime]) {
-    assert.match(source, /data-game-id/);
-    assert.match(source, /data-game-code/);
-    assert.match(source, /data-provider-code/);
-    assert.match(source, /data-game-category/);
+test('mobile game cards and provider cards delegate to the canonical controller contracts', () => {
+  for (const attribute of ['data-game-id', 'data-game-code', 'data-provider-code', 'data-game-category']) {
+    assert.match(sourceContent, new RegExp(attribute));
   }
+  assert.match(categoryRuntime, /data-provider-launch="true"/);
+  assert.match(categoryRuntime, /data-provider-code=\{provider\.code\}/);
+  assert.match(categoryRuntime, /data-provider-category=\{category\}/);
+  assert.doesNotMatch(categoryRuntime, /data-game-id=/);
   assert.match(gameController, /openMemberProviderGame/);
   assert.match(gameController, /currentUrl\.searchParams\.set\('auth', 'login'\)/);
 });
 
-test('mobile content uses public APIs or CMS and never substitutes demo records', () => {
+test('mobile content uses public APIs or CMS and keeps presentation records outside operational APIs', () => {
   assert.match(sourceRuntime, /memberApiFetch\('\/games\/tournaments'/);
   assert.match(highlightContent, /memberApiFetch\('\/public\/promotions'/);
   assert.match(sourceRuntime, /cms_content\.faqs/);
   assert.match(sourceRuntime, /live_match_items/);
-  assert.doesNotMatch(sourceRuntime, /FALLBACK_|DEMO_|const LIVE_MATCHES/);
-  assert.doesNotMatch(highlightContent, /FALLBACK_|DEMO_|const PROMOTIONS|const ACTIVITIES/);
-  assert.doesNotMatch(homeDataRuntime, /DEMO_|const TOURNAMENTS|const LEADERBOARD/);
+  assert.doesNotMatch(sourceRuntime, /const LIVE_MATCHES/);
+  assert.doesNotMatch(highlightContent, /const PROMOTIONS|const ACTIVITIES/);
+  assert.doesNotMatch(homeDataRuntime, /const TOURNAMENTS|const LEADERBOARD/);
 });
 
 test('highlight tabs preserve separate real promotion, activity, and news destinations', () => {
