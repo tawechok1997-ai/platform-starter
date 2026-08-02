@@ -1,0 +1,84 @@
+/* Canonical source icon geometry for Mobile Member popups. */
+:root {
+  --member-popup-menu-icon-size: 70px;
+  --member-popup-menu-icon-padding: 12px;
+  --member-popup-language-icon-size: 71px;
+  --member-popup-card-icon-size: 50px;
+  --member-popup-method-icon-size: 32px;
+  --member-popup-close-icon-size: 12px;
+}
+
+@media (max-width: 900px) {
+  /* The source member menu keeps 70px tiles at every mobile width. The menu
+     bridge previously reduced these to 50px below 360px, which made all seven
+     actions visibly smaller than the supplied source. */
+  html body section[data-mobile-popup-owner='menu'] button[data-source-member-menu-item] > span:first-child {
+    box-sizing: border-box !important;
+    width: var(--member-popup-menu-icon-size) !important;
+    height: var(--member-popup-menu-icon-size) !important;
+    min-width: var(--member-popup-menu-icon-size) !important;
+    min-height: var(--member-popup-menu-icon-size) !important;
+    flex: 0 0 var(--member-popup-menu-icon-size) !important;
+  }
+
+  html body section[data-mobile-popup-owner='menu'] button[data-source-member-menu-item] > span:first-child > img {
+    box-sizing: border-box !important;
+    width: 100% !important;
+    height: 100% !important;
+    padding: var(--member-popup-menu-icon-padding) !important;
+    object-fit: contain !important;
+  }
+
+  html body section[data-mobile-popup-owner='menu'] button[data-source-member-menu-item] > span:last-child {
+    width: auto !important;
+    max-width: 100% !important;
+    font-size: 11px !important;
+    line-height: 16px !important;
+  }
+
+  /* Member language popup uses the source 71px flag cards consistently rather
+     than shrinking to 61px on narrow phones. */
+  html body section[data-mobile-popup-owner='language'] [class*='languageGrid'] img {
+    box-sizing: border-box !important;
+    width: var(--member-popup-language-icon-size) !important;
+    height: var(--member-popup-language-icon-size) !important;
+    min-width: var(--member-popup-language-icon-size) !important;
+    min-height: var(--member-popup-language-icon-size) !important;
+  }
+
+  /* Preserve the source dimensions of the remaining popup icon families. */
+  html body section[data-mobile-popup-owner='contact'] [class*='contactCard'] > img,
+  html body section[data-mobile-popup-owner='withdraw'] [class*='bankCard'] > img,
+  html body section[data-mobile-popup-owner='deposit'] [class*='bankCard'] > img {
+    width: var(--member-popup-card-icon-size) !important;
+    height: var(--member-popup-card-icon-size) !important;
+    flex: 0 0 var(--member-popup-card-icon-size) !important;
+    object-fit: contain !important;
+  }
+
+  html body section[data-mobile-popup-owner='deposit'] [class*='methodList'] button img {
+    width: var(--member-popup-method-icon-size) !important;
+    height: var(--member-popup-method-icon-size) !important;
+    flex: 0 0 var(--member-popup-method-icon-size) !important;
+    object-fit: contain !important;
+  }
+
+  html body section[data-mobile-popup-owner] > button[aria-label='ปิด'] img {
+    width: var(--member-popup-close-icon-size) !important;
+    height: var(--member-popup-close-icon-size) !important;
+    object-fit: contain !important;
+  }
+}
+
+@media (max-width: 359px) {
+  /* Keep three 70px source tiles usable on narrow phones by reducing only the
+     column gap. Icon artwork itself must not be scaled down. */
+  html body section[data-mobile-popup-owner='menu'] > div:last-child > div {
+    column-gap: 4px !important;
+    row-gap: 8px !important;
+  }
+
+  html body section[data-mobile-popup-owner='menu'] button[data-source-member-menu-item] {
+    gap: 6px !important;
+  }
+}
