@@ -6,9 +6,14 @@ const cardPage = readFileSync(new URL('./mobile-card-provider-page.tsx', import.
 const launcher = readFileSync(new URL('./mobile-provider-launcher-page.tsx', import.meta.url), 'utf8');
 const providerGames = readFileSync(new URL('./mobile-provider-games-category-page.tsx', import.meta.url), 'utf8');
 
-test('card category only renders providers with verified configured artwork', () => {
-  assert.doesNotMatch(cardPage, /includeCatalogProviders/);
+test('card category keeps verified seeds while merging the complete Mobile catalog', () => {
   assert.match(cardPage, /providers=\{CARD_PROVIDER_SEEDS\}/);
+  assert.match(cardPage, /code: 'kingm'[\s\S]*source: 'https:\/\/cdn\.zabbet\.com\/providers\/set\/1_1_h\/kingm\.png'/);
+  assert.match(cardPage, /code: 'amb'[\s\S]*source: 'https:\/\/cdn\.zabbet\.com\/providers\/set\/1_1_l\/amb\.png'/);
+  assert.match(cardPage, /catalogPlatform="mobile"/);
+  assert.match(cardPage, /providerAssetPlatform="mobile"/);
+  assert.match(cardPage, /gameAssetPlatform="mobile"/);
+  assert.match(cardPage, /includeCatalogProviders/);
 });
 
 test('broken artwork collapses the complete provider or game card', () => {
