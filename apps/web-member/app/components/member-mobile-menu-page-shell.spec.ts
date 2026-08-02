@@ -27,6 +27,20 @@ test('all public mobile menu pages return to the mobile home instead of browser 
   assert.doesNotMatch(floatingContact, /router\.back\(\)/);
 });
 
+test('drawer referral link keeps the original source copy handler instead of inferred navigation', () => {
+  assert.match(floatingContact, /data-mobile-member-drawer-copy="referral"/);
+  assert.match(floatingContact, /window\.addEventListener\('click', preserveReferralCopy, true\)/);
+  assert.match(floatingContact, /label\.textContent = 'คัดลอกลิงก์'/);
+  assert.match(floatingContact, /window\.queueMicrotask/);
+  assert.doesNotMatch(
+    floatingContact.slice(
+      floatingContact.indexOf('const preserveReferralCopy'),
+      floatingContact.indexOf('window.addEventListener', floatingContact.indexOf('const preserveReferralCopy')),
+    ),
+    /preventDefault|stopPropagation|router\.|location\./,
+  );
+});
+
 test('purple mini tools are removed globally while the back-route controller remains mounted', () => {
   assert.doesNotMatch(floatingContact, /MINI_TOOLS/);
   assert.doesNotMatch(floatingContact, /member:mini-tool/);
