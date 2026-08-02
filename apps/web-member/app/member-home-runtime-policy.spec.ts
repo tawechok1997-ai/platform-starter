@@ -8,6 +8,8 @@ import {
   applyMemberHomeDataPolicy,
 } from './member-home-runtime-policy';
 
+const JACKPOT_ART = '/assets/asset-pc/images/FEZX/highlight/1725948738165-4cb4f1ec-44ed-4b21-99ed-398fbb6d7b25_220.gif';
+
 const settings = {
   features: {
     quick_promotion_title: 'โปรโมชั่นพิเศษ',
@@ -17,7 +19,7 @@ const settings = {
     quick_news_title: 'ข่าวสาร',
     quick_news_summary: 'ข่าวสารที่คุณไม่ควรพลาด',
     jackpot_title: 'Jackpot',
-    jackpot_image_url: '/assets/asset-pc/images/FEZX/highlight/source-jackpot.gif',
+    jackpot_image_url: JACKPOT_ART,
     leaderboard_limit: 5,
     cms_content: {
       assets: [
@@ -32,7 +34,7 @@ const settings = {
           id: 'member.presentation.jackpot',
           name: 'ภาพ Jackpot',
           type: 'image',
-          url: '/assets/asset-pc/images/FEZX/highlight/source-jackpot.gif',
+          url: JACKPOT_ART,
           enabled: true,
         },
       ],
@@ -74,7 +76,7 @@ function quickAction(title: string, summary: string) {
   };
 }
 
-test('home content uses dedicated backend quick-action copy and presentation jackpot art', () => {
+test('home content uses dedicated backend quick-action copy and the canonical jackpot art', () => {
   const result = applyMemberHomeContentPolicy(settings, home);
 
   assert.deepEqual(
@@ -86,7 +88,8 @@ test('home content uses dedicated backend quick-action copy and presentation jac
     ],
   );
   assert.equal(result.jackpot.title, 'Jackpot');
-  assert.equal(result.jackpot.image, '/assets/asset-pc/images/FEZX/highlight/source-jackpot.gif');
+  assert.equal(result.jackpot.image, JACKPOT_ART);
+  assert.match(result.jackpot.image, /_220\.gif$/);
   assert.doesNotMatch(result.jackpot.image, /coin\.webp|iconjackpot/i);
 });
 
