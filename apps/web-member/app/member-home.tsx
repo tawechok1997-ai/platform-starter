@@ -16,6 +16,7 @@ import HomeSidebarScrollController from './components/member-home/home-sidebar-s
 import MobileAuthenticatedAvatarRuntime from './components/mobile-home/mobile-authenticated-avatar-runtime';
 import MobileAuthenticatedHomeRuntime from './components/mobile-home/mobile-authenticated-home-runtime';
 import MobileCategoryFooterGuard from './components/mobile-home/mobile-category-footer-guard';
+import MobileCategoryRailFollowRuntime from './components/mobile-home/mobile-category-rail-follow-runtime';
 import MobileCategoryTabRuntime from './components/mobile-home/mobile-category-tab-runtime';
 import MobileCouponPopupBridge from './components/mobile-home/mobile-coupon-popup-bridge';
 import MobileHomeGuidePreview from './components/mobile-home/mobile-home-guide-preview';
@@ -72,6 +73,7 @@ export default function MemberHome(props: MemberHomeProps) {
         <MobileMemberMenuSourceBridge />
         <MobileAuthenticatedAvatarRuntime />
         <MobileCategoryTabRuntime />
+        <MobileCategoryRailFollowRuntime />
         <MobileCategoryFooterGuard />
         <MobileHomeGuidePreview />
         <MobileScrollComfortGuard />
