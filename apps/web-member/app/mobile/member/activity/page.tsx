@@ -1,5 +1,6 @@
 'use client';
 
+import { createApiClient } from '@platform/api-client';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import MobileMemberActivityPage, {
@@ -9,6 +10,12 @@ import { API_URL } from '../../../site-settings';
 
 type UnknownRecord = Record<string, unknown>;
 
+const publicApiClient = createApiClient({
+  baseUrl: API_URL,
+  cache: 'no-store',
+  defaultHeaders: { accept: 'application/json' },
+});
+
 export default function MobileActivityRoute() {
   const router = useRouter();
   const [items, setItems] = useState<MobileActivityContentItem[]>([]);
@@ -17,13 +24,11 @@ export default function MobileActivityRoute() {
   useEffect(() => {
     const controller = new AbortController();
 
-    fetch(`${API_URL}/public/activities`, {
+    publicApiClient.request<unknown>('/public/activities', {
+      auth: false,
       cache: 'no-store',
-      headers: { accept: 'application/json' },
       signal: controller.signal,
-    }).then(async (response) => {
-      const payload = await response.json().catch(() => null);
-      if (!response.ok) return;
+    }).then((payload) => {
       setItems(extractActivities(payload));
     }).catch(() => {
       // Source cards remain available while the API is unavailable or before the migration is deployed.
