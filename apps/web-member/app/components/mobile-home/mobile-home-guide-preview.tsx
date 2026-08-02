@@ -14,12 +14,13 @@ const GUIDE_PREVIEW_ITEMS = MOBILE_GUIDE_SECTIONS
 
 export default function MobileHomeGuidePreview() {
   const [target, setTarget] = useState<HTMLElement | null>(null);
-  const [visible, setVisible] = useState(true);
+  const [visible, setVisible] = useState(false);
 
   useLayoutEffect(() => {
     const root = document.querySelector<HTMLElement>('[data-mobile-home-root="true"]');
     const contentSlot = root?.querySelector<HTMLElement>('[data-mobile-content-slot="after-highlight"]');
-    if (!root || !contentSlot) return;
+    const highlightTabs = root?.querySelector<HTMLElement>('[data-mobile-section-owner="highlight-tabs"]');
+    if (!root || !contentSlot || !highlightTabs) return;
 
     const host = document.createElement('div');
     host.dataset.mobileHomeGuidePreviewHost = 'true';
@@ -32,13 +33,24 @@ export default function MobileHomeGuidePreview() {
     };
 
     const syncVisibility = () => {
-      setVisible((root.dataset.mobileActiveCategory ?? 'home') === 'home');
+      const onHomeCategory = (root.dataset.mobileActiveCategory ?? 'home') === 'home';
+      const onHighlightsTab = Boolean(
+        highlightTabs.querySelector('#mobile-highlight-tab-0[aria-selected="true"]'),
+      );
+      setVisible(onHomeCategory && onHighlightsTab);
     };
 
     const rootObserver = new MutationObserver(syncVisibility);
     rootObserver.observe(root, {
       attributes: true,
       attributeFilter: ['data-mobile-active-category'],
+    });
+
+    const highlightObserver = new MutationObserver(syncVisibility);
+    highlightObserver.observe(highlightTabs, {
+      subtree: true,
+      attributes: true,
+      attributeFilter: ['aria-selected'],
     });
 
     const contentObserver = new MutationObserver(syncPlacement);
@@ -49,6 +61,7 @@ export default function MobileHomeGuidePreview() {
 
     return () => {
       rootObserver.disconnect();
+      highlightObserver.disconnect();
       contentObserver.disconnect();
       host.remove();
       setTarget(null);
