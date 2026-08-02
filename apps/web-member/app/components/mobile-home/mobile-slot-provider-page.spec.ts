@@ -47,8 +47,8 @@ test('fishing keeps Mobile provider artwork and PC game artwork', () => {
   assert.match(fishing, /gameAssetPlatform="pc"/);
 });
 
-test('card keeps Mobile provider artwork while game icons resolve from PC', () => {
-  assert.match(card, /includeCatalogProviders/);
+test('card uses only verified Mobile provider artwork while game icons resolve from PC', () => {
+  assert.doesNotMatch(card, /includeCatalogProviders/);
   assert.match(card, /catalogPlatform="mobile"/);
   assert.match(card, /providerAssetPlatform="mobile"/);
   assert.match(card, /gameAssetPlatform="pc"/);

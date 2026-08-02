@@ -30,12 +30,13 @@ test('lottery heading and filter match the supplied mobile source', () => {
   assert.match(css, /\.filterButton\s*\{[\s\S]*height:\s*20px/);
 });
 
-test('lottery cards launch at category provider level', () => {
+test('lottery cards continue to the first catalog game for each provider', () => {
   assert.match(page, /category="lottery"/);
-  assert.match(shared, /data-category-launch-mode="provider"/);
+  assert.match(shared, /data-category-launch-mode="provider-launch"/);
   assert.match(shared, /data-provider-code=\{provider\.code\}/);
   assert.match(shared, /data-game-category=\{category\}/);
-  assert.doesNotMatch(shared, /data-game-id=/);
+  assert.match(shared, /data-game-id=\{firstGame\?\.id\}/);
+  assert.match(shared, /gameDestination\(category, provider\.code, firstGame\.id\)/);
 });
 
 test('central category runtime exposes lottery providers in place', () => {

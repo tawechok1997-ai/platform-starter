@@ -22,13 +22,15 @@ test('casino source page keeps the supplied ten-provider order', () => {
   assert.match(page, /category="casino"/);
 });
 
-test('shared cards launch at provider level without a game selection page', () => {
-  assert.match(shared, /data-category-launch-mode="provider"/);
+test('shared cards resolve a Mobile catalog game before authenticated launch', () => {
+  assert.match(shared, /data-category-launch-mode="provider-launch"/);
   assert.match(shared, /data-provider-launch="true"/);
   assert.match(shared, /data-provider-code=\{provider\.code\}/);
   assert.match(shared, /data-game-category=\{category\}/);
-  assert.match(shared, /data-game-name=\{provider\.name\}/);
-  assert.doesNotMatch(shared, /data-game-id=/);
+  assert.match(shared, /data-game-id=\{firstGame\?\.id\}/);
+  assert.match(shared, /data-game-name=\{firstGame\?\.name \?\? provider\.name\}/);
+  assert.match(shared, /gameDestination\(category, provider\.code, firstGame\.id\)/);
+  assert.match(shared, /platform: 'mobile'/);
 });
 
 test('provider grid matches the source full-row and two-column geometry', () => {

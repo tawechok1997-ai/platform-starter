@@ -21,12 +21,14 @@ test('sport source page keeps the supplied five-provider order', () => {
   assert.match(page, /code: 'saba'[\s\S]*layout: 'half'/);
 });
 
-test('sport uses provider launch mode without game-level identifiers', () => {
+test('sport resolves the first Mobile catalog game before launch', () => {
   assert.match(page, /category="sport"/);
   assert.match(page, /title=\{\{ th: 'กีฬา', en: 'Sports' \}\}/);
-  assert.match(shared, /data-category-launch-mode="provider"/);
+  assert.match(shared, /data-category-launch-mode="provider-launch"/);
   assert.match(shared, /data-provider-launch="true"/);
-  assert.doesNotMatch(shared, /data-game-id=/);
+  assert.match(shared, /data-game-id=\{firstGame\?\.id\}/);
+  assert.match(shared, /data-game-code=\{firstGame\?\.id\}/);
+  assert.match(shared, /gameDestination\(category, provider\.code, firstGame\.id\)/);
 });
 
 test('central category runtime exposes sport providers in place', () => {

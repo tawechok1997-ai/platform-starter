@@ -17,7 +17,7 @@ for (const selector of ['.ui-overlay', '.ui-modal', '.ui-confirm-dialog', '.ui-d
 for (const key of ['adminLayout', 'memberLayout']) requireText(key, 'packages/design-tokens/overlays.css', 'shared overlay import');
 
 for (const value of ['createPortal', 'member-auth-overlay', 'role="dialog"', 'aria-modal="true"', 'aria-busy={!frameReady}', 'member-auth-overlay__frame']) requireText('authOverlay', value);
-for (const behavior of ["event.key === 'Escape'", 'acquireMemberDocumentOverlayLock', 'releaseOverlayLock()', 'event.origin !== window.location.origin']) requireText('authOverlay', behavior, `auth overlay behavior ${behavior}`);
+for (const behavior of ["event.key === 'Escape'", 'acquireMemberDocumentOverlayLock', 'const releaseDocumentLock = acquireMemberDocumentOverlayLock()', 'releaseDocumentLock()', 'event.origin !== window.location.origin']) requireText('authOverlay', behavior, `auth overlay behavior ${behavior}`);
 for (const behavior of [
   'let activeLockCount = 0',
   "body.style.overflow = 'hidden'",
