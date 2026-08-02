@@ -16,10 +16,7 @@ export default function MobileHomeGuidePreview() {
   useLayoutEffect(() => {
     const root = document.querySelector<HTMLElement>('[data-mobile-home-root="true"]');
     const bottomStructure = root?.querySelector<HTMLElement>('[data-mobile-bottom-owner="true"]');
-    const ownerClassName = styles.owner;
-    if (!root || !bottomStructure || !ownerClassName) return;
-
-    root.classList.add(ownerClassName);
+    if (!root || !bottomStructure) return;
 
     const host = document.createElement('div');
     host.dataset.mobileHomeGuidePreviewHost = 'true';
@@ -40,7 +37,6 @@ export default function MobileHomeGuidePreview() {
 
     return () => {
       observer.disconnect();
-      root.classList.remove(ownerClassName);
       host.remove();
       setTarget(null);
     };
