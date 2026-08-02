@@ -8,16 +8,16 @@ const desktopHome = readFileSync(new URL('./member-home/desktop-home-scaffold.ts
 
 test('desktop live actions always navigate to the live page', () => {
   assert.match(controller, /const LIVE_ROUTE = '\/live'/);
-  assert.match(controller, /\.source-live-card__watch/);
-  assert.match(controller, /\.source-live-card__bet/);
-  assert.match(controller, /a\[href="?\/#live"?\]/);
+  assert.equal(controller.includes('.source-live-card__watch'), true);
+  assert.equal(controller.includes('.source-live-card__bet'), true);
+  assert.equal(controller.includes('.member-desktop-nav a[href="/#live"]'), true);
   assert.match(controller, /router\.push\(LIVE_ROUTE\)/);
   assert.doesNotMatch(controller, /category=sport/);
   assert.doesNotMatch(controller, /SPORT_ROUTE/);
 });
 
 test('legacy desktop live anchors remain recoverable', () => {
-  assert.match(shell, /key: 'live', href: '\/#live'/);
+  assert.equal(shell.includes("key: 'live', href: '/#live'"), true);
   assert.match(controller, /event\.stopImmediatePropagation\(\)/);
 });
 
