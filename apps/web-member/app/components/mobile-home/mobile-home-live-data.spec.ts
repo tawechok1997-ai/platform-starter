@@ -6,6 +6,8 @@ const sourceRuntime = readFileSync(new URL('./mobile-source-runtime.ts', import.
 const sourceContent = readFileSync(new URL('./mobile-source-content.tsx', import.meta.url), 'utf8');
 const categoryRuntime = readFileSync(new URL('./mobile-category-tab-runtime.tsx', import.meta.url), 'utf8');
 const highlightContent = readFileSync(new URL('./mobile-highlight-tab-content.tsx', import.meta.url), 'utf8');
+const providerLauncher = readFileSync(new URL('./mobile-provider-launcher-page.tsx', import.meta.url), 'utf8');
+const providerGames = readFileSync(new URL('./mobile-provider-games-category-page.tsx', import.meta.url), 'utf8');
 const mobileRoot = readFileSync(new URL('./mobile-home-root.tsx', import.meta.url), 'utf8');
 const catalog = readFileSync(new URL('../../lib/member-game-catalog.ts', import.meta.url), 'utf8');
 const homeDataRuntime = readFileSync(new URL('../../member-home-data-runtime.ts', import.meta.url), 'utf8');
@@ -16,20 +18,22 @@ const desktopJackpot = readFileSync(new URL('../member-home/desktop-jackpot-card
 
 test('mobile home and category catalogs request mobile records only', () => {
   assert.match(sourceRuntime, /getMemberGameCatalog\('mobile'\)/);
-  assert.match(categoryRuntime, /platform: 'mobile'/);
-  assert.match(categoryRuntime, /memberApiFetch\(`\/games\/catalog\?\$\{params\.toString\(\)\}`/);
+  assert.match(providerLauncher, /loadSourceCategoryCatalog\(category, sourceProviders, 'mobile', controller\.signal\)/);
+  assert.match(providerLauncher, /platform: 'mobile'/);
+  assert.match(providerGames, /loadSourceCategoryCatalog\(catalogSlug, sourceProviders, catalogPlatform, controller\.signal\)/);
   assert.doesNotMatch(sourceRuntime, /getMemberGameCatalog\('pc'\)/);
-  assert.doesNotMatch(categoryRuntime, /platform: 'pc'/);
+  assert.doesNotMatch(categoryRuntime, /memberApiFetch|loadSourceCategoryCatalog|getMemberGameCatalog/);
   assert.match(catalog, /Promise\.allSettled/);
   assert.match(catalog, /DEFAULT_CATEGORIES/);
 });
 
 test('mobile game cards and provider cards delegate to the canonical controller contracts', () => {
   for (const attribute of ['data-game-id', 'data-game-code', 'data-provider-code', 'data-game-category']) assert.match(sourceContent, new RegExp(attribute));
-  assert.match(categoryRuntime, /data-provider-launch="true"/);
-  assert.match(categoryRuntime, /data-provider-code=\{provider\.code\}/);
-  assert.match(categoryRuntime, /data-provider-category=\{category\}/);
-  assert.doesNotMatch(categoryRuntime, /data-game-id=/);
+  assert.match(providerLauncher, /data-provider-launch="true"/);
+  assert.match(providerLauncher, /data-provider-code=\{provider\.code\}/);
+  assert.match(providerLauncher, /data-game-category=\{category\}/);
+  assert.match(providerGames, /data-game-id=\{game\.id\}/);
+  assert.doesNotMatch(categoryRuntime, /data-provider-launch|data-game-id|data-provider-code/);
   assert.match(gameController, /openMemberProviderGame/);
   assert.match(gameController, /currentUrl\.searchParams\.set\('auth', 'login'\)/);
 });
