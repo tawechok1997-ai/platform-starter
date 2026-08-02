@@ -3,10 +3,10 @@
 @import './member-home-section-icons.css';
 
 /* Mobile category rail contract:
- * - Home keeps the existing document scroll behaviour.
- * - Game categories make the Mobile root the explicit vertical scroll owner.
- * - The browser keeps the category rail below the fixed 60px header.
- * - Horizontal provider rails must not block a vertical page gesture.
+ * - Home keeps the document as its scroll owner.
+ * - Game categories use the Mobile root as their scroll owner.
+ * - One runtime translates the rail beneath the fixed 60px header for both.
+ * - The translation is clamped to the category content boundary.
  */
 @media (max-width: 900px) {
   html[data-member-viewport-mode='mobile'],
@@ -73,22 +73,21 @@
   }
 
   html[data-member-viewport-mode='mobile'] [data-mobile-section-owner='category-menu'] {
-    position: -webkit-sticky !important;
-    position: sticky !important;
-    top: 60px !important;
+    position: relative !important;
+    top: 0 !important;
     right: auto !important;
     bottom: auto !important;
     left: 0 !important;
     z-index: 98 !important;
     align-self: start !important;
     height: max-content !important;
-    max-height: calc(100dvh - 68px) !important;
-    overflow-x: hidden !important;
-    overflow-y: visible !important;
+    max-height: none !important;
+    overflow: visible !important;
     overscroll-behavior: auto !important;
     scrollbar-width: none !important;
-    transform: none !important;
-    will-change: auto !important;
+    transform: translate3d(0, var(--mobile-category-rail-offset, 0px), 0) !important;
+    transition: none !important;
+    will-change: transform !important;
     touch-action: pan-y !important;
     -webkit-overflow-scrolling: auto;
   }
