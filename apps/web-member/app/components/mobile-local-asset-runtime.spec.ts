@@ -13,12 +13,12 @@ test('mobile local asset runtime is mounted exactly once', () => {
   assert.equal((layout.match(/import MobileLocalAssetRuntime/g) ?? []).length, 1);
 });
 
-test('rendered mobile CDN media resolves to local assets without affecting desktop', () => {
+test('rendered mobile CDN media resolves against the shared PC library first', () => {
   assert.match(runtime, /matchMedia\('\(max-width: 900px\)'\)/);
   assert.match(runtime, /closest\(MOBILE_MEDIA_SCOPE\)/);
   assert.match(runtime, /querySelectorAll<HTMLImageElement>\('img\[src\]'\)/);
-  assert.match(runtime, /resolveLocalAssetByBasename\(currentSource, 'mobile'\)/);
-  assert.match(runtime, /resolveLocalAssetByBasename\(currentSource, 'pc'\)/);
+  assert.match(runtime, /resolveLocalAssetByBasename\(currentSource, 'pc'\)[\s\S]*resolveLocalAssetByBasename\(currentSource, 'mobile'\)/);
+  assert.match(runtime, /resolveLocalAssetByBasename\(poster, 'pc'\)[\s\S]*resolveLocalAssetByBasename\(poster, 'mobile'\)/);
   assert.doesNotMatch(runtime, /min-width:\s*901px|data-desktop|desktop-reference-home/);
 });
 
@@ -39,6 +39,7 @@ test('mobile source theme is scoped to mobile owners and preserves popup viewpor
   assert.match(theme, /data-mobile-avatar-owner/);
   assert.match(theme, /data-mobile-popup-owner/);
   assert.match(popupStyles, /safe-area-inset-top/);
-  assert.match(popupStyles, /max-height: calc\(100dvh/);
-  assert.match(popupStyles, /--mobile-source-popup-max/);
+  assert.match(popupStyles, /max-height:\s*calc\(100dvh/);
+  assert.match(popupStyles, /width:\s*min\(480px, 100%\)/);
+  assert.match(popupStyles, /overflow:\s*hidden/);
 });
