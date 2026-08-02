@@ -10,18 +10,25 @@ const sourceContent = readFileSync(new URL('./mobile-source-content.tsx', import
 const home = readFileSync(new URL('../../member-home.tsx', import.meta.url), 'utf8');
 const root = readFileSync(new URL('./mobile-home-root.tsx', import.meta.url), 'utf8');
 
-test('mobile home mounts the compact guide preview before the persistent bottom content', () => {
+test('mobile home mounts the compact Guide inside the right content column', () => {
   assert.match(home, /import MobileHomeGuidePreview/);
   assert.match(home, /<MobileHomeGuidePreview \/>/);
   assert.match(preview, /data-mobile-home-guide-preview="true"/);
-  assert.match(preview, /bottomStructure\.insertBefore\(host, shortcut \?\? bottomStructure\.firstChild\)/);
+  assert.match(preview, /\[data-mobile-content-slot="after-highlight"\]/);
+  assert.match(preview, /contentSlot\.append\(host\)/);
+  assert.match(preview, /host\.dataset\.mobileSectionOwner = 'guide-preview'/);
+  assert.doesNotMatch(preview, /data-mobile-bottom-owner/);
+  assert.doesNotMatch(preview, /bottomStructure/);
+  assert.match(root, /className=\{styles\.categoryRail\}[\s\S]*data-mobile-content-slot="after-highlight"/);
 });
 
-test('Guide mount does not depend on a removed CSS module owner class', () => {
-  assert.match(preview, /if \(!root \|\| !bottomStructure\) return;/);
+test('Guide placement survives content rerenders and stays after the game sections', () => {
+  assert.match(preview, /const syncPlacement = \(\) =>/);
+  assert.match(preview, /host\.parentElement !== contentSlot \|\| host\.nextSibling/);
+  assert.match(preview, /contentObserver\.observe\(contentSlot, \{ childList: true \}\)/);
+  assert.match(preview, /if \(!root \|\| !contentSlot\) return;/);
   assert.doesNotMatch(preview, /styles\.owner/);
   assert.doesNotMatch(preview, /ownerClassName/);
-  assert.doesNotMatch(preview, /classList\.(?:add|remove)/);
 });
 
 test('mobile home has one Guide owner and no legacy source-content guide', () => {
