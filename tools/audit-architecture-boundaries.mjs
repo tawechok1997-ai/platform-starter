@@ -43,6 +43,10 @@ function isNextRouteHandler(path) {
   return NEXT_ROUTE_HANDLER_PATTERN.test(normalize(path));
 }
 
+function isExplicitServerOnlyModule(source) {
+  return /^\s*import\s+['"]server-only['"];?/m.test(source);
+}
+
 function importsOf(source, file) {
   const imports = [];
   const scriptKind = file.endsWith('.tsx') ? ts.ScriptKind.TSX : ts.ScriptKind.TS;
@@ -144,12 +148,14 @@ for (const frontendRoot of FRONTEND_ROOTS) {
   for (const file of await walk(frontendRoot)) {
     if (isTestFile(file)) continue;
     const source = await readFile(file, 'utf8');
+    const explicitServerOnlyModule = isExplicitServerOnlyModule(source);
     for (const specifier of importsOf(source, file)) {
       const serverOnly = SERVER_ONLY_IMPORTS.some((pattern) => pattern.test(specifier));
       const allowedRouteHandlerImport = isNextRouteHandler(file)
         && NEXT_ROUTE_HANDLER_ALLOWED_IMPORTS.some((pattern) => pattern.test(specifier));
+      const allowedExplicitServerOnlyImport = explicitServerOnlyModule && specifier.startsWith('node:');
       const apiSourceImport = specifier.includes('apps/api/') || specifier.includes('@platform/api/');
-      if ((serverOnly && !allowedRouteHandlerImport) || apiSourceImport) {
+      if ((serverOnly && !allowedRouteHandlerImport && !allowedExplicitServerOnlyImport) || apiSourceImport) {
         frontendViolations.push({ file: normalize(file), specifier });
       }
     }
