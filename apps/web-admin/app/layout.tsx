@@ -72,8 +72,8 @@ import './admin-static-sidebar-groups.css';
 import './admin-sidebar-smart-accordion.css';
 import './admin-data-page-layout.css';
 import './admin-universal-full-width.css';
-import './admin-content-insets.css';
 import './admin-appearance-foundation.css';
+import './admin-content-insets.css';
 import { AdminMobileDrawerController } from './admin-mobile-drawer-controller';
 import { AdminAppearanceRuntime } from './admin-appearance-runtime';
 
@@ -146,7 +146,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="th" dir="ltr" suppressHydrationWarning>
       <head>
-        <script id="admin-appearance-bootstrap" dangerouslySetInnerHTML={{ __html: appearanceBootstrap }} />
+        <script id="admin-appearance-bootstrap">{appearanceBootstrap}</script>
       </head>
       <body data-app-surface="admin">
         {children}
