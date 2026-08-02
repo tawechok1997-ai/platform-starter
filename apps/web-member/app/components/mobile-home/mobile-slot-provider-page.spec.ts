@@ -49,12 +49,14 @@ test('fishing keeps the supplied 15-provider order and category identity', () =>
   assert.match(fishing, /providerAssetPlatform="mobile"/);
 });
 
-test('card keeps configured source providers and may append central catalog providers', () => {
+test('card keeps its configured source providers and canonical category route', () => {
   assert.match(card, /code: 'kingm'[\s\S]*layout: 'wide-hero'/);
   assert.match(card, /code: 'amb'[\s\S]*layout: 'wide-banner'/);
-  assert.match(card, /includeCatalogProviders/);
+  assert.match(card, /providers=\{CARD_PROVIDER_SEEDS\}/);
   assert.match(card, /category="card"/);
+  assert.match(card, /catalogPlatform="mobile"/);
   assert.match(card, /providerAssetPlatform="mobile"/);
+  assert.doesNotMatch(card, /includeCatalogProviders/);
 });
 
 test('shared provider flow launches the selected provider into the canonical mobile browse route', () => {
