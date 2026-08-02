@@ -21,7 +21,10 @@ export default function MemberHomeRuntimeController() {
       syncAnnouncement(runtime);
       syncQuickActions(runtime.home.quickActions);
       syncTournament(runtime);
-      syncTournamentBoards(runtime.homeData.tournaments, runtime.features.tournament);
+      syncTournamentBoards(
+        runtime.homeData.tournaments,
+        runtime.features.tournament || runtime.homeData.tournaments.length > 0,
+      );
       syncJackpot(runtime);
       syncLeaderboard(runtime.homeData.leaderboard, runtime.home.leaderboard.title, runtime.home.leaderboard.enabled);
       syncMiniGames(runtime.homeData.miniGames, runtime.features.miniGames);
@@ -89,7 +92,7 @@ function syncQuickActions(items: MemberQuickActionRuntime[]) {
 
 function syncTournament(runtime: ReturnType<typeof useMemberRuntime>) {
   const item = runtime.home.tournament;
-  const enabled = runtime.features.tournament;
+  const enabled = runtime.features.tournament || runtime.homeData.tournaments.length > 0;
   document.querySelectorAll<HTMLElement>('.reference-tournament-cta, .v47-mobile-tournament-banner').forEach((element) => {
     element.hidden = !enabled;
     element.dataset.runtimeContentId = item.id;
