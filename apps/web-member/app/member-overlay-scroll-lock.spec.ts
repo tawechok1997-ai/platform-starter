@@ -28,7 +28,7 @@ test('overlay lock freezes physical desktop width and requests a post-close resy
   assert.match(overlayLock, /frozenViewportWidth = measuredViewportWidth/);
   assert.match(overlayLock, /activeLockCount > 0 && frozenViewportWidth !== null/);
   assert.match(overlayLock, /MEMBER_DESKTOP_VIEWPORT_RESYNC_EVENT/);
-  assert.match(overlayLock, /window\.requestAnimationFrame\(\(\) => \{\s*window\.requestAnimationFrame/s);
+  assert.match(overlayLock, /window\.requestAnimationFrame\(\(\) => \{\s*window\.requestAnimationFrame/);
 });
 
 test('auth and shared desktop overlay owners no longer mutate document overflow independently', () => {
