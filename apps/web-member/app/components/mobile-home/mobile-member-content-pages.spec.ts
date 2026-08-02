@@ -94,5 +94,5 @@ test('activity page keeps the three source cards and current join bridge', () =>
   assert.match(activity, /detail: \{ mode: 'login', next: activity\.href \}/);
   assert.match(activity, /router\.push\(activity\.href\)/);
   assert.match(activity, /เข้าร่วม/);
-  assert.match(activityRoute, /\/public\/site-settings/);
+  assert.match(activityRoute, /requestJson<unknown>\('\/public\/activities'/);
 });
