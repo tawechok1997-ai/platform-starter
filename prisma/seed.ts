@@ -1,6 +1,7 @@
 import { PrismaClient } from '@prisma/client';
 import * as argon2 from 'argon2';
 import { createCipheriv, createHash, randomBytes } from 'crypto';
+import { ADMIN_ROLE_TEMPLATES } from '../apps/api/src/modules/admin-access/admin-role-templates';
 import { PROMOTION_ASSET_CAMPAIGNS } from '../apps/api/src/modules/promotions/promotion-asset-campaigns';
 
 const prisma = new PrismaClient();
@@ -39,12 +40,28 @@ const permissions = [
   ['game.providers.manage', 'Game Providers Manage', 'game-platform'],
   ['promotion.view', 'Promotion View', 'promotion'],
   ['promotion.create', 'Promotion Create', 'promotion'],
+  ['promotions.claims.view', 'Promotion Claims View', 'promotions'],
+  ['promotions.claims.review', 'Promotion Claims Review', 'promotions'],
+  ['bonus.ledger.view', 'Bonus Ledger View', 'bonus'],
+  ['bonus.turnover.update', 'Bonus Turnover Update', 'bonus'],
+  ['bonus.lifecycle.update', 'Bonus Lifecycle Update', 'bonus'],
+  ['affiliate.view', 'Affiliate View', 'affiliate'],
+  ['affiliate.review', 'Affiliate Review', 'affiliate'],
+  ['commission.view', 'Commission View', 'commission'],
+  ['commission.create', 'Commission Create', 'commission'],
+  ['commission.review', 'Commission Review', 'commission'],
   ['seo.view', 'SEO View', 'seo'],
   ['seo.update', 'SEO Update', 'seo'],
   ['admin.view', 'Admin View', 'admin'],
   ['admin.create', 'Admin Create', 'admin'],
   ['admin.access.view', 'Admin Access View', 'admin'],
   ['admin.access.manage', 'Admin Access Manage', 'admin'],
+  ['admin.access.delegate', 'Admin Access Delegate', 'admin'],
+  ['admin.teams.view', 'Admin Teams View', 'admin'],
+  ['admin.teams.manage', 'Admin Teams Manage', 'admin'],
+  ['admin.subordinates.create', 'Admin Subordinates Create', 'admin'],
+  ['admin.subordinates.manage', 'Admin Subordinates Manage', 'admin'],
+  ['admin.permissions.override', 'Admin Permission Override', 'admin'],
   ['roles.update', 'Roles Update', 'admin'],
   ['settings.update', 'Settings Update', 'settings'],
   ['settings.website.view', 'Website Settings View', 'settings'],
@@ -181,6 +198,37 @@ async function main() {
       where: { roleId_permissionId: { roleId: superAdminRole.id, permissionId: permission.id } },
       update: {},
       create: { roleId: superAdminRole.id, permissionId: permission.id },
+    });
+  }
+
+  for (const template of ADMIN_ROLE_TEMPLATES) {
+    const role = await prisma.role.upsert({
+      where: { code: template.code },
+      update: {
+        name: template.name,
+        description: template.description,
+        level: template.level,
+      },
+      create: {
+        code: template.code,
+        name: template.name,
+        description: template.description,
+        level: template.level,
+      },
+    });
+    const permissionByCode = new Map(allPermissions.map((permission) => [permission.code, permission]));
+    const missingPermissionCodes = template.permissionCodes.filter((code) => !permissionByCode.has(code));
+    if (missingPermissionCodes.length > 0) {
+      throw new Error(`Missing permissions for role template ${template.code}: ${missingPermissionCodes.join(', ')}`);
+    }
+
+    await prisma.rolePermission.deleteMany({ where: { roleId: role.id } });
+    await prisma.rolePermission.createMany({
+      data: template.permissionCodes.map((code) => ({
+        roleId: role.id,
+        permissionId: permissionByCode.get(code)!.id,
+      })),
+      skipDuplicates: true,
     });
   }
 
