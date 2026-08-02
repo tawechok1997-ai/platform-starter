@@ -28,6 +28,7 @@ export default function MobileLotteryProviderPage() {
       countLabel={{ th: 'เกม', en: 'games' }}
       providers={LOTTERY_PROVIDERS}
       stacked
+      filterable
     />
   );
 }
