@@ -2,6 +2,7 @@ import { Body, Controller, Get, Param, Post, Query, UseGuards } from '@nestjs/co
 import type { MemberActor } from '../../common/actors';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { MemberAuthGuard } from '../../common/guards/member-auth.guard';
+import { LotteryNumbersInput } from './activity-requests';
 import { MemberActivitiesService } from './member-activities.service';
 
 @Controller()
@@ -70,7 +71,7 @@ export class MemberActivitiesController {
   submitLottery(
     @CurrentUser() user: MemberActor,
     @Param('roundCode') roundCode: string,
-    @Body() body: { topNumber?: unknown; bottomNumber?: unknown },
+    @Body() body: LotteryNumbersInput,
   ) {
     return this.service.submitLotteryEntry(user.id, roundCode, body);
   }
