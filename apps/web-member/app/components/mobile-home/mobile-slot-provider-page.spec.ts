@@ -49,41 +49,60 @@ test('fishing keeps the supplied 15-provider order and category identity', () =>
   assert.match(fishing, /providerAssetPlatform="mobile"/);
 });
 
-test('card keeps its configured source providers and canonical category route', () => {
+test('card keeps its configured source providers and canonical category identity', () => {
   assert.match(card, /code: 'kingm'[\s\S]*layout: 'wide-hero'/);
   assert.match(card, /code: 'amb'[\s\S]*layout: 'wide-banner'/);
   assert.match(card, /providers=\{CARD_PROVIDER_SEEDS\}/);
   assert.match(card, /category="card"/);
   assert.match(card, /catalogPlatform="mobile"/);
   assert.match(card, /providerAssetPlatform="mobile"/);
-  assert.doesNotMatch(card, /includeCatalogProviders/);
 });
 
-test('shared provider flow launches the selected provider into the canonical mobile browse route', () => {
-  assert.match(shared, /data-category-flow="provider-only"/);
+test('shared provider flow selects a provider before exposing its games', () => {
+  assert.match(shared, /data-category-flow="provider-games"/);
   assert.match(shared, /data-provider-games-stage="providers"/);
-  assert.match(shared, /data-provider-launch="true"/);
-  assert.match(shared, /data-provider-code=\{provider\.code\}/);
-  assert.match(shared, /data-game-category=\{category\}/);
-  assert.match(shared, /\/browse\/games\?category=/);
-  assert.match(shared, /platform=mobile/);
-  assert.doesNotMatch(shared, /data-provider-games-stage="games"|setSelectedCode|backToProviders|data-game-id=/);
+  assert.match(shared, /data-provider-select="true"/);
+  assert.match(shared, /data-next-step="games"/);
+  assert.match(shared, /setSelectedCode\(normalizeProviderCode\(provider\.code\)\)/);
+  assert.match(shared, /data-provider-games-stage="games"/);
+  assert.match(shared, /backToProviders/);
 });
 
-test('shared provider cards resolve local artwork before remote fallback', () => {
+test('shared game page loads and filters the selected mobile catalog', () => {
+  assert.match(shared, /loadSourceCategoryCatalog\(catalogSlug, sourceProviders, catalogPlatform, controller\.signal\)/);
+  assert.match(shared, /normalizeProviderCode\(game\.provider \?\? ''\) === selectedCode/);
+  assert.match(shared, /INITIAL_GAME_COUNT = 60/);
+  assert.match(shared, /GAME_PAGE_STEP = 60/);
+  assert.match(shared, /visibleCount < filteredGames\.length/);
+  assert.match(shared, /filter === 'hot'/);
+  assert.match(shared, /filter === 'new'/);
+});
+
+test('game cards preserve the chosen game through login and real launch', () => {
+  assert.match(shared, /href=\{`\/games\?\$\{destination\.toString\(\)\}`\}/);
+  assert.match(shared, /data-game-id=\{game\.id\}/);
+  assert.match(shared, /data-game-code=\{game\.id\}/);
+  assert.match(shared, /data-game-name=\{game\.name\}/);
+  assert.match(shared, /data-provider-code=\{providerCode\}/);
+  assert.match(shared, /data-game-category=\{category\}/);
+  assert.match(shared, /data-game-icon-platform=\{gameAssetPlatform\}/);
+});
+
+test('provider and game artwork resolve locally before remote fallback', () => {
   assert.match(shared, /resolveLocalAssetOrSource\(provider\.source, providerAssetPlatform\)/);
   assert.match(shared, /data-provider-image-source=\{provider\.source\}/);
+  assert.match(shared, /resolveLocalAssetOrSource\(source, gameAssetPlatform\)/);
   assert.match(shared, /fallbackImage\(event\.currentTarget, resolvedSource, provider\.source\)/);
-  assert.match(shared, /loadSourceCategoryCatalog\(catalogSlug, sourceProviders, catalogPlatform, controller\.signal\)/);
 });
 
-test('provider grid preserves source full-row and two-column geometry', () => {
+test('provider and game grids preserve the supplied mobile geometry', () => {
   assert.match(css, /\.grid\s*\{[\s\S]*flex-wrap:\s*wrap[\s\S]*gap:\s*10px/);
   assert.match(css, /\.card\s*\{[\s\S]*width:\s*calc\(50% - 5px\)/);
   assert.match(css, /\.wide\s*\{[\s\S]*width:\s*100%/);
+  assert.match(css, /\.slotGameGrid\s*\{[\s\S]*grid-template-columns:\s*repeat\(3, minmax\(0, 1fr\)\)/);
 });
 
-test('mobile category owner routes slot fishing and card to their source components', () => {
+test('mobile highlight owner routes slot fishing and card to their source components', () => {
   assert.match(owner, /import MobileSlotProviderPage/);
   assert.match(owner, /import MobileFishingProviderPage/);
   assert.match(owner, /import MobileCardProviderPage/);
