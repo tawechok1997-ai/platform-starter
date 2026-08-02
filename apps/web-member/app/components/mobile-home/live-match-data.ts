@@ -1,3 +1,5 @@
+import { ApiClientError, createApiClient } from '@platform/api-client';
+
 import { API_URL } from '../../member-api';
 
 export type LiveMatch = {
@@ -35,21 +37,33 @@ export async function loadCentralLiveMatches(timezone: string, signal?: AbortSig
   url.searchParams.set('timezone', timezone);
   url.searchParams.set('sport', 'football');
 
-  const response = await fetch(url.toString(), {
+  const client = createApiClient({
+    baseUrl: url.origin,
     cache: 'no-store',
-    credentials: 'include',
-    headers: { accept: 'application/json' },
-    signal,
+    defaultHeaders: { accept: 'application/json' },
   });
 
-  if (response.status === 204 || response.status === 404) {
-    return { items: [], timezone, updatedAt: new Date().toISOString() };
+  let payload: unknown;
+  try {
+    payload = await client.request<unknown>(`${url.pathname}${url.search}`, {
+      auth: false,
+      cache: 'no-store',
+      credentials: 'include',
+      signal,
+    });
+  } catch (error) {
+    if (error instanceof ApiClientError && error.status === 404) {
+      return { items: [], timezone, updatedAt: new Date().toISOString() };
+    }
+    if (error instanceof ApiClientError) {
+      const root = asRecord(error.payload);
+      throw new Error(firstString(root?.message, root?.error, error.message, 'โหลดรายการถ่ายทอดสดไม่สำเร็จ'));
+    }
+    throw error;
   }
 
-  const payload = await response.json().catch(() => null);
-  if (!response.ok) {
-    const root = asRecord(payload);
-    throw new Error(firstString(root?.message, root?.error, 'โหลดรายการถ่ายทอดสดไม่สำเร็จ'));
+  if (payload === null) {
+    return { items: [], timezone, updatedAt: new Date().toISOString() };
   }
 
   const root = asRecord(payload);
