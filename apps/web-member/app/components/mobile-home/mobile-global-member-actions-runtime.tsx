@@ -41,6 +41,11 @@ export default function MobileGlobalMemberActionsRuntime() {
       const action = event.target.closest<HTMLElement>('button,a,[role="button"]');
       if (!action) return;
 
+      // Controls inside this runtime's own overlay must reach their React
+      // handlers. Re-capturing the confirm button would reopen the confirm
+      // state and stop logout() before it ever runs.
+      if (action.closest('[data-mobile-global-overlay]')) return;
+
       const label = action.getAttribute('aria-label')?.trim() ?? '';
       const text = action.textContent?.replace(/\s+/g, ' ').trim() ?? '';
       const popup = action.dataset.mobileMemberPopup;
@@ -128,7 +133,14 @@ export default function MobileGlobalMemberActionsRuntime() {
           <h2 id="mobile-logout-title">ออกจากระบบ</h2>
           <p>คุณยืนยันจะออกจากระบบหรือไม่</p>
           <div className={styles.logoutActions}>
-            <button type="button" className={styles.confirmLogout} onClick={confirmLogout}>ออกจากระบบ</button>
+            <button
+              type="button"
+              className={styles.confirmLogout}
+              data-mobile-global-confirm-logout="true"
+              onClick={confirmLogout}
+            >
+              ออกจากระบบ
+            </button>
             <button type="button" className={styles.cancelLogout} onClick={() => setOverlay(null)}>ยกเลิก</button>
           </div>
         </section>
