@@ -4,7 +4,6 @@ import { useEffect } from 'react';
 
 const MENU_OWNER = '[data-mobile-popup-owner="menu"]';
 const BOTTOM_NAVIGATION = '[data-mobile-member-bottom-navigation="true"]';
-const MOBILE_POPUP_EVENT = 'member:mobile-popup-open';
 const MOBILE_CATEGORY_EVENT = 'member:mobile-category-select';
 
 const HOME_PATHS = new Set([
@@ -126,13 +125,6 @@ export default function MobileMemberMenuSourceBridge() {
       });
     };
 
-    const openUnifiedMemberMenu = () => {
-      closeLegacyDrawer();
-      window.dispatchEvent(new CustomEvent(MOBILE_POPUP_EVENT, {
-        detail: { kind: 'menu' },
-      }));
-    };
-
     const selectInlineTab = (key: InlineMemberTab) => {
       const button = document.getElementById(INLINE_MEMBER_TABS[key].tabId);
       if (!(button instanceof HTMLButtonElement)) return;
@@ -192,16 +184,6 @@ export default function MobileMemberMenuSourceBridge() {
 
     const handleClick = (event: MouseEvent) => {
       if (!(event.target instanceof Element)) return;
-
-      const memberMenuTrigger = event.target.closest<HTMLElement>(
-        'button[aria-label="เปิดเมนูสมาชิก"],button[aria-label="Open member menu"]',
-      );
-      if (memberMenuTrigger && !memberMenuTrigger.closest(MENU_OWNER)) {
-        event.preventDefault();
-        event.stopImmediatePropagation();
-        openUnifiedMemberMenu();
-        return;
-      }
 
       const popupItem = event.target.closest<HTMLButtonElement>(
         `${MENU_OWNER} button[data-source-member-menu-item]`,
