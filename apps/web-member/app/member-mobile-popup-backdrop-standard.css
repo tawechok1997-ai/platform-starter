@@ -1,0 +1,47 @@
+/*
+ * Canonical Mobile Member popup backdrop.
+ *
+ * Dialog geometry remains owned by each popup. This file owns only the
+ * viewport-sized dimming layer so Auth, finance, coupon, language, logout,
+ * shared modal and video popups never reveal the page with different opacity,
+ * blur or clipped viewport geometry.
+ */
+:root {
+  --member-mobile-popup-backdrop: rgb(0 0 0 / 80%);
+}
+
+@media (max-width: 900px) {
+  html body [data-ui-owner='mobile-popup'],
+  html body [data-ui-owner='mobile-video-popup'],
+  html body [data-ui-owner='mobile-video-guide-popup'],
+  html body [data-mobile-global-overlay],
+  html body .member-modal-system__backdrop {
+    position: fixed !important;
+    inset: 0 !important;
+    box-sizing: border-box !important;
+    width: 100vw !important;
+    min-width: 100vw !important;
+    height: 100vh !important;
+    min-height: 100vh !important;
+    height: 100dvh !important;
+    min-height: 100dvh !important;
+    margin: 0 !important;
+    overflow: hidden !important;
+    isolation: isolate !important;
+    background-color: var(--member-mobile-popup-backdrop) !important;
+    background-image: none !important;
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+    overscroll-behavior: contain !important;
+  }
+
+  /* Auth owns an opening/closing transition, so only its visible state is
+     forced to the same source backdrop. The transparent closing state stays
+     intact and cannot flash a second dark frame. */
+  html body .member-auth-overlay[data-state='open'] {
+    background-color: var(--member-mobile-popup-backdrop) !important;
+    background-image: none !important;
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+}
