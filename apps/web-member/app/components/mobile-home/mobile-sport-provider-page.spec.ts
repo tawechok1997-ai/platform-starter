@@ -4,7 +4,7 @@ import test from 'node:test';
 
 const page = readFileSync(new URL('./mobile-sport-provider-page.tsx', import.meta.url), 'utf8');
 const shared = readFileSync(new URL('./mobile-provider-launcher-page.tsx', import.meta.url), 'utf8');
-const categoryRuntime = readFileSync(new URL('./mobile-category-tab-runtime.tsx', import.meta.url), 'utf8');
+const owner = readFileSync(new URL('./mobile-highlight-tab-content.tsx', import.meta.url), 'utf8');
 
 test('sport source page keeps the supplied five-provider order', () => {
   const providers = ['sbo', 'lali', 'bcs', 'muay', 'saba'];
@@ -31,10 +31,7 @@ test('sport resolves the first Mobile catalog game before launch', () => {
   assert.match(shared, /gameDestination\(category, provider\.code, firstGame\.id\)/);
 });
 
-test('central category runtime exposes sport providers in place', () => {
-  assert.match(categoryRuntime, /type MobileCategoryId = [^;]*'sport'/);
-  assert.match(categoryRuntime, /data-mobile-category-content=\{category\}/);
-  assert.match(categoryRuntime, /data-provider-category=\{category\}/);
-  assert.match(categoryRuntime, /platform: 'mobile'/);
-  assert.match(categoryRuntime, /memberApiFetch\(`\/games\/catalog\?\$\{params\.toString\(\)\}`/);
+test('mobile category content owner routes sport to the dedicated provider page', () => {
+  assert.match(owner, /import MobileSportProviderPage/);
+  assert.match(owner, /activeCategory === 'sport'[\s\S]*return <MobileSportProviderPage \/>/);
 });
