@@ -29,7 +29,7 @@ test('all Mobile Member popup owners share the source black backdrop', () => {
 
 test('auth open state uses the same backdrop without breaking its closing transition', () => {
   assert.match(backdropCss, /\.member-auth-overlay\[data-state='open'\]/);
-  assert.doesNotMatch(backdropCss, /\.member-auth-overlay\[data-state='closing'\][^{]*\{[^}]*background-color: var\(--member-mobile-popup-backdrop\)/s);
+  assert.doesNotMatch(backdropCss, /\.member-auth-overlay\[data-state='closing'\][^{]*\{[^}]*background-color: var\(--member-mobile-popup-backdrop\)/);
 });
 
 test('backdrop authority loads from the final Member CSS owner', () => {
