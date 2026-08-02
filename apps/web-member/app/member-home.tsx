@@ -18,6 +18,7 @@ import MobileAuthenticatedHomeRuntime from './components/mobile-home/mobile-auth
 import MobileCategoryFooterGuard from './components/mobile-home/mobile-category-footer-guard';
 import MobileCategoryTabRuntime from './components/mobile-home/mobile-category-tab-runtime';
 import MobileCouponPopupBridge from './components/mobile-home/mobile-coupon-popup-bridge';
+import MobileHomeGuidePreview from './components/mobile-home/mobile-home-guide-preview';
 import MobileHomeMotionRuntime from './components/mobile-home/mobile-home-motion-runtime';
 import MobileHomeRoot from './components/mobile-home/mobile-home-root';
 import MobileMemberMenuSourceBridge from './components/mobile-home/mobile-member-menu-source-bridge';
@@ -70,6 +71,7 @@ export default function MemberHome(props: MemberHomeProps) {
         <MobileAuthenticatedAvatarRuntime />
         <MobileCategoryTabRuntime />
         <MobileCategoryFooterGuard />
+        <MobileHomeGuidePreview />
         <MobileScrollComfortGuard />
         <MobileHomeMotionRuntime contentVersion={mobileHomeMotionVersion(props.cmsContent)} />
       </>
