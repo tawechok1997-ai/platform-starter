@@ -7,10 +7,10 @@ const providerGames = readFileSync(new URL('./mobile-provider-games-category-pag
 const categoryRuntime = readFileSync(new URL('./mobile-category-tab-runtime.tsx', import.meta.url), 'utf8');
 
 test('mobile category surface renders provider artwork before any game selection', () => {
-  assert.match(categoryRuntime, /data-category-flow="provider-icons"/);
+  assert.match(categoryRuntime, /data-category-flow="provider-only"/);
   assert.match(categoryRuntime, /data-provider-launch="true"/);
-  assert.match(categoryRuntime, /data-provider-icon-source=\{provider\.iconSource\}/);
-  assert.match(categoryRuntime, /getMemberGameCatalog\('mobile'\)/);
+  assert.match(categoryRuntime, /resolveMobileProviderCover\(category, provider\.code\)/);
+  assert.match(categoryRuntime, /platform: 'mobile'/);
   assert.match(categoryRuntime, /platform=mobile/);
   assert.match(launcher, /data-provider-launch="true"/);
   assert.match(providerGames, /data-provider-games-stage="providers"/);
@@ -25,10 +25,10 @@ test('slot fishing and card retain their provider-to-game stage outside the cate
   assert.match(providerGames, /data-game-id=\{game\.id\}/);
 });
 
-test('non-home category provider grid preserves the shared lower content owners', () => {
+test('non-home category provider grid hides the shared lower home owner', () => {
   assert.match(categoryRuntime, /\[data-mobile-bottom-owner="true"\]/);
-  assert.match(categoryRuntime, /\[data-mobile-section-owner="source-content"\]/);
-  assert.match(categoryRuntime, /element\.hidden = false/);
-  assert.match(categoryRuntime, /element\.style\.removeProperty\('display'\)/);
-  assert.doesNotMatch(categoryRuntime, /bottomStructure\.hidden = activeCategory !== 'home'/);
+  assert.match(categoryRuntime, /bottomStructure\.hidden = activeCategory !== 'home'/);
+  assert.match(categoryRuntime, /bottomStructure\.setAttribute\('aria-hidden', 'true'\)/);
+  assert.match(categoryRuntime, /bottomStructure\.style\.setProperty\('display', 'none', 'important'\)/);
+  assert.match(categoryRuntime, /bottomStructure\.style\.removeProperty\('display'\)/);
 });
