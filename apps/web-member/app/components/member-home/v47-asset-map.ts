@@ -16,7 +16,7 @@ const LOCAL_PROMO = {
   newsBackground: `${IMAGE_ROOT}/FEZX/lobby_settings/87c8770e-e158-4491-b511-5e1e271ac486.png`,
 } as const;
 
-const LOCAL_JACKPOT = `${IMAGE_ROOT}/FEZX/highlight/1725948738165-4cb4f1ec-44ed-4b21-99ed-398fbb6d7b25.gif`;
+const LOCAL_JACKPOT = `${IMAGE_ROOT}/FEZX/highlight/1725948738165-4cb4f1ec-44ed-4b21-99ed-398fbb6d7b25_220.gif`;
 const LOCAL_TOURNAMENT = `${IMAGE_ROOT}/ZAB1/tournament/4a7df032-03f5-4999-ba59-f38d12c13761.png`;
 
 export const V47_ASSETS = {
