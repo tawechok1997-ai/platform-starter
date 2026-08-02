@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 
 const COUPON_OWNER = '[data-mobile-popup-owner="coupon"]';
+const COUPON_WIDTH = 'min(396px, calc(100vw - 32px))';
 
 export default function MobileCouponPopupBridge() {
   useEffect(() => {
@@ -11,13 +12,41 @@ export default function MobileCouponPopupBridge() {
       if (!dialog) return;
 
       dialog.dataset.mobileCouponSource = 'true';
+      dialog.style.setProperty('box-sizing', 'border-box', 'important');
+      dialog.style.setProperty('width', COUPON_WIDTH, 'important');
+      dialog.style.setProperty('min-width', 'min(288px, calc(100vw - 32px))', 'important');
+      dialog.style.setProperty('max-width', COUPON_WIDTH, 'important');
+      dialog.style.setProperty('height', 'auto', 'important');
+      dialog.style.setProperty('transform', 'none', 'important');
+      dialog.style.setProperty('scale', 'none', 'important');
+      dialog.style.setProperty('zoom', '1', 'important');
+
+      const content = dialog.querySelector<HTMLElement>(':scope > div:last-child');
+      const form = content?.firstElementChild instanceof HTMLElement
+        ? content.firstElementChild
+        : null;
       const field = dialog.querySelector<HTMLLabelElement>('label');
       const input = dialog.querySelector<HTMLInputElement>('input');
+      const submit = form?.querySelector<HTMLButtonElement>(':scope > button');
+
+      content?.style.setProperty('width', '100%', 'important');
+      content?.style.setProperty('min-width', '0', 'important');
+      content?.style.setProperty('max-width', 'none', 'important');
+      content?.style.setProperty('height', 'auto', 'important');
+
+      form?.style.setProperty('box-sizing', 'border-box', 'important');
+      form?.style.setProperty('width', '100%', 'important');
+      form?.style.setProperty('min-width', '0', 'important');
+      form?.style.setProperty('max-width', 'none', 'important');
+      form?.style.setProperty('height', 'auto', 'important');
+      form?.style.setProperty('transform', 'none', 'important');
+
       if (!field || !input) return;
 
       input.maxLength = 5;
       input.name = 'รหัสคูปอง';
       input.autocomplete = 'off';
+      input.inputMode = 'text';
       input.setAttribute('aria-label', 'รหัสคูปอง');
 
       const syncValue = () => {
@@ -28,108 +57,148 @@ export default function MobileCouponPopupBridge() {
         field.dataset.couponBound = 'true';
         input.addEventListener('input', syncValue);
       }
+
+      submit?.setAttribute('data-mobile-coupon-submit', 'true');
       syncValue();
     };
 
     syncCouponPopup();
     const observer = new MutationObserver(syncCouponPopup);
     observer.observe(document.body, { childList: true, subtree: true });
-    return () => observer.disconnect();
+    window.addEventListener('resize', syncCouponPopup, { passive: true });
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('resize', syncCouponPopup);
+    };
   }, []);
 
   return (
     <style jsx global>{`
       @media (max-width: 900px) {
         ${COUPON_OWNER} {
-          width: min(428px, calc(100vw - 32px));
-          max-width: min(428px, calc(100vw - 32px));
-          padding: 56px 16px 16px;
-          gap: 24px;
+          box-sizing: border-box !important;
+          width: ${COUPON_WIDTH} !important;
+          min-width: min(288px, calc(100vw - 32px)) !important;
+          max-width: ${COUPON_WIDTH} !important;
+          height: auto !important;
+          max-height: calc(100dvh - 32px) !important;
+          padding: 56px 16px 16px !important;
+          gap: 16px !important;
+          overflow: hidden !important;
+          transform: none !important;
+          scale: none !important;
+          zoom: 1 !important;
+          direction: ltr;
+          writing-mode: horizontal-tb;
         }
 
         ${COUPON_OWNER} > div:last-child {
-          width: 100%;
+          box-sizing: border-box;
+          width: 100% !important;
+          min-width: 0 !important;
+          max-width: none !important;
+          height: auto !important;
           max-height: calc(100dvh - 104px);
-          overflow: visible;
+          overflow-x: hidden;
+          overflow-y: auto;
         }
 
         ${COUPON_OWNER} > div:last-child > div {
-          display: flex;
-          width: 100%;
-          max-width: 396px;
-          height: 100%;
-          margin: 0 auto;
-          padding: 16px;
+          display: flex !important;
+          box-sizing: border-box !important;
+          width: 100% !important;
+          min-width: 0 !important;
+          max-width: none !important;
+          height: auto !important;
+          margin: 0 !important;
+          padding: 16px !important;
           flex-direction: column;
-          gap: 0;
+          gap: 12px !important;
+          border: 1px solid rgb(98 98 98 / 45%);
           border-radius: 10px;
-          background: rgb(37 32 51 / 35%);
-          box-shadow: 0 4px 12px rgb(0 0 0 / 12%);
-          backdrop-filter: blur(40px);
+          background: linear-gradient(180deg, rgb(37 32 51 / 92%), rgb(21 19 26 / 92%));
+          box-shadow: 0 10px 30px rgb(0 0 0 / 28%);
+          backdrop-filter: blur(24px);
+          transform: none !important;
+          direction: ltr;
+          writing-mode: horizontal-tb;
         }
 
         ${COUPON_OWNER} > div:last-child > div > label {
           position: relative;
           display: flex;
-          width: 100%;
-          height: 40px;
-          margin: 12px 0;
-          padding: 0 16px 0 4px;
+          box-sizing: border-box;
+          width: 100% !important;
+          min-width: 0;
+          height: 48px;
+          margin: 0;
+          padding: 0 12px;
           flex-direction: row;
           align-items: center;
           gap: 0;
           border: 1px solid #757575;
-          border-radius: 6px;
-          color: #757575;
+          border-radius: 7px;
+          color: #9f9aa8;
           background: rgb(21 19 26);
           cursor: text;
+          direction: ltr;
+          writing-mode: horizontal-tb;
         }
 
         ${COUPON_OWNER} > div:last-child > div > label > span {
           position: absolute;
-          top: 10px;
-          left: 10px;
+          top: 13px;
+          left: 12px;
           z-index: 2;
           display: block;
-          padding: 0 8px;
-          color: #757575;
+          max-width: calc(100% - 24px);
+          padding: 0 6px;
+          overflow: hidden;
+          color: #8f8997;
           background: rgb(21 19 26);
           font-size: 14px;
-          font-weight: 400;
+          font-weight: 500;
           line-height: 20px;
+          text-overflow: ellipsis;
+          white-space: nowrap;
           pointer-events: none;
           transform-origin: left center;
-          transition:
-            transform 300ms cubic-bezier(.4, 0, .2, 1),
-            color 300ms cubic-bezier(.4, 0, .2, 1),
-            font-size 300ms cubic-bezier(.4, 0, .2, 1);
+          transition: transform 180ms ease, color 180ms ease, font-size 180ms ease;
         }
 
         ${COUPON_OWNER} > div:last-child > div > label:focus-within,
         ${COUPON_OWNER} > div:last-child > div > label[data-has-value='true'] {
           border-color: #bb5bea;
+          box-shadow: 0 0 0 1px rgb(187 91 234 / 14%);
         }
 
         ${COUPON_OWNER} > div:last-child > div > label:focus-within > span,
         ${COUPON_OWNER} > div:last-child > div > label[data-has-value='true'] > span {
-          color: #bb5bea;
+          color: #d79cf2;
           font-size: 10px;
-          transform: translateY(-20px);
+          transform: translateY(-24px);
         }
 
         ${COUPON_OWNER} > div:last-child > div > label > input {
-          flex: 1;
-          width: 0;
-          height: 100%;
+          box-sizing: border-box;
+          width: 100% !important;
           min-width: 0;
-          padding: 1px 8px;
+          height: 100%;
+          padding: 2px 6px 0;
           border: 0;
           outline: 0;
           color: #fff;
           background: transparent;
-          font-size: 14px;
-          font-weight: 400;
-          line-height: 20px;
+          font-size: 16px;
+          font-weight: 700;
+          line-height: 22px;
+          letter-spacing: .08em;
+          text-align: left;
+          text-transform: uppercase;
+          direction: ltr;
+          unicode-bidi: plaintext;
+          writing-mode: horizontal-tb;
           box-shadow: none;
         }
 
@@ -139,29 +208,37 @@ export default function MobileCouponPopupBridge() {
           box-shadow: none;
         }
 
-        ${COUPON_OWNER} > div:last-child > div > button {
-          width: 100%;
-          height: 44px;
-          min-height: 44px;
-          margin-top: 20px;
+        ${COUPON_OWNER} > div:last-child > div > button,
+        ${COUPON_OWNER} [data-mobile-coupon-submit='true'] {
+          box-sizing: border-box;
+          width: 100% !important;
+          min-width: 0;
+          height: 48px;
+          min-height: 48px;
+          margin: 4px 0 0 !important;
           border: 0;
-          border-radius: 6px;
+          border-radius: 7px;
           color: #fff;
           background: linear-gradient(165deg, rgb(148 79 232) -17.16%, rgb(118 0 168) 91.36%);
-          font-size: 14px;
-          font-weight: 600;
-          box-shadow: none;
+          font-size: 15px;
+          font-weight: 700;
+          line-height: 22px;
+          box-shadow: 0 5px 14px rgb(118 0 168 / 28%);
+          transform: none !important;
         }
 
-        ${COUPON_OWNER} > div:last-child > div > button:disabled {
-          color: rgb(85 85 85);
+        ${COUPON_OWNER} > div:last-child > div > button:disabled,
+        ${COUPON_OWNER} [data-mobile-coupon-submit='true']:disabled {
+          color: rgb(112 108 118);
           background: rgb(56 55 62);
+          box-shadow: none;
           opacity: 1;
           cursor: not-allowed;
         }
 
         ${COUPON_OWNER} > div:last-child > div > div[role='status'] {
-          margin-top: 12px;
+          width: 100%;
+          margin: 0;
         }
       }
 
@@ -171,12 +248,12 @@ export default function MobileCouponPopupBridge() {
         }
 
         ${COUPON_OWNER} > div:last-child > div > label > span {
-          top: 15px;
+          top: 17px;
         }
 
         ${COUPON_OWNER} > div:last-child > div > label:focus-within > span,
         ${COUPON_OWNER} > div:last-child > div > label[data-has-value='true'] > span {
-          transform: translateY(-25px);
+          transform: translateY(-28px);
         }
       }
     `}</style>
