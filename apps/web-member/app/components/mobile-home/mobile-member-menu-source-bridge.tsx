@@ -24,6 +24,23 @@ const MENU_ITEM_KEYS: ReadonlyArray<readonly [string, string]> = [
   ['ถ่ายทอดสด', 'live'],
 ];
 
+const INLINE_MEMBER_TABS = {
+  promotions: {
+    route: '/mobile/member/promotions',
+    tabId: 'mobile-highlight-tab-1',
+  },
+  activity: {
+    route: '/mobile/member/activity',
+    tabId: 'mobile-highlight-tab-2',
+  },
+  news: {
+    route: '/mobile/member/news',
+    tabId: 'mobile-highlight-tab-3',
+  },
+} as const;
+
+type InlineMemberTab = keyof typeof INLINE_MEMBER_TABS;
+
 export default function MobileMemberMenuSourceBridge() {
   useEffect(() => {
     let scheduled = false;
@@ -86,9 +103,18 @@ export default function MobileMemberMenuSourceBridge() {
       });
     };
 
+    const syncInlineTabs = () => {
+      for (const key of Object.keys(INLINE_MEMBER_TABS) as InlineMemberTab[]) {
+        const button = document.getElementById(INLINE_MEMBER_TABS[key].tabId);
+        if (!(button instanceof HTMLButtonElement)) continue;
+        protectInlineTabButton(button, key);
+      }
+    };
+
     const syncAll = () => {
       syncBottomNavigation();
       syncMenuPopup();
+      syncInlineTabs();
     };
 
     const scheduleSync = () => {
@@ -105,6 +131,63 @@ export default function MobileMemberMenuSourceBridge() {
       window.dispatchEvent(new CustomEvent(MOBILE_POPUP_EVENT, {
         detail: { kind: 'menu' },
       }));
+    };
+
+    const selectInlineTab = (key: InlineMemberTab) => {
+      const button = document.getElementById(INLINE_MEMBER_TABS[key].tabId);
+      if (!(button instanceof HTMLButtonElement)) return;
+
+      protectInlineTabButton(button, key);
+      button.click();
+      button.focus({ preventScroll: true });
+
+      window.requestAnimationFrame(() => {
+        document.querySelector<HTMLElement>('[data-mobile-section-owner="highlight-tabs"]')
+          ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    };
+
+    const handleInlineNavigation = (event: MouseEvent) => {
+      if (!(event.target instanceof Element)) return;
+      if (!isHomePath(window.location.pathname)) return;
+      if (!document.querySelector('[data-mobile-home-root="true"]')) return;
+
+      const highlightButton = event.target.closest<HTMLButtonElement>(
+        '[data-mobile-section-owner="highlight-tabs"] button[id^="mobile-highlight-tab-"]',
+      );
+      if (highlightButton) {
+        const key = inlineTabFromButton(highlightButton);
+        if (key) protectInlineTabButton(highlightButton, key);
+        return;
+      }
+
+      const anchor = event.target.closest<HTMLAnchorElement>('a[href]');
+      if (anchor && !anchor.download && (!anchor.target || anchor.target === '_self')) {
+        const destination = new URL(anchor.href, window.location.href);
+        if (destination.origin === window.location.origin) {
+          const key = inlineTabFromPath(destination.pathname);
+          if (key) {
+            event.preventDefault();
+            event.stopImmediatePropagation();
+            closeLegacyDrawer();
+            selectInlineTab(key);
+            return;
+          }
+        }
+      }
+
+      const popupItem = event.target.closest<HTMLButtonElement>(
+        `${MENU_OWNER} button[data-source-member-menu-item]`,
+      );
+      const popupKey = popupItem
+        ? inlineTabFromMenuKey(popupItem.dataset.sourceMemberMenuItem)
+        : null;
+      if (!popupItem || !popupKey) return;
+
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      document.querySelector<HTMLButtonElement>(`${MENU_OWNER} button[aria-label="ปิด"]`)?.click();
+      queueMicrotask(() => selectInlineTab(popupKey));
     };
 
     const handleClick = (event: MouseEvent) => {
@@ -144,6 +227,7 @@ export default function MobileMemberMenuSourceBridge() {
     });
 
     syncAll();
+    window.addEventListener('click', handleInlineNavigation, true);
     document.addEventListener('click', handleClick, true);
     window.addEventListener(MOBILE_CATEGORY_EVENT, scheduleSync);
     window.addEventListener('popstate', scheduleSync);
@@ -152,6 +236,7 @@ export default function MobileMemberMenuSourceBridge() {
 
     return () => {
       observer.disconnect();
+      window.removeEventListener('click', handleInlineNavigation, true);
       document.removeEventListener('click', handleClick, true);
       window.removeEventListener(MOBILE_CATEGORY_EVENT, scheduleSync);
       window.removeEventListener('popstate', scheduleSync);
@@ -340,6 +425,40 @@ function isHomePath(pathname: string) {
 
 function compactText(value: string) {
   return value.replace(/\s+/g, '').trim();
+}
+
+function inlineTabFromPath(pathname: string): InlineMemberTab | null {
+  const normalized = pathname.length > 1 ? pathname.replace(/\/+$/, '') : pathname;
+  for (const key of Object.keys(INLINE_MEMBER_TABS) as InlineMemberTab[]) {
+    if (INLINE_MEMBER_TABS[key].route === normalized) return key;
+  }
+  return null;
+}
+
+function inlineTabFromMenuKey(value: string | undefined): InlineMemberTab | null {
+  if (value === 'promotions') return 'promotions';
+  if (value === 'activity') return 'activity';
+  if (value === 'news') return 'news';
+  return null;
+}
+
+function inlineTabFromButton(button: HTMLButtonElement): InlineMemberTab | null {
+  for (const key of Object.keys(INLINE_MEMBER_TABS) as InlineMemberTab[]) {
+    if (INLINE_MEMBER_TABS[key].tabId === button.id) return key;
+  }
+  return null;
+}
+
+function protectInlineTabButton(button: HTMLButtonElement, key: InlineMemberTab) {
+  const currentLabel = (button.getAttribute('aria-label') || button.textContent || '').replace(/\u2060/g, '');
+  const protectedLabel = currentLabel
+    .replace('โปรโมชั่น', 'โปร\u2060โมชั่น')
+    .replace('กิจกรรม', 'กิจ\u2060กรรม')
+    .replace('ข่าวสาร', 'ข่าว\u2060สาร');
+
+  button.dataset.mobileInlineContentTab = key;
+  if (!button.getAttribute('aria-label')) button.setAttribute('aria-label', currentLabel);
+  if (button.textContent !== protectedLabel) button.textContent = protectedLabel;
 }
 
 function findMemberDrawerAction(sourceLabel: string) {
