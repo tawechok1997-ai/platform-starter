@@ -6,7 +6,10 @@ import {
   type SourceCatalogPlatform,
   type SourceCategoryCatalog,
 } from '../../browse/source-game-catalog';
-import type { SourceGameProvider } from '../../browse/source-game-category-page';
+import type {
+  SourceGameItem,
+  SourceGameProvider,
+} from '../../browse/source-game-category-page';
 import { useMemberLocale } from '../../member-locale-provider';
 import { resolveLocalAssetOrSource } from '../../lib/local-asset-by-basename';
 import styles from './mobile-casino-provider-page.module.css';
@@ -49,32 +52,34 @@ export default function MobileProviderGamesCategoryPage({
   includeCatalogProviders = false,
 }: MobileProviderGamesCategoryPageProps) {
   const { locale } = useMemberLocale();
+  const [selectedCode, setSelectedCode] = useState<string | null>(null);
   const [catalog, setCatalog] = useState<SourceCategoryCatalog | null>(null);
-  const [catalogLoading, setCatalogLoading] = useState(true);
-  const [selectedCode, setSelectedCode] = useState('');
+  const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading');
+  const [visibleCount, setVisibleCount] = useState(INITIAL_GAME_COUNT);
   const [filter, setFilter] = useState<GameFilter>('all');
   const [filterOpen, setFilterOpen] = useState(false);
-  const [visibleCount, setVisibleCount] = useState(INITIAL_GAME_COUNT);
 
   const sourceProviders = useMemo<SourceGameProvider[]>(
-    () => configuredCards.map((provider) => sourceProvider(provider)),
+    () => configuredCards.map(sourceProvider),
     [configuredCards],
   );
 
   useEffect(() => {
     const controller = new AbortController();
     let cancelled = false;
-    setCatalogLoading(true);
+    setCatalog(null);
+    setStatus('loading');
 
     void loadSourceCategoryCatalog(catalogSlug, sourceProviders, catalogPlatform, controller.signal)
       .then((result) => {
-        if (!cancelled) setCatalog(result);
+        if (cancelled) return;
+        setCatalog(result);
+        setStatus('ready');
       })
       .catch((error: unknown) => {
-        if (!cancelled && !isAbortError(error)) setCatalog(null);
-      })
-      .finally(() => {
-        if (!cancelled) setCatalogLoading(false);
+        if (cancelled || isAbortError(error)) return;
+        setCatalog(null);
+        setStatus('error');
       });
 
     return () => {
@@ -83,89 +88,79 @@ export default function MobileProviderGamesCategoryPage({
     };
   }, [catalogPlatform, catalogSlug, sourceProviders]);
 
-  const providerCards = useMemo(
-    () => mergeProviderCards(configuredCards, catalog?.providers ?? [], includeCatalogProviders),
-    [catalog?.providers, configuredCards, includeCatalogProviders],
-  );
-
-  const selectedProvider = useMemo(
-    () => providerCards.find((provider) => normalizeProviderCode(provider.code) === selectedCode) ?? null,
-    [providerCards, selectedCode],
-  );
-
-  const filteredGames = useMemo(() => {
-    if (!selectedCode) return [];
-    return (catalog?.games ?? []).filter((game) => {
-      if (normalizeProviderCode(game.provider ?? '') !== selectedCode) return false;
-      if (filter === 'hot') return game.isHot;
-      if (filter === 'new') return game.isNew;
-      return true;
-    });
-  }, [catalog?.games, filter, selectedCode]);
-
   useEffect(() => {
+    setSelectedCode(null);
     setVisibleCount(INITIAL_GAME_COUNT);
-    setFilterOpen(false);
-  }, [filter, selectedCode]);
-
-  function backToProviders() {
-    setSelectedCode('');
     setFilter('all');
     setFilterOpen(false);
+  }, [category]);
+
+  const providerCards = useMemo(() => {
+    const merged = mergeProviderCards(
+      configuredCards,
+      catalog?.providers ?? [],
+      includeCatalogProviders,
+    );
+    if (status !== 'ready') return merged;
+
+    const availableCodes = new Set(
+      (catalog?.games ?? [])
+        .map((game) => normalizeProviderCode(game.provider ?? ''))
+        .filter(Boolean),
+    );
+    return merged.filter((provider) => availableCodes.has(normalizeProviderCode(provider.code)));
+  }, [catalog?.games, catalog?.providers, configuredCards, includeCatalogProviders, status]);
+
+  const selectedProvider = selectedCode
+    ? providerCards.find((provider) => normalizeProviderCode(provider.code) === selectedCode) ?? null
+    : null;
+
+  const selectedGames = useMemo(() => {
+    if (!selectedCode) return [];
+    return (catalog?.games ?? []).filter(
+      (game) => normalizeProviderCode(game.provider ?? '') === selectedCode,
+    );
+  }, [catalog?.games, selectedCode]);
+
+  const filteredGames = useMemo(() => {
+    if (filter === 'hot') return selectedGames.filter((game) => game.isHot);
+    if (filter === 'new') return selectedGames.filter((game) => game.isNew);
+    return selectedGames;
+  }, [filter, selectedGames]);
+
+  const visibleGames = useMemo(
+    () => filteredGames.slice(0, visibleCount),
+    [filteredGames, visibleCount],
+  );
+
+  const selectProvider = (provider: MobileProviderGamesCard) => {
+    setSelectedCode(normalizeProviderCode(provider.code));
     setVisibleCount(INITIAL_GAME_COUNT);
-  }
+    setFilter('all');
+    setFilterOpen(false);
+  };
 
-  if (!selectedCode) {
+  const backToProviders = () => {
+    setSelectedCode(null);
+    setVisibleCount(INITIAL_GAME_COUNT);
+    setFilter('all');
+    setFilterOpen(false);
+  };
+
+  if (!selectedProvider) {
     return (
-      <section
-        className={`${styles.root} ${styles.providerSelectionRoot}`}
-        data-mobile-provider-games-page="true"
-        data-category-flow="provider-games"
-        data-provider-games-category={category}
-        data-provider-games-stage="providers"
-        aria-label={title[locale]}
-      >
-        <div className={styles.grid}>
-          {providerCards.map((provider) => {
-            const resolvedSource = resolveLocalAssetOrSource(provider.source, providerAssetPlatform);
-            const className = [
-              styles.card,
-              provider.layout !== 'half' ? styles.wide : '',
-              provider.layout === 'wide-banner' ? styles.banner : styles.hero,
-            ].filter(Boolean).join(' ');
-
-            return (
-              <button
-                key={provider.code}
-                type="button"
-                className={className}
-                data-provider-select="true"
-                data-provider-code={provider.code}
-                data-game-category={category}
-                data-next-step="games"
-                onClick={() => setSelectedCode(normalizeProviderCode(provider.code))}
-                aria-label={locale === 'th' ? `เลือกค่าย ${provider.name}` : `Select ${provider.name}`}
-              >
-                {provider.badge === 'hot' ? <HotBadge /> : null}
-                {provider.badge === 'new' ? <NewBadge /> : null}
-                <img
-                  src={resolvedSource}
-                  alt={provider.name}
-                  loading="lazy"
-                  data-provider-image-source={provider.source}
-                  onError={(event) => fallbackImage(event.currentTarget, resolvedSource, provider.source)}
-                />
-              </button>
-            );
-          })}
-        </div>
-      </section>
+      <ProviderSelection
+        category={category}
+        title={title[locale]}
+        providers={providerCards}
+        providerAssetPlatform={providerAssetPlatform}
+        locale={locale}
+        onSelect={selectProvider}
+      />
     );
   }
 
-  const providerName = selectedProvider?.name ?? selectedCode.toUpperCase();
-  const providerCode = selectedProvider?.code ?? selectedCode;
-  const games = filteredGames.slice(0, visibleCount);
+  const copy = COPY[locale];
 
   return (
     <section
@@ -174,27 +169,30 @@ export default function MobileProviderGamesCategoryPage({
       data-category-flow="provider-games"
       data-provider-games-category={category}
       data-provider-games-stage="games"
-      data-selected-provider={selectedCode}
-      aria-label={`${title[locale]} ${providerName}`}
+      data-selected-provider={selectedProvider.code}
+      data-game-asset-platform={gameAssetPlatform}
+      aria-labelledby={`mobile-${category}-games-heading`}
     >
-      <div className={styles.providerRail} aria-label={locale === 'th' ? 'เลือกค่ายเกม' : 'Choose provider'}>
+      <div className={styles.providerRail} role="tablist" aria-label={copy.changeProvider}>
         {providerCards.map((provider) => {
           const code = normalizeProviderCode(provider.code);
+          const active = code === selectedCode;
           const iconSource = provider.iconSource || providerIconSource(provider.code);
           const resolvedIcon = resolveLocalAssetOrSource(iconSource, providerAssetPlatform);
           return (
             <button
               key={provider.code}
               type="button"
-              data-active={code === selectedCode ? 'true' : 'false'}
-              data-provider-code={provider.code}
-              onClick={() => setSelectedCode(code)}
-              aria-label={provider.name}
+              role="tab"
+              aria-selected={active}
+              data-active={active}
+              data-provider-switch={provider.code}
+              onClick={() => selectProvider(provider)}
             >
               <img
                 src={resolvedIcon}
-                alt=""
-                aria-hidden="true"
+                alt={provider.name}
+                loading="lazy"
                 onError={(event) => fallbackImage(event.currentTarget, resolvedIcon, iconSource)}
               />
             </button>
@@ -203,34 +201,46 @@ export default function MobileProviderGamesCategoryPage({
       </div>
 
       <div className={styles.slotGamesToolbar}>
-        <button type="button" className={styles.backButton} onClick={backToProviders} aria-label={locale === 'th' ? 'กลับไปเลือกค่าย' : 'Back to providers'}>
+        <button
+          type="button"
+          className={styles.backButton}
+          onClick={backToProviders}
+          aria-label={copy.backToProviders}
+        >
           <span aria-hidden="true">‹</span>
         </button>
-        <h2>
-          {providerName}
-          <span>{filteredGames.length.toLocaleString(locale === 'th' ? 'th-TH' : 'en-US')} {locale === 'th' ? 'เกม' : 'games'}</span>
+        <h2 id={`mobile-${category}-games-heading`}>
+          {title[locale]} | {selectedProvider.name}
+          <span>{status === 'ready' ? `(${filteredGames.length} ${copy.games})` : ''}</span>
         </h2>
+
         <div className={styles.filterWrap}>
           <button
             type="button"
             className={styles.filterButton}
-            onClick={() => setFilterOpen((value) => !value)}
+            aria-haspopup="menu"
             aria-expanded={filterOpen}
+            onClick={() => setFilterOpen((current) => !current)}
           >
-            <span>{filterLabel(filter, locale)}</span>
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10l5 5 5-5H7z" /></svg>
+            <span>{copy.filter}</span>
+            <FilterIcon />
           </button>
           {filterOpen ? (
-            <div className={styles.filterMenu} role="menu">
-              {(['all', 'hot', 'new'] as const).map((key) => (
+            <div className={styles.filterMenu} role="menu" aria-label={copy.filter}>
+              {(['all', 'hot', 'new'] as const).map((value) => (
                 <button
-                  key={key}
+                  key={value}
                   type="button"
-                  role="menuitem"
-                  data-active={filter === key ? 'true' : 'false'}
-                  onClick={() => setFilter(key)}
+                  role="menuitemradio"
+                  aria-checked={filter === value}
+                  data-active={filter === value}
+                  onClick={() => {
+                    setFilter(value);
+                    setVisibleCount(INITIAL_GAME_COUNT);
+                    setFilterOpen(false);
+                  }}
                 >
-                  {filterLabel(key, locale)}
+                  {copy.filters[value]}
                 </button>
               ))}
             </div>
@@ -238,64 +248,158 @@ export default function MobileProviderGamesCategoryPage({
         </div>
       </div>
 
-      {catalogLoading ? (
-        <div className={styles.slotState}>{locale === 'th' ? 'กำลังโหลดเกม...' : 'Loading games...'}</div>
-      ) : filteredGames.length === 0 ? (
-        <div className={styles.slotState}>{locale === 'th' ? 'ยังไม่มีเกมในค่ายนี้' : 'No games are available for this provider.'}</div>
-      ) : (
-        <>
-          <div className={styles.slotGameGrid}>
-            {games.map((game) => {
-              const normalizedProvider = normalizeProviderCode(game.provider ?? '') || normalizeProviderCode(providerCode);
-              const destination = new URLSearchParams({
-                category,
-                provider: normalizedProvider,
-                game: game.id,
-                platform: 'mobile',
-              });
-              const resolvedImage = resolveLocalAssetOrSource(game.image, gameAssetPlatform);
-              return (
-                <a
-                  key={`${normalizedProvider}:${game.id}`}
-                  href={`/games?${destination.toString()}`}
-                  className={styles.slotGameCard}
-                  data-game-id={game.id}
-                  data-game-code={game.id}
-                  data-game-name={game.name}
-                  data-provider-code={normalizedProvider}
-                  data-game-category={category}
-                  data-game-icon-platform={gameAssetPlatform}
-                >
-                  <span className={styles.slotGameImage}>
-                    <img
-                      src={resolvedImage}
-                      alt={game.name}
-                      loading="lazy"
-                      onError={(event) => fallbackImage(event.currentTarget, resolvedImage, game.image)}
-                    />
-                    <span className={styles.slotGameBadges}>
-                      {game.isHot ? <span className={styles.slotHotBadge}>HOT</span> : null}
-                      {game.isNew ? <span className={styles.slotNewBadge}>NEW</span> : null}
-                    </span>
-                  </span>
-                  <strong>{game.name}</strong>
-                  <small>{providerName}</small>
-                </a>
-              );
-            })}
-          </div>
-          {visibleCount < filteredGames.length ? (
-            <button
-              type="button"
-              className={styles.loadMoreButton}
-              onClick={() => setVisibleCount((value) => value + GAME_PAGE_STEP)}
-            >
-              {locale === 'th' ? 'โหลดเกมเพิ่มเติม' : 'Load more games'}
-            </button>
-          ) : null}
-        </>
-      )}
+      {status === 'loading' ? <GameState message={copy.loading} /> : null}
+      {status === 'error' ? <GameState message={copy.error} /> : null}
+      {status === 'ready' && filteredGames.length === 0 ? <GameState message={copy.empty} /> : null}
+
+      {visibleGames.length > 0 ? (
+        <div className={styles.slotGameGrid}>
+          {visibleGames.map((game) => (
+            <GameCard
+              key={`${game.provider ?? selectedProvider.code}:${game.id}`}
+              game={game}
+              provider={selectedProvider}
+              category={category}
+              gameAssetPlatform={gameAssetPlatform}
+              locale={locale}
+            />
+          ))}
+        </div>
+      ) : null}
+
+      {visibleCount < filteredGames.length ? (
+        <button
+          type="button"
+          className={styles.loadMoreButton}
+          onClick={() => setVisibleCount((current) => Math.min(filteredGames.length, current + GAME_PAGE_STEP))}
+        >
+          {copy.loadMore}
+        </button>
+      ) : null}
     </section>
+  );
+}
+
+function ProviderSelection({
+  category,
+  title,
+  providers,
+  providerAssetPlatform,
+  locale,
+  onSelect,
+}: {
+  category: 'slot' | 'fishing' | 'card';
+  title: string;
+  providers: readonly MobileProviderGamesCard[];
+  providerAssetPlatform: SourceCatalogPlatform;
+  locale: 'th' | 'en';
+  onSelect: (provider: MobileProviderGamesCard) => void;
+}) {
+  return (
+    <section
+      className={`${styles.root} ${styles.providerSelectionRoot}`}
+      data-mobile-provider-games-page="true"
+      data-category-flow="provider-games"
+      data-provider-games-category={category}
+      data-provider-games-stage="providers"
+      aria-labelledby={`mobile-${category}-provider-heading`}
+    >
+      <div className={styles.headingRow}>
+        <h2 id={`mobile-${category}-provider-heading`} className={styles.heading}>
+          {title} <span>({providers.length} {locale === 'th' ? 'ค่ายเกม' : 'providers'})</span>
+        </h2>
+      </div>
+
+      <div className={styles.grid}>
+        {providers.map((provider) => {
+          const resolvedSource = resolveLocalAssetOrSource(provider.source, providerAssetPlatform);
+          const className = [
+            styles.card,
+            styles.providerSelectButton,
+            provider.layout !== 'half' ? styles.wide : '',
+            provider.layout === 'wide-banner' ? styles.banner : styles.hero,
+          ].filter(Boolean).join(' ');
+
+          return (
+            <button
+              key={provider.code}
+              type="button"
+              className={className}
+              data-provider-select="true"
+              data-provider-code={provider.code}
+              data-provider-category={category}
+              data-next-step="games"
+              aria-label={locale === 'th' ? `ดูเกมค่าย ${provider.name}` : `View ${provider.name} games`}
+              onClick={() => onSelect(provider)}
+            >
+              {provider.badge === 'hot' ? <HotBadge /> : null}
+              {provider.badge === 'new' ? <NewBadge /> : null}
+              <img
+                src={resolvedSource}
+                alt={provider.name}
+                loading="lazy"
+                data-provider-image-source={provider.source}
+                onError={(event) => fallbackImage(event.currentTarget, resolvedSource, provider.source)}
+              />
+            </button>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
+function GameCard({
+  game,
+  provider,
+  category,
+  gameAssetPlatform,
+  locale,
+}: {
+  game: SourceGameItem;
+  provider: MobileProviderGamesCard;
+  category: 'slot' | 'fishing' | 'card';
+  gameAssetPlatform: SourceCatalogPlatform;
+  locale: 'th' | 'en';
+}) {
+  const source = game.image;
+  const resolvedSource = resolveLocalAssetOrSource(source, gameAssetPlatform);
+  const providerCode = normalizeProviderCode(game.provider ?? provider.code);
+  const destination = new URLSearchParams({
+    category,
+    provider: providerCode,
+    game: game.id,
+    platform: 'mobile',
+  });
+
+  return (
+    <a
+      href={`/games?${destination.toString()}`}
+      className={styles.slotGameCard}
+      data-game-id={game.id}
+      data-game-code={game.id}
+      data-game-name={game.name}
+      data-provider-code={providerCode}
+      data-game-category={category}
+      data-game-platform="mobile"
+      data-game-icon-platform={gameAssetPlatform}
+      aria-label={`${locale === 'th' ? 'เข้าเล่น' : 'Play'} ${game.name}`}
+    >
+      <span className={styles.slotGameImage}>
+        <img
+          src={resolvedSource}
+          alt={game.name}
+          loading="lazy"
+          onError={(event) => fallbackImage(event.currentTarget, resolvedSource, source)}
+        />
+        <span className={styles.slotGameBadges} aria-hidden="true">
+          {game.isHot ? <b className={styles.slotHotBadge}>HOT</b> : null}
+          {game.isNew ? <b className={styles.slotNewBadge}>NEW</b> : null}
+        </span>
+      </span>
+      <strong>{game.name}</strong>
+      <small>{provider.name}</small>
+    </a>
   );
 }
 
@@ -316,15 +420,18 @@ function mergeProviderCards(
     if (!code) return;
     const existing = merged.get(code);
     if (existing) {
-      merged.set(code, { ...existing, name: provider.name || existing.name });
+      merged.set(code, {
+        ...existing,
+        name: provider.name || existing.name,
+      });
       return;
     }
-
+    if (!provider.card) return;
     merged.set(code, {
       code,
       name: provider.name || code.toUpperCase(),
-      source: provider.card || providerCardSource(code),
-      iconSource: provider.badge || providerIconSource(code),
+      source: provider.card,
+      iconSource: provider.badge,
       layout: 'half',
     });
   });
@@ -344,10 +451,6 @@ function sourceProvider(provider: MobileProviderGamesCard): SourceGameProvider {
   };
 }
 
-function providerCardSource(code: string) {
-  return `https://cdn.zabbet.com/providers/set/1_1_h/${code}.png`;
-}
-
 function providerIconSource(code: string) {
   return `https://cdn.zabbet.com/providers/icon/${code}.png`;
 }
@@ -364,12 +467,6 @@ function normalizeProviderCode(value: string) {
     .replace(/[^a-z0-9_-]+/g, '');
 }
 
-function filterLabel(filter: GameFilter, locale: 'th' | 'en') {
-  if (filter === 'hot') return locale === 'th' ? 'เกมยอดนิยม' : 'Popular';
-  if (filter === 'new') return locale === 'th' ? 'เกมใหม่' : 'New';
-  return locale === 'th' ? 'ทั้งหมด' : 'All';
-}
-
 function fallbackImage(image: HTMLImageElement, resolved: string, remote: string) {
   if (resolved !== remote && image.dataset.remoteFallback !== 'true') {
     image.dataset.remoteFallback = 'true';
@@ -377,9 +474,7 @@ function fallbackImage(image: HTMLImageElement, resolved: string, remote: string
     return;
   }
 
-  const card = image.closest<HTMLElement>(
-    '[data-provider-select="true"], [data-provider-launch="true"], [data-game-id], button[data-provider-code]',
-  );
+  const card = image.closest<HTMLElement>('[data-provider-select="true"], [data-game-id], [data-provider-switch]');
   if (!card) {
     image.hidden = true;
     return;
@@ -390,6 +485,10 @@ function fallbackImage(image: HTMLImageElement, resolved: string, remote: string
 
 function isAbortError(error: unknown) {
   return error instanceof DOMException && error.name === 'AbortError';
+}
+
+function GameState({ message }: { message: string }) {
+  return <div className={styles.slotState} role="status">{message}</div>;
 }
 
 function HotBadge() {
@@ -411,3 +510,38 @@ function NewBadge() {
     </span>
   );
 }
+
+function FilterIcon() {
+  return (
+    <svg viewBox="0 0 512 512" aria-hidden="true">
+      <path d="M32 384h272v32H32zM400 384h80v32h-80zM384 447.5c0 17.949-14.327 32.5-32 32.5-17.673 0-32-14.551-32-32.5v-95c0-17.949 14.327-32.5 32-32.5 17.673 0 32 14.551 32 32.5v95z" />
+      <path d="M32 240h80v32H32zM208 240h272v32H208zM192 303.5c0 17.949-14.327 32.5-32 32.5-17.673 0-32-14.551-32-32.5v-95c0-17.949 14.327-32.5 32-32.5 17.673 0 32 14.551 32 32.5v95z" />
+      <path d="M32 96h272v32H32zM400 96h80v32H400zM384 159.5c0 17.949-14.327 32.5-32 32.5-17.673 0-32-14.551-32-32.5v-95c0-17.949 14.327-32.5 32-32.5 17.673 0 32 14.551 32 32.5v95z" />
+    </svg>
+  );
+}
+
+const COPY = {
+  th: {
+    games: 'เกม',
+    loading: 'กำลังโหลดเกมของค่าย...',
+    error: 'โหลดรายการเกมไม่สำเร็จ กรุณาลองใหม่อีกครั้ง',
+    empty: 'ค่ายนี้ยังไม่มีเกมที่พร้อมแสดง',
+    loadMore: 'โหลดเกมเพิ่มเติม',
+    backToProviders: 'กลับไปเลือกค่ายเกม',
+    changeProvider: 'เปลี่ยนค่ายเกม',
+    filter: 'กรอง',
+    filters: { all: 'ทั้งหมด', hot: 'เกมฮิต', new: 'เกมใหม่' },
+  },
+  en: {
+    games: 'games',
+    loading: 'Loading provider games...',
+    error: 'Unable to load games. Please try again.',
+    empty: 'This provider has no games available yet.',
+    loadMore: 'Load more games',
+    backToProviders: 'Back to providers',
+    changeProvider: 'Change provider',
+    filter: 'Filter',
+    filters: { all: 'All', hot: 'Hot games', new: 'New games' },
+  },
+} as const;

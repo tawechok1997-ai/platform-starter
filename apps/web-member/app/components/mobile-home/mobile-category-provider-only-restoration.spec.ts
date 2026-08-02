@@ -6,16 +6,17 @@ const runtime = readFileSync(new URL('./mobile-category-tab-runtime.tsx', import
 const highlights = readFileSync(new URL('./mobile-highlight-tab-content.tsx', import.meta.url), 'utf8');
 const launcher = readFileSync(new URL('./mobile-provider-launcher-page.tsx', import.meta.url), 'utf8');
 const providerGames = readFileSync(new URL('./mobile-provider-games-category-page.tsx', import.meta.url), 'utf8');
+const providerStyles = readFileSync(new URL('./mobile-casino-provider-page.module.css', import.meta.url), 'utf8');
 
-test('non-home categories still replace the shared home feed', () => {
-  assert.match(runtime, /data-mobile-provider-artwork-only="true"/);
+test('category runtime only owns category selection and never renders duplicate content', () => {
   assert.match(runtime, /bottomStructure\.hidden = activeCategory !== 'home'/);
-  assert.match(runtime, /setProperty\('display', 'none', 'important'\)/);
-  assert.match(runtime, /mobile-category-tab-runtime\.module\.css/);
-  assert.doesNotMatch(runtime, /mobile-category-provider-icons\.module\.css/);
+  assert.match(runtime, /return null/);
+  assert.doesNotMatch(runtime, /createPortal/);
+  assert.doesNotMatch(runtime, /CategoryProviderPanel/);
+  assert.doesNotMatch(runtime, /data-mobile-provider-artwork-only/);
 });
 
-test('all six game categories keep their source provider owners', () => {
+test('all six categories use the single highlight content owners', () => {
   for (const owner of [
     'MobileCasinoProviderPage',
     'MobileSlotProviderPage',
@@ -34,13 +35,16 @@ test('casino sport and lottery continue directly to authenticated launch', () =>
   assert.match(launcher, /platform: 'mobile'/);
 });
 
-test('slot fishing and card select a provider before a game', () => {
+test('slot fishing and card replace provider cards with the inline game grid', () => {
   assert.match(providerGames, /data-provider-games-stage="providers"/);
   assert.match(providerGames, /data-provider-select="true"/);
-  assert.match(providerGames, /onClick=\{\(\) => setSelectedCode\(normalizeProviderCode\(provider\.code\)\)\}/);
+  assert.match(providerGames, /onClick=\{\(\) => onSelect\(provider\)\}/);
   assert.match(providerGames, /data-provider-games-stage="games"/);
+  assert.match(providerGames, /className=\{styles\.providerRail\}/);
+  assert.match(providerGames, /className=\{styles\.filterButton\}/);
+  assert.match(providerGames, /className=\{styles\.slotGameGrid\}/);
   assert.match(providerGames, /data-game-id=\{game\.id\}/);
   assert.match(providerGames, /href=\{`\/games\?\$\{destination\.toString\(\)\}`\}/);
-  assert.match(providerGames, /provider: normalizedProvider/);
-  assert.match(providerGames, /platform: 'mobile'/);
+  assert.match(providerGames, /data-game-platform="mobile"/);
+  assert.match(providerStyles, /grid-template-columns:\s*repeat\(3, minmax\(0, 1fr\)\)/);
 });

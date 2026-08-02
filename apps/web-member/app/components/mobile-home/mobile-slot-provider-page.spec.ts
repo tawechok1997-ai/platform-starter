@@ -7,7 +7,7 @@ const fishing = readFileSync(new URL('./mobile-fishing-provider-page.tsx', impor
 const card = readFileSync(new URL('./mobile-card-provider-page.tsx', import.meta.url), 'utf8');
 const shared = readFileSync(new URL('./mobile-provider-games-category-page.tsx', import.meta.url), 'utf8');
 const css = readFileSync(new URL('./mobile-casino-provider-page.module.css', import.meta.url), 'utf8');
-const categoryRuntime = readFileSync(new URL('./mobile-category-tab-runtime.tsx', import.meta.url), 'utf8');
+const owner = readFileSync(new URL('./mobile-highlight-tab-content.tsx', import.meta.url), 'utf8');
 
 const SLOT_PROVIDER_ORDER = [
   'ygr', 'hotdog', 'misolt', 'jl', 'pp', 'kingm', 'spg', 'jkgx2', 'fachai', 'rsg',
@@ -59,6 +59,7 @@ test('shared provider flow selects a provider before exposing its games', () => 
   assert.match(shared, /data-provider-games-stage="providers"/);
   assert.match(shared, /data-provider-select="true"/);
   assert.match(shared, /data-next-step="games"/);
+  assert.match(shared, /onClick=\{\(\) => onSelect\(provider\)\}/);
   assert.match(shared, /setSelectedCode\(normalizeProviderCode\(provider\.code\)\)/);
   assert.match(shared, /data-provider-games-stage="games"/);
   assert.match(shared, /backToProviders/);
@@ -66,7 +67,7 @@ test('shared provider flow selects a provider before exposing its games', () => 
 
 test('shared game page loads the selected Mobile catalog and filters by provider', () => {
   assert.match(shared, /loadSourceCategoryCatalog\(catalogSlug, sourceProviders, catalogPlatform/);
-  assert.match(shared, /normalizeProviderCode\(game\.provider \?\? ''\) !== selectedCode/);
+  assert.match(shared, /normalizeProviderCode\(game\.provider \?\? ''\) === selectedCode/);
   assert.match(shared, /INITIAL_GAME_COUNT = 60/);
   assert.match(shared, /GAME_PAGE_STEP = 60/);
   assert.match(shared, /visibleCount < filteredGames\.length/);
@@ -77,7 +78,7 @@ test('game cards preserve the chosen game through login and real launch', () => 
   assert.match(shared, /data-game-id=\{game\.id\}/);
   assert.match(shared, /data-game-code=\{game\.id\}/);
   assert.match(shared, /data-game-name=\{game\.name\}/);
-  assert.match(shared, /data-provider-code=\{normalizedProvider\}/);
+  assert.match(shared, /data-provider-code=\{providerCode\}/);
   assert.match(shared, /data-game-category=\{category\}/);
   assert.match(shared, /data-game-icon-platform=\{gameAssetPlatform\}/);
 });
@@ -89,11 +90,11 @@ test('Mobile provider games keep the three-column game layout', () => {
   assert.doesNotMatch(css, /:has\(\.root\)/);
 });
 
-test('central category runtime routes slot fishing and card providers to the shared browse flow', () => {
-  assert.match(categoryRuntime, /platform: 'mobile'/);
-  assert.match(categoryRuntime, /memberApiFetch\(`\/games\/catalog\?\$\{params\.toString\(\)\}`/);
-  assert.match(categoryRuntime, /\/browse\/games\?category=\$\{encodeURIComponent\(category\)\}/);
-  assert.match(categoryRuntime, /provider=\$\{encodeURIComponent\(provider\.code\)\}/);
-  assert.match(categoryRuntime, /platform=mobile/);
-  assert.match(categoryRuntime, /data-provider-code=\{provider\.code\}/);
+test('mobile category owner routes slot fishing and card to the shared flow', () => {
+  assert.match(owner, /import MobileSlotProviderPage/);
+  assert.match(owner, /import MobileFishingProviderPage/);
+  assert.match(owner, /import MobileCardProviderPage/);
+  assert.match(owner, /activeCategory === 'slot'[\s\S]*<MobileSlotProviderPage \/>/);
+  assert.match(owner, /activeCategory === 'fishing'[\s\S]*<MobileFishingProviderPage \/>/);
+  assert.match(owner, /activeCategory === 'card'[\s\S]*<MobileCardProviderPage \/>/);
 });
