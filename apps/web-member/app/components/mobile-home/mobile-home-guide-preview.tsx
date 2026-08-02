@@ -20,6 +20,8 @@ export default function MobileHomeGuidePreview() {
     const bottomStructure = root?.querySelector<HTMLElement>('[data-mobile-bottom-owner="true"]');
     if (!root || !bottomStructure) return;
 
+    root.classList.add(styles.owner);
+
     const host = document.createElement('div');
     host.dataset.mobileHomeGuidePreviewHost = 'true';
     const shortcut = bottomStructure.querySelector<HTMLElement>(':scope > [data-mobile-section-owner="shortcut"]');
@@ -39,6 +41,7 @@ export default function MobileHomeGuidePreview() {
 
     return () => {
       observer.disconnect();
+      root.classList.remove(styles.owner);
       host.remove();
       setTarget(null);
     };
