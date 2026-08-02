@@ -8,12 +8,15 @@ import { AdminAccessService } from './admin-access.service';
 import { AdminAccountLifecycleService } from './admin-account-lifecycle.service';
 import { AdminInvitationAdminService } from './admin-invitation-admin.service';
 import { AdminOwnershipCommandService } from './admin-ownership-command.service';
+import { AdminRoleAssignmentService } from './admin-role-assignment.service';
 import {
   AssignAdminRoleDto,
   ChangeAdminStatusDto,
   CreateAdminInvitationDto,
   CreateDelegationDto,
+  PreviewAdminRoleSelectionDto,
   ReasonDto,
+  SyncAdminRolesDto,
   TransferOwnershipDto,
 } from './dto/admin-access.dto';
 
@@ -26,12 +29,19 @@ export class AdminAccessController {
     private readonly accountLifecycle: AdminAccountLifecycleService,
     private readonly invitationCommands: AdminInvitationAdminService,
     private readonly ownershipCommands: AdminOwnershipCommandService,
+    private readonly roleAssignments: AdminRoleAssignmentService,
   ) {}
 
   @RequirePermission('admin.access.view')
   @Get('overview')
   overview() {
     return this.service.overview();
+  }
+
+  @RequirePermission('admin.access.view')
+  @Post('role-preview')
+  previewRoles(@Req() req: AdminRequestContext, @Body() body: PreviewAdminRoleSelectionDto) {
+    return this.roleAssignments.preview(req.user.id, body.roleIds, body.primaryRoleId);
   }
 
   @RequirePermission('admin.access.manage')
@@ -84,7 +94,11 @@ export class AdminAccessController {
   @RequirePermission('admin.create')
   @Post('invitations')
   createInvitation(@Req() req: AdminRequestContext, @Body() body: CreateAdminInvitationDto) {
-    return this.invitationCommands.create(req.user.id, body.email, body.roleId, body.expiresInHours);
+    const roleIds = body.roleIds?.length ? body.roleIds : body.roleId ? [body.roleId] : [];
+    return this.invitationCommands.create(req.user.id, body.email, roleIds, body.expiresInHours, {
+      primaryRoleId: body.primaryRoleId,
+      department: body.department,
+    });
   }
 
   @RequirePermission('admin.access.view')
@@ -118,6 +132,24 @@ export class AdminAccessController {
     @Body() body: ChangeAdminStatusDto,
   ) {
     return this.accountLifecycle.changeStatus(req.user.id, adminUserId, body.status, body.reason);
+  }
+
+  @RequirePermission('admin.access.manage')
+  @Patch('admin-users/:adminUserId/roles')
+  async syncRoles(
+    @Req() req: AdminRequestContext,
+    @Param('adminUserId') adminUserId: string,
+    @Body() body: SyncAdminRolesDto,
+  ) {
+    const result = await this.roleAssignments.syncRoles(
+      req.user.id,
+      adminUserId,
+      body.roleIds,
+      body.primaryRoleId,
+      body.reason,
+    );
+    await this.accessSessions.revokeAfterPrivilegeChange(req.user.id, adminUserId, 'SYNC_ROLES');
+    return result;
   }
 
   @RequirePermission('admin.access.manage')
