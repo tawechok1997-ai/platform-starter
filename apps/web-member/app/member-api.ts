@@ -84,7 +84,13 @@ function removeStorage(key: string) {
 }
 
 function announceSessionChanged() {
-  if (typeof window !== 'undefined') window.dispatchEvent(new Event(MEMBER_SESSION_CHANGED_EVENT));
+  if (
+    typeof window !== 'undefined'
+    && typeof window.dispatchEvent === 'function'
+    && typeof Event === 'function'
+  ) {
+    window.dispatchEvent(new Event(MEMBER_SESSION_CHANGED_EVENT));
+  }
 }
 
 function asRecord(value: unknown): UnknownRecord | null {
