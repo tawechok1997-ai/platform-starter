@@ -7,12 +7,13 @@ const sourceFonts = readFileSync(new URL('./member-source-fonts.css', import.met
 const popupRuntime = readFileSync(new URL('./components/mobile-home/mobile-member-popup-runtime.tsx', import.meta.url), 'utf8');
 const globalActions = readFileSync(new URL('./components/mobile-home/mobile-global-member-actions-runtime.tsx', import.meta.url), 'utf8');
 
-test('every SourcePopupShell owner reserves one canonical title-cap lane', () => {
+test('every SourcePopupShell owner reserves a real title-cap lane in normal flow', () => {
   assert.match(authority, /--member-mobile-popup-cap-height:\s*38px/);
-  assert.match(authority, /--member-mobile-popup-cap-gap:\s*34px/);
-  assert.match(authority, /section\[data-mobile-popup-owner\]/);
-  assert.match(authority, /padding-block-start:\s*var\(--member-mobile-popup-cap-clearance\)\s*!important/);
-  assert.match(authority, /max-height:\s*calc\(100dvh - 136px\)\s*!important/);
+  assert.match(authority, /--member-mobile-popup-cap-lane:\s*72px/);
+  assert.match(authority, /section\[data-mobile-popup-owner\]::before/);
+  assert.match(authority, /flex:\s*0 0 var\(--member-mobile-popup-cap-lane\)/);
+  assert.match(authority, /padding-block-start:\s*0\s*!important/);
+  assert.match(authority, /max-height:\s*calc\(100dvh - 120px\)\s*!important/);
 
   for (const kind of [
     'menu',
@@ -29,16 +30,24 @@ test('every SourcePopupShell owner reserves one canonical title-cap lane', () =>
   }
 });
 
-test('late menu and coupon bridges cannot collapse the cap clearance', () => {
+test('late menu and coupon bridges cannot restore overlapping top padding', () => {
   assert.match(authority, /data-mobile-popup-owner='menu'\]\[data-mobile-menu-source='true'/);
   assert.match(authority, /data-mobile-popup-owner='coupon'\]\[data-mobile-coupon-source='true'/);
+  assert.match(authority, /padding-block-start:\s*0\s*!important/);
+  assert.match(authority, /gap:\s*0\s*!important/);
 });
 
-test('the shared guest and member language popup keeps its grid below the cap', () => {
+test('the shared guest and member language popup reserves the same flow lane', () => {
   assert.match(globalActions, /data-mobile-global-overlay=\{overlay\}/);
   assert.match(authority, /data-mobile-global-overlay='language'/);
+  assert.match(authority, /section\[role='dialog'\]::before/);
   assert.match(authority, /\[class\*='languageGrid'\]/);
   assert.match(authority, /overflow-y:\s*auto/);
+});
+
+test('narrow mobile screens retain a safe cap lane', () => {
+  assert.match(authority, /--member-mobile-popup-cap-lane:\s*66px/);
+  assert.match(authority, /max-height:\s*calc\(100dvh - 94px\)\s*!important/);
 });
 
 test('cap geometry authority is loaded after the backdrop standard', () => {

@@ -1,51 +1,64 @@
 /*
- * Canonical clearance for Mobile Member popups with the source title cap.
+ * Canonical layout lane for every Mobile Member popup with the source title cap.
  *
- * The cap is absolutely positioned, so every capped dialog must reserve its
- * own vertical lane before scrollable content starts. Runtime bridges inject
- * popup-specific CSS after the app styles, therefore these selectors carry
- * enough specificity to remain the final geometry authority.
+ * The title cap is absolutely positioned. Padding alone proved unreliable
+ * because popup-specific runtime bridges also write important padding values.
+ * A generated flex item now reserves the lane in normal document flow, so the
+ * first field, icon or action can never render underneath the cap.
  */
 :root {
   --member-mobile-popup-cap-height: 38px;
-  --member-mobile-popup-cap-gap: 34px;
-  --member-mobile-popup-cap-clearance: calc(
-    var(--member-mobile-popup-cap-height) + var(--member-mobile-popup-cap-gap)
-  );
+  --member-mobile-popup-cap-safe-gap: 34px;
+  --member-mobile-popup-cap-lane: 72px;
 }
 
 @media (max-width: 900px) {
-  /* SourcePopupShell owns menu, contact, password, deposit, withdraw,
-     network income, commission income, coupon and its internal language popup. */
+  /* SourcePopupShell owners: menu, contact, password, deposit, withdraw,
+     network income, commission income, coupon and internal language. */
   html body section[data-mobile-popup-owner] {
-    padding-block-start: var(--member-mobile-popup-cap-clearance) !important;
+    padding-block-start: 0 !important;
+    gap: 0 !important;
     max-height: calc(
       100dvh - max(32px, env(safe-area-inset-top) + env(safe-area-inset-bottom))
     ) !important;
   }
 
-  /* The menu and coupon bridges inject late !important shorthands. Keep the
-     source cap lane authoritative without altering their side/bottom padding. */
+  /* Menu and coupon inject late two-attribute selectors. These explicit
+     selectors carry higher specificity, so their shorthands cannot restore
+     the old 52-56px top padding or a gap that collapses the content lane. */
   html body section[data-mobile-popup-owner='menu'][data-mobile-menu-source='true'],
   html body section[data-mobile-popup-owner='coupon'][data-mobile-coupon-source='true'] {
-    padding-block-start: var(--member-mobile-popup-cap-clearance) !important;
+    padding-block-start: 0 !important;
+    gap: 0 !important;
   }
 
-  /* SourcePopupShell keeps content as its final direct div. Its own overflow
-     owner remains intact, while the available height reflects the larger cap lane. */
+  /* A real flex item in normal flow. Absolute title chrome remains visually
+     unchanged while content starts only after this lane. */
+  html body section[data-mobile-popup-owner]::before {
+    display: block;
+    width: 100%;
+    min-width: 0;
+    height: var(--member-mobile-popup-cap-lane);
+    min-height: var(--member-mobile-popup-cap-lane);
+    flex: 0 0 var(--member-mobile-popup-cap-lane);
+    content: '';
+    pointer-events: none;
+  }
+
   html body section[data-mobile-popup-owner] > div:last-child {
+    width: 100% !important;
+    min-width: 0 !important;
     min-height: 0 !important;
-    max-height: calc(100dvh - 136px) !important;
+    max-height: calc(100dvh - 120px) !important;
+    margin-block-start: 0 !important;
     scroll-padding-block-start: 8px;
     overscroll-behavior: contain;
   }
 
-  /* The menu bridge previously forced visible overflow. On short screens that
-     let rows escape the dialog, so the body now scrolls below the cap instead. */
+  /* The menu bridge sets visible overflow inline. The flow spacer still keeps
+     its first row clear of the cap; clipping remains owned by the dialog. */
   html body section[data-mobile-popup-owner='menu'][data-mobile-menu-source='true'] > div:last-child {
-    max-height: calc(100dvh - 136px) !important;
-    overflow-x: hidden !important;
-    overflow-y: auto !important;
+    max-height: calc(100dvh - 120px) !important;
     scrollbar-width: none;
     -webkit-overflow-scrolling: touch;
   }
@@ -54,19 +67,32 @@
     display: none;
   }
 
-  /* The shared guest/member language selector has the same cap shape but a
-     separate portal owner. Reserve the same lane and scroll only its grid. */
+  /* Shared guest/member language selector uses a separate portal. Give it the
+     same generated flow lane instead of relying on padding-top. */
   html body [data-mobile-global-overlay='language'] > section[role='dialog'] {
+    display: flex;
     box-sizing: border-box;
     max-height: calc(100dvh - 32px);
-    padding-block-start: var(--member-mobile-popup-cap-clearance) !important;
+    padding-block-start: 0 !important;
+    flex-direction: column;
+    gap: 0 !important;
     overflow: hidden;
+  }
+
+  html body [data-mobile-global-overlay='language'] > section[role='dialog']::before {
+    display: block;
+    width: 100%;
+    height: var(--member-mobile-popup-cap-lane);
+    min-height: var(--member-mobile-popup-cap-lane);
+    flex: 0 0 var(--member-mobile-popup-cap-lane);
+    content: '';
+    pointer-events: none;
   }
 
   html body [data-mobile-global-overlay='language'] > section[role='dialog'] > [class*='languageGrid'] {
     min-height: 0;
-    max-height: calc(100dvh - 142px);
-    padding-block-start: 2px;
+    max-height: calc(100dvh - 122px);
+    padding-block-start: 0;
     overflow-x: hidden;
     overflow-y: auto;
     scrollbar-width: none;
@@ -81,15 +107,16 @@
 
 @media (max-width: 359px) {
   :root {
-    --member-mobile-popup-cap-gap: 28px;
+    --member-mobile-popup-cap-safe-gap: 28px;
+    --member-mobile-popup-cap-lane: 66px;
   }
 
   html body section[data-mobile-popup-owner] > div:last-child,
   html body section[data-mobile-popup-owner='menu'][data-mobile-menu-source='true'] > div:last-child {
-    max-height: calc(100dvh - 118px) !important;
+    max-height: calc(100dvh - 94px) !important;
   }
 
   html body [data-mobile-global-overlay='language'] > section[role='dialog'] > [class*='languageGrid'] {
-    max-height: calc(100dvh - 126px);
+    max-height: calc(100dvh - 108px);
   }
 }

@@ -1,5 +1,6 @@
 @import './member-mobile-popup-backdrop-standard.css';
 @import './member-mobile-popup-cap-clearance.css';
+@import './member-mobile-popup-icon-geometry.css';
 
 :root {
   --member-font-sans: 'Noto Sans Thai', 'Noto Sans', sans-serif;

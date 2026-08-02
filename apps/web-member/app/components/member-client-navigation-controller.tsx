@@ -73,6 +73,8 @@ export default function MemberClientNavigationController() {
       ) return;
 
       const link = event.target.closest<HTMLAnchorElement>('a[href]');
+      if (!link) return;
+
       const destination = internalDestinationFor(link);
       if (!destination || !shouldAnimateRouteLink(link, destination)) return;
       if (destination.href === currentRouteHref()) return;

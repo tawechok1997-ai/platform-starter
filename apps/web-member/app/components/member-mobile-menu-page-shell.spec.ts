@@ -3,7 +3,6 @@ import { readFileSync } from 'node:fs';
 import test from 'node:test';
 
 const floatingContact = readFileSync(new URL('./member-floating-contact.tsx', import.meta.url), 'utf8');
-const floatingContactCss = readFileSync(new URL('../member-floating-contact.css', import.meta.url), 'utf8');
 const livePage = readFileSync(new URL('./mobile-home/mobile-live-schedule-page.tsx', import.meta.url), 'utf8');
 
 const menuPages = [
@@ -28,15 +27,20 @@ test('all public mobile menu pages return to the mobile home instead of browser 
   assert.doesNotMatch(floatingContact, /router\.back\(\)/);
 });
 
-test('purple mini tools are removed only while a menu page is open', () => {
-  assert.match(floatingContact, /const isMobileMenuPage = MOBILE_MENU_PAGE_ROUTES\.has\(normalizedPath\)/);
-  assert.match(floatingContact, /if \(isMobileMenuPage\) return null/);
-  assert.match(floatingContact, /member-floating-contact__mini-shell/);
-  assert.match(floatingContact, /member-floating-contact__mini-card/);
-  assert.match(floatingContact, /member-floating-contact__mini-toggle/);
+test('purple mini tools are removed globally while the back-route controller remains mounted', () => {
+  assert.doesNotMatch(floatingContact, /MINI_TOOLS/);
+  assert.doesNotMatch(floatingContact, /member:mini-tool/);
+  assert.doesNotMatch(floatingContact, /member-floating-contact__mini-shell/);
+  assert.doesNotMatch(floatingContact, /member-floating-contact__mini-panel/);
+  assert.doesNotMatch(floatingContact, /member-floating-contact__mini-card/);
+  assert.doesNotMatch(floatingContact, /member-floating-contact__mini-toggle/);
+  assert.doesNotMatch(floatingContact, /member-floating-contact\.css/);
+  assert.doesNotMatch(floatingContact, /useState/);
+  assert.match(floatingContact, /return null;/);
+  assert.match(floatingContact, /member-authenticated-source-overrides\.css/);
 });
 
-test('gold floating contact is removed globally', () => {
+test('gold floating contact remains removed globally', () => {
   assert.doesNotMatch(floatingContact, /CONTACT_ICON_URL/);
   assert.doesNotMatch(floatingContact, /LINE_ICON_URL/);
   assert.doesNotMatch(floatingContact, /useMemberContactRuntime/);
@@ -47,11 +51,4 @@ test('gold floating contact is removed globally', () => {
   assert.doesNotMatch(floatingContact, /contact-ring/);
   assert.doesNotMatch(floatingContact, /contact-icon-btn/);
   assert.doesNotMatch(floatingContact, /drawContactCloseCanvas/);
-
-  assert.doesNotMatch(floatingContactCss, /member-floating-contact__contact-host/);
-  assert.doesNotMatch(floatingContactCss, /member-floating-contact__contact-stage/);
-  assert.doesNotMatch(floatingContactCss, /member-floating-contact__line/);
-  assert.doesNotMatch(floatingContactCss, /member-floating-contact__ring/);
-  assert.doesNotMatch(floatingContactCss, /member-contact-ring/);
-  assert.match(floatingContactCss, /member-floating-contact__mini-shell/);
 });
