@@ -21,18 +21,22 @@ test('sport source page keeps the supplied five-provider order', () => {
   assert.match(page, /code: 'saba'[\s\S]*layout: 'half'/);
 });
 
-test('sport uses provider-only mobile launch destinations', () => {
+test('sport providers launch the first mobile catalog game with browse fallback', () => {
   assert.match(page, /category="sport"/);
   assert.match(page, /title=\{\{ th: 'กีฬา', en: 'Sports' \}\}/);
-  assert.match(shared, /data-category-launch-mode="provider-only"/);
+  assert.match(shared, /data-category-launch-mode="provider-launch"/);
+  assert.match(shared, /loadSourceCategoryCatalog\(category, sourceProviders, 'mobile', controller\.signal\)/);
   assert.match(shared, /data-provider-launch="true"/);
   assert.match(shared, /data-provider-code=\{provider\.code\}/);
+  assert.match(shared, /data-game-id=\{firstGame\?\.id\}/);
+  assert.match(shared, /data-game-code=\{firstGame\?\.id\}/);
+  assert.match(shared, /data-game-platform="mobile"/);
+  assert.match(shared, /gameDestination\(category, provider\.code, firstGame\.id\)/);
   assert.match(shared, /\/browse\/games\?category=/);
   assert.match(shared, /platform=mobile/);
-  assert.doesNotMatch(shared, /data-game-id=/);
 });
 
-test('mobile category owner switches sport in place', () => {
+test('mobile highlight owner switches sport in place', () => {
   assert.match(owner, /import MobileSportProviderPage/);
   assert.match(owner, /activeCategory === 'sport'/);
   assert.match(owner, /<MobileSportProviderPage \/>/);
