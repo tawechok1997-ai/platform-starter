@@ -3,6 +3,7 @@ import type { AdminRequestContext } from '../../common/actors';
 import { RequirePermission } from '../../common/decorators/require-permission.decorator';
 import { AdminAuthGuard } from '../../common/guards/admin-auth.guard';
 import { PermissionsGuard } from '../../common/guards/permissions.guard';
+import { AdminAccessGovernanceService } from './admin-access-governance.service';
 import { AdminAccessSessionService } from './admin-access-session.service';
 import { AdminAccessService } from './admin-access.service';
 import { AdminAccountLifecycleService } from './admin-account-lifecycle.service';
@@ -13,11 +14,17 @@ import {
   AssignAdminRoleDto,
   ChangeAdminStatusDto,
   CreateAdminInvitationDto,
+  CreateAdminTeamDto,
   CreateDelegationDto,
   PreviewAdminRoleSelectionDto,
   ReasonDto,
+  SetAdminPermissionOverrideDto,
+  SetAdminReportingLineDto,
+  SetAdminTeamMemberDto,
   SyncAdminRolesDto,
   TransferOwnershipDto,
+  UpdateAdminAccessProfileDto,
+  UpdateAdminTeamDto,
 } from './dto/admin-access.dto';
 
 @UseGuards(AdminAuthGuard, PermissionsGuard)
@@ -30,6 +37,7 @@ export class AdminAccessController {
     private readonly invitationCommands: AdminInvitationAdminService,
     private readonly ownershipCommands: AdminOwnershipCommandService,
     private readonly roleAssignments: AdminRoleAssignmentService,
+    private readonly governance: AdminAccessGovernanceService,
   ) {}
 
   @RequirePermission('admin.access.view')
@@ -42,6 +50,117 @@ export class AdminAccessController {
   @Post('role-preview')
   previewRoles(@Req() req: AdminRequestContext, @Body() body: PreviewAdminRoleSelectionDto) {
     return this.roleAssignments.preview(req.user.id, body.roleIds, body.primaryRoleId);
+  }
+
+  @RequirePermission('admin.teams.view')
+  @Get('teams')
+  teamOverview() {
+    return this.governance.overview();
+  }
+
+  @RequirePermission('admin.teams.manage')
+  @Post('teams')
+  createTeam(@Req() req: AdminRequestContext, @Body() body: CreateAdminTeamDto) {
+    return this.governance.createTeam(req.user.id, body);
+  }
+
+  @RequirePermission('admin.teams.manage')
+  @Patch('teams/:teamId')
+  updateTeam(
+    @Req() req: AdminRequestContext,
+    @Param('teamId') teamId: string,
+    @Body() body: UpdateAdminTeamDto,
+  ) {
+    return this.governance.updateTeam(req.user.id, teamId, body);
+  }
+
+  @RequirePermission('admin.teams.manage')
+  @Post('teams/:teamId/members')
+  async setTeamMember(
+    @Req() req: AdminRequestContext,
+    @Param('teamId') teamId: string,
+    @Body() body: SetAdminTeamMemberDto,
+  ) {
+    const result = await this.governance.setTeamMember(req.user.id, teamId, body.adminUserId, body.isLead);
+    await this.accessSessions.revokeAfterPrivilegeChange(req.user.id, body.adminUserId, 'SET_TEAM_MEMBER');
+    return result;
+  }
+
+  @RequirePermission('admin.teams.manage')
+  @Delete('teams/:teamId/members/:adminUserId')
+  async removeTeamMember(
+    @Req() req: AdminRequestContext,
+    @Param('teamId') teamId: string,
+    @Param('adminUserId') adminUserId: string,
+  ) {
+    const result = await this.governance.removeTeamMember(req.user.id, teamId, adminUserId);
+    await this.accessSessions.revokeAfterPrivilegeChange(req.user.id, adminUserId, 'REMOVE_TEAM_MEMBER');
+    return result;
+  }
+
+  @RequirePermission('admin.access.view')
+  @Get('admin-users/:adminUserId/effective-access')
+  effectiveAccess(@Param('adminUserId') adminUserId: string) {
+    return this.governance.effectiveAccess(adminUserId);
+  }
+
+  @RequirePermission('admin.subordinates.manage')
+  @Patch('admin-users/:adminUserId/reporting-line')
+  setReportingLine(
+    @Req() req: AdminRequestContext,
+    @Param('adminUserId') adminUserId: string,
+    @Body() body: SetAdminReportingLineDto,
+  ) {
+    return this.governance.setReportingLine(req.user.id, adminUserId, body.managerAdminId);
+  }
+
+  @RequirePermission('admin.permissions.override')
+  @Patch('admin-users/:adminUserId/permission-overrides')
+  async setPermissionOverride(
+    @Req() req: AdminRequestContext,
+    @Param('adminUserId') adminUserId: string,
+    @Body() body: SetAdminPermissionOverrideDto,
+  ) {
+    const result = await this.governance.upsertPermissionOverride(
+      req.user.id,
+      adminUserId,
+      body.permissionCode,
+      body.effect,
+      body.reason,
+      body.expiresAt,
+    );
+    await this.accessSessions.revokeAfterPrivilegeChange(req.user.id, adminUserId, 'SET_PERMISSION_OVERRIDE');
+    return result;
+  }
+
+  @RequirePermission('admin.permissions.override')
+  @Delete('admin-users/:adminUserId/permission-overrides/:permissionCode')
+  async deletePermissionOverride(
+    @Req() req: AdminRequestContext,
+    @Param('adminUserId') adminUserId: string,
+    @Param('permissionCode') permissionCode: string,
+  ) {
+    const result = await this.governance.deletePermissionOverride(req.user.id, adminUserId, permissionCode);
+    await this.accessSessions.revokeAfterPrivilegeChange(req.user.id, adminUserId, 'DELETE_PERMISSION_OVERRIDE');
+    return result;
+  }
+
+  @RequirePermission('admin.access.manage')
+  @Patch('admin-users/:adminUserId/access-profile')
+  async updateAccessProfile(
+    @Req() req: AdminRequestContext,
+    @Param('adminUserId') adminUserId: string,
+    @Body() body: UpdateAdminAccessProfileDto,
+  ) {
+    const result = await this.governance.updateAccessProfile(
+      req.user.id,
+      adminUserId,
+      body.scope,
+      body.approvalLimits,
+      body.reason,
+    );
+    await this.accessSessions.revokeAfterPrivilegeChange(req.user.id, adminUserId, 'UPDATE_ACCESS_PROFILE');
+    return result;
   }
 
   @RequirePermission('admin.access.manage')

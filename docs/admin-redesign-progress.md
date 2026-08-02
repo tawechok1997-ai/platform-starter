@@ -31,7 +31,7 @@ Admin ต้องใช้ระบบกลางชุดเดียวก�
 | Phase | ขอบเขต | สถานะ | PR |
 |---|---|---|---|
 | P1 | Appearance foundation และ Theme owner กลาง | Merge แล้ว | #445 |
-| P2 | Role 5 แบบ, Multi-role และ Team | กำลังพัฒนา Batch 1 | #477 Draft |
+| P2 | Role 5 แบบ, Multi-role และ Team | กำลังพัฒนา Batch 2 | #477 Draft |
 | P3 | Navigation registry และ Dashboard ตามตำแหน่ง | ยังไม่เริ่ม | - |
 | P4 | Chart system และ Widget registry | ยังไม่เริ่ม | - |
 | P5 | Table, Form และ Detail drawer กลาง | ยังไม่เริ่ม | - |
@@ -111,9 +111,9 @@ PR: `#477` Draft
 
 Branch: `agent/admin-phase-2-role-multirole-team`
 
-Base: latest `main` หลัง Merge PR `#445` และอัปเดตเอกสารผล Merge
+Base: latest `main` หลัง Merge PR `#445` และ sync งาน Member ล่าสุดแล้ว
 
-Status: กำลังพัฒนา Batch 1
+Status: กำลังพัฒนา Batch 2
 
 ## เป้าหมาย
 
@@ -143,21 +143,51 @@ Status: กำลังพัฒนา Batch 1
 - เพิ่ม Audit สำหรับ Role synchronization และ Manager-created invitation
 - เพิ่ม Unit tests สำหรับ 5 templates, permission union, primary role และ protected role guard
 
+## Batch 2 ทำแล้ว
+
+- Sync Branch P2 กับ `main` ล่าสุดโดยไม่ทับงาน Member
+- เพิ่ม SQL migration สำหรับ `admin_teams`, `admin_team_members`, `admin_reporting_lines`, `admin_permission_overrides` และ `admin_access_profiles`
+- เพิ่ม Team hierarchy พร้อม Parent team, Manager และ Member/Lead
+- เพิ่ม Manager/Subordinate relation แบบถาวร โดยผู้ใต้บังคับบัญชามีหัวหน้าโดยตรงได้หนึ่งคน
+- เพิ่ม Permission override รายผู้ใช้แบบ `ALLOW` และ `DENY`
+- เพิ่ม Effective access resolver กลาง โดย `DENY` ชนะ Role, Delegation และ Wildcard
+- ปรับ `AdminAuthGuard` ให้โหลด Permission override, Team, Manager, Scope และ Approval limits ทุก Session
+- ปรับ `PermissionsGuard` ให้ Specific deny และ Wildcard deny บล็อก Route ได้จริง
+- เพิ่ม Scope และ Approval limits รายผู้ใช้ผ่าน JSON object ที่มีขนาดจำกัด
+- เพิ่มกฎ Manager จัดการได้เฉพาะ Team ของตนและ Direct subordinate
+- เพิ่มกฎห้าม Manager แจก Permission ที่ตนเองไม่มี
+- เพิ่มกฎห้ามแก้ Protected owner account และห้าม Self permission override
+- Revoke Session หลัง Team membership, Permission override และ Access profile เปลี่ยน
+- เพิ่ม Audit สำหรับ Team, Reporting line, Permission override และ Access profile
+- เพิ่ม Unit tests สำหรับ Effective permission และ Permission guard deny behavior
+
 ## Endpoint ที่เพิ่มใน Batch 1
 
 - `POST /admin/access/role-preview`
 - `PATCH /admin/access/admin-users/:adminUserId/roles`
 - `POST /admin/access/invitations` รองรับ `roleIds`, `primaryRoleId` และ `department`
 
+## Endpoint ที่เพิ่มใน Batch 2
+
+- `GET /admin/access/teams`
+- `POST /admin/access/teams`
+- `PATCH /admin/access/teams/:teamId`
+- `POST /admin/access/teams/:teamId/members`
+- `DELETE /admin/access/teams/:teamId/members/:adminUserId`
+- `GET /admin/access/admin-users/:adminUserId/effective-access`
+- `PATCH /admin/access/admin-users/:adminUserId/reporting-line`
+- `PATCH /admin/access/admin-users/:adminUserId/permission-overrides`
+- `DELETE /admin/access/admin-users/:adminUserId/permission-overrides/:permissionCode`
+- `PATCH /admin/access/admin-users/:adminUserId/access-profile`
+
 ## งานที่เหลือใน P2
 
-- เพิ่ม Team hierarchy model และ API จัดการ Team
-- เพิ่ม Manager/Subordinate relation แบบถาวรในฐานข้อมูล
-- เพิ่ม Permission override รายผู้ใช้แบบ Allow และ Deny โดย Deny ชนะ Allow
-- เพิ่ม Scope และวงเงินรายผู้ใช้
 - เชื่อมหน้า `admin-accounts`, `admin-roles` และ `admin-invitations` กับ API ชุดใหม่
+- เพิ่ม UI จัดการ Team hierarchy, Reporting line, Permission override, Scope และวงเงิน
 - เพิ่ม Preview เมนูจริงจาก Navigation registry เมื่อ P3 เริ่ม
-- เพิ่ม Integration tests กับ PostgreSQL และ Permission guard ทุก Route
+- เพิ่ม PostgreSQL integration coverage สำหรับ Migration และ Transaction rollback
+- ตรวจ Browser matrix ของ Accounts, Roles, Invitations และ Team บน Desktop/Tablet/Mobile
+- ปิด CI และ Merge PR `#477`
 
 ## จุดที่ต้องตรวจ
 
