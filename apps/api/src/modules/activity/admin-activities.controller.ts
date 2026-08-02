@@ -4,7 +4,7 @@ import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { RequirePermission } from '../../common/decorators/require-permission.decorator';
 import { AdminAuthGuard } from '../../common/guards/admin-auth.guard';
 import { PermissionsGuard } from '../../common/guards/permissions.guard';
-import { ActivityMetricsInput, LotteryNumbersInput } from './activity-requests';
+import { LotteryNumbersInput, type ActivityMetricsInput } from './activity-requests';
 import { MemberActivitiesService } from './member-activities.service';
 
 @UseGuards(AdminAuthGuard, PermissionsGuard)
