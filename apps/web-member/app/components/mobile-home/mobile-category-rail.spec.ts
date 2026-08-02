@@ -7,6 +7,7 @@ const css = readFileSync(new URL('./mobile-home-root.module.css', import.meta.ur
 const home = readFileSync(new URL('../../member-home.tsx', import.meta.url), 'utf8');
 const layoutOwner = readFileSync(new URL('../../member-mobile-home-bottom-owner.css', import.meta.url), 'utf8');
 const followOwner = readFileSync(new URL('../../member-mobile-category-follow.css', import.meta.url), 'utf8');
+const followRuntime = readFileSync(new URL('./mobile-category-rail-follow-runtime.tsx', import.meta.url), 'utf8');
 
 test('mobile category rail has one owner and reads central navigation', () => {
   assert.equal((root.match(/data-mobile-section-owner="category-menu"/g) ?? []).length, 1);
@@ -36,19 +37,32 @@ test('game categories keep normal document scrolling', () => {
   assert.match(followOwner, /data-provider-games-stage[\s\S]*overflow:\s*visible\s*!important/);
 });
 
-test('category menu is the single sticky follower beneath the mobile header', () => {
-  assert.doesNotMatch(home, /MobileCategoryRailFollowRuntime/);
-  assert.match(followOwner, /data-mobile-section-owner='category-menu'[\s\S]*position:\s*-webkit-sticky\s*!important/);
-  assert.match(followOwner, /data-mobile-section-owner='category-menu'[\s\S]*position:\s*sticky\s*!important/);
-  assert.match(followOwner, /data-mobile-section-owner='category-menu'[\s\S]*top:\s*60px\s*!important/);
-  assert.match(followOwner, /data-mobile-section-owner='category-menu'[\s\S]*max-height:\s*calc\(100dvh - 68px\)\s*!important/);
-  assert.match(followOwner, /data-mobile-section-owner='category-menu'[\s\S]*transform:\s*none\s*!important/);
+test('category menu mounts one fixed follower beneath the mobile header', () => {
+  assert.match(home, /import MobileCategoryRailFollowRuntime/);
+  assert.match(home, /<MobileCategoryRailFollowRuntime \/>/);
+  assert.match(followRuntime, /document\.addEventListener\('scroll', scheduleSync, \{ capture: true, passive: true \}\)/);
+  assert.match(followRuntime, /window\.addEventListener\('scroll', scheduleSync, \{ passive: true \}\)/);
+  assert.match(followRuntime, /setImportant\('position', 'fixed'\)/);
+  assert.match(followRuntime, /setImportant\('top', `\$\{MOBILE_HEADER_HEIGHT\}px`\)/);
+  assert.match(followRuntime, /setImportant\('position', 'absolute'\)/);
+  assert.match(followRuntime, /setImportant\('bottom', '0'\)/);
+  assert.match(followRuntime, /contentRect\.bottom <= stopEdge/);
+  assert.match(followRuntime, /mobileCategoryFollow = state/);
 });
 
-test('sticky rail ancestors do not clip vertical movement', () => {
-  assert.match(followOwner, /data-mobile-home-root='true'[\s\S]*overflow-y:\s*visible\s*!important/);
-  assert.match(followOwner, /\*:has\(> \[data-mobile-section-owner='category-menu'\]\)[\s\S]*overflow-y:\s*visible\s*!important/);
-  assert.match(followOwner, /\*:has\(> \[data-mobile-section-owner='category-menu'\]\)[\s\S]*contain:\s*none\s*!important/);
+test('fixed follower owns inline important geometry over stale sticky CSS', () => {
+  assert.match(followRuntime, /rail\.style\.setProperty\(property, value, 'important'\)/);
+  assert.match(followRuntime, /setImportant\('left', `\$\{Math\.round\(contentLeft\)\}px`\)/);
+  assert.match(followRuntime, /setImportant\('width', `\$\{naturalWidth\}px`\)/);
+  assert.match(followRuntime, /setImportant\('transform', 'none'\)/);
+});
+
+test('fixed follower reacts to nested scroll resize and visual viewport changes', () => {
+  assert.match(followRuntime, /root\.addEventListener\('scroll', scheduleSync, \{ passive: true \}\)/);
+  assert.match(followRuntime, /window\.visualViewport\?\.addEventListener\('resize', scheduleSync/);
+  assert.match(followRuntime, /window\.visualViewport\?\.addEventListener\('scroll', scheduleSync/);
+  assert.match(followRuntime, /new MutationObserver\(scheduleSync\)/);
+  assert.match(followRuntime, /new ResizeObserver\(scheduleSync\)/);
 });
 
 test('active and inactive category cards keep the supplied surfaces', () => {
