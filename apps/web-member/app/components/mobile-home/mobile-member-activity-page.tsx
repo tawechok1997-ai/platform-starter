@@ -44,7 +44,7 @@ const SOURCE_ACTIVITIES: readonly SourceActivity[] = [
   {
     id: 'lottery-prediction',
     title: 'ทายผลหวย',
-    date: 'รอบกิจกรรมล่าสุด',
+    date: '2026-08-01',
     sourceImageUrl: 'https://cdn.zabbet.com/event/predict/1784904726144-c10c3ca6-cf70-41d3-a763-aa33c8917b2d.jpeg',
     href: '/mobile/member/activity/lottery-prediction',
   },
@@ -82,15 +82,9 @@ export default function MobileMemberActivityPage({
   };
 
   return (
-    <main
-      className={styles.page}
-      data-mobile-member-page="activity"
-      aria-busy={loading}
-    >
+    <main className={styles.page} data-mobile-member-page="activity" aria-busy={loading}>
       <header className={styles.header}>
-        <button type="button" aria-label="ย้อนกลับ" onClick={onBack}>
-          <BackIcon />
-        </button>
+        <button type="button" aria-label="ย้อนกลับ" onClick={onBack}><BackIcon /></button>
         <h1>กิจกรรม</h1>
       </header>
 
@@ -107,13 +101,10 @@ export default function MobileMemberActivityPage({
                     onError={(event) => recoverActivityImage(event.currentTarget, activity.sourceImageUrl)}
                   />
                 </div>
-
                 <div className={styles.copy}>
                   <strong>{activity.title}</strong>
                   <span>{activity.date}</span>
-                  <button type="button" onClick={() => joinActivity(activity)}>
-                    เข้าร่วม
-                  </button>
+                  <button type="button" onClick={() => joinActivity(activity)}>เข้าร่วม</button>
                 </div>
               </article>
             ))}
@@ -138,8 +129,8 @@ function buildSourceActivities(items: MobileActivityContentItem[]) {
     const basename = extractAssetBasename(source.sourceImageUrl).toLowerCase();
     const matched = byBasename.get(basename) ?? byTitle.get(normalizeTitle(source.title));
     const sourceUrl = matched?.image || source.sourceImageUrl;
-    const localImage = resolveLocalAssetByBasename(sourceUrl, 'mobile')
-      || resolveLocalAssetByBasename(sourceUrl, 'pc');
+    const localImage = resolveLocalAssetByBasename(sourceUrl, 'pc')
+      || resolveLocalAssetByBasename(sourceUrl, 'mobile');
 
     return {
       ...source,
@@ -153,13 +144,11 @@ function buildSourceActivities(items: MobileActivityContentItem[]) {
 
 function recoverActivityImage(image: HTMLImageElement, sourceImageUrl: string) {
   const stage = image.dataset.activityImageFallback;
-
   if (!stage) {
     image.dataset.activityImageFallback = 'cdn';
     image.src = sourceImageUrl;
     return;
   }
-
   if (stage === 'cdn') {
     image.dataset.activityImageFallback = 'generic';
     image.src = FALLBACK_ACTIVITY_IMAGE;
