@@ -30,15 +30,14 @@ test('features settings expose structured runtime data from one location', () =>
   assert.match(featuresSource, /defaults=\{FEATURES_DEFAULTS\}/);
 });
 
-test('tournament settings keep demo data explicit outside production', () => {
-  assert.match(featuresSource, /DESKTOP_TOURNAMENT_MOCK_DEFAULTS/);
+test('presentation tournament and leaderboard data stay explicit and safe', () => {
+  assert.match(featuresSource, /presentation_demo_enabled/);
   assert.match(featuresSource, /TOURNAMENT_ITEMS_DEFAULT/);
-  assert.match(featuresSource, /NEXT_PUBLIC_ENABLE_DEMO_TOURNAMENT_DATA/);
-  assert.match(featuresSource, /process\.env\.NODE_ENV === 'production'/);
-  assert.match(featuresSource, /กำลังแข่งขัน · ข้อมูลตัวอย่าง/);
-  assert.match(featuresSource, /football-royale-2/);
+  assert.match(featuresSource, /LEADERBOARD_ITEMS_DEFAULT/);
+  assert.match(featuresSource, /NOA\*\*\*/);
   assert.match(featuresSource, /tournament_items_json: TOURNAMENT_ITEMS_DEFAULT/);
-  assert.match(featuresSource, /Mobile ใช้ชุดเดียวกัน/);
+  assert.match(featuresSource, /ใช้ข้อมูลชุดเดียวกันทั้ง Desktop\/Mobile/);
+  assert.doesNotMatch(featuresSource, /wallet|withdrawal|deposit/i);
 });
 
 test('theme settings expose common responsive design tokens', () => {
