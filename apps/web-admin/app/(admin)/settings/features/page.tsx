@@ -1,61 +1,61 @@
 import SettingsSectionPage from '../settings-section-page';
 
-const DESKTOP_TOURNAMENT_MOCK_DEFAULTS = JSON.stringify([
+const TOURNAMENT_ITEMS_DEFAULT = JSON.stringify([
   {
-    id: 'football-royale-2',
-    title: 'No1. Tournament Football Royale ครั้งที่ 2',
-    status: 'กำลังแข่งขัน · ข้อมูลตัวอย่าง',
-    href: '/browse/tournaments',
+    id: 'noah-championship-weekend',
+    title: 'NOAH Championship Weekend',
+    status: 'กำลังแข่งขัน',
+    href: '/browse/tournaments#noah-championship-weekend',
     players: [
-      { rank: 1, name: 'ZAXXXU709740', score: 20, stats: [17, 0, 0, 0, 7, 0] },
-      { rank: 2, name: 'ZAXXXM664100', score: 17, stats: [13, 3, 0, 4, 4, 0] },
-      { rank: 3, name: 'ZAXXXR440174', score: 13, stats: [13, 2, 0, 3, 5, 1] },
-      { rank: 4, name: 'ZAXXXU410005', score: 11, stats: [13, 2, 0, 1, 7, 1] },
-      { rank: 5, name: 'ZAXXXO539314', score: 9, stats: [11, 3, 0, 4, 3, 3] },
+      { rank: 1, name: 'NOA***874', score: 26840, stats: [48, 31, 9, 5, 2, 1] },
+      { rank: 2, name: 'NOA***219', score: 24450, stats: [44, 29, 8, 4, 2, 1] },
+      { rank: 3, name: 'NOA***562', score: 22120, stats: [41, 26, 8, 4, 2, 1] },
+      { rank: 4, name: 'NOA***105', score: 19880, stats: [38, 24, 7, 4, 2, 1] },
+      { rank: 5, name: 'NOA***731', score: 17640, stats: [35, 22, 6, 4, 2, 1] },
     ],
   },
   {
-    id: 'football-classic-2',
-    title: 'No1. Tournament Football Classic ครั้งที่ 2',
-    status: 'เปิดรับสมัคร · ข้อมูลตัวอย่าง',
-    href: '/browse/tournaments',
+    id: 'slot-master-series',
+    title: 'Slot Master Series',
+    status: 'เปิดรับสมัคร',
+    href: '/browse/tournaments#slot-master-series',
     players: [
-      { rank: 1, name: 'ZAXXXU164013', score: 12, stats: [14, 1, 0, 1, 7, 1] },
-      { rank: 2, name: 'ZAXXXX399733', score: 10, stats: [9, 6, 0, 4, 5, 0] },
-      { rank: 3, name: 'ZAXXXW621805', score: 9, stats: [11, 4, 0, 1, 4, 4] },
-    ],
-  },
-  {
-    id: 'football-royale-1',
-    title: 'No1. Tournament Football Royale ครั้งที่ 1',
-    status: 'สิ้นสุดแล้ว · ข้อมูลตัวอย่าง',
-    href: '/browse/tournaments',
-    players: [
-      { rank: 1, name: 'ZAXXXM651112', score: 13, stats: [15, 2, 0, 1, 8, 1] },
-      { rank: 2, name: 'ZAXXX1360752', score: 12, stats: [13, 3, 2, 1, 6, 2] },
-      { rank: 3, name: 'ZAXXX0319280', score: 10, stats: [14, 1, 2, 1, 7, 2] },
-    ],
-  },
-  {
-    id: 'football-classic-1',
-    title: 'No1. Tournament Football Classic ครั้งที่ 1',
-    status: 'สิ้นสุดแล้ว · ข้อมูลตัวอย่าง',
-    href: '/browse/tournaments',
-    players: [
-      { rank: 1, name: 'ZAXXXX231972', score: 20, stats: [16, 1, 0, 3, 3, 2] },
-      { rank: 2, name: 'ZAXXXO536010', score: 15, stats: [13, 4, 0, 1, 6, 1] },
-      { rank: 3, name: 'ZAXXXR648845', score: 11, stats: [13, 3, 0, 0, 6, 3] },
+      { rank: 1, name: 'NOA***448', score: 15850, stats: [31, 20, 6, 3, 1, 1] },
+      { rank: 2, name: 'NOA***993', score: 14200, stats: [29, 18, 6, 3, 1, 1] },
+      { rank: 3, name: 'NOA***307', score: 12750, stats: [27, 17, 5, 3, 1, 1] },
     ],
   },
 ], null, 2);
 
-const TOURNAMENT_ITEMS_DEFAULT =
-  process.env.NODE_ENV === 'production' &&
-  process.env.NEXT_PUBLIC_ENABLE_DEMO_TOURNAMENT_DATA !== 'true'
-    ? '[]'
-    : DESKTOP_TOURNAMENT_MOCK_DEFAULTS;
+const LEADERBOARD_ITEMS_DEFAULT = JSON.stringify([
+  { rank: 1, name: 'Fortune Gems 3', user: 'NOA***874', amount: '฿268,400', image: '' },
+  { rank: 2, name: 'Mahjong Ways 2', user: 'NOA***219', amount: '฿244,500', image: '' },
+  { rank: 3, name: 'Super Ace', user: 'NOA***562', amount: '฿221,200', image: '' },
+  { rank: 4, name: 'Wild Bounty Showdown', user: 'NOA***105', amount: '฿198,800', image: '' },
+  { rank: 5, name: 'Lucky Neko', user: 'NOA***731', amount: '฿176,400', image: '' },
+], null, 2);
+
+const MINI_GAMES_DEFAULT = JSON.stringify([
+  {
+    id: 'daily-mission',
+    title: 'ภารกิจประจำวัน',
+    subtitle: 'ทำภารกิจและสะสมรางวัลทุกวัน',
+    href: '/mobile/member/guide',
+    image: '/assets/asset-pc/images/mini_game/icon-dailymission-dt.webp',
+    enabled: true,
+  },
+  {
+    id: 'lucky-wheel',
+    title: 'วงล้อนำโชค',
+    subtitle: 'รับสิทธิ์หมุนจากกิจกรรมและยอดเล่น',
+    href: '/?auth=login',
+    image: '/assets/asset-pc/images/mini_game/icon-luckywheel-dt.webp',
+    enabled: true,
+  },
+], null, 2);
 
 const FEATURES_DEFAULTS = {
+  presentation_demo_enabled: true,
   registration_enabled: true,
   login_enabled: true,
   profile_enabled: true,
@@ -102,8 +102,8 @@ const FEATURES_DEFAULTS = {
   guide_title: 'คู่มือการใช้งาน',
   navigation_items_json: '[]',
   tournament_items_json: TOURNAMENT_ITEMS_DEFAULT,
-  leaderboard_items_json: '[]',
-  mini_games_json: '[]',
+  leaderboard_items_json: LEADERBOARD_ITEMS_DEFAULT,
+  mini_games_json: MINI_GAMES_DEFAULT,
 };
 
 export default function FeaturesSettingsPage() {
@@ -116,6 +116,13 @@ export default function FeaturesSettingsPage() {
       risk="sensitive"
       defaults={FEATURES_DEFAULTS}
       fields={[
+        {
+          key: 'presentation_demo_enabled',
+          label: 'เปิดข้อมูลนำเสนอเมื่อข้อมูลจริงยังว่าง',
+          type: 'checkbox',
+          section: 'โหมดนำเสนอ',
+          helper: 'เติมโปรโมชั่น กิจกรรม Tournament Leaderboard Mini Game และเนื้อหาที่จำเป็นให้ Desktop/Mobile ใช้ชุดกลางเดียวกัน โดยไม่เขียนยอดเงินจริง',
+        },
         { key: 'registration_enabled', label: 'เปิดสมัครสมาชิก', type: 'checkbox', section: 'บัญชีสมาชิก', helper: 'ปิดแล้วผู้ใช้ใหม่จะสมัครไม่ได้' },
         { key: 'login_enabled', label: 'เปิดเข้าสู่ระบบ', type: 'checkbox', section: 'บัญชีสมาชิก', helper: 'ปิดแล้วสมาชิกจะเข้าสู่ระบบไม่ได้' },
         { key: 'profile_enabled', label: 'เปิดโปรไฟล์', type: 'checkbox', section: 'บัญชีสมาชิก' },
@@ -169,10 +176,10 @@ export default function FeaturesSettingsPage() {
         },
         {
           key: 'tournament_items_json',
-          label: 'Tournament และอันดับ (JSON)',
+          label: 'Tournament และ Radar Board (JSON)',
           type: 'textarea',
           section: 'ข้อมูล Runtime ขั้นสูง',
-          helper: 'production เริ่มเป็น [] จนกว่าจะตั้งค่าข้อมูลจริง; demo ต้องเปิดด้วย NEXT_PUBLIC_ENABLE_DEMO_TOURNAMENT_DATA=true โดย Mobile ใช้ชุดเดียวกัน',
+          helper: 'ใช้ข้อมูลชุดเดียวกันทั้ง Desktop/Mobile และจะแทนที่ข้อมูลนำเสนอทันทีเมื่อบันทึกข้อมูลจริง',
         },
         {
           key: 'leaderboard_items_json',
