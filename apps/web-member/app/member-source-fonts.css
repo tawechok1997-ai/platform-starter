@@ -1,0 +1,29 @@
+:root {
+  --member-font-sans: 'Noto Sans Thai', 'Noto Sans', sans-serif;
+  --font-family-sans: var(--member-font-sans);
+  --toastify-font-family: var(--member-font-sans);
+}
+
+html,
+body {
+  font-family: var(--member-font-sans);
+}
+
+button,
+input,
+optgroup,
+select,
+textarea {
+  font-family: inherit;
+}
+
+.Toastify__toast,
+.Toastify__toast-body {
+  font-family: var(--member-font-sans);
+}
+
+.member-noto-number,
+[data-member-number='true'] {
+  font-family: 'Noto Sans', 'Noto Sans Thai', sans-serif;
+  font-variant-numeric: tabular-nums;
+}
