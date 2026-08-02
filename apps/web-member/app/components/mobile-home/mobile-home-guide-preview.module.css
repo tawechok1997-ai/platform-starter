@@ -1,4 +1,4 @@
-:global([data-mobile-home-root='true'] [data-mobile-section-owner='source-content'] section[aria-labelledby='mobile-guide-heading']) {
+.owner [data-mobile-section-owner='source-content'] section[aria-labelledby='mobile-guide-heading'] {
   display: none !important;
 }
 
