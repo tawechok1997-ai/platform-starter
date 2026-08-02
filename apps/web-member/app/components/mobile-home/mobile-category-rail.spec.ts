@@ -7,7 +7,6 @@ const css = readFileSync(new URL('./mobile-home-root.module.css', import.meta.ur
 const home = readFileSync(new URL('../../member-home.tsx', import.meta.url), 'utf8');
 const layoutOwner = readFileSync(new URL('../../member-mobile-home-bottom-owner.css', import.meta.url), 'utf8');
 const followOwner = readFileSync(new URL('../../member-mobile-category-follow.css', import.meta.url), 'utf8');
-const followRuntime = readFileSync(new URL('./mobile-category-rail-follow-runtime.tsx', import.meta.url), 'utf8');
 
 test('mobile category rail has one owner and reads central navigation', () => {
   assert.equal((root.match(/data-mobile-section-owner="category-menu"/g) ?? []).length, 1);
@@ -18,7 +17,7 @@ test('mobile category rail has one owner and reads central navigation', () => {
 
 test('mobile category rail keeps the supplied order and labels', () => {
   assert.match(root, /'home',[\s\S]*'casino',[\s\S]*'slot',[\s\S]*'fishing',[\s\S]*'sport',[\s\S]*'card',[\s\S]*'lottery'/);
-  for (const label of ['หน้าแรก', 'คาสิโน', 'สล็อต', '撃ปลา'.replace('撃', 'ยิง'), 'กีฬา', 'ไพ่', 'หวย']) {
+  for (const label of ['หน้าแรก', 'คาสิโน', 'สล็อต', 'ยิงปลา', 'กีฬา', 'ไพ่', 'หวย']) {
     assert.match(root, new RegExp(label));
   }
 });
@@ -30,28 +29,26 @@ test('mobile category rail keeps responsive sizes', () => {
   assert.match(css, /@media \(min-width: 430px\)[\s\S]*width:\s*60px[\s\S]*height:\s*60px/);
 });
 
-test('game categories keep normal page scrolling instead of locking the body', () => {
+test('game categories keep normal document scrolling', () => {
   assert.match(followOwner, /body \{[\s\S]*overflow-y:\s*auto\s*!important/);
   assert.doesNotMatch(followOwner, /body:has\([\s\S]*overflow:\s*hidden\s*!important/);
   assert.match(followOwner, /data-mobile-content-slot='after-highlight'[\s\S]*overflow-y:\s*visible\s*!important/);
   assert.match(followOwner, /data-provider-games-stage[\s\S]*overflow:\s*visible\s*!important/);
 });
 
-test('category menu mounts one scale-aware scroll follower', () => {
-  assert.match(home, /import MobileCategoryRailFollowRuntime/);
-  assert.match(home, /<MobileCategoryRailFollowRuntime \/>/);
-  assert.match(followRuntime, /document\.addEventListener\('scroll', scheduleSync, \{ capture: true, passive: true \}\)/);
-  assert.match(followRuntime, /const scaleY = contentHeight > 0 \? contentRect\.height \/ contentHeight : 1/);
-  assert.match(followRuntime, /const maxOffset = Math\.max\(0, contentHeight - railHeight\)/);
-  assert.match(followRuntime, /Math\.min\(requestedOffset, maxOffset\)/);
-  assert.match(followRuntime, /translate3d\(0, \$\{Math\.round\(offset\)\}px, 0\)/);
-  assert.match(followRuntime, /mobileCategoryFollow = followState/);
+test('category menu is the single sticky follower beneath the mobile header', () => {
+  assert.doesNotMatch(home, /MobileCategoryRailFollowRuntime/);
+  assert.match(followOwner, /data-mobile-section-owner='category-menu'[\s\S]*position:\s*-webkit-sticky\s*!important/);
+  assert.match(followOwner, /data-mobile-section-owner='category-menu'[\s\S]*position:\s*sticky\s*!important/);
+  assert.match(followOwner, /data-mobile-section-owner='category-menu'[\s\S]*top:\s*60px\s*!important/);
+  assert.match(followOwner, /data-mobile-section-owner='category-menu'[\s\S]*max-height:\s*calc\(100dvh - 68px\)\s*!important/);
+  assert.match(followOwner, /data-mobile-section-owner='category-menu'[\s\S]*transform:\s*none\s*!important/);
 });
 
-test('category menu stays in its grid column while the runtime translates it', () => {
-  assert.match(followOwner, /data-mobile-section-owner='category-menu'[\s\S]*position:\s*relative\s*!important/);
-  assert.match(followOwner, /data-mobile-section-owner='category-menu'[\s\S]*overflow:\s*visible\s*!important/);
-  assert.doesNotMatch(followOwner, /transform:\s*none\s*!important/);
+test('sticky rail ancestors do not clip vertical movement', () => {
+  assert.match(followOwner, /data-mobile-home-root='true'[\s\S]*overflow-y:\s*visible\s*!important/);
+  assert.match(followOwner, /\*:has\(> \[data-mobile-section-owner='category-menu'\]\)[\s\S]*overflow-y:\s*visible\s*!important/);
+  assert.match(followOwner, /\*:has\(> \[data-mobile-section-owner='category-menu'\]\)[\s\S]*contain:\s*none\s*!important/);
 });
 
 test('active and inactive category cards keep the supplied surfaces', () => {
