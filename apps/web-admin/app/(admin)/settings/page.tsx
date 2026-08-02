@@ -42,7 +42,7 @@ type SectionDefinition = {
 const SECTIONS: readonly SectionDefinition[] = [
   { id: 'general', label: { th: 'ทั่วไป', en: 'General' }, shortLabel: { th: 'ทั่วไป', en: 'General' }, description: { th: 'ข้อมูลเว็บไซต์ ช่องทางติดต่อ SEO และเอกสารหลัก', en: 'Website information, contact channels, SEO, and core documents' } },
   { id: 'experience', label: { th: 'แบรนด์และประสบการณ์', en: 'Brand & experience' }, shortLabel: { th: 'แบรนด์', en: 'Experience' }, description: { th: 'แบรนด์ ไอคอน ธีม Content Center และ Promotion Center', en: 'Branding, icons, theme, Content Center, and Promotion Center' } },
-  { id: 'operations', label: { th: 'การปฏิบัติการ', en: 'Operations' }, shortLabel: { th: 'ปฏิบัติการ', en: 'Operations' }, description: { th: 'Maintenance และ Feature Flags ที่เปลี่ยนพฤติกรรมระบบทันที', en: 'Maintenance and feature flags that change system behavior immediately' } },
+  { id: 'operations', label: { th: 'การปฏิบัติการ', en: 'Operations' }, shortLabel: { th: 'ปฏิบัติการ', en: 'Operations' }, description: { th: 'Maintenance, Feature Flags และกิจกรรมที่เปลี่ยนพฤติกรรมระบบทันที', en: 'Maintenance, feature flags, and activities that change system behavior immediately' } },
   { id: 'advanced', label: { th: 'ขั้นสูงและข้อมูลสำคัญ', en: 'Advanced & sensitive' }, shortLabel: { th: 'ขั้นสูง', en: 'Advanced' }, description: { th: 'Tracking และ Custom Scripts สำหรับผู้ดูแลระดับสูง', en: 'Tracking and custom scripts for privileged administrators' } },
 ];
 
@@ -60,6 +60,7 @@ const ITEMS: readonly SettingsItem[] = [
 
   item('maintenance', 'operations', '/settings/maintenance', 'settings.maintenance', 'โหมดปิดปรับปรุง', 'Maintenance mode', 'หยุดบริการเป็นรายส่วน พร้อมช่วงเวลาและผลกระทบ', 'Pause services by scope with schedules and impact review', 'ปฏิบัติการ', 'Operations', 'sensitive'),
   item('features', 'operations', '/settings/features', 'settings.features', 'การเปิดปิดฟีเจอร์', 'Feature controls', 'เปิดหรือปิดความสามารถ Member โดยไม่ deploy ใหม่', 'Enable or disable Member capabilities without deployment', 'การเผยแพร่', 'Release', 'sensitive'),
+  item('activities', 'operations', '/settings/activities', 'settings.features', 'กิจกรรม ภารกิจ และรางวัล', 'Activities, missions & rewards', 'ตั้งค่าล็อคอินประจำวัน ภารกิจ Turn ทายผล และตารางรางวัลจากข้อมูลกลาง', 'Configure daily login, missions, turnover, predictions, and reward tables from one source', 'กิจกรรม', 'Activities', 'sensitive'),
 
   item('scripts', 'advanced', '/settings/scripts', 'settings.scripts', 'Tracking และ Custom Scripts', 'Tracking & custom scripts', 'Analytics, pixels และ code ที่ต้องตรวจสอบความปลอดภัย', 'Analytics, pixels, and code requiring security review', 'ข้อมูลสำคัญ', 'Sensitive', 'sensitive'),
 ];
@@ -97,13 +98,13 @@ export default function SettingsPage() {
   const operationalCount = allowedItems.filter((settingsItem) => settingsItem.impact === 'operational').length;
   const copy = locale === 'th' ? {
     eyebrow: 'การดูแลระบบ', title: 'การตั้งค่า', description: 'เปิดเฉพาะหน้าที่บัญชีมีสิทธิ์ และแยกค่าทั่วไป ปฏิบัติการ กับข้อมูลสำคัญให้ชัดเจน',
-    search: 'ค้นหาการตั้งค่า', searchDescription: 'ค้นหาจากชื่อ หมวด คำอธิบาย หรือ URL', placeholder: 'เช่น Content Center, maintenance หรือ scripts', clear: 'ล้างคำค้น',
+    search: 'ค้นหาการตั้งค่า', searchDescription: 'ค้นหาจากชื่อ หมวด คำอธิบาย หรือ URL', placeholder: 'เช่น Content Center, maintenance หรือ activities', clear: 'ล้างคำค้น',
     result: (visible: number, total: number) => `${visible.toLocaleString('th-TH')}/${total.toLocaleString('th-TH')} หน้า`,
     pages: 'หน้าที่เข้าถึงได้', sections: 'หมวด', sensitive: 'การตั้งค่าสำคัญ', operational: 'หน้าปฏิบัติการ',
     noResults: 'ไม่พบการตั้งค่าที่เข้าถึงได้', noResultsHelp: 'ลองใช้คำค้นอื่น หรือบัญชีนี้อาจไม่มีสิทธิ์ในหมวดดังกล่าว', open: 'เปิดหน้า', normal: 'ทั่วไป', operationalLabel: 'ปฏิบัติการ', sensitiveLabel: 'สำคัญ',
   } : {
     eyebrow: 'Administration', title: 'Settings', description: 'Show only destinations allowed for this account and separate general, operational, and sensitive controls.',
-    search: 'Search settings', searchDescription: 'Search by title, category, description, or URL.', placeholder: 'For example Content Center, maintenance, or scripts', clear: 'Clear search',
+    search: 'Search settings', searchDescription: 'Search by title, category, description, or URL.', placeholder: 'For example Content Center, maintenance, or activities', clear: 'Clear search',
     result: (visible: number, total: number) => `${visible.toLocaleString('en-US')}/${total.toLocaleString('en-US')} pages`,
     pages: 'Accessible pages', sections: 'Sections', sensitive: 'Sensitive settings', operational: 'Operational pages',
     noResults: 'No accessible settings found', noResultsHelp: 'Try another search or this account may not have access to that section.', open: 'Open page', normal: 'General', operationalLabel: 'Operational', sensitiveLabel: 'Sensitive',
