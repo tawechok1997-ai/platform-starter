@@ -150,14 +150,13 @@ export function DesktopHeroCarousel({ content, siteName, showPromotion }: Deskto
   const [virtualIndex, setVirtualIndex] = useState(realCount + SOURCE_INITIAL_SLIDE_INDEX);
   const [transitionEnabled, setTransitionEnabled] = useState(true);
   const [dragX, setDragX] = useState(0);
-  const [isHovering, setIsHovering] = useState(false);
   const [hasFocus, setHasFocus] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [reducedMotion, setReducedMotion] = useState(false);
   const pointerState = useRef<PointerState | null>(null);
   const suppressClickUntil = useRef(0);
   const normalizedActiveIndex = realCount ? modulo(virtualIndex, realCount) : 0;
-  const autoplayPaused = isHovering || hasFocus || isDragging || reducedMotion;
+  const autoplayPaused = hasFocus || isDragging || reducedMotion;
 
   useEffect(() => {
     if (!realCount) return;
@@ -276,8 +275,6 @@ export function DesktopHeroCarousel({ content, siteName, showPromotion }: Deskto
     className="reference-hero-carousel"
     aria-label={copy.region}
     aria-roledescription="carousel"
-    onPointerEnter={() => setIsHovering(true)}
-    onPointerLeave={() => setIsHovering(false)}
     onFocusCapture={() => setHasFocus(true)}
     onBlurCapture={onBlurCapture}
     onPointerDown={onPointerDown}
