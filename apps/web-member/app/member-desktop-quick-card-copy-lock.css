@@ -1,0 +1,38 @@
+/* Final desktop quick-card text owner.
+ * Runtime content may be longer than the source mock, but the visible card
+ * keeps the same two-line title and two-line summary geometry. */
+@media (min-width: 901px) {
+  .desktop-reference-home .reference-promo-copy {
+    min-width: 0 !important;
+    max-height: 92px !important;
+    overflow: hidden !important;
+  }
+
+  .desktop-reference-home .reference-promo-copy strong {
+    display: -webkit-box !important;
+    width: 100% !important;
+    max-height: 48px !important;
+    overflow: hidden !important;
+    white-space: normal !important;
+    text-overflow: clip !important;
+    word-break: normal !important;
+    overflow-wrap: normal !important;
+    -webkit-box-orient: vertical !important;
+    -webkit-line-clamp: 2 !important;
+    line-clamp: 2;
+  }
+
+  .desktop-reference-home .reference-promo-copy small {
+    display: -webkit-box !important;
+    width: 100% !important;
+    max-height: 44px !important;
+    overflow: hidden !important;
+    white-space: normal !important;
+    text-overflow: clip !important;
+    word-break: normal !important;
+    overflow-wrap: anywhere !important;
+    -webkit-box-orient: vertical !important;
+    -webkit-line-clamp: 2 !important;
+    line-clamp: 2;
+  }
+}
