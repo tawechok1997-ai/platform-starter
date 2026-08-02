@@ -5,6 +5,7 @@ const files = {
   adminLayout: 'apps/web-admin/app/layout.tsx',
   memberLayout: 'apps/web-member/app/layout.tsx',
   authOverlay: 'apps/web-member/app/components/auth/member-auth-overlay.tsx',
+  documentLock: 'apps/web-member/app/lib/member-document-overlay-lock.ts',
   confirm: 'apps/web-member/src/features/finance/finance-components.tsx',
 };
 
@@ -15,8 +16,16 @@ const requireText = (key, value, label = value) => { if (!source[key].includes(v
 for (const selector of ['.ui-overlay', '.ui-modal', '.ui-confirm-dialog', '.ui-drawer', '.ui-overlay-surface__header', '.ui-overlay-surface__body', '.ui-overlay-surface__actions']) requireText('contract', selector);
 for (const key of ['adminLayout', 'memberLayout']) requireText(key, 'packages/design-tokens/overlays.css', 'shared overlay import');
 
-for (const value of ['createPortal', 'member-auth-overlay', 'role="dialog"', 'aria-modal="true"', 'aria-busy={!frameReady}', 'member-auth-overlay__frame']) requireText('authOverlay', value);
-for (const behavior of ["event.key === 'Escape'", "body.style.overflow = 'hidden'", "body.style.position = 'fixed'", 'event.origin !== window.location.origin', 'window.scrollTo(scrollX, scrollY)']) requireText('authOverlay', behavior, `auth overlay behavior ${behavior}`);
+for (const value of ['createPortal', 'member-auth-overlay', 'role="dialog"', 'aria-modal="true"', 'aria-busy={!frameReady}', 'member-auth-overlay__frame', 'acquireMemberDocumentOverlayLock']) requireText('authOverlay', value);
+for (const behavior of ["event.key === 'Escape'", 'event.origin !== window.location.origin', 'releaseDocumentLock()']) requireText('authOverlay', behavior, `auth overlay behavior ${behavior}`);
+for (const behavior of [
+  "body.style.overflow = 'hidden'",
+  "html.style.overflow = 'hidden'",
+  'activeLockCount += 1',
+  'restoreDocumentStyles()',
+  'MEMBER_DESKTOP_VIEWPORT_RESYNC_EVENT',
+  'body.style.paddingRight =',
+]) requireText('documentLock', behavior, `shared document lock behavior ${behavior}`);
 
 for (const value of ['ui-overlay', 'ui-confirm-dialog', 'role="dialog"', 'aria-modal="true"', 'aria-labelledby={titleId}', 'ui-overlay-surface__header', 'ui-overlay-surface__body', 'ui-overlay-surface__actions']) requireText('confirm', value);
 for (const behavior of ["event.key === 'Escape'", "event.key !== 'Tab'", 'returnFocusRef.current?.focus()', "document.body.style.overflow = 'hidden'"]) requireText('confirm', behavior, `confirm behavior ${behavior}`);

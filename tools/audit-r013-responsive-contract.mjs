@@ -14,18 +14,25 @@ const mobileHeader = fs.existsSync(mobileHeaderPath)
   : '';
 
 const legacyNavigationContract = memberChrome.includes('PUBLIC_HOME_NAV.map');
-const activeRuntimeNavigationContract = [
+const desktopRuntimeNavigationContract = [
   memberChrome.includes('navigation={runtime.navigation}'),
   memberChrome.includes('navigation.filter((item) => item.desktop).map'),
+  memberChrome.includes("viewportMode === 'desktop'"),
+].every(Boolean);
+const activeMobileHeaderContract = [
+  fs.existsSync(mobileHeaderPath),
   mobileHeader.includes('runtime.navigation.filter'),
   mobileHeader.includes('item.mobile'),
 ].every(Boolean);
-const intentionalMobileResetContract = [
+const mobileHomeNavigationContract = [
   !fs.existsSync(mobileHeaderPath),
   mobileHeaderOwner.includes('return null'),
-  memberHome.includes("if (viewportMode !== 'desktop') return null"),
+  memberHome.includes("viewportMode === 'mobile'"),
+  memberHome.includes('<MobileHomeRoot'),
+  memberHome.includes('<MobileCategoryTabRuntime'),
 ].every(Boolean);
-const runtimeNavigationContract = activeRuntimeNavigationContract || intentionalMobileResetContract;
+const runtimeNavigationContract = desktopRuntimeNavigationContract
+  && (activeMobileHeaderContract || mobileHomeNavigationContract);
 
 const checks = [
   ['shared container', responsive.includes('.ui-container')],

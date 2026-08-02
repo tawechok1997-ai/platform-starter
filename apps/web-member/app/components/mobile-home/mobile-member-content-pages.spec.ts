@@ -83,14 +83,16 @@ test('news page matches the source empty state', () => {
   assert.match(news, /data-mobile-member-page="news"/);
 });
 
-test('activity page keeps the three source cards and real join bridge', () => {
+test('activity page keeps the three source cards and current join bridge', () => {
   assert.match(activity, /1785515180099-ffe2dd0b-23d8-41c3-964e-25368bc2188d\.jpeg/);
   assert.match(activity, /1784904726144-c10c3ca6-cf70-41d3-a763-aa33c8917b2d\.jpeg/);
   assert.match(activity, /1719130004352-5323a6c4-0ad4-4cda-8475-dd0f5701b61b\.png/);
   assert.match(activity, /title: 'ภารกิจ'/);
   assert.match(activity, /title: 'ทายผลหวย'/);
   assert.match(activity, /title: 'ทำยอด Turn รับรางวัลจุใจ'/);
-  assert.match(activity, /MEMBER_ACTIVITY_JOIN_EVENT/);
+  assert.match(activity, /MEMBER_AUTH_OPEN_EVENT = 'member:auth-open'/);
+  assert.match(activity, /detail: \{ mode: 'login', next: activity\.href \}/);
+  assert.match(activity, /router\.push\(activity\.href\)/);
   assert.match(activity, /เข้าร่วม/);
   assert.match(activityRoute, /\/public\/site-settings/);
 });

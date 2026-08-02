@@ -25,11 +25,12 @@ test('member chrome owns exactly one query-driven authentication popup', () => {
   assert.doesNotMatch(memberChrome, /member:auth-open/);
 });
 
-test('the shared popup owns one iframe and lets embedded auth pages navigate inside it', () => {
+test('the shared popup owns one iframe and keeps embedded auth navigation inside the single owner', () => {
   assert.equal((authOverlay.match(/<iframe\b/g) ?? []).length, 1);
-  assert.match(authOverlay, /mode === 'register' \? '\/register\?embed=1' : '\/login\?embed=1'/);
+  assert.match(authOverlay, /activeMode === 'register' \? '\/register\?embed=1' : '\/login\?embed=1'/);
   assert.match(authOverlay, /key=\{path\}/);
-  assert.doesNotMatch(authOverlay, /member-auth-switch/);
+  assert.match(authOverlay, /payload\.type === 'member-auth-switch'/);
+  assert.match(authOverlay, /switchMode\(payload\.mode\)/);
   assert.match(authOverlay, /member-auth-close/);
   assert.match(authOverlay, /member-auth-success/);
 });

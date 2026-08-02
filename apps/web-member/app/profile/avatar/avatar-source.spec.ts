@@ -8,10 +8,11 @@ const runtime = readFileSync(new URL('../../components/mobile-home/mobile-authen
 const preference = readFileSync(new URL('../../lib/mobile-avatar-preference.ts', import.meta.url), 'utf8');
 const styles = readFileSync(new URL('./avatar-page.module.css', import.meta.url), 'utf8');
 
-test('avatar settings adds only the missing page and reuses existing account pages', () => {
+test('avatar settings owns one page and reuses popup-based account actions', () => {
   assert.equal((page.match(/data-mobile-avatar-owner="true"/g) ?? []).length, 1);
-  assert.match(page, /href="\/profile\/edit"/);
-  assert.match(page, /href="\/profile\/password"/);
+  assert.match(page, /setPopup\('contact'\)/);
+  assert.match(page, /setPopup\('password'\)/);
+  assert.match(page, /<ProfileActionPopupLayer kind=\{popup\} onChange=\{setPopup\} \/>/);
   assert.doesNotMatch(page, /memberApiFetch\('\/member\/auth\/(profile|password)'/);
   assert.match(page, /MOBILE_AVATAR_OPTIONS\.map/);
 });
@@ -30,6 +31,7 @@ test('avatar preference is bounded to the supplied local avatar assets', () => {
   assert.match(preference, /`\/images\/avatar\/\$\{index \+ 1\}\.webp`/);
   assert.match(preference, /MOBILE_AVATAR_OPTIONS\.includes\(value\)/);
   assert.match(page, /resolveLocalAssetByBasename\(VIP_BADGE_SOURCE, 'mobile'\)/);
+  assert.match(page, /resolveLocalAssetByBasename\(VIP_BADGE_SOURCE, 'pc'\)/);
+  assert.match(styles, /max-width:\s*428px/);
   assert.match(styles, /grid-template-columns:\s*repeat\(4/);
-  assert.match(styles, /@media \(min-width:\s*600px\)/);
 });

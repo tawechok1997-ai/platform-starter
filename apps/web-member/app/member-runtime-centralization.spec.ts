@@ -12,7 +12,8 @@ const navigationSource = readFileSync(new URL('./member-navigation-runtime.ts', 
 const navigationStateSource = readFileSync(new URL('./components/member-navigation-state-controller.tsx', import.meta.url), 'utf8');
 const navigationAuthSource = readFileSync(new URL('./components/member-navigation-auth-controller.tsx', import.meta.url), 'utf8');
 const homeDataSource = readFileSync(new URL('./member-home-data-runtime.ts', import.meta.url), 'utf8');
-const mobileHeaderSource = readFileSync(new URL('./components/public-mobile-source-header.tsx', import.meta.url), 'utf8');
+const mobileHomeSource = readFileSync(new URL('./components/mobile-home/mobile-home-root.tsx', import.meta.url), 'utf8');
+const mobileAuthenticatedSource = readFileSync(new URL('./components/mobile-home/mobile-authenticated-home-runtime.tsx', import.meta.url), 'utf8');
 
 test('provider exposes one runtime for settings, session, navigation and home data', () => {
   assert.match(providerSource, /useSiteSettings\(\)/);
@@ -29,12 +30,11 @@ test('desktop and mobile home consume one structured runtime controller', () => 
   assert.match(controllerSource, /runtime\.homeData\.tournaments/);
   assert.match(controllerSource, /runtime\.homeData\.leaderboard/);
   assert.match(controllerSource, /runtime\.homeData\.miniGames/);
-  assert.match(controllerSource, /\.source-tournament__slide/);
-  assert.match(controllerSource, /\.v47-mobile-rank-panel/);
-  assert.match(controllerSource, /\.reference-leaderboard/);
-  assert.match(controllerSource, /\.v47-mobile-board-row/);
   assert.match(controllerSource, /runtimeSource = 'desktop-primary'/);
   assert.doesNotMatch(controllerSource, /features\.tournament && runtime\.features\.activity/);
+  assert.match(mobileHomeSource, /useMemberRuntime\(\)/);
+  assert.match(mobileHomeSource, /runtime\.features\.registration/);
+  assert.match(mobileHomeSource, /runtime\.features\.login/);
 });
 
 test('game sections enforce shared desktop and mobile limits', () => {
@@ -44,14 +44,15 @@ test('game sections enforce shared desktop and mobile limits', () => {
   assert.match(gameSectionSource, /runtimeLimitHidden/);
 });
 
-test('shell navigation and member summary are runtime owned', () => {
+test('shell and authenticated mobile surfaces consume runtime-owned summary data', () => {
   assert.match(shellSource, /useMemberRuntime\(\)/);
   assert.match(shellSource, /runtime\.navigation/);
   assert.match(shellSource, /runtime\.summary\.pendingCount/);
   assert.match(shellSource, /runtime\.summary\.walletAvailable/);
-  assert.match(mobileHeaderSource, /runtime\.navigation\.filter/);
-  assert.match(mobileHeaderSource, /runtime\.summary\.displayName/);
-  assert.match(mobileHeaderSource, /MemberDrawer/);
+  assert.match(mobileAuthenticatedSource, /useMemberRuntime\(\)/);
+  assert.match(mobileAuthenticatedSource, /summary\.displayName \|\| summary\.username/);
+  assert.match(mobileAuthenticatedSource, /summary\.walletAvailable/);
+  assert.match(mobileAuthenticatedSource, /summary\.vipLevel/);
 });
 
 test('shared overlay system covers modal sheet and drawer accessibility', () => {

@@ -1,17 +1,8 @@
 import 'server-only';
 
-import { readdirSync, statSync } from 'node:fs';
-import { join, relative, sep } from 'node:path';
-
-const PUBLIC_ROOT = join(process.cwd(), 'public');
-const ASSET_ROOTS = [
-  join(PUBLIC_ROOT, 'assets', 'asset-mobile', 'images'),
-  join(PUBLIC_ROOT, 'assets', 'asset-moblie', 'images'),
-  join(PUBLIC_ROOT, 'assets', 'asset-pc', 'images'),
-] as const;
+import { LOCAL_ASSET_PATHS_BY_BASENAME } from '../../generated/local-asset-basename-map';
 
 type AssetEntry = {
-  fileName: string;
   publicPath: string;
   segments: string[];
 };
@@ -35,47 +26,32 @@ export function resolveExactAsset(source: string) {
     .map((segment) => decodeURIComponent(segment).toLowerCase());
 
   return [...matches]
-    .sort((left, right) => suffixScore(right.segments, sourceSegments) - suffixScore(left.segments, sourceSegments)
-      || left.publicPath.localeCompare(right.publicPath))[0]?.publicPath ?? normalized;
+    .sort(
+      (left, right) =>
+        suffixScore(right.segments, sourceSegments) - suffixScore(left.segments, sourceSegments)
+        || left.publicPath.localeCompare(right.publicPath),
+    )[0]?.publicPath ?? normalized;
 }
 
 function getAssetIndex() {
   if (assetIndex) return assetIndex;
 
   const index = new Map<string, AssetEntry[]>();
-  for (const root of ASSET_ROOTS) {
-    walk(root, (absolutePath) => {
-      const fileName = absolutePath.split(sep).pop() ?? '';
-      if (!fileName) return;
-
-      const publicPath = `/${relative(PUBLIC_ROOT, absolutePath).split(sep).join('/')}`;
-      const segments = publicPath.split('/').filter(Boolean).map((segment) => decodeURIComponent(segment).toLowerCase());
-      const key = fileName.toLowerCase();
-      const current = index.get(key) ?? [];
-      current.push({ fileName, publicPath, segments });
-      index.set(key, current);
-    });
+  for (const [fileName, publicPaths] of Object.entries(LOCAL_ASSET_PATHS_BY_BASENAME)) {
+    index.set(
+      fileName.toLowerCase(),
+      publicPaths.map((publicPath) => ({
+        publicPath,
+        segments: publicPath
+          .split('/')
+          .filter(Boolean)
+          .map((segment) => decodeURIComponent(segment).toLowerCase()),
+      })),
+    );
   }
 
   assetIndex = index;
   return index;
-}
-
-function walk(directory: string, onFile: (path: string) => void) {
-  try {
-    for (const name of readdirSync(directory)) {
-      const absolutePath = join(directory, name);
-      try {
-        const stats = statSync(absolutePath);
-        if (stats.isDirectory()) walk(absolutePath, onFile);
-        else if (stats.isFile()) onFile(absolutePath);
-      } catch {
-        // Ignore files that disappear while the deployment image is being assembled.
-      }
-    }
-  } catch {
-    // A root may not exist in every deployment. The remaining roots are still valid.
-  }
 }
 
 function suffixScore(candidate: string[], source: string[]) {
