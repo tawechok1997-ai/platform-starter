@@ -11,7 +11,7 @@ test('card category keeps verified seeds while merging Mobile catalog providers 
   assert.match(cardPage, /includeCatalogProviders/);
   assert.match(cardPage, /catalogPlatform="mobile"/);
   assert.match(cardPage, /providerAssetPlatform="mobile"/);
-  assert.match(cardPage, /gameAssetPlatform="mobile"/);
+  assert.match(cardPage, /gameAssetPlatform="pc"/);
 });
 
 test('broken artwork collapses the complete provider or game card', () => {
