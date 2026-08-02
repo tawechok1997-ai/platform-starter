@@ -8,7 +8,7 @@ const iconCss = readFileSync(new URL('./mobile-category-provider-icons.module.cs
 
 test('game categories never hide the shared lower feed, shortcut or footer', () => {
   assert.match(runtime, /data-mobile-bottom-owner/);
-  assert.match(runtime, /data-mobile-section-owner=\"source-content\"/);
+  assert.match(runtime, /data-mobile-section-owner="source-content"/);
   assert.match(runtime, /element\.hidden = false/);
   assert.match(runtime, /element\.style\.removeProperty\('display'\)/);
   assert.doesNotMatch(runtime, /bottomStructure\.hidden = activeCategory !== 'home'/);
@@ -21,7 +21,7 @@ test('one API catalog owner renders every category with real provider icons', ()
   assert.match(runtime, /game\.providerIconSource/);
   assert.match(runtime, /game\.providerIcon/);
   assert.match(runtime, /providers\/set\/1_1_badge/);
-  assert.match(runtime, /data-category-flow=\"provider-icons\"/);
+  assert.match(runtime, /data-category-flow="provider-icons"/);
   assert.match(runtime, /data-provider-icon-source/);
 
   for (const obsoleteOwner of [
