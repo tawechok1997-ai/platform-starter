@@ -2,6 +2,33 @@
   display: none !important;
 }
 
+/* Game categories only replace the content slot. The shared promotion banner,
+ * announcement ticker and topic tabs must remain visible above every category,
+ * matching the source mobile layout. */
+:global([data-mobile-home-root='true'][data-mobile-active-category]:not([data-mobile-active-category='home']) [data-mobile-section-owner='hero']) {
+  display: grid !important;
+  max-height: none !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  content-visibility: visible !important;
+}
+
+:global([data-mobile-home-root='true'][data-mobile-active-category]:not([data-mobile-active-category='home']) [data-mobile-section-owner='announcement']) {
+  display: grid !important;
+  max-height: none !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  content-visibility: visible !important;
+}
+
+:global([data-mobile-home-root='true'][data-mobile-active-category]:not([data-mobile-active-category='home']) [data-mobile-section-owner='highlight-tabs']) {
+  display: grid !important;
+  max-height: 96px !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  content-visibility: visible !important;
+}
+
 :global([data-mobile-home-root='true'] [data-mobile-category-id]:not([aria-current='page'])) {
   color: #fff !important;
   background: #373147 !important;
