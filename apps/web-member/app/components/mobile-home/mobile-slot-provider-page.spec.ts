@@ -90,7 +90,8 @@ test('Mobile provider games keep the three-column game layout', () => {
 });
 
 test('central category runtime routes slot fishing and card providers to the shared browse flow', () => {
-  assert.match(categoryRuntime, /getMemberGameCatalog\('mobile'\)/);
+  assert.match(categoryRuntime, /platform: 'mobile'/);
+  assert.match(categoryRuntime, /memberApiFetch\(`\/games\/catalog\?\$\{params\.toString\(\)\}`/);
   assert.match(categoryRuntime, /\/browse\/games\?category=\$\{encodeURIComponent\(category\)\}/);
   assert.match(categoryRuntime, /provider=\$\{encodeURIComponent\(provider\.code\)\}/);
   assert.match(categoryRuntime, /platform=mobile/);
