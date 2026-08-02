@@ -1,43 +1,37 @@
 'use client';
 
 import { useEffect } from 'react';
-import { usePathname, useRouter } from 'next/navigation';
-import { useMemberSession } from '../member-session-provider';
+import { useRouter } from 'next/navigation';
 
-const SPORT_ROUTE = '/browse/games?category=sport';
-const SPORT_LOGIN_ROUTE = `/?auth=login&next=${encodeURIComponent(SPORT_ROUTE)}`;
-const LIVE_ACTION_SELECTOR = '.source-live-card__watch, .source-live-card__bet';
+const LIVE_ROUTE = '/live';
+const LIVE_ACTION_SELECTOR = [
+  '.source-live-card__watch',
+  '.source-live-card__bet',
+  '.member-desktop-nav a[href="#live"]',
+  '.member-desktop-nav a[href="/#live"]',
+].join(',');
 
 export default function PublicLiveNavigationController() {
-  const pathname = usePathname() ?? '/';
   const router = useRouter();
-  const { ready, isLoggedIn } = useMemberSession();
 
   useEffect(() => {
     const handleClick = (event: MouseEvent) => {
+      if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
       const target = event.target;
       if (!(target instanceof Element)) return;
 
       const liveAction = target.closest<HTMLElement>(LIVE_ACTION_SELECTOR);
-      if (liveAction) {
-        event.preventDefault();
-        event.stopPropagation();
-        router.push(ready && isLoggedIn ? SPORT_ROUTE : SPORT_LOGIN_ROUTE);
-        return;
-      }
-
-      if (pathname === '/') return;
-      const link = target.closest<HTMLAnchorElement>('a[href="#live"]');
-      if (!link) return;
+      if (!liveAction) return;
 
       event.preventDefault();
       event.stopPropagation();
-      router.push('/#live');
+      event.stopImmediatePropagation();
+      router.push(LIVE_ROUTE);
     };
 
     document.addEventListener('click', handleClick, true);
     return () => document.removeEventListener('click', handleClick, true);
-  }, [isLoggedIn, pathname, ready, router]);
+  }, [router]);
 
   return null;
 }
