@@ -37,7 +37,7 @@ test('maps recovered catalog metadata into source filters', () => {
   assert.deepEqual(new Set(game.tags), new Set(['slot', 'buy', 'hot', 'new', 'table']));
 });
 
-test('falls back to the configured provider card when catalog media is absent', () => {
+test('does not manufacture game artwork from the provider card', () => {
   const game = mapCatalogGame(
     {
       providerGameCode: 'provider-only',
@@ -56,11 +56,34 @@ test('falls back to the configured provider card when catalog media is absent', 
     }],
   );
 
-  assert.ok(game);
-  assert.equal(game.image, '/fishco-card.png');
-  assert.equal(game.providerBadge, '/fishco-badge.png');
+  assert.equal(game, null);
 });
 
+test('skips provider artwork and uses the next distinct game image', () => {
+  const game = mapCatalogGame(
+    {
+      providerGameCode: 'real-game',
+      name: 'Real Game',
+      category: 'slot',
+      imageUrl: '/slotco-card.png',
+      iconUrl: '/real-game.png',
+      provider: { code: 'slotco', name: 'Slot Co' },
+    },
+    [{
+      code: 'slotco',
+      name: 'Slot Co',
+      badge: '/slotco-badge.png',
+      card: '/slotco-card.png',
+      background: '/slotco-bg.png',
+      title: '/slotco-title.png',
+      avatar: '/slotco-avatar.png',
+    }],
+  );
+
+  assert.ok(game);
+  assert.equal(game.image, '/real-game.png');
+  assert.equal(game.providerBadge, '/slotco-badge.png');
+});
 
 test('keeps the mobile catalog separate from the PC catalog', () => {
   const game = mapCatalogGame(

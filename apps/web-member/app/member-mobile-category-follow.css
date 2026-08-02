@@ -2,35 +2,27 @@
 @import './member-mobile-withdraw-source-contract.css';
 @import './member-home-section-icons.css';
 
-/* Mobile category rail contract:
- * - Home keeps the document as its scroll owner.
- * - Game categories use the Mobile root as their scroll owner.
- * - One runtime translates the rail beneath the fixed 60px header for both.
- * - The translation is clamped to the category content boundary.
+/* Mobile game-category scroll contract:
+ * - Home keeps the normal document scroll.
+ * - In a game category, the left category menu stays in its own column.
+ * - Only the right game-content column scrolls vertically.
+ * - The provider rail inside that column remains horizontally scrollable.
  */
 @media (max-width: 900px) {
   html[data-member-viewport-mode='mobile'],
   html[data-member-viewport-mode='mobile'] body {
     overflow-x: clip !important;
-    overscroll-behavior-y: auto !important;
     touch-action: pan-x pan-y !important;
   }
 
-  html[data-member-viewport-mode='mobile'] #member-desktop-scale-shell,
-  html[data-member-viewport-mode='mobile'] #member-desktop-scale-canvas,
-  html[data-member-viewport-mode='mobile'] .public-game-shell,
-  html[data-member-viewport-mode='mobile'] .public-game-shell__content,
-  html[data-member-viewport-mode='mobile'] [data-mobile-home-root='true'],
-  html[data-member-viewport-mode='mobile'] [data-mobile-home-root='true'] *:has(> [data-mobile-section-owner='category-menu']) {
-    overflow-x: clip !important;
-    contain: none !important;
-    transform: none !important;
-  }
-
-  html[data-member-viewport-mode='mobile'] [data-mobile-home-root='true'] *:has(> [data-mobile-section-owner='category-menu']) {
-    position: relative !important;
-    overflow-y: visible !important;
-    align-items: start !important;
+  html[data-member-viewport-mode='mobile']
+    body:has([data-mobile-home-root='true'][data-mobile-active-category]:not([data-mobile-active-category='home'])) {
+    width: 100% !important;
+    height: 100dvh !important;
+    min-height: 100dvh !important;
+    max-height: 100dvh !important;
+    overflow: hidden !important;
+    overscroll-behavior: none !important;
   }
 
   html[data-member-viewport-mode='mobile']
@@ -39,37 +31,33 @@
     height: 100dvh !important;
     min-height: 100dvh !important;
     max-height: 100dvh !important;
-    overflow-x: clip !important;
-    overflow-y: auto !important;
-    overscroll-behavior-x: none !important;
-    overscroll-behavior-y: auto !important;
-    scrollbar-width: none !important;
-    touch-action: pan-y !important;
-    -webkit-overflow-scrolling: touch !important;
-  }
-
-  html[data-member-viewport-mode='mobile']
-    [data-mobile-home-root='true'][data-mobile-active-category]:not([data-mobile-active-category='home'])::-webkit-scrollbar {
-    display: none !important;
+    overflow: hidden !important;
+    overscroll-behavior: none !important;
+    touch-action: pan-x pan-y !important;
   }
 
   html[data-member-viewport-mode='mobile']
     [data-mobile-home-root='true'][data-mobile-active-category]:not([data-mobile-active-category='home'])
-    [data-mobile-content-slot='after-highlight'] {
-    height: auto !important;
-    min-height: calc(100dvh - 60px) !important;
-    max-height: none !important;
-    overflow: visible !important;
-    touch-action: pan-y !important;
+    > div:has([data-mobile-section-owner='category-menu']) {
+    height: calc(100dvh - 60px) !important;
+    min-height: 0 !important;
+    max-height: calc(100dvh - 60px) !important;
+    overflow: hidden !important;
+    align-content: stretch !important;
+    gap: 0 !important;
   }
 
   html[data-member-viewport-mode='mobile']
     [data-mobile-home-root='true'][data-mobile-active-category]:not([data-mobile-active-category='home'])
-    [data-provider-games-stage] {
-    height: auto !important;
-    max-height: none !important;
-    overflow-y: visible !important;
-    touch-action: pan-y !important;
+    *:has(> [data-mobile-section-owner='category-menu']) {
+    position: relative !important;
+    display: grid !important;
+    height: 100% !important;
+    min-height: 0 !important;
+    max-height: 100% !important;
+    overflow: hidden !important;
+    grid-template-rows: minmax(0, 1fr) !important;
+    align-items: stretch !important;
   }
 
   html[data-member-viewport-mode='mobile'] [data-mobile-section-owner='category-menu'] {
@@ -79,20 +67,69 @@
     bottom: auto !important;
     left: 0 !important;
     z-index: 98 !important;
-    align-self: start !important;
-    height: max-content !important;
-    max-height: none !important;
-    overflow: visible !important;
-    overscroll-behavior: auto !important;
+    align-self: stretch !important;
+    height: 100% !important;
+    min-height: 0 !important;
+    max-height: 100% !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    overscroll-behavior: contain !important;
     scrollbar-width: none !important;
-    transform: translate3d(0, var(--mobile-category-rail-offset, 0px), 0) !important;
-    transition: none !important;
-    will-change: transform !important;
+    transform: none !important;
+    will-change: auto !important;
     touch-action: pan-y !important;
-    -webkit-overflow-scrolling: auto;
+    -webkit-overflow-scrolling: touch !important;
   }
 
   html[data-member-viewport-mode='mobile'] [data-mobile-section-owner='category-menu']::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  html[data-member-viewport-mode='mobile']
+    [data-mobile-home-root='true'][data-mobile-active-category]:not([data-mobile-active-category='home'])
+    [data-mobile-content-slot='after-highlight'] {
+    width: 100% !important;
+    height: 100% !important;
+    min-height: 0 !important;
+    max-height: 100% !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    overscroll-behavior-x: none !important;
+    overscroll-behavior-y: contain !important;
+    scrollbar-width: none !important;
+    touch-action: pan-y !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  html[data-member-viewport-mode='mobile']
+    [data-mobile-home-root='true'][data-mobile-active-category]:not([data-mobile-active-category='home'])
+    [data-mobile-content-slot='after-highlight']::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  html[data-member-viewport-mode='mobile']
+    [data-mobile-home-root='true'][data-mobile-active-category]:not([data-mobile-active-category='home'])
+    [data-provider-games-stage] {
+    height: auto !important;
+    min-height: 100% !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+
+  html[data-member-viewport-mode='mobile']
+    [data-mobile-home-root='true'][data-mobile-active-category]:not([data-mobile-active-category='home'])
+    [data-provider-games-stage='games'] [role='tablist'] {
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    overscroll-behavior-inline: contain !important;
+    scrollbar-width: none !important;
+    touch-action: pan-x pan-y !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  html[data-member-viewport-mode='mobile']
+    [data-mobile-home-root='true'][data-mobile-active-category]:not([data-mobile-active-category='home'])
+    [data-provider-games-stage='games'] [role='tablist']::-webkit-scrollbar {
     display: none !important;
   }
 }
