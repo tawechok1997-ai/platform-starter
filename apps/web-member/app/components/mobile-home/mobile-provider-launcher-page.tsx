@@ -1,5 +1,11 @@
 'use client';
 
+import { useEffect, useMemo, useState } from 'react';
+import {
+  loadSourceCategoryCatalog,
+  type SourceCategoryCatalog,
+} from '../../browse/source-game-catalog';
+import type { SourceGameProvider } from '../../browse/source-game-category-page';
 import { useMemberLocale } from '../../member-locale-provider';
 import { resolveLocalAssetOrSource } from '../../lib/local-asset-by-basename';
 import styles from './mobile-casino-provider-page.module.css';
@@ -28,13 +34,54 @@ export default function MobileProviderLauncherPage({
 }: MobileProviderLauncherPageProps) {
   const { locale } = useMemberLocale();
   const copy = COPY[locale];
+  const [catalog, setCatalog] = useState<SourceCategoryCatalog | null>(null);
+
+  const sourceProviders = useMemo<SourceGameProvider[]>(
+    () => providers.map((provider) => ({
+      code: provider.code,
+      name: provider.name,
+      badge: '',
+      card: provider.source,
+      background: '',
+      title: '',
+      avatar: '',
+    })),
+    [providers],
+  );
+
+  useEffect(() => {
+    const controller = new AbortController();
+    let cancelled = false;
+
+    void loadSourceCategoryCatalog(category, sourceProviders, 'mobile', controller.signal)
+      .then((result) => {
+        if (!cancelled) setCatalog(result);
+      })
+      .catch(() => {
+        if (!cancelled) setCatalog(null);
+      });
+
+    return () => {
+      cancelled = true;
+      controller.abort();
+    };
+  }, [category, sourceProviders]);
+
+  const firstGameByProvider = useMemo(() => {
+    const result = new Map<string, NonNullable<SourceCategoryCatalog>['games'][number]>();
+    for (const game of catalog?.games ?? []) {
+      const code = normalizeProviderCode(game.provider ?? '');
+      if (code && !result.has(code)) result.set(code, game);
+    }
+    return result;
+  }, [catalog?.games]);
 
   return (
     <section
       className={`${styles.root} ${styles.providerLauncherRoot}`}
       data-mobile-provider-launcher-page="true"
       data-provider-category={category}
-      data-category-launch-mode="provider-only"
+      data-category-launch-mode="provider-launch"
       aria-label={title[locale]}
     >
       <div className={`${styles.grid} ${stacked ? styles.stackedGrid : ''}`}>
@@ -45,16 +92,23 @@ export default function MobileProviderLauncherPage({
             provider.layout !== 'half' ? styles.wide : '',
             provider.layout === 'wide-banner' ? styles.banner : styles.hero,
           ].filter(Boolean).join(' ');
+          const firstGame = firstGameByProvider.get(normalizeProviderCode(provider.code));
+          const href = firstGame
+            ? gameDestination(category, provider.code, firstGame.id)
+            : `/browse/games?category=${encodeURIComponent(category)}&provider=${encodeURIComponent(provider.code)}&platform=mobile`;
 
           return (
             <a
               key={provider.code}
-              href={`/browse/games?category=${encodeURIComponent(category)}&provider=${encodeURIComponent(provider.code)}&platform=mobile`}
+              href={href}
               className={className}
               data-provider-launch="true"
               data-provider-code={provider.code}
               data-game-category={category}
-              data-game-name={provider.name}
+              data-game-id={firstGame?.id}
+              data-game-code={firstGame?.id}
+              data-game-name={firstGame?.name ?? provider.name}
+              data-game-platform="mobile"
               aria-label={`${copy.open} ${provider.name}`}
             >
               {provider.isNew ? <NewBadge label="NEW" /> : null}
@@ -79,6 +133,19 @@ export default function MobileProviderLauncherPage({
       </div>
     </section>
   );
+}
+
+function gameDestination(category: string, provider: string, game: string) {
+  const params = new URLSearchParams({ category, provider, game, platform: 'mobile' });
+  return `/games?${params.toString()}`;
+}
+
+function normalizeProviderCode(value: string) {
+  return value
+    .trim()
+    .toLowerCase()
+    .replace(/\.(?:png|jpe?g|webp|svg)$/i, '')
+    .replace(/[^a-z0-9_-]+/g, '');
 }
 
 function hideProviderCard(image: HTMLImageElement) {
