@@ -54,5 +54,8 @@ export function normalizeTypedSiteSettings(settings: PublicSiteSettings): TypedP
     legal: { ...(defaultSettings.legal ?? {}), ...(settings.legal ?? {}) },
   };
 
-  return merged as TypedPublicSiteSettings;
+  // The layered defaults above establish every required typed field before
+  // caller and CMS overrides are applied. PublicSiteSettings intentionally
+  // remains loose at the network boundary, so narrow only after normalization.
+  return merged as unknown as TypedPublicSiteSettings;
 }
