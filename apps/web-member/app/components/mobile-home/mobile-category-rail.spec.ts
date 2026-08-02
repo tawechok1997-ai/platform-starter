@@ -17,7 +17,7 @@ test('mobile category rail has one owner and reads central navigation', () => {
 
 test('mobile category rail keeps the supplied order and labels', () => {
   assert.match(root, /'home',[\s\S]*'casino',[\s\S]*'slot',[\s\S]*'fishing',[\s\S]*'sport',[\s\S]*'card',[\s\S]*'lottery'/);
-  for (const label of ['หน้าแรก', 'คาสิโน', 'สล็อต', ' Novitads', 'กีฬา', 'ไพ่', 'หวย']) {
+  for (const label of ['หน้าแรก', 'คาสิโน', 'สล็อต', 'ยิงปลา', 'กีฬา', 'ไพ่', 'หวย']) {
     assert.match(root, new RegExp(label));
   }
 });
@@ -47,9 +47,9 @@ test('category menu stays static and no scroll-follow runtime is mounted', () =>
 });
 
 test('provider rail remains horizontally scrollable inside the game content', () => {
-  assert.match(followOwner, /data-provider-games-stage='games'[^]*\[role='tablist'\][\s\S]*overflow-x:\s*auto\s*!important/);
-  assert.match(followOwner, /data-provider-games-stage='games'[^]*\[role='tablist'\][\s\S]*overflow-y:\s*hidden\s*!important/);
-  assert.match(followOwner, /data-provider-games-stage='games'[^]*\[role='tablist'\][\s\S]*touch-action:\s*pan-x pan-y\s*!important/);
+  assert.match(followOwner, /data-provider-games-stage='games'[\s\S]*\[role='tablist'\][\s\S]*overflow-x:\s*auto\s*!important/);
+  assert.match(followOwner, /data-provider-games-stage='games'[\s\S]*\[role='tablist'\][\s\S]*overflow-y:\s*hidden\s*!important/);
+  assert.match(followOwner, /data-provider-games-stage='games'[\s\S]*\[role='tablist'\][\s\S]*touch-action:\s*pan-x pan-y\s*!important/);
 });
 
 test('active and inactive category cards keep the supplied surfaces', () => {
