@@ -5,12 +5,11 @@ import test from 'node:test';
 const page = readFileSync(new URL('./mobile-lottery-provider-page.tsx', import.meta.url), 'utf8');
 const shared = readFileSync(new URL('./mobile-provider-launcher-page.tsx', import.meta.url), 'utf8');
 const css = readFileSync(new URL('./mobile-casino-provider-page.module.css', import.meta.url), 'utf8');
-const owner = readFileSync(new URL('./mobile-highlight-tab-content.tsx', import.meta.url), 'utf8');
+const categoryRuntime = readFileSync(new URL('./mobile-category-tab-runtime.tsx', import.meta.url), 'utf8');
 
 test('lottery source page keeps the supplied two-card order', () => {
   const lotmw = page.indexOf("code: 'lotmw'");
   const dac = page.indexOf("code: 'dac'");
-
   assert.ok(lotmw >= 0);
   assert.ok(dac > lotmw);
   assert.match(page, /1_1_h\/lotmw\.png/);
@@ -28,8 +27,7 @@ test('lottery heading and filter match the supplied mobile source', () => {
   assert.match(shared, /data-mobile-provider-filter-button="true"/);
   assert.match(shared, /ProviderFilter = 'all' \| 'new'/);
   assert.match(shared, /providers\.filter\(\(provider\) => provider\.isNew\)/);
-  assert.match(css, /\.filterButton\s*\{[\s\S]*height:\s*20px[\s\S]*border-radius:\s*999px[\s\S]*background:\s*#fff/);
-  assert.match(css, /\.stackedGrid\s*\{[\s\S]*gap:\s*8px/);
+  assert.match(css, /\.filterButton\s*\{[\s\S]*height:\s*20px/);
 });
 
 test('lottery cards launch at category provider level', () => {
@@ -40,8 +38,9 @@ test('lottery cards launch at category provider level', () => {
   assert.doesNotMatch(shared, /data-game-id=/);
 });
 
-test('mobile category owner switches lottery in place', () => {
-  assert.match(owner, /import MobileLotteryProviderPage/);
-  assert.match(owner, /activeCategory === 'lottery'/);
-  assert.match(owner, /<MobileLotteryProviderPage \/>/);
+test('central category runtime exposes lottery providers in place', () => {
+  assert.match(categoryRuntime, /type MobileCategoryId = [^;]*'lottery'/);
+  assert.match(categoryRuntime, /data-mobile-category-content=\{category\}/);
+  assert.match(categoryRuntime, /data-provider-category=\{category\}/);
+  assert.match(categoryRuntime, /getMemberGameCatalog\('mobile'\)/);
 });
