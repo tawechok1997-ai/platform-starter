@@ -52,12 +52,17 @@ export function MemberModal({
   const panelRef = useRef<HTMLElement>(null);
   const restoreFocus = useRef<HTMLElement | null>(null);
   const onCloseRef = useRef(onClose);
+  const motionStateRef = useRef<MemberModalMotionState>(open ? 'opening' : 'closing');
   const [mounted, setMounted] = useState(open);
   const [motionState, setMotionState] = useState<MemberModalMotionState>(open ? 'opening' : 'closing');
 
   useEffect(() => {
     onCloseRef.current = onClose;
   }, [onClose]);
+
+  useEffect(() => {
+    motionStateRef.current = motionState;
+  }, [motionState]);
 
   useEffect(() => {
     let firstFrame = 0;
@@ -93,12 +98,12 @@ export function MemberModal({
     });
 
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape' && closeOnEscape && motionState !== 'closing') {
+      if (event.key === 'Escape' && closeOnEscape && motionStateRef.current !== 'closing') {
         event.preventDefault();
         onCloseRef.current();
         return;
       }
-      if (event.key !== 'Tab' || motionState === 'closing') return;
+      if (event.key !== 'Tab' || motionStateRef.current === 'closing') return;
       const items = focusable(panelRef.current);
       if (!items.length) {
         event.preventDefault();
@@ -123,7 +128,7 @@ export function MemberModal({
       releaseDocumentLock();
       restoreFocus.current?.focus({ preventScroll: true });
     };
-  }, [closeOnEscape, mounted, motionState]);
+  }, [closeOnEscape, mounted]);
 
   if (!mounted || typeof document === 'undefined') return null;
 
