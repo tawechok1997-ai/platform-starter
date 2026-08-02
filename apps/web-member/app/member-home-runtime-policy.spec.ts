@@ -90,7 +90,7 @@ test('home content uses dedicated backend quick-action copy and presentation jac
   assert.doesNotMatch(result.jackpot.image, /coin\.webp|iconjackpot/i);
 });
 
-test('leaderboard keeps configured rows and fills the source five-row contract', () => {
+test('leaderboard keeps configured rows and fills from the shared mobile source', () => {
   const data = {
     tournaments: [],
     miniGames: [],
@@ -99,7 +99,7 @@ test('leaderboard keeps configured rows and fills the source five-row contract',
         rank: 1,
         name: 'Configured Game',
         user: 'NOA***001',
-        amount: '฿9,999',
+        amount: '9,999',
         image: '',
       },
     ],
@@ -108,7 +108,10 @@ test('leaderboard keeps configured rows and fills the source five-row contract',
   const result = applyMemberHomeDataPolicy(settings, data);
 
   assert.equal(result.leaderboard.length, 5);
-  assert.equal(result.leaderboard[0]?.name, 'Configured Game');
-  assert.match(result.leaderboard[0]?.image ?? '', /\/assets\/asset-pc\/images\/games\//);
+  assert.deepEqual(
+    result.leaderboard.map((item) => item.name),
+    ['Configured Game', 'Fortune Tiger', 'ไฮโลไทย 2', 'Lalika', 'SBO'],
+  );
+  assert.equal(result.leaderboard[0]?.image, 'https://cdn.zabbet.com/providers/set/1_1_v/evt.png');
   assert.deepEqual(result.leaderboard.map((item) => item.rank), [1, 2, 3, 4, 5]);
 });
