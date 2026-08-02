@@ -7,9 +7,7 @@ import { resolveLocalAssetOrSource } from '../../lib/local-asset-by-basename';
 import { MOBILE_GUIDE_SECTIONS, type MobileGuideItem } from './mobile-member-guide-source-data';
 import styles from './mobile-home-guide-preview.module.css';
 
-const GUIDE_PREVIEW_ITEMS = MOBILE_GUIDE_SECTIONS
-  .find((section) => section.id === 'section-1')
-  ?.items.slice(0, 5) ?? [];
+const GUIDE_ITEMS = MOBILE_GUIDE_SECTIONS.flatMap((section) => section.items);
 
 export default function MobileHomeGuidePreview() {
   const [target, setTarget] = useState<HTMLElement | null>(null);
@@ -19,8 +17,6 @@ export default function MobileHomeGuidePreview() {
     const root = document.querySelector<HTMLElement>('[data-mobile-home-root="true"]');
     const bottomStructure = root?.querySelector<HTMLElement>('[data-mobile-bottom-owner="true"]');
     if (!root || !bottomStructure) return;
-
-    root.classList.add(styles.owner);
 
     const host = document.createElement('div');
     host.dataset.mobileHomeGuidePreviewHost = 'true';
@@ -41,7 +37,6 @@ export default function MobileHomeGuidePreview() {
 
     return () => {
       observer.disconnect();
-      root.classList.remove(styles.owner);
       host.remove();
       setTarget(null);
     };
@@ -55,14 +50,20 @@ function GuidePreviewContent() {
   const [openItemId, setOpenItemId] = useState<string | null>(null);
 
   return (
-    <section className={styles.preview} data-mobile-home-guide-preview="true" aria-labelledby="mobile-home-guide-title">
+    <section
+      className={styles.preview}
+      data-mobile-home-guide-preview="true"
+      data-guide-section-count={MOBILE_GUIDE_SECTIONS.length}
+      data-guide-item-count={GUIDE_ITEMS.length}
+      aria-labelledby="mobile-home-guide-title"
+    >
       <header className={styles.titleBar}>
         <img src="/images/home/faq.svg" alt="" aria-hidden="true" />
         <h2 id="mobile-home-guide-title">Guide</h2>
       </header>
 
       <div className={styles.list}>
-        {GUIDE_PREVIEW_ITEMS.map((item) => {
+        {GUIDE_ITEMS.map((item) => {
           const expanded = openItemId === item.id;
           const panelId = `mobile-home-guide-panel-${item.id}`;
           return (
