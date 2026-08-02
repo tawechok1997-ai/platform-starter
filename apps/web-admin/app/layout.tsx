@@ -72,8 +72,41 @@ import './admin-static-sidebar-groups.css';
 import './admin-sidebar-smart-accordion.css';
 import './admin-data-page-layout.css';
 import './admin-universal-full-width.css';
+import './admin-appearance-foundation.css';
 import './admin-content-insets.css';
 import { AdminMobileDrawerController } from './admin-mobile-drawer-controller';
+import { AdminAppearanceRuntime } from './admin-appearance-runtime';
+
+const appearanceBootstrap = `(() => {
+  const storageKey = 'admin_appearance_preferences_v1';
+  const fallback = { theme: 'dark', density: 'comfortable', contrast: 'normal', motion: 'system' };
+  try {
+    const stored = JSON.parse(localStorage.getItem(storageKey) || '{}');
+    const preferences = {
+      theme: ['light', 'dark', 'system'].includes(stored.theme) ? stored.theme : fallback.theme,
+      density: ['comfortable', 'compact'].includes(stored.density) ? stored.density : fallback.density,
+      contrast: ['normal', 'high'].includes(stored.contrast) ? stored.contrast : fallback.contrast,
+      motion: ['system', 'reduced'].includes(stored.motion) ? stored.motion : fallback.motion,
+    };
+    const resolvedTheme = preferences.theme === 'system'
+      ? (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+      : preferences.theme;
+    const root = document.documentElement;
+    root.dataset.adminTheme = resolvedTheme;
+    root.dataset.adminThemePreference = preferences.theme;
+    root.dataset.adminDensity = preferences.density;
+    root.dataset.adminContrast = preferences.contrast;
+    root.dataset.adminMotion = preferences.motion;
+    root.style.colorScheme = resolvedTheme;
+  } catch {
+    document.documentElement.dataset.adminTheme = fallback.theme;
+    document.documentElement.dataset.adminThemePreference = fallback.theme;
+    document.documentElement.dataset.adminDensity = fallback.density;
+    document.documentElement.dataset.adminContrast = fallback.contrast;
+    document.documentElement.dataset.adminMotion = fallback.motion;
+    document.documentElement.style.colorScheme = fallback.theme;
+  }
+})();`;
 
 export const metadata: Metadata = {
   title: {
@@ -102,15 +135,22 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
-  colorScheme: 'dark',
-  themeColor: '#061019',
+  colorScheme: 'dark light',
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#f3f6fb' },
+    { media: '(prefers-color-scheme: dark)', color: '#070b12' },
+  ],
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="th" dir="ltr">
+    <html lang="th" dir="ltr" suppressHydrationWarning>
+      <head>
+        <script id="admin-appearance-bootstrap">{appearanceBootstrap}</script>
+      </head>
       <body data-app-surface="admin">
         {children}
+        <AdminAppearanceRuntime />
         <AdminMobileDrawerController />
       </body>
     </html>
