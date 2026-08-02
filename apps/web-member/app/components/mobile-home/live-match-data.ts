@@ -1,4 +1,4 @@
-import { API_URL } from '../../member-api';
+import { API_URL, memberApiFetch } from '../../member-api';
 
 export type LiveMatch = {
   id: string;
@@ -35,11 +35,12 @@ export async function loadCentralLiveMatches(timezone: string, signal?: AbortSig
   url.searchParams.set('timezone', timezone);
   url.searchParams.set('sport', 'football');
 
-  const response = await fetch(url.toString(), {
+  const response = await memberApiFetch(url.toString(), {
     cache: 'no-store',
     credentials: 'include',
     headers: { accept: 'application/json' },
     signal,
+    skipAuth: true,
   });
 
   if (response.status === 204 || response.status === 404) {
