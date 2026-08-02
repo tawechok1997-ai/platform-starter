@@ -7,7 +7,8 @@ const contract = readFileSync(
   'utf8',
 );
 
-test('mobile deposit popup keeps a compact title-safe content inset', () => {
+test('all member popups except the source menu use compact content-fit sizing', () => {
+  assert.ok(contract.includes("[data-mobile-popup-owner]:not([data-mobile-popup-owner='menu'])"));
   assert.ok(contract.includes('padding: 44px 14px 14px !important;'));
   assert.ok(contract.includes('gap: 0 !important;'));
   assert.ok(contract.includes('max-height: calc(100dvh - 76px) !important;'));
@@ -15,8 +16,14 @@ test('mobile deposit popup keeps a compact title-safe content inset', () => {
   assert.ok(!contract.includes('padding: 56px 16px 16px !important;'));
 });
 
+test('the bottom-navigation menu popup remains excluded from compact overrides', () => {
+  assert.ok(contract.includes(":not([data-mobile-popup-owner='menu'])"));
+  assert.ok(!contract.includes("[data-mobile-popup-owner='menu'][role='dialog']"));
+  assert.ok(!contract.includes("[data-mobile-popup-owner='menu'] > div:last-child"));
+});
+
 test('deposit method rows expand for labels instead of clipping or overlapping', () => {
-  assert.ok(contract.includes('[data-deposit-step=\'method\'] > section > div > button'));
+  assert.ok(contract.includes("[data-deposit-step='method'] > section > div > button"));
   assert.ok(contract.includes('height: auto !important;'));
   assert.ok(contract.includes('min-height: 46px !important;'));
   assert.ok(contract.includes('white-space: normal !important;'));
