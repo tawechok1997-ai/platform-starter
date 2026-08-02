@@ -1,0 +1,304 @@
+/* Final motion owner for the member application.
+ * Motion is intentionally short, low-distance and opacity-led so it remains
+ * smooth on mobile GPUs and does not blur text while surfaces are moving. */
+
+:root {
+  --member-motion-instant: 90ms;
+  --member-motion-fast: 140ms;
+  --member-motion-backdrop: 200ms;
+  --member-motion-surface: 240ms;
+  --member-motion-drawer: 280ms;
+  --member-motion-exit: 160ms;
+  --member-motion-ease-standard: cubic-bezier(.2, 0, 0, 1);
+  --member-motion-ease-enter: cubic-bezier(.22, 1, .36, 1);
+  --member-motion-ease-exit: cubic-bezier(.4, 0, 1, 1);
+}
+
+/* Route changes ---------------------------------------------------------- */
+#member-desktop-scale-canvas {
+  opacity: 1;
+  translate: 0 0;
+}
+
+html[data-member-route-motion='leaving'] #member-desktop-scale-canvas {
+  opacity: .82;
+  translate: 0 2px;
+  pointer-events: none;
+  will-change: opacity, translate;
+  transition:
+    opacity 120ms var(--member-motion-ease-exit),
+    translate 120ms var(--member-motion-ease-exit);
+}
+
+html[data-member-route-motion='entering'] #member-desktop-scale-canvas {
+  animation: memberRouteEnter var(--member-motion-surface) var(--member-motion-ease-enter) both;
+  will-change: opacity, translate;
+}
+
+html[data-member-route-motion='idle'] #member-desktop-scale-canvas {
+  opacity: 1;
+  translate: 0 0;
+  transition: none;
+}
+
+@keyframes memberRouteEnter {
+  from {
+    opacity: .72;
+    translate: 0 4px;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+
+/* Shared modal system ---------------------------------------------------- */
+.member-modal-system__backdrop[data-state] {
+  opacity: 0;
+  background: rgb(0 0 0 / 76%);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  transition: opacity var(--member-motion-backdrop) var(--member-motion-ease-enter);
+}
+
+.member-modal-system__backdrop[data-state='open'] {
+  opacity: 1;
+}
+
+.member-modal-system__backdrop[data-state='closing'] {
+  opacity: 0;
+  pointer-events: none;
+  transition-duration: var(--member-motion-exit);
+  transition-timing-function: var(--member-motion-ease-exit);
+}
+
+.member-modal-system__panel[data-state] {
+  opacity: 0;
+  transform: translate3d(0, 8px, 0) scale(.985);
+  transform-origin: 50% 50%;
+  will-change: opacity, transform;
+  transition:
+    opacity var(--member-motion-backdrop) var(--member-motion-ease-enter),
+    transform var(--member-motion-surface) var(--member-motion-ease-enter);
+}
+
+.member-modal-system__panel[data-state='open'] {
+  opacity: 1;
+  transform: translate3d(0, 0, 0) scale(1);
+  will-change: auto;
+}
+
+.member-modal-system__panel[data-state='closing'] {
+  opacity: 0;
+  transform: translate3d(0, 4px, 0) scale(.992);
+  pointer-events: none;
+  transition-duration: var(--member-motion-exit);
+  transition-timing-function: var(--member-motion-ease-exit);
+}
+
+.member-modal-system__panel--sheet[data-state] {
+  transform: translate3d(0, 18px, 0) scale(.995);
+}
+
+.member-modal-system__panel--sheet[data-state='open'] {
+  transform: translate3d(0, 0, 0) scale(1);
+}
+
+.member-modal-system__panel--sheet[data-state='closing'] {
+  transform: translate3d(0, 10px, 0) scale(.998);
+}
+
+.member-modal-system__panel--drawer[data-state] {
+  transform: translate3d(24px, 0, 0);
+  transition-duration: var(--member-motion-drawer);
+}
+
+.member-modal-system__panel--drawer[data-state='open'] {
+  transform: translate3d(0, 0, 0);
+}
+
+.member-modal-system__panel--drawer[data-state='closing'] {
+  transform: translate3d(18px, 0, 0);
+  transition-duration: var(--member-motion-exit);
+}
+
+/* Mobile source popups --------------------------------------------------- */
+html body [data-ui-owner='mobile-popup'] {
+  background: rgb(0 0 0 / 78%) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  animation: memberBackdropEnter var(--member-motion-backdrop) var(--member-motion-ease-enter) both !important;
+}
+
+html body [data-ui-owner='mobile-popup'] > [data-mobile-popup-owner] {
+  animation: memberDialogEnter var(--member-motion-surface) var(--member-motion-ease-enter) both !important;
+  transform-origin: 50% 50%;
+}
+
+/* Desktop search and other public dialogs ------------------------------- */
+html body [data-member-search-overlay='desktop-source'] {
+  position: fixed;
+  isolation: isolate;
+  background: transparent !important;
+}
+
+html body [data-member-search-overlay='desktop-source']::before {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: rgb(0 0 0 / 80%);
+  content: '';
+  pointer-events: none;
+  animation: memberBackdropEnter var(--member-motion-backdrop) var(--member-motion-ease-enter) both;
+}
+
+html body [data-member-search-modal='source'] {
+  position: relative;
+  z-index: 1;
+  animation: memberDialogEnter var(--member-motion-surface) var(--member-motion-ease-enter) both;
+  transform-origin: 50% 50%;
+}
+
+.public-dialog-runtime-overlay:not([data-member-search-overlay]) {
+  background-color: transparent !important;
+}
+
+.public-dialog-runtime-overlay:not([data-member-search-overlay])::before {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: rgb(0 0 0 / 76%);
+  content: '';
+  pointer-events: none;
+  animation: memberBackdropEnter var(--member-motion-backdrop) var(--member-motion-ease-enter) both;
+}
+
+.public-dialog-runtime:not([data-member-search-modal]) {
+  animation: memberDialogEnter var(--member-motion-surface) var(--member-motion-ease-enter) both;
+}
+
+/* Auth overlay ----------------------------------------------------------- */
+html body div.member-auth-overlay[data-state='open'] .member-auth-overlay__backdrop {
+  animation-duration: var(--member-motion-backdrop) !important;
+  animation-timing-function: var(--member-motion-ease-enter) !important;
+}
+
+html body div.member-auth-overlay[data-state='closing'] .member-auth-overlay__backdrop {
+  transition-duration: var(--member-motion-exit) !important;
+  transition-timing-function: var(--member-motion-ease-exit) !important;
+}
+
+html body .member-auth-overlay__frame {
+  transition:
+    opacity 180ms var(--member-motion-ease-enter),
+    visibility 0s linear 180ms !important;
+}
+
+html body .member-auth-overlay[data-state='closing'] .member-auth-overlay__frame {
+  transition-duration: var(--member-motion-exit) !important;
+  transition-timing-function: var(--member-motion-ease-exit) !important;
+}
+
+/* Controls, tabs and expandable content --------------------------------- */
+#member-desktop-scale-canvas :where(button, [role='button']),
+.member-modal-system__backdrop :where(button, [role='button']),
+[data-ui-owner='mobile-popup'] :where(button, [role='button']),
+.member-auth-overlay :where(button, [role='button']),
+[data-member-search-overlay] :where(button, [role='button']) {
+  transition-property: color, background-color, border-color, box-shadow, opacity, filter;
+  transition-duration: var(--member-motion-fast);
+  transition-timing-function: var(--member-motion-ease-standard);
+}
+
+#member-desktop-scale-canvas :where(button, [role='button']):active:not(:disabled),
+.member-modal-system__backdrop :where(button, [role='button']):active:not(:disabled),
+[data-ui-owner='mobile-popup'] :where(button, [role='button']):active:not(:disabled),
+[data-member-search-overlay] :where(button, [role='button']):active:not(:disabled) {
+  opacity: .88;
+}
+
+:where([aria-pressed], [aria-selected], [aria-expanded]) {
+  transition:
+    color var(--member-motion-fast) var(--member-motion-ease-standard),
+    background-color var(--member-motion-fast) var(--member-motion-ease-standard),
+    border-color var(--member-motion-fast) var(--member-motion-ease-standard),
+    box-shadow var(--member-motion-fast) var(--member-motion-ease-standard),
+    opacity var(--member-motion-fast) var(--member-motion-ease-standard);
+}
+
+.member-menu-source-item,
+.member-mobile-runtime-navigation a,
+.member-mobile-runtime-actions a,
+.member-mobile-runtime-actions button,
+.member-floating-contact__mini-shell,
+.member-floating-contact__contact-stage {
+  transition-duration: var(--member-motion-fast) !important;
+  transition-timing-function: var(--member-motion-ease-standard) !important;
+}
+
+@keyframes memberBackdropEnter {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes memberDialogEnter {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 8px, 0) scale(.985);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+/* Mobile GPU budget ------------------------------------------------------ */
+@media (max-width: 900px) {
+  html body [data-ui-owner='mobile-popup'],
+  html body [data-member-search-overlay],
+  html body .member-modal-system__backdrop,
+  html body .member-auth-overlay,
+  html body .member-auth-overlay__backdrop {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  html body [data-ui-owner='mobile-popup'] > [data-mobile-popup-owner],
+  html body [data-member-search-modal='source'],
+  html body .member-modal-system__panel[data-state] {
+    transform-origin: 50% 60%;
+  }
+
+  @keyframes memberDialogEnter {
+    from {
+      opacity: 0;
+      transform: translate3d(0, 10px, 0) scale(.992);
+    }
+    to {
+      opacity: 1;
+      transform: translate3d(0, 0, 0) scale(1);
+    }
+  }
+}
+
+/* Accessibility and explicit motion-off mode ---------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  html body *,
+  html body *::before,
+  html body *::after {
+    scroll-behavior: auto !important;
+    animation-delay: 0s !important;
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-delay: 0s !important;
+    transition-duration: 1ms !important;
+  }
+}
+
+html[data-member-motion='off'] body *,
+html[data-member-motion='off'] body *::before,
+html[data-member-motion='off'] body *::after {
+  scroll-behavior: auto !important;
+  animation: none !important;
+  transition: none !important;
+}
