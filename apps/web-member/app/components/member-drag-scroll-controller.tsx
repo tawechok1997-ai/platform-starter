@@ -7,7 +7,6 @@ import MemberSearchOverlay from './member-search-overlay';
 type DragState = {
   rail: HTMLElement;
   pointerId: number;
-  pointerType: string;
   startX: number;
   startY: number;
   startScrollLeft: number;
@@ -17,8 +16,8 @@ type DragState = {
 const DRAG_THRESHOLD_PX = 10;
 const CLICK_SUPPRESSION_MS = 120;
 const MOUSE_DRAG_MULTIPLIER = 2;
-const TOUCH_DRAG_MULTIPLIER = 1;
-const MOBILE_ROOT_SELECTOR = '[data-mobile-home-root="true"]';
+const FINE_POINTER_QUERY = '(hover: hover) and (pointer: fine)';
+const DESKTOP_CANVAS_SELECTOR = '#member-desktop-scale-canvas';
 
 function isHorizontalRail(element: HTMLElement) {
   const overflowX = window.getComputedStyle(element).overflowX;
@@ -27,45 +26,50 @@ function isHorizontalRail(element: HTMLElement) {
 
 export default function MemberDragScrollController() {
   useEffect(() => {
+    const finePointer = window.matchMedia(FINE_POINTER_QUERY);
+    if (!finePointer.matches) return;
+
     let drag: DragState | null = null;
     let suppressClickUntil = 0;
     let suppressClickRail: HTMLElement | null = null;
-    let mobileRailScanFrame = 0;
+    let railScanFrame = 0;
 
-    const markMobileRails = () => {
-      mobileRailScanFrame = 0;
-      const mobileRoot = document.querySelector<HTMLElement>(MOBILE_ROOT_SELECTOR);
-      if (!mobileRoot) return;
+    const markDesktopRails = () => {
+      railScanFrame = 0;
+      const desktopCanvas = document.querySelector<HTMLElement>(DESKTOP_CANVAS_SELECTOR);
+      if (!desktopCanvas) return;
 
-      mobileRoot.querySelectorAll<HTMLElement>('*').forEach((element) => {
+      desktopCanvas.querySelectorAll<HTMLElement>('*').forEach((element) => {
         if (element.hasAttribute('data-drag-scroll')) return;
         if (!isHorizontalRail(element)) return;
         element.dataset.dragScroll = 'auto';
       });
     };
 
-    const scheduleMobileRailScan = () => {
-      if (mobileRailScanFrame) return;
-      mobileRailScanFrame = window.requestAnimationFrame(markMobileRails);
+    const scheduleDesktopRailScan = () => {
+      if (railScanFrame) return;
+      railScanFrame = window.requestAnimationFrame(markDesktopRails);
     };
 
-    scheduleMobileRailScan();
+    scheduleDesktopRailScan();
 
-    const mobileRailObserver = new MutationObserver(scheduleMobileRailScan);
-    mobileRailObserver.observe(document.body, { childList: true, subtree: true });
+    const desktopCanvas = document.querySelector<HTMLElement>(DESKTOP_CANVAS_SELECTOR);
+    const railObserver = desktopCanvas ? new MutationObserver(scheduleDesktopRailScan) : null;
+    if (desktopCanvas && railObserver) {
+      railObserver.observe(desktopCanvas, { childList: true, subtree: true });
+    }
 
     const findRail = (target: EventTarget | null) =>
       target instanceof Element ? target.closest<HTMLElement>('[data-drag-scroll]') : null;
 
     const onPointerDown = (event: PointerEvent) => {
-      if (event.pointerType === 'mouse' && event.button !== 0) return;
+      if (event.pointerType !== 'mouse' || event.button !== 0) return;
       const rail = findRail(event.target);
       if (!rail || rail.scrollWidth <= rail.clientWidth + 2) return;
 
       drag = {
         rail,
         pointerId: event.pointerId,
-        pointerType: event.pointerType,
         startX: event.clientX,
         startY: event.clientY,
         startScrollLeft: rail.scrollLeft,
@@ -93,11 +97,7 @@ export default function MemberDragScrollController() {
         drag.rail.classList.add('is-dragging');
       }
 
-      const multiplier = drag.pointerType === 'mouse'
-        ? MOUSE_DRAG_MULTIPLIER
-        : TOUCH_DRAG_MULTIPLIER;
-      drag.rail.scrollLeft = drag.startScrollLeft - deltaX * multiplier;
-      event.preventDefault();
+      drag.rail.scrollLeft = drag.startScrollLeft - deltaX * MOUSE_DRAG_MULTIPLIER;
     };
 
     const finishDrag = (event: PointerEvent) => {
@@ -128,16 +128,16 @@ export default function MemberDragScrollController() {
       if (findRail(event.target)) event.preventDefault();
     };
 
-    document.addEventListener('pointerdown', onPointerDown);
-    document.addEventListener('pointermove', onPointerMove, { passive: false });
-    document.addEventListener('pointerup', finishDrag);
-    document.addEventListener('pointercancel', finishDrag);
+    document.addEventListener('pointerdown', onPointerDown, { passive: true });
+    document.addEventListener('pointermove', onPointerMove, { passive: true });
+    document.addEventListener('pointerup', finishDrag, { passive: true });
+    document.addEventListener('pointercancel', finishDrag, { passive: true });
     document.addEventListener('dragstart', onNativeDragStart);
     document.addEventListener('click', onClickCapture, true);
 
     return () => {
-      mobileRailObserver.disconnect();
-      if (mobileRailScanFrame) window.cancelAnimationFrame(mobileRailScanFrame);
+      railObserver?.disconnect();
+      if (railScanFrame) window.cancelAnimationFrame(railScanFrame);
       document.removeEventListener('pointerdown', onPointerDown);
       document.removeEventListener('pointermove', onPointerMove);
       document.removeEventListener('pointerup', finishDrag);
