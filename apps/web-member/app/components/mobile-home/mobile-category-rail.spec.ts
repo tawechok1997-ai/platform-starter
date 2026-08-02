@@ -16,7 +16,7 @@ test('mobile category rail has one owner and reads central navigation', () => {
 
 test('mobile category rail keeps the supplied order and labels', () => {
   assert.match(root, /'home',[\s\S]*'casino',[\s\S]*'slot',[\s\S]*'fishing',[\s\S]*'sport',[\s\S]*'card',[\s\S]*'lottery'/);
-  for (const label of ['หน้าแรก', 'คาสิโน', 'สล็อต', 'ยิงปลา', 'กีฬา', 'ไพ่', 'หวย']) {
+  for (const label of ['หน้าแรก', 'คาสิโน', 'สล็อต', '开奖现场', 'กีฬา', 'ไพ่', 'หวย']) {
     assert.match(root, new RegExp(label));
   }
 });
@@ -26,6 +26,16 @@ test('mobile category rail keeps responsive sizes', () => {
   assert.match(css, /\.categoryItem\s*\{[\s\S]*width:\s*45px[\s\S]*height:\s*45px/);
   assert.match(css, /@media \(min-width: 360px\)[\s\S]*width:\s*55px[\s\S]*height:\s*55px/);
   assert.match(css, /@media \(min-width: 430px\)[\s\S]*width:\s*60px[\s\S]*height:\s*60px/);
+});
+
+test('game categories own a full-height vertical scroller', () => {
+  assert.match(followOwner, /data-mobile-active-category[^\n]*not\(\[data-mobile-active-category='home'\]\)/);
+  assert.match(followOwner, /height:\s*100dvh\s*!important/);
+  assert.match(followOwner, /max-height:\s*100dvh\s*!important/);
+  assert.match(followOwner, /overflow-y:\s*auto\s*!important/);
+  assert.match(followOwner, /-webkit-overflow-scrolling:\s*touch\s*!important/);
+  assert.match(followOwner, /data-mobile-content-slot='after-highlight'[\s\S]*overflow:\s*visible\s*!important/);
+  assert.match(followOwner, /data-provider-games-stage[\s\S]*touch-action:\s*pan-y\s*!important/);
 });
 
 test('mobile category rail uses native sticky scrolling without per-frame work', () => {
