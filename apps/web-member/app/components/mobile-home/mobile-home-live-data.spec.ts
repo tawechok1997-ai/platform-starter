@@ -16,17 +16,15 @@ const desktopJackpot = readFileSync(new URL('../member-home/desktop-jackpot-card
 
 test('mobile home and category catalogs request mobile records only', () => {
   assert.match(sourceRuntime, /getMemberGameCatalog\('mobile'\)/);
-  assert.match(categoryRuntime, /platform:\s*'mobile'/);
+  assert.match(categoryRuntime, /getMemberGameCatalog\('mobile'\)/);
   assert.doesNotMatch(sourceRuntime, /getMemberGameCatalog\('pc'\)/);
-  assert.doesNotMatch(categoryRuntime, /platform:\s*'pc'/);
+  assert.doesNotMatch(categoryRuntime, /getMemberGameCatalog\('pc'\)/);
   assert.match(catalog, /Promise\.allSettled/);
   assert.match(catalog, /DEFAULT_CATEGORIES/);
 });
 
 test('mobile game cards and provider cards delegate to the canonical controller contracts', () => {
-  for (const attribute of ['data-game-id', 'data-game-code', 'data-provider-code', 'data-game-category']) {
-    assert.match(sourceContent, new RegExp(attribute));
-  }
+  for (const attribute of ['data-game-id', 'data-game-code', 'data-provider-code', 'data-game-category']) assert.match(sourceContent, new RegExp(attribute));
   assert.match(categoryRuntime, /data-provider-launch="true"/);
   assert.match(categoryRuntime, /data-provider-code=\{provider\.code\}/);
   assert.match(categoryRuntime, /data-provider-category=\{category\}/);
@@ -64,9 +62,7 @@ test('Android and iOS shortcut controls have install and manual Home Screen path
 });
 
 test('mobile home, drawer, data states, and game launch overlay include English copy', () => {
-  for (const phrase of ['Open member menu', 'Register', 'Sign in', 'Payment methods', 'Add on Android']) {
-    assert.match(mobileRoot, new RegExp(phrase));
-  }
+  for (const phrase of ['Open member menu', 'Register', 'Sign in', 'Payment methods', 'Add on Android']) assert.match(mobileRoot, new RegExp(phrase));
   assert.match(sourceContent, /Unable to load games/);
   assert.match(highlightContent, /No published activities yet/);
   assert.match(gameController, /Connecting to the game provider/);
