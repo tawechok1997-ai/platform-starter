@@ -8,12 +8,21 @@ const inventoryPath = path.join(outputDir, 'game-asset-inventory.json');
 const duplicatePath = path.join(outputDir, 'game-asset-duplicates.json');
 const renamePath = path.join(outputDir, 'game-asset-rename-manifest.json');
 const platforms = ['mobile', 'pc'];
+const centralAssetRoot = path.join(
+  root,
+  'apps',
+  'web-member',
+  'public',
+  'assets',
+  'asset-pc',
+);
 const publicAssetRootCandidates = {
   mobile: [
     path.join(root, 'apps', 'web-member', 'public', 'assets', 'asset-mobile'),
     path.join(root, 'apps', 'web-member', 'public', 'assets', 'asset-moblie'),
+    centralAssetRoot,
   ],
-  pc: [path.join(root, 'apps', 'web-member', 'public', 'assets', 'asset-pc')],
+  pc: [centralAssetRoot],
 };
 const SHA256_PATTERN = /^[a-f0-9]{64}$/i;
 const UUID_PATTERN = /(^|[-_])[a-f0-9]{8}-[a-f0-9]{4}-[1-5][a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}([-_.]|$)/i;
@@ -89,19 +98,23 @@ async function loadPlatformManifest(platform) {
 
     const assetRoot = await resolvePublicAssetRoot(platform);
     const files = await listFiles(assetRoot);
+    const relativeAssetRoot = path.relative(root, assetRoot).replaceAll('\\', '/');
+    const usesSharedPcAssets = platform === 'mobile' && assetRoot === centralAssetRoot;
     console.warn(
-      `asset/catalog/${platform}/manifest.json is missing; synthesizing inventory from ${path.relative(root, assetRoot).replaceAll('\\', '/')} (${files.length} files)`,
+      usesSharedPcAssets
+        ? `asset/catalog/mobile/manifest.json and a dedicated Mobile asset root are missing; reusing the central ${relativeAssetRoot} library for Mobile inventory (${files.length} files). Explicit Mobile Admin overrides still take priority at runtime.`
+        : `asset/catalog/${platform}/manifest.json is missing; synthesizing inventory from ${relativeAssetRoot} (${files.length} files)`,
     );
 
     return {
       assetRoot,
-      source: path.relative(root, assetRoot).replaceAll('\\', '/'),
+      source: usesSharedPcAssets ? `${relativeAssetRoot} (shared-mobile-fallback)` : relativeAssetRoot,
       parsed: {
         generatedAt: '1970-01-01T00:00:00.000Z',
         items: files.map((file) => ({
           file,
           category: file.split('/')[0] ?? 'misc',
-          repositoryPath: path.posix.join(path.relative(root, assetRoot).replaceAll('\\', '/'), file),
+          repositoryPath: path.posix.join(relativeAssetRoot, file),
         })),
       },
     };
@@ -110,7 +123,11 @@ async function loadPlatformManifest(platform) {
 
 for (const platform of platforms) {
   const { assetRoot, parsed, source } = await loadPlatformManifest(platform);
-  resolvedAssetRoots.push(path.relative(root, assetRoot).replaceAll('\\', '/'));
+  resolvedAssetRoots.push({
+    platform,
+    path: path.relative(root, assetRoot).replaceAll('\\', '/'),
+    shared: platform === 'mobile' && assetRoot === centralAssetRoot,
+  });
   if (typeof parsed?.generatedAt === 'string' && !Number.isNaN(Date.parse(parsed.generatedAt))) {
     manifestGeneratedAt.push(parsed.generatedAt);
   }
@@ -136,7 +153,9 @@ for (const platform of platforms) {
 
     const absolute = path.join(assetRoot, ...relative.split('/'));
     let size = Number.isFinite(Number(entry.size)) ? Number(entry.size) : null;
-    let sha256 = typeof entry.sha256 === 'string' && entry.sha256.trim() ? entry.sha256.trim().toLowerCase() : null;
+    let sha256 = typeof entry.sha256 === 'string' && entry.sha256.trim()
+      ? entry.sha256.trim().toLowerCase()
+      : null;
     let exists = false;
 
     if (sha256 && !SHA256_PATTERN.test(sha256)) {
@@ -152,7 +171,7 @@ for (const platform of platforms) {
         sha256 = createHash('sha256').update(await readFile(absolute)).digest('hex');
       }
     } catch {
-      // Catalog manifests intentionally remain useful even when source binaries are stored outside Git.
+      // Catalog manifests remain useful when source binaries are stored outside Git.
     }
 
     records.push({
@@ -170,6 +189,7 @@ for (const platform of platforms) {
       exists,
       size,
       sha256,
+      sharedAssetRoot: platform === 'mobile' && assetRoot === centralAssetRoot,
     });
   }
 }
@@ -221,9 +241,17 @@ const counts = records.reduce(
     summary.byCategory[record.category] = (summary.byCategory[record.category] ?? 0) + 1;
     if (!record.exists) summary.notCheckedIntoGit += 1;
     if (!record.sha256) summary.missingHash += 1;
+    if (record.sharedAssetRoot) summary.sharedPcMobileEntries += 1;
     return summary;
   },
-  { total: 0, notCheckedIntoGit: 0, missingHash: 0, byPlatform: {}, byCategory: {} },
+  {
+    total: 0,
+    notCheckedIntoGit: 0,
+    missingHash: 0,
+    sharedPcMobileEntries: 0,
+    byPlatform: {},
+    byCategory: {},
+  },
 );
 
 const generatedAt = manifestGeneratedAt
@@ -236,16 +264,28 @@ await writeFile(
 );
 await writeFile(
   duplicatePath,
-  `${JSON.stringify({ generatedAt, counts: { groups: duplicateGroups.length, crossPlatform: duplicateGroups.filter((group) => group.crossPlatform).length }, duplicateGroups }, null, 2)}\n`,
+  `${JSON.stringify({
+    generatedAt,
+    counts: {
+      groups: duplicateGroups.length,
+      crossPlatform: duplicateGroups.filter((group) => group.crossPlatform).length,
+    },
+    duplicateGroups,
+  }, null, 2)}\n`,
 );
 await writeFile(
   renamePath,
-  `${JSON.stringify({ generatedAt, counts: { reviewCandidates: renameManifest.length }, items: renameManifest }, null, 2)}\n`,
+  `${JSON.stringify({
+    generatedAt,
+    counts: { reviewCandidates: renameManifest.length },
+    items: renameManifest,
+  }, null, 2)}\n`,
 );
 
 console.log(`Game asset inventory: ${records.length} entries`);
 console.log(`Mobile entries: ${counts.byPlatform.mobile ?? 0}`);
 console.log(`PC entries: ${counts.byPlatform.pc ?? 0}`);
+console.log(`Mobile entries reusing asset-pc: ${counts.sharedPcMobileEntries}`);
 console.log(`Duplicate groups: ${duplicateGroups.length}`);
 console.log(`Cross-platform duplicate groups: ${duplicateGroups.filter((group) => group.crossPlatform).length}`);
 console.log(`Rename review candidates: ${renameManifest.length}`);
