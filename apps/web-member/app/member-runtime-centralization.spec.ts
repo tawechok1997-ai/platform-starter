@@ -89,7 +89,7 @@ test('home data has one parser and fails empty instead of inventing production r
   assert.match(homeDataSource, /normalizeMiniGames/);
   assert.match(homeDataSource, /function firstStructured/);
   assert.match(homeDataSource, /Invalid CMS JSON is ignored/);
-  assert.equal((homeDataSource.match(/if \(!Array\.isArray\(value\)\) return \[\];/g) ?? []).length, 2);
+  assert.equal((homeDataSource.match(/if \(!Array\.isArray\(value\)\) return \[\];/g) ?? []).length, 3);
   assert.match(homeDataSource, /return fallback/);
   assert.doesNotMatch(homeDataSource, /DESKTOP_TOURNAMENT_MOCKS|DEMO_TOURNAMENT_DATA_ENABLED|NEXT_PUBLIC_ENABLE_DEMO_TOURNAMENT_DATA/);
 });
