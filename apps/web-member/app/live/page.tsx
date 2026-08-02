@@ -1,32 +1,20 @@
 'use client';
 
 import Link from 'next/link';
+import { LIVE_SERVICE_COPY, LIVE_SERVICE_STATUS } from '../lib/live-service-status';
 import { useMemberLocale } from '../member-locale-provider';
 import styles from './live-maintenance.module.css';
 
-const COPY = {
-  th: {
-    badge: 'ปิดปรับปรุงชั่วคราว',
-    title: 'ระบบถ่ายทอดสดกำลังปรับปรุง',
-    description: 'เรากำลังเชื่อมต่อระบบถ่ายทอดสดและตรวจสอบรายการจากผู้ให้บริการ เพื่อให้เปิดรับชมได้อย่างถูกต้องและเสถียร กรุณากลับมาใช้งานอีกครั้งภายหลัง',
-    home: 'กลับหน้าหลัก',
-    sport: 'ไปหมวดกีฬา',
-  },
-  en: {
-    badge: 'Temporarily unavailable',
-    title: 'Live streaming is under maintenance',
-    description: 'We are connecting and verifying live-stream services with the provider so viewing works reliably. Please check back later.',
-    home: 'Back to home',
-    sport: 'Go to sports',
-  },
-} as const;
-
 export default function LiveMaintenancePage() {
   const { locale } = useMemberLocale();
-  const copy = COPY[locale];
+  const copy = LIVE_SERVICE_COPY[locale];
 
   return (
-    <main className={styles.page} data-live-maintenance>
+    <main
+      className={styles.page}
+      data-live-maintenance
+      data-live-service-status={LIVE_SERVICE_STATUS.mode}
+    >
       <section className={styles.card} role="status" aria-live="polite">
         <img
           className={styles.logo}
