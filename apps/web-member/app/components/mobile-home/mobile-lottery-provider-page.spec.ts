@@ -5,7 +5,6 @@ import test from 'node:test';
 const page = readFileSync(new URL('./mobile-lottery-provider-page.tsx', import.meta.url), 'utf8');
 const shared = readFileSync(new URL('./mobile-provider-launcher-page.tsx', import.meta.url), 'utf8');
 const owner = readFileSync(new URL('./mobile-highlight-tab-content.tsx', import.meta.url), 'utf8');
-const categoryRuntime = readFileSync(new URL('./mobile-category-tab-runtime.tsx', import.meta.url), 'utf8');
 
 test('lottery source page keeps the supplied two-card order', () => {
   const lotmw = page.indexOf("code: 'lotmw'");
@@ -24,14 +23,19 @@ test('lottery source page keeps its localized heading and category identity', ()
   assert.match(page, /category="lottery"/);
 });
 
-test('current category runtime launches lottery at provider level', () => {
-  assert.match(categoryRuntime, /data-provider-launch="true"/);
-  assert.match(categoryRuntime, /data-provider-code=\{provider\.code\}/);
-  assert.match(categoryRuntime, /data-provider-category=\{category\}/);
-  assert.doesNotMatch(categoryRuntime, /data-game-id=/);
+test('lottery providers launch the first mobile catalog game with browse fallback', () => {
+  assert.match(shared, /loadSourceCategoryCatalog\(category, sourceProviders, 'mobile', controller\.signal\)/);
+  assert.match(shared, /data-category-launch-mode="provider-launch"/);
+  assert.match(shared, /data-provider-launch="true"/);
+  assert.match(shared, /data-provider-code=\{provider\.code\}/);
+  assert.match(shared, /data-game-id=\{firstGame\?\.id\}/);
+  assert.match(shared, /data-game-code=\{firstGame\?\.id\}/);
+  assert.match(shared, /data-game-platform="mobile"/);
+  assert.match(shared, /gameDestination\(category, provider\.code, firstGame\.id\)/);
+  assert.match(shared, /\/browse\/games\?category=/);
 });
 
-test('mobile category owner switches lottery in place', () => {
+test('mobile highlight owner switches lottery in place', () => {
   assert.match(owner, /import MobileLotteryProviderPage/);
   assert.match(owner, /activeCategory === 'lottery'/);
   assert.match(owner, /<MobileLotteryProviderPage \/>/);
