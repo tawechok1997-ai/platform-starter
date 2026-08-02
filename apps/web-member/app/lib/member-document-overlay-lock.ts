@@ -4,8 +4,14 @@ type DocumentStyleSnapshot = {
   bodyOverflow: string;
   bodyOverscrollBehavior: string;
   bodyPaddingRight: string;
+  bodyPosition: string;
+  bodyTop: string;
+  bodyLeft: string;
+  bodyWidth: string;
   htmlOverflow: string;
   htmlOverscrollBehavior: string;
+  scrollX: number;
+  scrollY: number;
 };
 
 let activeLockCount = 0;
@@ -32,18 +38,30 @@ export function acquireMemberDocumentOverlayLock() {
     const measuredViewportWidth = Math.max(1, html.clientWidth || window.innerWidth || 1);
     const scrollbarWidth = Math.max(0, window.innerWidth - html.clientWidth);
     const computedBodyPaddingRight = Number.parseFloat(window.getComputedStyle(body).paddingRight) || 0;
+    const scrollX = window.scrollX;
+    const scrollY = window.scrollY;
 
     styleSnapshot = {
       bodyOverflow: body.style.overflow,
       bodyOverscrollBehavior: body.style.overscrollBehavior,
       bodyPaddingRight: body.style.paddingRight,
+      bodyPosition: body.style.position,
+      bodyTop: body.style.top,
+      bodyLeft: body.style.left,
+      bodyWidth: body.style.width,
       htmlOverflow: html.style.overflow,
       htmlOverscrollBehavior: html.style.overscrollBehavior,
+      scrollX,
+      scrollY,
     };
     frozenViewportWidth = measuredViewportWidth;
 
     body.style.overflow = 'hidden';
     body.style.overscrollBehavior = 'none';
+    body.style.position = 'fixed';
+    body.style.top = `-${scrollY}px`;
+    body.style.left = `-${scrollX}px`;
+    body.style.width = '100%';
     if (scrollbarWidth > 0) {
       body.style.paddingRight = `${computedBodyPaddingRight + scrollbarWidth}px`;
     }
@@ -86,11 +104,17 @@ function restoreDocumentStyles() {
   const body = document.body;
   const html = document.documentElement;
   const snapshot = styleSnapshot;
+  const scrollX = snapshot?.scrollX ?? window.scrollX;
+  const scrollY = snapshot?.scrollY ?? window.scrollY;
 
   if (snapshot) {
     body.style.overflow = snapshot.bodyOverflow;
     body.style.overscrollBehavior = snapshot.bodyOverscrollBehavior;
     body.style.paddingRight = snapshot.bodyPaddingRight;
+    body.style.position = snapshot.bodyPosition;
+    body.style.top = snapshot.bodyTop;
+    body.style.left = snapshot.bodyLeft;
+    body.style.width = snapshot.bodyWidth;
     html.style.overflow = snapshot.htmlOverflow;
     html.style.overscrollBehavior = snapshot.htmlOverscrollBehavior;
   }
@@ -100,6 +124,7 @@ function restoreDocumentStyles() {
   html.style.removeProperty('--member-overlay-viewport-width');
   styleSnapshot = null;
   frozenViewportWidth = null;
+  window.scrollTo(scrollX, scrollY);
 }
 
 function scheduleDesktopViewportResync() {
