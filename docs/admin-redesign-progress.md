@@ -30,7 +30,7 @@ Admin ต้องใช้หน้าตาและระบบกลาง�
 
 | Phase | ขอบเขต | สถานะ | PR |
 |---|---|---|---|
-| P1 | Appearance foundation และ Theme owner กลาง | รอ CI | #474 |
+| P1 | Appearance foundation และ Theme owner กลาง | รอ CI รอบฐานล่าสุด | #474 |
 | P2 | Role 5 แบบ, Multi-role, Team และหัวหน้าสร้างลูกน้อง | ยังไม่เริ่ม | - |
 | P3 | Sidebar, Navigation registry และ Dashboard ตามตำแหน่ง | ยังไม่เริ่ม | - |
 | P4 | Chart system, Widget registry และ Analytics | ยังไม่เริ่ม | - |
@@ -48,6 +48,8 @@ PR: `#474`
 Branch: `agent/admin-appearance-foundation-main`
 
 Head commit: อัปเดตตาม commit ล่าสุดของ PR
+
+Baseline CI blocker: Member regex target ถูกแก้และรวมเข้า `main` ผ่าน PR `#475` ที่ commit `e0947a7f79e0b5ab03f149908f48ff9c1bf4778b` แล้ว
 
 ## ทำแล้ว
 
