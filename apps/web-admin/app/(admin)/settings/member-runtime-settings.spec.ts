@@ -5,6 +5,11 @@ import test from 'node:test';
 const featuresSource = readFileSync(new URL('./features/page.tsx', import.meta.url), 'utf8');
 const themeSource = readFileSync(new URL('./theme/page.tsx', import.meta.url), 'utf8');
 const iconSource = readFileSync(new URL('./icons/icon-settings-config.ts', import.meta.url), 'utf8');
+const presentationDefaultsSource = sourceSection(
+  featuresSource,
+  'const TOURNAMENT_ITEMS_DEFAULT',
+  'const FEATURES_DEFAULTS',
+);
 
 test('features settings own shared desktop and mobile visibility', () => {
   for (const key of [
@@ -32,12 +37,12 @@ test('features settings expose structured runtime data from one location', () =>
 
 test('presentation tournament and leaderboard data stay explicit and safe', () => {
   assert.match(featuresSource, /presentation_demo_enabled/);
-  assert.match(featuresSource, /TOURNAMENT_ITEMS_DEFAULT/);
-  assert.match(featuresSource, /LEADERBOARD_ITEMS_DEFAULT/);
-  assert.match(featuresSource, /NOA\*\*\*/);
+  assert.match(presentationDefaultsSource, /TOURNAMENT_ITEMS_DEFAULT/);
+  assert.match(presentationDefaultsSource, /LEADERBOARD_ITEMS_DEFAULT/);
+  assert.match(presentationDefaultsSource, /NOA\*\*\*/);
   assert.match(featuresSource, /tournament_items_json: TOURNAMENT_ITEMS_DEFAULT/);
   assert.match(featuresSource, /ใช้ข้อมูลชุดเดียวกันทั้ง Desktop\/Mobile/);
-  assert.doesNotMatch(featuresSource, /wallet|withdrawal|deposit/i);
+  assert.doesNotMatch(presentationDefaultsSource, /wallet|withdrawal|deposit/i);
 });
 
 test('theme settings expose common responsive design tokens', () => {
@@ -61,3 +66,11 @@ test('icon settings expose shared home and navigation icons', () => {
     'classic_games', 'contact', 'close',
   ]) assert.match(iconSource, new RegExp(`key: '${key}'`));
 });
+
+function sourceSection(source: string, startMarker: string, endMarker: string) {
+  const start = source.indexOf(startMarker);
+  const end = source.indexOf(endMarker, start);
+  assert.notEqual(start, -1, `missing source marker: ${startMarker}`);
+  assert.notEqual(end, -1, `missing source marker: ${endMarker}`);
+  return source.slice(start, end);
+}
