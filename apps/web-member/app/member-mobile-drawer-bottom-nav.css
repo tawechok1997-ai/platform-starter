@@ -1,4 +1,6 @@
 @media (max-width: 900px) {
+  html:not([data-mobile-member-home-surface='true'])
+    [data-mobile-member-bottom-navigation='true'],
   html:has(button[aria-controls='mobile-home-drawer'][aria-expanded='true'])
     [data-mobile-member-bottom-navigation='true'] {
     display: none !important;
@@ -7,6 +9,7 @@
     pointer-events: none !important;
   }
 
+  html:not([data-mobile-member-home-surface='true']) body,
   html:has(button[aria-controls='mobile-home-drawer'][aria-expanded='true']) body {
     padding-bottom: 0 !important;
   }
