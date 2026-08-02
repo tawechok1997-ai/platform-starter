@@ -53,5 +53,6 @@ test('central category runtime exposes casino providers in place', () => {
   assert.match(categoryRuntime, /type MobileCategoryId = [^;]*'casino'/);
   assert.match(categoryRuntime, /data-mobile-category-content=\{category\}/);
   assert.match(categoryRuntime, /data-provider-category=\{category\}/);
-  assert.match(categoryRuntime, /getMemberGameCatalog\('mobile'\)/);
+  assert.match(categoryRuntime, /platform: 'mobile'/);
+  assert.match(categoryRuntime, /memberApiFetch\(`\/games\/catalog\?\$\{params\.toString\(\)\}`/);
 });
