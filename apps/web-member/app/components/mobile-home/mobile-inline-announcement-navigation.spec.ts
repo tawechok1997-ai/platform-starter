@@ -2,14 +2,8 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
 
-const bridge = readFileSync(
-  new URL('./mobile-member-menu-source-bridge.tsx', import.meta.url),
-  'utf8',
-);
-const content = readFileSync(
-  new URL('./mobile-highlight-tab-content.tsx', import.meta.url),
-  'utf8',
-);
+const bridge = readFileSync(new URL('./mobile-member-menu-source-bridge.tsx', import.meta.url), 'utf8');
+const content = readFileSync(new URL('./mobile-highlight-tab-content.tsx', import.meta.url), 'utf8');
 
 test('mobile announcement tabs own content changes without route navigation', () => {
   assert.match(bridge, /route: '\/mobile\/member\/promotions'/);
@@ -25,8 +19,8 @@ test('mobile announcement tabs own content changes without route navigation', ()
   assert.doesNotMatch(bridge, /window\.location\.(?:assign|replace)/);
 });
 
-test('inline tabs cannot be reinterpreted as member page labels', () => {
-  assert.match(bridge, /data\.mobileInlineContentTab = key/);
+test('inline tab buttons carry a protected content-tab marker', () => {
+  assert.match(bridge, /button\.dataset\.mobileInlineContentTab = key/);
   assert.match(bridge, /replace\('โปรโมชั่น', 'โปร\\u2060โมชั่น'\)/);
   assert.match(bridge, /replace\('กิจกรรม', 'กิจ\\u2060กรรม'\)/);
   assert.match(bridge, /replace\('ข่าวสาร', 'ข่าว\\u2060สาร'\)/);

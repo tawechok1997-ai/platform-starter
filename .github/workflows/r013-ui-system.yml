@@ -32,7 +32,7 @@ jobs:
         with:
           node-version: 22
           cache: pnpm
-      - run: pnpm install --frozen-lockfile=false
+      - run: pnpm install --frozen-lockfile --prefer-offline
       - name: Design-token inventory
         run: node tools/audit-r013-design-token-inventory.mjs
       - name: Shared color token contract

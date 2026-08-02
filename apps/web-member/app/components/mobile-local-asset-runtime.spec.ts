@@ -31,7 +31,7 @@ test('local media failure returns to the original CDN only once before generic f
   assert.match(fallbackController, /image\.src = MEMBER_IMAGE_FALLBACK/);
 });
 
-test('mobile source theme is scoped to mobile owners and preserves popup viewport safety', () => {
+test('mobile source theme is scoped to mobile owners and popup height accounts for safe areas', () => {
   assert.match(theme, /@media \(max-width: 900px\)/);
   assert.match(theme, /data-mobile-home-root/);
   assert.match(theme, /data-mobile-member-page/);
@@ -39,6 +39,6 @@ test('mobile source theme is scoped to mobile owners and preserves popup viewpor
   assert.match(theme, /data-mobile-avatar-owner/);
   assert.match(theme, /data-mobile-popup-owner/);
   assert.match(popupStyles, /safe-area-inset-top/);
-  assert.match(popupStyles, /max-height: calc\(100dvh/);
-  assert.match(popupStyles, /--mobile-source-popup-max/);
+  assert.match(popupStyles, /safe-area-inset-bottom/);
+  assert.match(popupStyles, /max-height:\s*calc\(100dvh - max\(32px, env\(safe-area-inset-top\) \+ env\(safe-area-inset-bottom\)\)\)/);
 });

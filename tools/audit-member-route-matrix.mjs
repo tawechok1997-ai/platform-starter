@@ -3,7 +3,10 @@ import { join, relative, sep } from 'node:path';
 
 const ROOT = process.cwd();
 const APP_ROOT = join(ROOT, 'apps', 'web-member', 'app');
-const MATRIX_PATH = join(ROOT, 'docs', 'MEMBER_ROUTE_MATRIX.md');
+const MATRIX_PATHS = [
+  join(ROOT, 'docs', 'MEMBER_ROUTE_MATRIX.md'),
+  join(ROOT, 'docs', 'MEMBER_MOBILE_ROUTE_MATRIX.md'),
+];
 const REQUIRED_STATES = new Set([
   'loading',
   'empty',
@@ -105,9 +108,12 @@ function addError(errors, condition, message) {
   if (condition) errors.push(message);
 }
 
-const [pageFiles, markdown] = await Promise.all([walk(APP_ROOT), readFile(MATRIX_PATH, 'utf8')]);
+const [pageFiles, matrixDocuments] = await Promise.all([
+  walk(APP_ROOT),
+  Promise.all(MATRIX_PATHS.map((path) => readFile(path, 'utf8'))),
+]);
 const sourceRoutes = new Map(pageFiles.map((path) => [routeFromPage(path), normalize(path)]));
-const rows = matrixRows(markdown);
+const rows = matrixDocuments.flatMap(matrixRows);
 const matrixRoutes = new Map();
 const errors = [];
 
@@ -149,7 +155,7 @@ for (const [route, page] of sourceRoutes) {
   addError(errors, !matrixRoutes.has(route), `${route}: ${page} is missing from the matrix`);
 }
 
-console.log(`Member route matrix audit: ${sourceRoutes.size} page routes, ${rows.length} matrix rows`);
+console.log(`Member route matrix audit: ${sourceRoutes.size} page routes, ${rows.length} matrix rows across ${MATRIX_PATHS.length} documents`);
 console.log(`  P0/P1 routes: ${rows.filter((row) => row.priority === 'P0' || row.priority === 'P1').length}`);
 console.log(`  routes with known state gaps: ${rows.filter((row) => row.gaps.size > 0).length}`);
 console.log(`  errors: ${errors.length}`);

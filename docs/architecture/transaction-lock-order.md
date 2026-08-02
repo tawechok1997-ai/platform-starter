@@ -22,6 +22,7 @@ Every transaction that acquires more than one row lock must use one canonical or
    - `risk_alerts`
    - `promotion_settlements`
    - `bonus_ledgers` when it owns turnover and settlement lifecycle state
+   - `member_activity_reward_claims` when it owns reward idempotency and credit lifecycle state
    - admin ownership/account lifecycle rows
 2. Member or actor row when the flow mutates actor state
    - `users`
@@ -41,6 +42,7 @@ Every transaction that acquires more than one row lock must use one canonical or
 - A create flow may lock the wallet first only when the workflow row does not exist yet. It must create the workflow row inside the same transaction after the wallet mutation.
 - Never acquire an aggregate lock after acquiring its wallet lock in a flow where that aggregate already exists.
 - A table named as a ledger may still be an aggregate when it owns mutable lifecycle state. `bonus_ledgers` is classified this way because settlement reads and transitions its turnover/status fields before crediting the wallet.
+- `member_activity_reward_claims` is an aggregate because reward idempotency is checked and locked before the member wallet can be credited.
 - `risk_alerts` is classified as an aggregate because assignment, investigation, escalation, and resolution mutate the alert lifecycle before audit or notification output is written.
 - Do not perform network, storage, provider, email, or callback I/O while holding database row locks.
 - All rows of the same table must be locked in deterministic primary-key order when more than one row is involved.
@@ -51,6 +53,7 @@ Every transaction that acquires more than one row lock must use one canonical or
 
 - `WithdrawalsService.completeRequest` locks `withdrawal_requests` before `wallets`, then writes ledger, wallet, workflow state, and audit data inside the same Prisma transaction.
 - `PromotionDomainRepository.settleBonus` locks `bonus_ledgers` before `wallets`, then writes the append-only wallet ledger and marks the bonus aggregate settled in the same transaction.
+- `ActivityRepository.createRewardClaim` locks `member_activity_reward_claims` before `wallets`, then creates the wallet ledger and credited reward claim in one serializable transaction.
 
 ## Enforcement
 

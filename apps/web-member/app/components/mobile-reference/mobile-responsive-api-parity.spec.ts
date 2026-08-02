@@ -2,25 +2,19 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
 
-const responsiveCss = readFileSync(
-  new URL('../../member-responsive-contract.css', import.meta.url),
-  'utf8',
-);
-const navigationController = readFileSync(
-  new URL('../member-navigation-auth-controller.tsx', import.meta.url),
-  'utf8',
-);
-const mobileMenuRoute = readFileSync(
-  new URL('../../mobile-menu/[section]/page.tsx', import.meta.url),
-  'utf8',
-);
+const responsiveCss = readFileSync(new URL('../../member-responsive-contract.css', import.meta.url), 'utf8');
+const navigationController = readFileSync(new URL('../member-navigation-auth-controller.tsx', import.meta.url), 'utf8');
+const mobileMenuRoute = readFileSync(new URL('../../mobile-menu/[section]/page.tsx', import.meta.url), 'utf8');
 
-test('mobile drawer uses the same real destinations and auth guard as desktop navigation', () => {
+test('mobile drawer uses canonical destinations and the same runtime auth guard as desktop navigation', () => {
   assert.match(navigationController, /#mobile-home-drawer a\[href\]/);
-  assert.doesNotMatch(navigationController, /MOBILE_REFERENCE_TARGETS/);
-  assert.doesNotMatch(navigationController, /MOBILE_LOGIN_TARGETS/);
-  assert.doesNotMatch(navigationController, /\/mobile-menu\//);
+  assert.doesNotMatch(navigationController, /MOBILE_REFERENCE_TARGETS|MOBILE_LOGIN_TARGETS/);
   assert.match(navigationController, /navigation\s*\.filter\(\(item\) => item\.requiresAuth\)/);
+  assert.match(navigationController, /GUEST_LOGIN_REQUIRED_LABELS/);
+  assert.match(navigationController, /CANONICAL_HREF_TARGETS/);
+  assert.match(navigationController, /'\/mobile-menu\/promotions': '\/mobile\/member\/promotions'/);
+  assert.match(navigationController, /'\/mobile-menu\/activities': '\/mobile\/member\/activity'/);
+  assert.match(navigationController, /openAuth\('login', intended\)/);
 });
 
 test('mobile home owns the complete phone and tablet range without a narrow fixed shell', () => {
