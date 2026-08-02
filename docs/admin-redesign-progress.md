@@ -30,8 +30,8 @@ Admin ต้องใช้ระบบกลางชุดเดียวก�
 
 | Phase | ขอบเขต | สถานะ | PR |
 |---|---|---|---|
-| P1 | Appearance foundation และ Theme owner กลาง | รอ CI | #445 |
-| P2 | Role 5 แบบ, Multi-role และ Team | ยังไม่เริ่ม | - |
+| P1 | Appearance foundation และ Theme owner กลาง | Merge แล้ว | #445 |
+| P2 | Role 5 แบบ, Multi-role และ Team | เริ่มแล้ว | - |
 | P3 | Navigation registry และ Dashboard ตามตำแหน่ง | ยังไม่เริ่ม | - |
 | P4 | Chart system และ Widget registry | ยังไม่เริ่ม | - |
 | P5 | Table, Form และ Detail drawer กลาง | ยังไม่เริ่ม | - |
@@ -46,6 +46,20 @@ Admin ต้องใช้ระบบกลางชุดเดียวก�
 PR: `#445`
 
 Branch: `agent/admin-phase-1-appearance-foundation`
+
+Head commit: `e5c10b9652e9d2be50f171272ddf4b6e99d4fd06`
+
+Merge commit: `fea8afb147c3059166b4036fe3f56bdcdfcd8fff`
+
+Merge method: `squash`
+
+Merged: `2026-08-03`
+
+## ผลการตรวจ
+
+- Required CI workflows ผ่านครบ 18 รายการ
+- Build, Typecheck, Unit, Full-system, Security, Accessibility และ Visual Regression ผ่าน
+- PR อยู่ในสถานะ mergeable ก่อน Merge
 
 ## ทำแล้ว
 
@@ -81,15 +95,6 @@ Branch: `agent/admin-phase-1-appearance-foundation`
 - `apps/web-admin/app/layout.tsx`
 - `docs/admin-redesign-progress.md`
 
-## การตรวจที่ต้องผ่าน
-
-- Admin contract tests
-- Admin typecheck
-- Admin build
-- Light/Dark บน Dashboard, Settings, Members และ Login
-- Viewport 390px, 834px และ 1440px
-- CI ของ repository
-
 ## สิ่งที่ไม่รวมใน P1
 
 - Role 5 แบบและ Multi-role database model
@@ -101,6 +106,12 @@ Branch: `agent/admin-phase-1-appearance-foundation`
 ---
 
 # P2: Role, Multi-role และ Team
+
+Branch: `agent/admin-phase-2-role-multirole-team`
+
+Base: latest `main` หลัง Merge PR `#445` และอัปเดตเอกสารผล Merge
+
+Status: เริ่ม Phase แล้ว ยังไม่มี PR
 
 ## เป้าหมาย
 
