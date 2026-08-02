@@ -1,5 +1,6 @@
 'use client';
 
+import { createApiClient } from '@platform/api-client';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import MobileMemberPromotionsPage from '../../../components/mobile-home/mobile-member-promotions-page';
@@ -7,6 +8,12 @@ import { SOURCE_PROMOTION_PAYLOAD } from '../../../components/mobile-home/mobile
 import { API_URL } from '../../../site-settings';
 
 type UnknownRecord = Record<string, unknown>;
+
+const publicApiClient = createApiClient({
+  baseUrl: API_URL,
+  cache: 'no-store',
+  defaultHeaders: { accept: 'application/json' },
+});
 
 export default function MobilePromotionsRoute() {
   const router = useRouter();
@@ -19,13 +26,11 @@ export default function MobilePromotionsRoute() {
     setLoading(true);
     setError('');
 
-    fetch(`${API_URL}/public/site-settings`, {
+    publicApiClient.request<unknown>('/public/site-settings', {
+      auth: false,
       cache: 'no-store',
-      headers: { accept: 'application/json' },
       signal: controller.signal,
-    }).then(async (response) => {
-      const data = await response.json().catch(() => null);
-      if (!response.ok) throw new Error(typeof data?.message === 'string' ? data.message : 'โหลดโปรโมชั่นไม่สำเร็จ');
+    }).then((data) => {
       setPayload(hasPromotionCampaigns(data) ? data : SOURCE_PROMOTION_PAYLOAD);
     }).catch((reason) => {
       if (controller.signal.aborted) return;
