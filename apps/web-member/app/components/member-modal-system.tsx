@@ -167,7 +167,6 @@ export function MemberModal({
         aria-modal="true"
         aria-label={title ? undefined : ariaLabel}
         aria-labelledby={title ? titleId : undefined}
-        aria-hidden={motionState === 'closing' ? 'true' : undefined}
         tabIndex={-1}
       >
         {header ?? generatedHeader}
