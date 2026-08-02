@@ -3,6 +3,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { AdminAuthModule } from '../admin-auth/admin-auth.module';
 import { DatabaseModule } from '../../database/database.module';
 import { AdminAccessController } from './admin-access.controller';
+import { AdminAccessGovernanceService } from './admin-access-governance.service';
 import { AdminAccessSessionService } from './admin-access-session.service';
 import { AdminAccessService } from './admin-access.service';
 import { AdminAccountLifecycleService } from './admin-account-lifecycle.service';
@@ -11,17 +12,20 @@ import { AdminInvitationAdminService } from './admin-invitation-admin.service';
 import { AdminInvitationController } from './admin-invitation.controller';
 import { AdminInvitationService } from './admin-invitation.service';
 import { AdminOwnershipCommandService } from './admin-ownership-command.service';
+import { AdminRoleAssignmentService } from './admin-role-assignment.service';
 
 @Module({
   imports: [DatabaseModule, JwtModule.register({}), AdminAuthModule],
   controllers: [AdminAccessController, AdminInvitationController, AdminInvitationAdminController],
   providers: [
     AdminAccessService,
+    AdminAccessGovernanceService,
     AdminAccessSessionService,
     AdminAccountLifecycleService,
     AdminOwnershipCommandService,
     AdminInvitationService,
     AdminInvitationAdminService,
+    AdminRoleAssignmentService,
   ],
 })
 export class AdminAccessModule {}
