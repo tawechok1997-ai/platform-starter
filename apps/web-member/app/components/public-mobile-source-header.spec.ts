@@ -33,10 +33,11 @@ test('mobile drawer delegates popup actions and keeps protected routes centraliz
 });
 
 test('guest actions use the query-driven shared auth popup contract', () => {
+  assert.equal((root.match(/function MobileAuthActions\(/g) ?? []).length, 1);
   assert.match(root, /href="\/\?auth=register"/);
   assert.match(root, /href="\/\?auth=login"/);
-  assert.match(root, /runtime\.features\.registration/);
-  assert.match(root, /runtime\.features\.login/);
+  assert.match(navigationController, /url\.searchParams\.set\('auth', mode\)/);
+  assert.match(navigationController, /router\.replace\(`\$\{url\.pathname\}\$\{url\.search\}\$\{url\.hash\}`/);
 });
 
 test('current mobile header and drawer remain isolated to the mobile owner', () => {
