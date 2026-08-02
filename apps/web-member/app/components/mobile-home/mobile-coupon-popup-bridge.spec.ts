@@ -19,11 +19,22 @@ test('coupon bridge keeps the source field and button contract', () => {
   assert.match(bridge, /input\.maxLength = 5/);
   assert.match(bridge, /input\.name = 'รหัสคูปอง'/);
   assert.match(bridge, /input\.autocomplete = 'off'/);
-  assert.match(bridge, /height: 40px/);
+  assert.match(bridge, /input\.inputMode = 'text'/);
+  assert.match(bridge, /height: 48px/);
   assert.match(bridge, /height: 56px/);
-  assert.match(bridge, /height: 44px/);
   assert.match(bridge, /background: rgb\(56 55 62\)/);
-  assert.match(bridge, /color: rgb\(85 85 85\)/);
+  assert.match(bridge, /text-transform: uppercase/);
+});
+
+test('coupon dialog cannot collapse back to compact intrinsic width', () => {
+  assert.match(bridge, /const COUPON_WIDTH = 'min\(396px, calc\(100vw - 32px\)\)'/);
+  assert.match(bridge, /dialog\.style\.setProperty\('width', COUPON_WIDTH, 'important'\)/);
+  assert.match(bridge, /min-width: min\(288px, calc\(100vw - 32px\)\) !important/);
+  assert.match(bridge, /width: 100% !important/);
+  assert.match(bridge, /height: auto !important/);
+  assert.match(bridge, /transform: none !important/);
+  assert.match(bridge, /zoom: 1 !important/);
+  assert.doesNotMatch(bridge, /width:\s*fit-content/);
 });
 
 test('coupon popup remains scoped and does not restyle other member dialogs', () => {
@@ -31,4 +42,5 @@ test('coupon popup remains scoped and does not restyle other member dialogs', ()
   assert.doesNotMatch(bridge, /data-mobile-popup-owner="deposit"|data-mobile-popup-owner="withdraw"/);
   assert.match(bridge, /MutationObserver/);
   assert.match(bridge, /observer\.disconnect\(\)/);
+  assert.match(bridge, /window\.removeEventListener\('resize', syncCouponPopup\)/);
 });
