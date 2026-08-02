@@ -16,9 +16,10 @@ const desktopJackpot = readFileSync(new URL('../member-home/desktop-jackpot-card
 
 test('mobile home and category catalogs request mobile records only', () => {
   assert.match(sourceRuntime, /getMemberGameCatalog\('mobile'\)/);
-  assert.match(categoryRuntime, /getMemberGameCatalog\('mobile'\)/);
   assert.doesNotMatch(sourceRuntime, /getMemberGameCatalog\('pc'\)/);
-  assert.doesNotMatch(categoryRuntime, /getMemberGameCatalog\('pc'\)/);
+  assert.match(categoryRuntime, /platform:\s*'mobile'/);
+  assert.match(categoryRuntime, /memberApiFetch\(`\/games\/catalog\?\$\{params\.toString\(\)\}`/);
+  assert.doesNotMatch(categoryRuntime, /platform:\s*'pc'/);
   assert.match(catalog, /Promise\.allSettled/);
   assert.match(catalog, /DEFAULT_CATEGORIES/);
 });
