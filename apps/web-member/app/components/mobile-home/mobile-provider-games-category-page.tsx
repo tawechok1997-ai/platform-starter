@@ -197,7 +197,14 @@ function fallbackImage(image: HTMLImageElement, resolved: string, remote: string
     image.src = remote;
     return;
   }
-  image.hidden = true;
+
+  const card = image.closest<HTMLElement>('[data-provider-launch="true"]');
+  if (!card) {
+    image.hidden = true;
+    return;
+  }
+  card.hidden = true;
+  card.setAttribute('aria-hidden', 'true');
 }
 
 function isAbortError(error: unknown) {
