@@ -187,15 +187,26 @@ export function mapCatalogGame(
   );
   const readyMedia = item.media?.find((media) => media.status === 'READY');
   const firstMedia = item.media?.[0];
-  const image = resolveAssetForPlatform(
+  const providerArtwork = new Set(
+    [
+      configuredProvider?.card,
+      configuredProvider?.badge,
+      configuredProvider?.background,
+      configuredProvider?.title,
+      configuredProvider?.avatar,
+    ]
+      .map((source) => resolveAssetForPlatform(requestedPlatform, source))
+      .filter(Boolean),
+  );
+  const image = resolveDistinctGameAsset(
     requestedPlatform,
+    providerArtwork,
     readyMedia?.cachedUrl,
     item.imageUrl,
     readyMedia?.sourceUrl,
     item.iconUrl,
     firstMedia?.cachedUrl,
     firstMedia?.sourceUrl,
-    configuredProvider?.card,
   );
   if (!image) return null;
 
@@ -312,6 +323,20 @@ function localizeProvider(
     title: resolveAssetForPlatform(platform, provider.title),
     avatar: resolveAssetForPlatform(platform, provider.avatar),
   };
+}
+
+function resolveDistinctGameAsset(
+  platform: SourceCatalogPlatform,
+  excluded: ReadonlySet<string>,
+  ...values: Array<string | null | undefined>
+) {
+  for (const value of values) {
+    const source = firstText(value);
+    if (!source) continue;
+    const resolved = resolveLocalAssetOrSource(source, platform);
+    if (resolved && !excluded.has(resolved)) return resolved;
+  }
+  return '';
 }
 
 function resolveAssetForPlatform(
