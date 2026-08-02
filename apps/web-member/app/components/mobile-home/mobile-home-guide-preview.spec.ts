@@ -26,7 +26,7 @@ test('Guide placement survives content rerenders and stays after the game sectio
   assert.match(preview, /const syncPlacement = \(\) =>/);
   assert.match(preview, /host\.parentElement !== contentSlot \|\| host\.nextSibling/);
   assert.match(preview, /contentObserver\.observe\(contentSlot, \{ childList: true \}\)/);
-  assert.match(preview, /if \(!root \|\| !contentSlot\) return;/);
+  assert.match(preview, /if \(!root \|\| !contentSlot \|\| !highlightTabs\) return;/);
   assert.doesNotMatch(preview, /styles\.owner/);
   assert.doesNotMatch(preview, /ownerClassName/);
 });
@@ -83,8 +83,13 @@ test('view all uses the same usage-guide route as the member menu', () => {
   assert.doesNotMatch(preview, /href="\/(?:userGuide|guide)"/);
 });
 
-test('guide preview only appears on the mobile home category', () => {
-  assert.match(preview, /root\.dataset\.mobileActiveCategory \?\? 'home'/);
-  assert.match(preview, /=== 'home'/);
+test('Guide appears only on the home highlights tab', () => {
+  assert.match(preview, /useState\(false\)/);
+  assert.match(preview, /\[data-mobile-section-owner="highlight-tabs"\]/);
+  assert.match(preview, /const onHomeCategory = \(root\.dataset\.mobileActiveCategory \?\? 'home'\) === 'home'/);
+  assert.match(preview, /#mobile-highlight-tab-0\[aria-selected="true"\]/);
+  assert.match(preview, /setVisible\(onHomeCategory && onHighlightsTab\)/);
+  assert.match(preview, /highlightObserver\.observe\(highlightTabs, \{/);
+  assert.match(preview, /attributeFilter: \['aria-selected'\]/);
   assert.match(preview, /if \(!target \|\| !visible\) return null/);
 });
