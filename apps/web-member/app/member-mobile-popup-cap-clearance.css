@@ -1,0 +1,80 @@
+/*
+ * Canonical clearance for Mobile Member popups with the source title cap.
+ *
+ * The cap is absolutely positioned, so every capped dialog must reserve its
+ * own vertical lane before scrollable content starts. Runtime bridges inject
+ * popup-specific CSS after the app styles, therefore these selectors carry
+ * enough specificity to remain the final geometry authority.
+ */
+:root {
+  --member-mobile-popup-cap-height: 38px;
+  --member-mobile-popup-cap-gap: 34px;
+  --member-mobile-popup-cap-clearance: calc(
+    var(--member-mobile-popup-cap-height) + var(--member-mobile-popup-cap-gap)
+  );
+}
+
+@media (max-width: 900px) {
+  /* SourcePopupShell owns menu, contact, password, deposit, withdraw,
+     network income, commission income, coupon and its internal language popup. */
+  html body section[data-mobile-popup-owner] {
+    padding-block-start: var(--member-mobile-popup-cap-clearance) !important;
+    max-height: calc(
+      100dvh - max(32px, env(safe-area-inset-top) + env(safe-area-inset-bottom))
+    ) !important;
+  }
+
+  /* The menu and coupon bridges inject late !important shorthands. Keep the
+     source cap lane authoritative without altering their side/bottom padding. */
+  html body section[data-mobile-popup-owner='menu'][data-mobile-menu-source='true'],
+  html body section[data-mobile-popup-owner='coupon'][data-mobile-coupon-source='true'] {
+    padding-block-start: var(--member-mobile-popup-cap-clearance) !important;
+  }
+
+  /* SourcePopupShell keeps content as its final direct div. Its own overflow
+     owner remains intact, while the available height reflects the larger cap lane. */
+  html body section[data-mobile-popup-owner] > div:last-child {
+    min-height: 0 !important;
+    max-height: calc(100dvh - 136px) !important;
+    scroll-padding-block-start: 8px;
+    overscroll-behavior: contain;
+  }
+
+  /* The shared guest/member language selector has the same cap shape but a
+     separate portal owner. Reserve the same lane and scroll only its grid. */
+  html body [data-mobile-global-overlay='language'] > section[role='dialog'] {
+    box-sizing: border-box;
+    max-height: calc(100dvh - 32px);
+    padding-block-start: var(--member-mobile-popup-cap-clearance) !important;
+    overflow: hidden;
+  }
+
+  html body [data-mobile-global-overlay='language'] > section[role='dialog'] > [class*='languageGrid'] {
+    min-height: 0;
+    max-height: calc(100dvh - 142px);
+    padding-block-start: 2px;
+    overflow-x: hidden;
+    overflow-y: auto;
+    scrollbar-width: none;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  html body [data-mobile-global-overlay='language'] > section[role='dialog'] > [class*='languageGrid']::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@media (max-width: 359px) {
+  :root {
+    --member-mobile-popup-cap-gap: 28px;
+  }
+
+  html body section[data-mobile-popup-owner] > div:last-child {
+    max-height: calc(100dvh - 118px) !important;
+  }
+
+  html body [data-mobile-global-overlay='language'] > section[role='dialog'] > [class*='languageGrid'] {
+    max-height: calc(100dvh - 126px);
+  }
+}
