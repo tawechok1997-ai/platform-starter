@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import '../member-authenticated-source-overrides.css';
+import '../member-mobile-deposit-source-contract.css';
 
 const MOBILE_MENU_PAGE_ROUTES = new Set([
   '/mobile/member/vip',
