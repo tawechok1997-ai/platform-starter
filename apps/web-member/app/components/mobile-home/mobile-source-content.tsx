@@ -264,22 +264,6 @@ export default function MobileSourceContent() {
           copy={copy}
         />
       ) : null}
-
-      {runtime.features.usageGuide ? (
-        <section className={styles.guideSection} aria-labelledby="mobile-guide-heading">
-          <SectionHeading id="mobile-guide-heading" icon={V47_ASSETS.mobileFaq} label={runtime.guideTitle || copy.guide} />
-          {runtime.guides.length > 0 ? (
-            <>
-              <div className={styles.guideGrid}>
-                {runtime.guides.map((guide, index) => (
-                  <button key={guide.id} type="button" onClick={() => navigate(guide.href)}><span>{index + 1}</span><strong>{guide.title}</strong><Chevron /></button>
-                ))}
-              </div>
-              <button type="button" className={styles.viewAllButton} onClick={() => navigate('/guide')}>{copy.viewAll} <Chevron /></button>
-            </>
-          ) : <DataState status="ready" empty={copy.noGuides} error={copy.noGuides} loading={copy.loading} />}
-        </section>
-      ) : null}
     </div>
   );
 }
