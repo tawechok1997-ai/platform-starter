@@ -82,12 +82,12 @@ export default function MobileCategoryFooterGuard() {
       observer.disconnect();
       root.removeEventListener('click', selectFromClick, true);
       window.removeEventListener(MOBILE_CATEGORY_SELECT_EVENT, selectFromEvent);
+      applyVisibility('home');
 
       const footer = root.querySelector<HTMLElement>(
         '[data-mobile-bottom-owner="true"] > [data-mobile-section-owner="footer"]',
       );
       footer?.removeAttribute('data-mobile-persistent-footer');
-      applyVisibility('home');
     };
   }, []);
 
