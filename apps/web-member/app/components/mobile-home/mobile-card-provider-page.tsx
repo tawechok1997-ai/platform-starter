@@ -28,7 +28,7 @@ export default function MobileCardProviderPage() {
       providers={CARD_PROVIDER_SEEDS}
       catalogPlatform="mobile"
       providerAssetPlatform="mobile"
-      gameAssetPlatform="mobile"
+      gameAssetPlatform="pc"
       includeCatalogProviders
     />
   );

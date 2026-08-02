@@ -31,7 +31,7 @@ export default function MobileFishingProviderPage() {
       providers={FISHING_PROVIDERS}
       catalogPlatform="mobile"
       providerAssetPlatform="mobile"
-      gameAssetPlatform="mobile"
+      gameAssetPlatform="pc"
       includeCatalogProviders
     />
   );

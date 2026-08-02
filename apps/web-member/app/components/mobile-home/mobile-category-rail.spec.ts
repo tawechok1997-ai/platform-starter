@@ -4,7 +4,6 @@ import test from 'node:test';
 
 const root = readFileSync(new URL('./mobile-home-root.tsx', import.meta.url), 'utf8');
 const css = readFileSync(new URL('./mobile-home-root.module.css', import.meta.url), 'utf8');
-const follower = readFileSync(new URL('./mobile-category-rail-follow-runtime.tsx', import.meta.url), 'utf8');
 const home = readFileSync(new URL('../../member-home.tsx', import.meta.url), 'utf8');
 const layoutOwner = readFileSync(new URL('../../member-mobile-home-bottom-owner.css', import.meta.url), 'utf8');
 const followOwner = readFileSync(new URL('../../member-mobile-category-follow.css', import.meta.url), 'utf8');
@@ -30,29 +29,27 @@ test('mobile category rail keeps responsive sizes', () => {
   assert.match(css, /@media \(min-width: 430px\)[\s\S]*width:\s*60px[\s\S]*height:\s*60px/);
 });
 
-test('game categories own a full-height vertical scroller', () => {
-  assert.match(followOwner, /data-mobile-active-category[^\n]*not\(\[data-mobile-active-category='home'\]\)/);
-  assert.match(followOwner, /height:\s*100dvh\s*!important/);
-  assert.match(followOwner, /max-height:\s*100dvh\s*!important/);
-  assert.match(followOwner, /overflow-y:\s*auto\s*!important/);
-  assert.match(followOwner, /-webkit-overflow-scrolling:\s*touch\s*!important/);
-  assert.match(followOwner, /data-mobile-content-slot='after-highlight'[\s\S]*overflow:\s*visible\s*!important/);
-  assert.match(followOwner, /data-provider-games-stage[\s\S]*touch-action:\s*pan-y\s*!important/);
+test('game categories keep the page fixed and scroll only the right content column', () => {
+  assert.match(followOwner, /body:has\(\[data-mobile-home-root='true'\][\s\S]*overflow:\s*hidden\s*!important/);
+  assert.match(followOwner, /data-mobile-content-slot='after-highlight'[\s\S]*height:\s*100%\s*!important/);
+  assert.match(followOwner, /data-mobile-content-slot='after-highlight'[\s\S]*overflow-y:\s*auto\s*!important/);
+  assert.match(followOwner, /data-mobile-content-slot='after-highlight'[\s\S]*-webkit-overflow-scrolling:\s*touch\s*!important/);
+  assert.match(followOwner, /data-provider-games-stage[\s\S]*overflow:\s*visible\s*!important/);
 });
 
-test('category rail follows both the page and game-category scroll owners', () => {
-  assert.match(home, /MobileCategoryRailFollowRuntime/);
-  assert.match(followOwner, /position:\s*relative\s*!important/);
-  assert.match(followOwner, /--mobile-category-rail-offset/);
-  assert.match(followOwner, /translate3d\(0, var\(--mobile-category-rail-offset, 0px\), 0\)/);
-  assert.match(follower, /root\.addEventListener\('scroll', scheduleSync/);
-  assert.match(follower, /document\.addEventListener\('scroll', scheduleSync/);
-  assert.match(follower, /requestAnimationFrame\(syncRail\)/);
-  assert.match(follower, /MOBILE_HEADER_HEIGHT - contentRect\.top/);
-  assert.match(follower, /Math\.max\(0, contentHeight - rail\.offsetHeight\)/);
-  assert.match(follower, /new MutationObserver\(scheduleSync\)/);
-  assert.match(follower, /new ResizeObserver\(scheduleSync\)/);
-  assert.match(root, /data-mobile-category-follow="start"/);
+test('category menu stays static and no scroll-follow runtime is mounted', () => {
+  assert.doesNotMatch(home, /MobileCategoryRailFollowRuntime/);
+  assert.match(followOwner, /data-mobile-section-owner='category-menu'[\s\S]*position:\s*relative\s*!important/);
+  assert.match(followOwner, /data-mobile-section-owner='category-menu'[\s\S]*transform:\s*none\s*!important/);
+  assert.match(followOwner, /data-mobile-section-owner='category-menu'[\s\S]*overflow-y:\s*auto\s*!important/);
+  assert.doesNotMatch(followOwner, /--mobile-category-rail-offset/);
+  assert.doesNotMatch(followOwner, /translate3d/);
+});
+
+test('provider rail remains horizontally scrollable inside the game content', () => {
+  assert.match(followOwner, /data-provider-games-stage='games'[\s\S]*\[role='tablist'\][\s\S]*overflow-x:\s*auto\s*!important/);
+  assert.match(followOwner, /data-provider-games-stage='games'[\s\S]*\[role='tablist'\][\s\S]*overflow-y:\s*hidden\s*!important/);
+  assert.match(followOwner, /data-provider-games-stage='games'[\s\S]*\[role='tablist'\][\s\S]*touch-action:\s*pan-x pan-y\s*!important/);
 });
 
 test('active and inactive category cards keep the supplied surfaces', () => {
