@@ -31,8 +31,8 @@ Admin ต้องใช้ระบบกลางชุดเดียวก�
 | Phase | ขอบเขต | สถานะ | PR |
 |---|---|---|---|
 | P1 | Appearance foundation และ Theme owner กลาง | Merge แล้ว | #445 |
-| P2 | Role 5 แบบ, Multi-role และ Team | เริ่มแล้ว | - |
-| P3 | Navigation registry และ Dashboard ตามตำแหน่ง | ยังไม่เริ่ม | - |
+| P2 | Role 5 แบบ, Multi-role และ Team | กำลังทำในอีก PR | - |
+| P3 | Navigation registry และ Dashboard ตามตำแหน่ง | โค้ดครบ รอ CI/Merge | #483 |
 | P4 | Chart system และ Widget registry | ยังไม่เริ่ม | - |
 | P5 | Table, Form และ Detail drawer กลาง | ยังไม่เริ่ม | - |
 | P6 | Settings migration และ System Settings | ยังไม่เริ่ม | - |
@@ -111,7 +111,7 @@ Branch: `agent/admin-phase-2-role-multirole-team`
 
 Base: latest `main` หลัง Merge PR `#445` และอัปเดตเอกสารผล Merge
 
-Status: เริ่ม Phase แล้ว ยังไม่มี PR
+Status: ทำแบบขนานในอีก PR โดย P2 เป็นเจ้าของ Role, Permission override, Scope, Team และฐานข้อมูล
 
 ## เป้าหมาย
 
@@ -140,13 +140,44 @@ Status: เริ่ม Phase แล้ว ยังไม่มี PR
 
 # P3: Navigation และ Role-aware Dashboard
 
-- Navigation registry กลาง
-- เมนูตาม 5 ตำแหน่ง
-- Workspace filter สำหรับผู้ใช้หลายตำแหน่ง
-- Dashboard resolver ตามตำแหน่งหลักและตำแหน่งเสริม
-- Favorites, Recent และ Command Palette อ่าน registry เดียวกัน
-- Profile แสดงทุกตำแหน่ง
-- ไม่มีเมนูเก่าและใหม่ซ้ำกัน
+PR: `#483`
+
+Branch: `agent/admin-phase-3-navigation-dashboard`
+
+Status: โค้ดครบ รอ CI และ Merge
+
+## ทำแล้ว
+
+- เพิ่ม Workspace registry กลางครบ 5 ตำแหน่ง
+- เพิ่มสัญญา `AdminWorkspaceAssignment` สำหรับรับข้อมูลจาก P2
+- รองรับ Multi-role, Primary role และตัวเลือกดูทุกตำแหน่ง
+- เพิ่ม Workspace switcher ใน Topbar
+- ให้ Sidebar, Favorites, Recent และ Command Palette ใช้ selection กลางชุดเดียวกัน
+- เพิ่ม Dashboard resolver และทางลัดตามตำแหน่ง
+- เพิ่ม Profile workspace list และตัวระบุตำแหน่งหลัก
+- รองรับไทย/อังกฤษ, Desktop/Tablet/Mobile และ Reduced motion
+- ไม่แตะ Prisma, Team hierarchy หรือ Permission override ของ P2
+- ไม่ลด Route permission guard เดิม
+
+## Owner ใหม่
+
+| ความสามารถ | Owner |
+|---|---|
+| Workspace metadata | `app/(admin)/admin-workspace-registry.ts` |
+| P2 mapping/fallback | `inferAdminWorkspaceAssignments()` |
+| Workspace selection | `app/admin-workspace-runtime.tsx` |
+| Navigation visibility | `resolveVisibleNavGroupIds()` |
+| Dashboard composition | `app/(admin)/admin-dashboard-resolver.ts` |
+| Storage | `admin_workspace_selection_v1` |
+| Runtime event | `admin:workspace-change` |
+
+## Tests
+
+- `app/(admin)/admin-workspace-registry.spec.ts`
+- `app/(admin)/admin-dashboard-resolver.spec.ts`
+- `app/admin-workspace-runtime.spec.ts`
+
+รายละเอียดเต็มอยู่ที่ `docs/admin-redesign-p3-navigation-dashboard.md`
 
 ---
 

@@ -73,9 +73,11 @@ import './admin-sidebar-smart-accordion.css';
 import './admin-data-page-layout.css';
 import './admin-universal-full-width.css';
 import './admin-appearance-foundation.css';
+import './admin-workspace-runtime.css';
 import './admin-content-insets.css';
 import { AdminMobileDrawerController } from './admin-mobile-drawer-controller';
 import { AdminAppearanceRuntime } from './admin-appearance-runtime';
+import { AdminWorkspaceRuntime } from './admin-workspace-runtime';
 
 const appearanceBootstrap = `(() => {
   const storageKey = 'admin_appearance_preferences_v1';
@@ -151,6 +153,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body data-app-surface="admin">
         {children}
         <AdminAppearanceRuntime />
+        <AdminWorkspaceRuntime />
         <AdminMobileDrawerController />
       </body>
     </html>

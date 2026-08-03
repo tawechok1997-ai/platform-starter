@@ -1,0 +1,254 @@
+#admin-workspace-switcher-slot {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.admin-workspace-switcher {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  min-height: 38px;
+  padding: 4px 6px 4px 10px;
+  border: 1px solid var(--admin-border-subtle, rgba(148, 163, 184, 0.24));
+  border-radius: 12px;
+  background: var(--admin-surface-raised, rgba(15, 23, 42, 0.72));
+  color: var(--admin-text-secondary, #cbd5e1);
+}
+
+.admin-workspace-switcher > span {
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.admin-workspace-switcher select {
+  min-width: 150px;
+  max-width: 220px;
+  height: 30px;
+  border: 0;
+  border-radius: 8px;
+  padding: 0 30px 0 10px;
+  background: var(--admin-control-bg, rgba(30, 41, 59, 0.78));
+  color: var(--admin-text-primary, #f8fafc);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.admin-workspace-switcher select:focus-visible {
+  outline: 2px solid var(--admin-focus-ring, #60a5fa);
+  outline-offset: 2px;
+}
+
+#admin-profile-workspaces-slot {
+  padding: 0 14px 12px;
+}
+
+.admin-profile-workspaces {
+  display: grid;
+  gap: 8px;
+  padding-top: 12px;
+  border-top: 1px solid var(--admin-border-subtle, rgba(148, 163, 184, 0.18));
+}
+
+.admin-profile-workspaces > span {
+  color: var(--admin-text-muted, #94a3b8);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.admin-profile-workspaces > div,
+.admin-profile-page-workspaces {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.admin-profile-workspaces button,
+.admin-profile-page-workspaces span {
+  min-height: 28px;
+  padding: 5px 9px;
+  border: 1px solid var(--admin-border-subtle, rgba(148, 163, 184, 0.22));
+  border-radius: 999px;
+  background: transparent;
+  color: var(--admin-text-secondary, #cbd5e1);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.admin-profile-workspaces button {
+  cursor: pointer;
+}
+
+.admin-profile-workspaces button[data-active='true'],
+.admin-profile-page-workspaces span[data-primary='true'] {
+  border-color: var(--admin-accent-border, rgba(96, 165, 250, 0.58));
+  background: var(--admin-accent-soft, rgba(37, 99, 235, 0.16));
+  color: var(--admin-text-primary, #f8fafc);
+}
+
+#admin-workspace-dashboard-slot {
+  width: 100%;
+  margin-bottom: 18px;
+}
+
+.admin-workspace-dashboard {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  width: 100%;
+  padding: 20px 22px;
+  border: 1px solid var(--admin-border-subtle, rgba(148, 163, 184, 0.2));
+  border-radius: 18px;
+  background:
+    linear-gradient(135deg, var(--admin-accent-soft, rgba(37, 99, 235, 0.14)), transparent 58%),
+    var(--admin-surface-raised, rgba(15, 23, 42, 0.72));
+  box-shadow: var(--admin-shadow-card, 0 14px 35px rgba(2, 6, 23, 0.14));
+}
+
+.admin-workspace-dashboard > div {
+  min-width: 0;
+}
+
+.admin-workspace-dashboard > div > span {
+  display: block;
+  margin-bottom: 5px;
+  color: var(--admin-accent-text, #93c5fd);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.admin-workspace-dashboard h2 {
+  margin: 0;
+  color: var(--admin-text-primary, #f8fafc);
+  font-size: clamp(20px, 2.4vw, 28px);
+  line-height: 1.2;
+}
+
+.admin-workspace-dashboard p {
+  max-width: 760px;
+  margin: 7px 0 0;
+  color: var(--admin-text-secondary, #cbd5e1);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.admin-workspace-dashboard nav {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+  flex: 0 0 auto;
+}
+
+.admin-workspace-dashboard nav a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 7px 11px;
+  border: 1px solid var(--admin-border-subtle, rgba(148, 163, 184, 0.22));
+  border-radius: 10px;
+  background: var(--admin-control-bg, rgba(15, 23, 42, 0.55));
+  color: var(--admin-text-primary, #f8fafc);
+  font-size: 12px;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.admin-workspace-dashboard nav a:hover {
+  border-color: var(--admin-accent-border, rgba(96, 165, 250, 0.58));
+  background: var(--admin-accent-soft, rgba(37, 99, 235, 0.16));
+}
+
+.admin-profile-panel--workspaces .admin-profile-panel__head {
+  margin-bottom: 16px;
+}
+
+.admin-profile-workspace-list {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+}
+
+.admin-profile-workspace-list article {
+  padding: 14px;
+  border: 1px solid var(--admin-border-subtle, rgba(148, 163, 184, 0.2));
+  border-radius: 14px;
+  background: var(--admin-surface-soft, rgba(15, 23, 42, 0.38));
+}
+
+.admin-profile-workspace-list article[data-primary='true'] {
+  border-color: var(--admin-accent-border, rgba(96, 165, 250, 0.58));
+  background: var(--admin-accent-soft, rgba(37, 99, 235, 0.12));
+}
+
+.admin-profile-workspace-list article header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.admin-profile-workspace-list article strong {
+  color: var(--admin-text-primary, #f8fafc);
+}
+
+.admin-profile-workspace-list article span {
+  color: var(--admin-accent-text, #93c5fd);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.admin-profile-workspace-list article p {
+  margin: 8px 0 0;
+  color: var(--admin-text-secondary, #cbd5e1);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+@media (max-width: 1100px) {
+  .admin-workspace-switcher > span {
+    display: none;
+  }
+
+  .admin-workspace-switcher select {
+    min-width: 132px;
+  }
+}
+
+@media (max-width: 760px) {
+  /* The mobile topbar must stay a single-row control surface. Workspace
+   * switching remains available from the profile workspace chips, so the P3
+   * owner does not widen .admin-topbar-actions or cover the menu trigger. */
+  #admin-workspace-switcher-slot {
+    display: none;
+  }
+
+  .admin-workspace-dashboard {
+    align-items: flex-start;
+    flex-direction: column;
+    padding: 17px;
+  }
+
+  .admin-workspace-dashboard nav {
+    justify-content: flex-start;
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-workspace-switcher *,
+  .admin-workspace-dashboard * {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
