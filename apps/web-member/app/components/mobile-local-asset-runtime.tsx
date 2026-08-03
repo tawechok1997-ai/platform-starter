@@ -12,6 +12,19 @@ const MOBILE_MEDIA_SCOPE = [
   '.auth-reference-scope',
 ].join(',');
 
+const CARD_OWNED_MEDIA_SELECTOR = [
+  '[data-no-fallback="true"]',
+  '[data-game-id]',
+  '[data-game-code]',
+  '[data-game-name]',
+  '[data-game-tags]',
+  '[data-game-card]',
+  '.source-highlight-game',
+  '.source-popular-card',
+  '.source-online-card',
+  '.reference-game-tile',
+].join(',');
+
 export default function MobileLocalAssetRuntime() {
   useEffect(() => {
     const mediaQuery = window.matchMedia('(max-width: 900px)');
@@ -19,6 +32,11 @@ export default function MobileLocalAssetRuntime() {
 
     const matchImage = (image: HTMLImageElement) => {
       if (!image.closest(MOBILE_MEDIA_SCOPE)) return;
+
+      // Game cards already resolve the checked-in asset, remote source and
+      // replacement item together. Rewriting their src here creates a second
+      // error owner and can separate the artwork from its game link.
+      if (image.closest(CARD_OWNED_MEDIA_SELECTOR)) return;
 
       const currentSource = image.currentSrc || image.getAttribute('src') || '';
       if (!isRemoteMedia(currentSource)) return;
