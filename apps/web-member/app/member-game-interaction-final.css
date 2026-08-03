@@ -1,0 +1,105 @@
+/* Final owner for game-category controls and provider presentation motion. */
+
+/* Platform follows the responsive viewport automatically. The manual switch
+ * is intentionally removed from every category page to avoid exposing an
+ * implementation detail to members. */
+main[data-source-game-category]
+  [role='group'][aria-label='เลือกชุดไอคอนเกมตามอุปกรณ์'] {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+main[data-source-game-category]
+  div:has(> [role='group'][aria-label='เลือกชุดไอคอนเกมตามอุปกรณ์']) {
+  display: block !important;
+  min-height: 0 !important;
+  margin-bottom: 0 !important;
+}
+
+@media (min-width: 901px) {
+  /* Restore the source transition that the generic motion contract previously
+   * narrowed to color/background-only properties. */
+  #member-desktop-scale-canvas [data-source-provider-button] {
+    position: relative;
+    transform: translate3d(0, 0, 0) scale(1);
+    transform-origin: 50% 50%;
+    will-change: transform, box-shadow, border-color, filter;
+    transition-property: transform, box-shadow, border-color, background-color, filter, opacity !important;
+    transition-duration: 220ms !important;
+    transition-timing-function: cubic-bezier(.22, 1, .36, 1) !important;
+  }
+
+  #member-desktop-scale-canvas [data-source-provider-button]:hover:not(:disabled),
+  #member-desktop-scale-canvas [data-source-provider-button]:focus-visible:not(:disabled) {
+    transform: translate3d(0, -3px, 0) scale(1.025);
+    filter: brightness(1.08);
+  }
+
+  #member-desktop-scale-canvas [data-source-provider-button][aria-pressed='true'] {
+    animation: memberProviderSelectPop 420ms cubic-bezier(.22, 1, .36, 1) both;
+  }
+
+  #member-desktop-scale-canvas [data-source-provider-button][aria-pressed='true']::after {
+    position: absolute;
+    inset: -1px;
+    z-index: 3;
+    border: 1px solid rgb(222 158 255 / 78%);
+    border-radius: inherit;
+    box-shadow: 0 0 0 0 rgb(187 91 234 / 42%);
+    content: '';
+    pointer-events: none;
+    animation: memberProviderSelectGlow 520ms ease-out both;
+  }
+
+  /* Provider background, title and avatar already change class from React.
+   * Keep their transforms animated even when a global motion owner is loaded
+   * after the CSS module. */
+  main[data-source-game-category] > div[aria-hidden='true'] > img {
+    will-change: opacity, transform;
+    transition:
+      opacity 560ms cubic-bezier(.2, 0, 0, 1),
+      transform 680ms cubic-bezier(.22, 1, .36, 1) !important;
+  }
+
+  main[data-source-game-category] > section > header > img {
+    will-change: opacity, transform, filter;
+    transition:
+      opacity 480ms cubic-bezier(.2, 0, 0, 1),
+      transform 680ms cubic-bezier(.22, 1, .36, 1),
+      filter 420ms ease !important;
+  }
+}
+
+@keyframes memberProviderSelectPop {
+  0% {
+    transform: translate3d(0, 0, 0) scale(.94);
+  }
+  52% {
+    transform: translate3d(0, -3px, 0) scale(1.065);
+  }
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@keyframes memberProviderSelectGlow {
+  0% {
+    opacity: 0;
+    box-shadow: 0 0 0 0 rgb(187 91 234 / 50%);
+  }
+  30% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    box-shadow: 0 0 0 12px rgb(187 91 234 / 0%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #member-desktop-scale-canvas [data-source-provider-button][aria-pressed='true'],
+  #member-desktop-scale-canvas [data-source-provider-button][aria-pressed='true']::after {
+    animation: none !important;
+  }
+}
