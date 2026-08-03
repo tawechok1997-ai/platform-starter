@@ -12,18 +12,6 @@ type SectionGames = {
   classic: MemberCatalogGame[];
 };
 
-type SectionPlan = {
-  key: keyof SectionGames;
-  limit: number;
-};
-
-const SECTION_PLANS: readonly SectionPlan[] = [
-  { key: 'featured', limit: 8 },
-  { key: 'popular', limit: 10 },
-  { key: 'online', limit: 6 },
-  { key: 'classic', limit: 6 },
-];
-
 const artworkCache = new Map<string, Promise<string>>();
 
 export default function DesktopHomeGameSectionRuntime() {
@@ -73,15 +61,26 @@ async function buildRenderableSections(
   catalog: readonly MemberCatalogGame[],
   featureSettings: Record<string, unknown>,
 ): Promise<SectionGames> {
-  const entries = await Promise.all(SECTION_PLANS.map(async ({ key, limit }) => {
-    // Ask for a wider ranked pool so broken demo/CDN artwork can be skipped
-    // without leaving an empty card in the visible strip.
-    const candidates = selectHomeGameSection(catalog, key, 'pc', featureSettings, 30);
-    const games = await keepLoadableArtwork(candidates, limit);
-    return [key, games] as const;
-  }));
+  const [featured, popular, online, classic] = await Promise.all([
+    renderableSection(catalog, 'featured', featureSettings, 8),
+    renderableSection(catalog, 'popular', featureSettings, 10),
+    renderableSection(catalog, 'online', featureSettings, 6),
+    renderableSection(catalog, 'classic', featureSettings, 6),
+  ]);
 
-  return Object.fromEntries(entries) as SectionGames;
+  return { featured, popular, online, classic };
+}
+
+async function renderableSection(
+  catalog: readonly MemberCatalogGame[],
+  section: keyof SectionGames,
+  featureSettings: Record<string, unknown>,
+  limit: number,
+) {
+  // Ask for a wider ranked pool so broken demo/CDN artwork can be skipped
+  // without leaving an empty card in the visible strip.
+  const candidates = selectHomeGameSection(catalog, section, 'pc', featureSettings, 30);
+  return keepLoadableArtwork(candidates, limit);
 }
 
 async function keepLoadableArtwork(
@@ -124,9 +123,7 @@ function imageLoads(src: string) {
     }
 
     const image = new Image();
-    const timeout = window.setTimeout(() => finish(false), 6_000);
     let settled = false;
-
     const finish = (loaded: boolean) => {
       if (settled) return;
       settled = true;
@@ -135,6 +132,7 @@ function imageLoads(src: string) {
       image.onerror = null;
       resolve(loaded && image.naturalWidth > 1 && image.naturalHeight > 1);
     };
+    const timeout = window.setTimeout(() => finish(false), 6_000);
 
     image.onload = () => finish(true);
     image.onerror = () => finish(false);
