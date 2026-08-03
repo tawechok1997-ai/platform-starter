@@ -45,6 +45,10 @@ The following checks must all pass on the same final head:
 
 `Admin Verification & Bundle` executes route inventory, capability audit, P5–P7 ownership audit, unit tests, TypeScript and production build. Browser Matrix and Visual Regression provide Desktop, Tablet and Mobile integration evidence.
 
+## Main integration evidence
+
+PR `#502` merged `main` into the Program branch before the final verification sequence. Later closure documentation commits preserve that integrated Main history.
+
 ## Merge decision
 
-Merge is permitted only after the branch contains latest `main`, the PR is Ready, all required checks pass on one head, and GitHub reports the PR mergeable.
+Merge is permitted only after the PR is Ready, all required checks pass on one head, and GitHub reports the PR mergeable.
