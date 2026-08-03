@@ -68,6 +68,7 @@ export class ProviderSimulatorPersistenceRepository {
           name: 'Simulator Provider',
           logoUrl: DEMO_PROVIDER_LOGO_URL,
           status: 'ACTIVE',
+          walletMode: 'SEAMLESS',
           currency: 'THB',
           timezone: 'Asia/Bangkok',
           metadata: providerMetadata,
