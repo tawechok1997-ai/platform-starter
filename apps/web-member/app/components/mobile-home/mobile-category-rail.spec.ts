@@ -75,9 +75,11 @@ test('category content preserves top chrome and resets the document scroller', (
   assert.doesNotMatch(contentOwner, /root\.scrollTo\(/);
 });
 
-test('category content accepts every canonical category without a second runtime', () => {
-  assert.match(contentOwner, /window\.addEventListener\('click', selectFromClick, true\)/);
+test('category content accepts every canonical category through one event path', () => {
+  assert.match(root, /new CustomEvent\('member:mobile-category-select'/);
   assert.match(contentOwner, /window\.addEventListener\('member:mobile-category-select', selectFromEvent\)/);
+  assert.doesNotMatch(contentOwner, /selectFromClick/);
+  assert.match(contentOwner, /if \(root\) delete root\.dataset\.mobileActiveCategory/);
   assert.match(contentOwner, /'card'/);
   assert.doesNotMatch(home, /MobileCategoryTabRuntime/);
   assert.equal(existsSync(duplicateRuntime), false);
