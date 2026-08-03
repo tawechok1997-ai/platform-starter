@@ -27,6 +27,11 @@ for (const locale of ['th', 'en'] as const) {
     const downloadedCsv = await csvDownload;
     expect(downloadedCsv.suggestedFilename()).toBe('finance.cash-flow.csv');
 
+    const pngDownload = page.waitForEvent('download');
+    await cashFlow.getByRole('button', { name: locale === 'th' ? 'ส่งออก PNG' : 'Export PNG' }).click();
+    const downloadedPng = await pngDownload;
+    expect(downloadedPng.suggestedFilename()).toBe('finance.cash-flow.png');
+
     await cashFlow.getByRole('button', { name: locale === 'th' ? 'เต็มหน้าจอ' : 'Fullscreen' }).click();
     await expect(cashFlow).toHaveAttribute('data-fullscreen', 'true');
     await page.keyboard.press('Escape');
