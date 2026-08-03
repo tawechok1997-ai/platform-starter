@@ -20,6 +20,8 @@ const MOBILE_MENU_BACK_SELECTOR = [
 ].join(',');
 
 const MOBILE_REFERRAL_COPY_SELECTOR = '[data-mobile-member-drawer-copy="referral"]';
+const MOBILE_REFERRAL_LABELS = new Set(['แนะนำเพื่อน', 'Refer a friend']);
+const MOBILE_REFERRAL_ROUTES = new Set(['/affiliate', '/mobile/member/affiliate']);
 
 export default function MemberFloatingContact() {
   const pathname = usePathname() ?? '/';
@@ -28,24 +30,53 @@ export default function MemberFloatingContact() {
   const isMobileMenuPage = MOBILE_MENU_PAGE_ROUTES.has(normalizedPath);
 
   useEffect(() => {
-    const preserveReferralCopy = (event: MouseEvent) => {
+    const routeReferralActionsToCopyOwner = (event: MouseEvent) => {
       if (!(event.target instanceof Element)) return;
-      const action = event.target.closest<HTMLElement>(MOBILE_REFERRAL_COPY_SELECTOR);
-      const label = action?.querySelector<HTMLElement>('strong');
-      if (!action || !label) return;
+      const action = event.target.closest<HTMLElement>('a,button,[role="button"]');
+      if (!action) return;
 
-      // The shared popup router infers navigation from visible Thai labels during
-      // document capture. Mask only that label for the current click so the
-      // original React handler can copy the referral URL and show its source toast.
-      const originalLabel = label.textContent ?? '';
-      label.textContent = 'คัดลอกลิงก์';
-      window.queueMicrotask(() => {
-        if (label.isConnected) label.textContent = originalLabel;
-      });
+      const canonicalCopyAction = action.closest<HTMLElement>(MOBILE_REFERRAL_COPY_SELECTOR);
+      if (canonicalCopyAction) {
+        preserveCanonicalReferralCopyLabel(canonicalCopyAction);
+        return;
+      }
+
+      // Explicit popup actions such as network income may also use /affiliate.
+      // They are not referral-copy controls and must keep their own behavior.
+      if (action.dataset.mobileMemberPopup) return;
+
+      const label = normalizeActionLabel(action.textContent ?? '');
+      const href = action instanceof HTMLAnchorElement
+        ? normalizePathname(action.getAttribute('href') ?? '')
+        : '';
+      const isReferralAction = MOBILE_REFERRAL_LABELS.has(label)
+        || (MOBILE_REFERRAL_ROUTES.has(href) && label.includes('แนะนำเพื่อน'));
+      if (!isReferralAction) return;
+
+      const copyAction = document.querySelector<HTMLElement>(MOBILE_REFERRAL_COPY_SELECTOR);
+      if (!copyAction) return;
+
+      event.preventDefault();
+      event.stopPropagation();
+      event.stopImmediatePropagation();
+
+      action
+        .closest<HTMLElement>('[data-mobile-popup-owner="menu"]')
+        ?.querySelector<HTMLButtonElement>('button[aria-label="ปิด"]')
+        ?.click();
+      action
+        .closest<HTMLElement>('#mobile-home-drawer')
+        ?.querySelector<HTMLButtonElement>('button[aria-label="ปิดเมนู"]')
+        ?.click();
+
+      // Run the one authenticated copy handler. That owner resolves the real
+      // referral URL, supports restricted mobile clipboards and shows the
+      // source-matched success toast. No menu is allowed to navigate instead.
+      copyAction.click();
     };
 
-    window.addEventListener('click', preserveReferralCopy, true);
-    return () => window.removeEventListener('click', preserveReferralCopy, true);
+    window.addEventListener('click', routeReferralActionsToCopyOwner, true);
+    return () => window.removeEventListener('click', routeReferralActionsToCopyOwner, true);
   }, []);
 
   useEffect(() => {
@@ -67,6 +98,33 @@ export default function MemberFloatingContact() {
   }, [isMobileMenuPage, router]);
 
   return null;
+}
+
+function preserveCanonicalReferralCopyLabel(action: HTMLElement) {
+  const label = action.querySelector<HTMLElement>('strong');
+  if (!label) return;
+
+  // The shared popup router infers navigation from visible Thai labels during
+  // document capture. Mask only the canonical row for the current click so its
+  // React copy handler and success toast remain the final owner.
+  const originalLabel = label.textContent ?? '';
+  label.textContent = 'คัดลอกลิงก์';
+  window.queueMicrotask(() => {
+    if (label.isConnected) label.textContent = originalLabel;
+  });
+}
+
+function normalizeActionLabel(value: string) {
+  return value.replace(/\s+/g, ' ').trim();
+}
+
+function normalizePathname(value: string) {
+  if (!value) return '';
+  try {
+    return normalizePath(new URL(value, window.location.origin).pathname);
+  } catch {
+    return normalizePath(value.split(/[?#]/, 1)[0] ?? '');
+  }
 }
 
 function normalizePath(pathname: string) {
