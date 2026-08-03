@@ -54,26 +54,12 @@ export default function MobileCategoryTabRuntime() {
       else item.removeAttribute('aria-current');
     });
 
-    const bottomStructure = root.querySelector<HTMLElement>('[data-mobile-bottom-owner="true"]');
-    if (bottomStructure) {
-      bottomStructure.hidden = activeCategory !== 'home';
-      if (activeCategory === 'home') {
-        bottomStructure.removeAttribute('aria-hidden');
-        bottomStructure.style.removeProperty('display');
-      } else {
-        bottomStructure.setAttribute('aria-hidden', 'true');
-        bottomStructure.style.setProperty('display', 'none', 'important');
-      }
-    }
-
+    // Only the category content changes. Header, auth actions, announcement,
+    // highlight tabs, shortcut and footer stay mounted to avoid document-height
+    // collapse, scroll jumps and hydration flicker while switching categories.
     return () => {
       if (root.dataset.mobileActiveCategory === activeCategory) {
         delete root.dataset.mobileActiveCategory;
-      }
-      if (bottomStructure) {
-        bottomStructure.hidden = false;
-        bottomStructure.removeAttribute('aria-hidden');
-        bottomStructure.style.removeProperty('display');
       }
     };
   }, [activeCategory]);
