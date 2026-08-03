@@ -1,8 +1,9 @@
 'use client';
 
-import { useMemo, useState, type CSSProperties, type DragEvent, type ReactNode } from 'react';
+import { useEffect, useMemo, useState, type CSSProperties, type DragEvent, type ReactNode } from 'react';
 
 import {
+  canShowAdminWidgetInWorkspace,
   resolveAdminCompareRange,
   resolveAdminDateRange,
   type AdminComparePeriod,
@@ -11,9 +12,16 @@ import {
   type AdminWidgetDefinition,
   type AdminWidgetLayoutItem,
   type AdminWidgetRegistry,
+  type AdminWidgetWorkspaceId,
 } from './chart-widget-contracts';
 import { useAdminWidgetLayout } from './use-admin-widget-layout';
 import styles from './admin-widget-workspace.module.css';
+
+const ADMIN_WORKSPACE_CHANGE_EVENT = 'admin:workspace-change';
+
+type AdminWorkspaceChangeDetail = {
+  selection?: unknown;
+};
 
 export type AdminWidgetWorkspaceLabels = {
   dateRange: string;
@@ -74,8 +82,27 @@ export function AdminWidgetWorkspace({
   const [customEnd, setCustomEnd] = useState('');
   const [editing, setEditing] = useState(false);
   const [draggingId, setDraggingId] = useState('');
+  const [workspace, setWorkspace] = useState<AdminWidgetWorkspaceId | 'all'>('all');
 
-  const accessibleIds = useMemo(() => new Set(registry.visibleTo(permissions).map((definition) => definition.id)), [permissions, registry]);
+  useEffect(() => {
+    const syncFromRoot = () => {
+      setWorkspace(normalizeWorkspace(document.documentElement.dataset.adminWorkspace));
+    };
+    const handleWorkspaceChange = (event: Event) => {
+      const detail = (event as CustomEvent<AdminWorkspaceChangeDetail>).detail;
+      setWorkspace(normalizeWorkspace(detail?.selection));
+    };
+
+    syncFromRoot();
+    window.addEventListener(ADMIN_WORKSPACE_CHANGE_EVENT, handleWorkspaceChange);
+    return () => window.removeEventListener(ADMIN_WORKSPACE_CHANGE_EVENT, handleWorkspaceChange);
+  }, []);
+
+  const accessibleIds = useMemo(() => new Set(
+    registry.visibleTo(permissions)
+      .filter((definition) => canShowAdminWidgetInWorkspace(definition, workspace))
+      .map((definition) => definition.id),
+  ), [permissions, registry, workspace]);
   const accessibleItems = useMemo(() => layout.items.filter((item) => accessibleIds.has(item.widgetId)), [accessibleIds, layout.items]);
   const visibleItems = accessibleItems.filter((item) => !item.hidden);
   const hiddenItems = accessibleItems.filter((item) => item.hidden);
@@ -103,7 +130,12 @@ export function AdminWidgetWorkspace({
     setDraggingId('');
   }
 
-  return <section className={styles.workspace} data-editing={editing || undefined} aria-busy={!layout.ready}>
+  return <section
+    className={styles.workspace}
+    data-editing={editing || undefined}
+    data-admin-widget-workspace={workspace}
+    aria-busy={!layout.ready}
+  >
     <div className={styles.controls}>
       <div className={styles.rangeControls}>
         <label>
@@ -211,4 +243,15 @@ function WidgetEditToolbar({
     <button type="button" aria-label={item.pinned ? labels.unpinWidget : labels.pinWidget} title={item.pinned ? labels.unpinWidget : labels.pinWidget} onClick={() => onUpdate({ pinned: !item.pinned })}>{item.pinned ? '◆' : '◇'}</button>
     <button type="button" aria-label={labels.hideWidget} title={labels.hideWidget} onClick={() => onUpdate({ hidden: true })}>×</button>
   </div>;
+}
+
+function normalizeWorkspace(value: unknown): AdminWidgetWorkspaceId | 'all' {
+  return value === 'finance'
+    || value === 'payments'
+    || value === 'growth'
+    || value === 'manager'
+    || value === 'system'
+    || value === 'all'
+    ? value
+    : 'all';
 }
