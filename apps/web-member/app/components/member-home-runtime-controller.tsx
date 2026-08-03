@@ -10,11 +10,20 @@ import type {
   MemberQuickActionRuntime,
 } from '../member-runtime-contract';
 
+const CARD_SELECTOR = [
+  '.source-highlight-game',
+  '.v47-mobile-game-grid > a',
+  '.reference-game-tile',
+  '[data-game-card]',
+  '.member-game-card',
+].join(',');
+
 export default function MemberHomeRuntimeController() {
   const runtime = useMemberRuntime();
 
   useLayoutEffect(() => {
     let frame = 0;
+    const mobile = window.matchMedia('(max-width: 900px)');
 
     const sync = () => {
       frame = 0;
@@ -28,7 +37,12 @@ export default function MemberHomeRuntimeController() {
       syncJackpot(runtime);
       syncLeaderboard(runtime.homeData.leaderboard, runtime.home.leaderboard.title, runtime.home.leaderboard.enabled);
       syncMiniGames(runtime.homeData.miniGames, runtime.features.miniGames);
-      syncSections(runtime.gameSections, runtime.features.usageGuide, runtime.home.sectionTitles.guide);
+      syncSections(
+        runtime.gameSections,
+        runtime.features.usageGuide,
+        runtime.home.sectionTitles.guide,
+        mobile.matches,
+      );
       setVisible('.v47-mobile-hero, .desktop-home .desktop-hero-carousel, .desktop-home [data-home-hero]', runtime.features.hero);
       setVisible('.reference-announcement, .v47-mobile-announcement', runtime.features.announcement);
     };
@@ -42,10 +56,12 @@ export default function MemberHomeRuntimeController() {
     const observer = new MutationObserver(schedule);
     observer.observe(document.body, { childList: true, subtree: true, characterData: true });
     window.addEventListener('resize', schedule);
+    mobile.addEventListener?.('change', schedule);
 
     return () => {
       observer.disconnect();
       window.removeEventListener('resize', schedule);
+      mobile.removeEventListener?.('change', schedule);
       if (frame) window.cancelAnimationFrame(frame);
     };
   }, [runtime]);
@@ -218,18 +234,37 @@ function syncMiniGames(items: MemberMiniGameRuntime[], enabled: boolean) {
   });
 }
 
-function syncSections(sections: MemberGameSectionRuntime[], guideEnabled: boolean, guideTitle: string) {
+function syncSections(
+  sections: MemberGameSectionRuntime[],
+  guideEnabled: boolean,
+  guideTitle: string,
+  isMobile: boolean,
+) {
   for (const section of sections) {
     const selector = `[data-section-kind="${section.id}"]`;
     setVisible(selector, section.enabled);
     document.querySelectorAll<HTMLElement>(selector).forEach((element) => {
+      const limit = isMobile ? section.mobileLimit : section.desktopLimit;
       const heading = element.querySelector<HTMLElement>('header strong, .source-highlight-heading strong');
       if (heading && heading.textContent !== section.title) heading.textContent = section.title;
       const icon = element.querySelector<HTMLImageElement>('header img, .source-highlight-heading img');
       if (icon && section.icon && icon.src !== absolute(section.icon)) icon.src = section.icon;
+
       element.dataset.runtimeSectionId = section.id;
       element.dataset.runtimeDesktopLimit = String(section.desktopLimit);
       element.dataset.runtimeMobileLimit = String(section.mobileLimit);
+      element.dataset.runtimeLimit = String(limit);
+      element.dataset.runtimeCategory = section.category ?? '';
+
+      element.querySelectorAll<HTMLElement>(CARD_SELECTOR).forEach((card, index) => {
+        const runtimeHidden = index >= limit;
+        card.dataset.runtimeLimitHidden = runtimeHidden ? 'true' : 'false';
+        if (runtimeHidden) card.hidden = true;
+        else if (card.dataset.runtimeSourceHidden !== 'true') card.hidden = false;
+      });
+
+      const action = element.querySelector<HTMLAnchorElement>('header a, [data-section-action]');
+      if (action && section.href && action.href !== absolute(section.href)) action.href = section.href;
     });
   }
 
