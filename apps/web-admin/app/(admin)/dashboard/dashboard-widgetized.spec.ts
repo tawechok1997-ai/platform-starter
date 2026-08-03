@@ -18,8 +18,13 @@ test('dashboard adapters preserve API, permission, and per-user layout contracts
   assert.match(source, /\/admin\/risk-alerts\?status=OPEN/);
   assert.match(source, /\/admin\/auth\/me/);
   assert.match(source, /adminUserId/);
-  assert.match(source, /permissions/);
   assert.match(source, /visibleTo\(data\.permissions\)/);
+  assert.match(source, /buildAccess\(data\.permissions\)/);
+  assert.match(source, /access\.topUps/);
+  assert.match(source, /access\.withdrawals/);
+  assert.match(source, /access\.risk/);
+  assert.match(source, /access\.wallet/);
+  assert.match(source, /held\.has\('\*'\)/);
 });
 
 test('dashboard widgets expose range, comparison, state, drill-down, and exports', () => {
