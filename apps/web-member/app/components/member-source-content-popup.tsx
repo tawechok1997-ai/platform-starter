@@ -170,6 +170,7 @@ export default function MemberSourceContentPopup({ view, onDetailOpenChange }: P
             const active = item.id === selectedActivity?.id;
             return (
               <button
+                role="option"
                 type="button"
                 key={item.id}
                 className={active ? 'is-active' : ''}
