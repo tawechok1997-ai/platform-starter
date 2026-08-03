@@ -26,7 +26,7 @@
       "owner": "bank-accounts",
       "reason": "Public account display orders newest records first while rotating assignment orders oldest records first after the shared sort priority."
     },
-    "duplicate:f039be0066b2b34c880c1aea": {
+    "duplicate:d573bf934b1f5040e4c61adc": {
       "status": "documented-exception",
       "owner": "provider-simulator",
       "reason": "Round reconstruction performs a transaction-scoped ledger read for deterministic state recovery, unlike the wallet admin detail projection."
