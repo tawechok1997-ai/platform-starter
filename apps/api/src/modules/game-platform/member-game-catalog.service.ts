@@ -8,6 +8,7 @@ import {
   type SimulatorCatalogPlatform,
   type SimulatorGameCatalogItem,
 } from '../provider-simulator/provider-simulator-catalog';
+import { mobileProviderCardUrl } from './mobile-provider-artwork';
 
 type MemberGamePlatform = 'mobile' | 'pc';
 type MemberGamePlatformFilter = 'all' | MemberGamePlatform | 'both';
@@ -192,6 +193,9 @@ export class MemberGameCatalogService {
     const platform = normalizeGeneratedPlatform(item.platform);
     const imageUrl = assetUrl(item.assetPath, '');
     const logoUrl = assetUrl(item.providerLogoPath, '');
+    const mobileCardUrl = platform === 'mobile'
+      ? mobileProviderCardUrl(item.category, item.provider)
+      : '';
     return {
       id: `catalog:${platform}:${item.provider}:${item.code}`,
       providerGameCode: item.code,
@@ -211,7 +215,7 @@ export class MemberGameCatalogService {
         status: 'ACTIVE',
         logoUrl,
         badgeUrl: logoUrl,
-        cardUrl: providerAssetUrl('card', item.provider),
+        cardUrl: firstText(mobileCardUrl, providerAssetUrl('card', item.provider)),
         backgroundUrl: providerAssetUrl('background', item.provider),
         titleUrl: providerAssetUrl('title', item.provider),
         avatarUrl: providerAssetUrl('avatar', item.provider),
@@ -302,7 +306,12 @@ function normalizeDatabaseItem(item: DatabaseCatalogItem, filter: MemberGamePlat
       presentationUrl(providerPresentation, 'logo', requestedPlatform),
       item.provider.logoUrl,
     ),
-    cardUrl: presentationUrl(providerPresentation, 'card', requestedPlatform),
+    cardUrl: firstText(
+      requestedPlatform === 'mobile'
+        ? mobileProviderCardUrl(item.category, item.provider.code)
+        : '',
+      presentationUrl(providerPresentation, 'card', requestedPlatform),
+    ),
     backgroundUrl: presentationUrl(providerPresentation, 'background', requestedPlatform),
     titleUrl: presentationUrl(providerPresentation, 'title', requestedPlatform),
     avatarUrl: presentationUrl(providerPresentation, 'avatar', requestedPlatform),

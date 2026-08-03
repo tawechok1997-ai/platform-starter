@@ -170,6 +170,7 @@ export default function MobileProviderGamesCategoryPage({
       data-provider-games-category={category}
       data-provider-games-stage="games"
       data-selected-provider={selectedProvider.code}
+      data-provider-asset-platform={providerAssetPlatform}
       data-game-asset-platform={gameAssetPlatform}
       aria-labelledby={`mobile-${category}-games-heading`}
     >
@@ -178,7 +179,6 @@ export default function MobileProviderGamesCategoryPage({
           const code = normalizeProviderCode(provider.code);
           const active = code === selectedCode;
           const iconSource = provider.iconSource || providerIconSource(provider.code);
-          const resolvedIcon = resolveLocalAssetOrSource(iconSource, providerAssetPlatform);
           return (
             <button
               key={provider.code}
@@ -190,10 +190,10 @@ export default function MobileProviderGamesCategoryPage({
               onClick={() => selectProvider(provider)}
             >
               <img
-                src={resolvedIcon}
+                src={iconSource}
                 alt={provider.name}
                 loading="lazy"
-                onError={(event) => fallbackImage(event.currentTarget, resolvedIcon, iconSource)}
+                onError={(event) => fallbackImage(event.currentTarget, iconSource, iconSource)}
               />
             </button>
           );
@@ -302,6 +302,7 @@ function ProviderSelection({
       data-category-flow="provider-games"
       data-provider-games-category={category}
       data-provider-games-stage="providers"
+      data-provider-asset-platform={providerAssetPlatform}
       aria-labelledby={`mobile-${category}-provider-heading`}
     >
       <div className={styles.headingRow}>
@@ -312,7 +313,6 @@ function ProviderSelection({
 
       <div className={styles.grid}>
         {providers.map((provider) => {
-          const resolvedSource = resolveLocalAssetOrSource(provider.source, providerAssetPlatform);
           const className = [
             styles.card,
             styles.providerSelectButton,
@@ -335,11 +335,12 @@ function ProviderSelection({
               {provider.badge === 'hot' ? <HotBadge /> : null}
               {provider.badge === 'new' ? <NewBadge /> : null}
               <img
-                src={resolvedSource}
+                src={provider.source}
                 alt={provider.name}
                 loading="lazy"
                 data-provider-image-source={provider.source}
-                onError={(event) => fallbackImage(event.currentTarget, resolvedSource, provider.source)}
+                data-provider-image-owner="api"
+                onError={(event) => fallbackImage(event.currentTarget, provider.source, provider.source)}
               />
             </button>
           );
@@ -423,6 +424,8 @@ function mergeProviderCards(
       merged.set(code, {
         ...existing,
         name: provider.name || existing.name,
+        source: provider.card || existing.source,
+        iconSource: provider.badge || existing.iconSource,
       });
       return;
     }
@@ -514,7 +517,7 @@ function NewBadge() {
 function FilterIcon() {
   return (
     <svg viewBox="0 0 512 512" aria-hidden="true">
-      <path d="M32 384h272v32H32zM400 384h80v32h-80zM384 447.5c0 17.949-14.327 32.5-32 32.5-17.673 0-32-14.551-32-32.5v-95c0-17.949 14.327-32.5 32-32.5 17.673 0 32 14.551 32 32.5v95z" />
+      <path d="M32 384h272v32H32zM400 384h80v32H400zM384 447.5c0 17.949-14.327 32.5-32 32.5-17.673 0-32-14.551-32-32.5v-95c0-17.949 14.327-32.5 32-32.5 17.673 0 32 14.551 32 32.5v95z" />
       <path d="M32 240h80v32H32zM208 240h272v32H208zM192 303.5c0 17.949-14.327 32.5-32 32.5-17.673 0-32-14.551-32-32.5v-95c0-17.949 14.327-32.5 32-32.5 17.673 0 32 14.551 32 32.5v95z" />
       <path d="M32 96h272v32H32zM400 96h80v32H400zM384 159.5c0 17.949-14.327 32.5-32 32.5-17.673 0-32-14.551-32-32.5v-95c0-17.949 14.327-32.5 32-32.5 17.673 0 32 14.551 32 32.5v95z" />
     </svg>
