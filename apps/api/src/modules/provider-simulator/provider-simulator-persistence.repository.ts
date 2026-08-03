@@ -10,6 +10,9 @@ export type SimulatorMemberSlotLaunchInput = {
 
 const DEMO_PROVIDER_CODE = 'simulator-provider';
 const DEMO_GAME_CODE = 'demo-slot-001';
+const DEMO_GAME_IMAGE_URL = '/assets/demo-slot/demo-fortune-slot.svg';
+const DEMO_PROVIDER_LOGO_URL = '/assets/demo-slot/simulator-provider-logo.svg';
+const DEMO_PROVIDER_CARD_URL = '/assets/demo-slot/simulator-provider-card.svg';
 
 @Injectable()
 export class ProviderSimulatorPersistenceRepository {
@@ -46,41 +49,51 @@ export class ProviderSimulatorPersistenceRepository {
 
   async launchMemberSlot(input: SimulatorMemberSlotLaunchInput) {
     return this.prisma.$transaction(async (tx) => {
+      const providerMetadata = {
+        environment: 'DEMO',
+        launchEnabled: true,
+        seamlessWalletEnabled: true,
+        realMoneyEnabled: false,
+        externalProviderCallbackEnabled: false,
+        source: 'member-slot-simulator',
+        logoUrl: DEMO_PROVIDER_LOGO_URL,
+        mobileLogoUrl: DEMO_PROVIDER_LOGO_URL,
+        pcLogoUrl: DEMO_PROVIDER_LOGO_URL,
+        mobileCardUrl: DEMO_PROVIDER_CARD_URL,
+        pcCardUrl: DEMO_PROVIDER_CARD_URL,
+      };
       const provider = await tx.gameProvider.upsert({
         where: { code: DEMO_PROVIDER_CODE },
         update: {
           name: 'Simulator Provider',
+          logoUrl: DEMO_PROVIDER_LOGO_URL,
           status: 'ACTIVE',
           currency: 'THB',
           timezone: 'Asia/Bangkok',
-          metadata: {
-            environment: 'DEMO',
-            launchEnabled: true,
-            seamlessWalletEnabled: true,
-            realMoneyEnabled: false,
-            externalProviderCallbackEnabled: false,
-            source: 'member-slot-simulator',
-          },
+          metadata: providerMetadata,
         },
         create: {
           name: 'Simulator Provider',
           code: DEMO_PROVIDER_CODE,
+          logoUrl: DEMO_PROVIDER_LOGO_URL,
           status: 'ACTIVE',
           walletMode: 'SEAMLESS',
           currency: 'THB',
           timezone: 'Asia/Bangkok',
           sortOrder: 1,
-          metadata: {
-            environment: 'DEMO',
-            launchEnabled: true,
-            seamlessWalletEnabled: true,
-            realMoneyEnabled: false,
-            externalProviderCallbackEnabled: false,
-            source: 'member-slot-simulator',
-          },
+          metadata: providerMetadata,
         },
       });
 
+      const gameMetadata = {
+        source: 'member-slot-simulator',
+        launchReady: true,
+        platform: 'both',
+        realMoneyEnabled: false,
+        imageUrl: DEMO_GAME_IMAGE_URL,
+        mobileImageUrl: DEMO_GAME_IMAGE_URL,
+        pcImageUrl: DEMO_GAME_IMAGE_URL,
+      };
       const game = await tx.game.upsert({
         where: {
           providerId_providerGameCode: {
@@ -96,12 +109,7 @@ export class ProviderSimulatorPersistenceRepository {
           isNew: true,
           isPopular: true,
           sortOrder: 1,
-          metadata: {
-            source: 'member-slot-simulator',
-            launchReady: true,
-            platform: 'both',
-            realMoneyEnabled: false,
-          },
+          metadata: gameMetadata,
         },
         create: {
           providerId: provider.id,
@@ -113,12 +121,7 @@ export class ProviderSimulatorPersistenceRepository {
           isNew: true,
           isPopular: true,
           sortOrder: 1,
-          metadata: {
-            source: 'member-slot-simulator',
-            launchReady: true,
-            platform: 'both',
-            realMoneyEnabled: false,
-          },
+          metadata: gameMetadata,
         },
       });
 
