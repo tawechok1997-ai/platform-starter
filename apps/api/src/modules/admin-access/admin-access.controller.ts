@@ -106,12 +106,14 @@ export class AdminAccessController {
 
   @RequirePermission('admin.subordinates.manage')
   @Patch('admin-users/:adminUserId/reporting-line')
-  setReportingLine(
+  async setReportingLine(
     @Req() req: AdminRequestContext,
     @Param('adminUserId') adminUserId: string,
     @Body() body: SetAdminReportingLineDto,
   ) {
-    return this.governance.setReportingLine(req.user.id, adminUserId, body.managerAdminId);
+    const result = await this.governance.setReportingLine(req.user.id, adminUserId, body.managerAdminId);
+    await this.accessSessions.revokeAfterPrivilegeChange(req.user.id, adminUserId, 'SET_REPORTING_LINE');
+    return result;
   }
 
   @RequirePermission('admin.permissions.override')
