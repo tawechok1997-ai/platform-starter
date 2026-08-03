@@ -95,6 +95,7 @@ function DesktopMemberHome(props: MemberHomeProps) {
   const gameSections = {
     featured: data.featured,
     popular: data.popular,
+    classic: data.classicGames,
     recent: data.recentGames,
     favorites: data.favoriteGames,
   };
