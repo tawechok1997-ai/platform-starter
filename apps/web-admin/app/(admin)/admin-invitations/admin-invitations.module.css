@@ -1,0 +1,84 @@
+.notice {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+}
+
+.noticeActions,
+.linkActions,
+.rowActions,
+.badges {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.latestLink {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 12px;
+  resize: vertical;
+  border: 1px solid var(--admin-border-subtle, color-mix(in srgb, currentColor 18%, transparent));
+  border-radius: 12px;
+  background: var(--admin-control-bg, var(--admin-surface-soft, #070d18));
+  color: var(--admin-text-primary, #f8fafc);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+.linkActions {
+  margin-top: 10px;
+}
+
+.identity,
+.roles,
+.dates {
+  display: grid;
+  min-width: 0;
+  gap: 4px;
+}
+
+.identity strong,
+.roles strong,
+.dates strong {
+  overflow-wrap: anywhere;
+}
+
+.identity small,
+.roles small,
+.dates small {
+  color: var(--admin-text-muted, color-mix(in srgb, currentColor 62%, transparent));
+}
+
+.rowActions {
+  justify-content: flex-end;
+}
+
+.confirmDetails {
+  display: grid;
+  gap: 6px;
+  overflow-wrap: anywhere;
+}
+
+.confirmDetails p {
+  margin: 0;
+}
+
+@media (max-width: 760px) {
+  .notice,
+  .noticeActions,
+  .linkActions,
+  .rowActions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .noticeActions > *,
+  .linkActions > *,
+  .rowActions > * {
+    width: 100%;
+  }
+}
