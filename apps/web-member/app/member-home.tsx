@@ -11,6 +11,7 @@ import {
 import MemberGameSectionRuntimeController from './components/member-game-section-runtime-controller';
 import MemberHomeRuntimeController from './components/member-home-runtime-controller';
 import { CmsPopup } from './components/member-home-sections';
+import DesktopHomeGameImageRecoveryRuntime from './components/member-home/desktop-home-game-image-recovery-runtime';
 import { DesktopHomeScaffold } from './components/member-home/desktop-home-scaffold';
 import HomeSidebarScrollController from './components/member-home/home-sidebar-scroll-controller';
 import MobileAuthenticatedAvatarRuntime from './components/mobile-home/mobile-authenticated-avatar-runtime';
@@ -111,6 +112,7 @@ function DesktopMemberHome(props: MemberHomeProps) {
 
   return (
     <>
+      <DesktopHomeGameImageRecoveryRuntime />
       <DesktopHomeScaffold
         content={props.cmsContent}
         icons={icons}
