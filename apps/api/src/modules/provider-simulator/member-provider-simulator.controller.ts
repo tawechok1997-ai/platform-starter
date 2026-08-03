@@ -1,5 +1,5 @@
-import { Body, Controller, Param, Post, UseGuards } from '@nestjs/common';
-import type { MemberActor } from '../../common/actors';
+import { Body, Controller, Param, Post, Req, UseGuards } from '@nestjs/common';
+import type { MemberActor, MemberRequestContext } from '../../common/actors';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { MemberAuthGuard } from '../../common/guards/member-auth.guard';
 import { MemberSimulatorSlotSpinDto } from './dto/member-simulator-slot-spin.dto';
@@ -9,6 +9,16 @@ import { ProviderSimulatorSlotService } from './provider-simulator-slot.service'
 @Controller('member/provider-simulator')
 export class MemberProviderSimulatorController {
   constructor(private readonly slotService: ProviderSimulatorSlotService) {}
+
+  @Post('games/demo-slot-001/launch')
+  launch(@CurrentUser() member: MemberActor, @Req() request: MemberRequestContext) {
+    const userAgent = request.headers?.['user-agent'];
+    return this.slotService.launch({
+      userId: member.id,
+      ipAddress: request.ip,
+      userAgent: Array.isArray(userAgent) ? userAgent[0] : userAgent,
+    });
+  }
 
   @Post('sessions/:sessionId/spin')
   spin(
