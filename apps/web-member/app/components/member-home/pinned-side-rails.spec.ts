@@ -6,8 +6,8 @@ const desktop = readFileSync(
   new URL('./home-sidebar-scroll-controller.tsx', import.meta.url),
   'utf8',
 );
-const mobile = readFileSync(
-  new URL('../mobile-home/mobile-category-rail-pin-runtime.tsx', import.meta.url),
+const mobileCss = readFileSync(
+  new URL('../../member-mobile-category-follow.css', import.meta.url),
   'utf8',
 );
 const home = readFileSync(
@@ -15,20 +15,20 @@ const home = readFileSync(
   'utf8',
 );
 
-test('desktop jackpot sidebar stays fixed and visible for the full page scroll', () => {
+test('desktop jackpot sidebar stays viewport fixed and visible for the full page scroll', () => {
   assert.match(desktop, /setProperty\('position', 'fixed'/);
   assert.match(desktop, /DEFAULT_FIXED_TOP = 124/);
   assert.match(desktop, /desktopSidebarPlaceholder/);
   assert.match(desktop, /setProperty\('overflow-y', 'auto'/);
+  assert.match(desktop, /scrollState = 'fixed'/);
   assert.doesNotMatch(desktop, /addEventListener\('scroll'/);
 });
 
-test('mobile category rail stays fixed while only the content column scrolls', () => {
-  assert.match(mobile, /RAIL_SELECTOR = '\[data-mobile-section-owner="category-menu"\]'/);
-  assert.match(mobile, /setProperty\('position', 'fixed'/);
-  assert.match(mobile, /setProperty\('top', `\$\{HEADER_HEIGHT\}px`/);
-  assert.match(mobile, /setProperty\('overflow-y', 'auto'/);
-  assert.match(mobile, /mobileCategoryFollow = 'fixed'/);
-  assert.doesNotMatch(mobile, /addEventListener\('scroll'/);
-  assert.match(home, /<MobileCategoryRailPinRuntime \/>/);
+test('mobile category rail stays viewport fixed while only the content column scrolls', () => {
+  assert.doesNotMatch(home, /MobileCategoryRailPinRuntime/);
+  assert.doesNotMatch(home, /MobileCategoryRailTransformFollower/);
+  assert.match(mobileCss, /data-mobile-section-owner='category-menu'[\s\S]*position:\s*fixed\s*!important/);
+  assert.match(mobileCss, /top:\s*calc\(60px \+ env\(safe-area-inset-top, 0px\)\)\s*!important/);
+  assert.match(mobileCss, /overflow-y:\s*auto\s*!important/);
+  assert.doesNotMatch(mobileCss, /position:\s*sticky\s*!important[\s\S]*data-mobile-section-owner='category-menu'/);
 });
