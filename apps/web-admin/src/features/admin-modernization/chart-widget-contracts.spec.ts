@@ -42,16 +42,18 @@ const definitions: AdminWidgetDefinition[] = [
   },
 ];
 
+const financeDefinition = definitions[0];
+if (!financeDefinition) throw new Error('Finance widget definition fixture is missing');
 const registry = createAdminWidgetRegistry(definitions);
 
 test('widget registry rejects duplicate and malformed ids', () => {
-  assert.throws(() => createAdminWidgetRegistry([definitions[0], definitions[0]]), /Duplicate Admin widget id/);
-  assert.throws(() => createAdminWidgetRegistry([{ ...definitions[0], id: 'Finance Widget' }]), /Invalid Admin widget id/);
+  assert.throws(() => createAdminWidgetRegistry([financeDefinition, financeDefinition]), /Duplicate Admin widget id/);
+  assert.throws(() => createAdminWidgetRegistry([{ ...financeDefinition, id: 'Finance Widget' }]), /Invalid Admin widget id/);
 });
 
 test('widget registry resolves permission-aware visibility', () => {
-  assert.equal(canAccessAdminWidget(definitions[0], ['wallet.view']), true);
-  assert.equal(canAccessAdminWidget(definitions[0], ['risk.view']), false);
+  assert.equal(canAccessAdminWidget(financeDefinition, ['wallet.view']), true);
+  assert.equal(canAccessAdminWidget(financeDefinition, ['risk.view']), false);
   assert.deepEqual(registry.visibleTo(['risk.view']).map((item) => item.id), ['risk.open-alerts', 'system.health']);
   assert.equal(registry.visibleTo(['*']).length, definitions.length);
   assert.equal(registry.get('missing'), null);
@@ -93,9 +95,11 @@ test('drag resize pin and restore operations stay immutable', () => {
   assert.deepEqual(defaults.map((item) => item.widgetId), ['risk.open-alerts', 'finance.cash-flow', 'system.health']);
 
   const pinned = updateAdminWidgetLayoutItem(moved, 'finance.cash-flow', { pinned: true, columns: 3, rows: 2 });
+  const firstPinned = pinned[0];
+  assert.ok(firstPinned);
   assert.deepEqual(pinned.map((item) => item.widgetId), ['finance.cash-flow', 'risk.open-alerts', 'system.health']);
-  assert.equal(pinned[0].columns, 3);
-  assert.equal(pinned[0].rows, 2);
+  assert.equal(firstPinned.columns, 3);
+  assert.equal(firstPinned.rows, 2);
 });
 
 test('saved layout payload is versioned and isolated per administrator', () => {
