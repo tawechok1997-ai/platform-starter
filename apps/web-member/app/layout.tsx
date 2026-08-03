@@ -118,8 +118,10 @@ import './member-mobile-category-follow.css';
 import './member-source-fonts.css';
 import './member-motion-contract.css';
 import './member-game-interaction-final.css';
+import './member-desktop-motion-final.css';
 import MemberChrome from './member-chrome';
 import MemberClientNavigationController from './components/member-client-navigation-controller';
+import MemberDesktopMotionRuntime from './components/member-desktop-motion-runtime';
 import MemberDragScrollController from './components/member-drag-scroll-controller';
 import MemberFloatingContact from './components/member-floating-contact';
 import MemberImageFallbackController from './components/member-image-fallback-controller';
@@ -211,6 +213,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 <PublicDesktopViewportBootstrapOwner />
                 <MemberRenderStabilityController />
                 <MemberClientNavigationController />
+                <MemberDesktopMotionRuntime />
                 <MemberImageFallbackController />
                 <MobileLocalAssetRuntime />
                 <MemberDragScrollController />
