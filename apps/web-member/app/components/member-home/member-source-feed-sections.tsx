@@ -153,10 +153,12 @@ function useRenderableGames(limit: number, order: 'popular' | 'online') {
 async function getLobbyGames() {
   if (!lobbyGamesRequest) {
     lobbyGamesRequest = getMemberGameCatalog('pc')
-      .then((items) => dedupeGames([
-        ...randomizeGameCatalog(items.map(mapCatalogGame)),
-        ...randomizeGameCatalog(FALLBACK_GAMES),
-      ]))
+      .then((items) => {
+        const apiGames = items.map(mapCatalogGame);
+        return apiGames.length > 0
+          ? randomizeGameCatalog(apiGames)
+          : randomizeGameCatalog(FALLBACK_GAMES);
+      })
       .catch(() => {
         lobbyGamesRequest = null;
         return randomizeGameCatalog(FALLBACK_GAMES);
@@ -206,10 +208,6 @@ function fallbackGame(
     players: estimatedPlayers(id),
     popular: badge === 'HOT',
   };
-}
-
-function dedupeGames(items: LobbyGame[]) {
-  return Array.from(new Map(items.map((item) => [gameKey(item), item] as const)).values());
 }
 
 function gameKey(item: LobbyGame) {
