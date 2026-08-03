@@ -5,48 +5,49 @@
 
 /* Mobile category rail contract:
  * - the document owns vertical scrolling
- * - the category rail is sticky beneath the 60px mobile header
- * - it remains inside the left grid column and stops with that grid
- * - no JavaScript transform, fixed follower, or nested vertical scroller exists
+ * - the rail remains a normal left-grid item
+ * - a bounded translate follows the viewport beneath the 60px header
+ * - it stops at the bottom of the category content container
+ * - no fixed positioning, DOM removal, or nested vertical scroller exists
  */
 @media (max-width: 900px) {
-  html[data-member-viewport-mode='mobile'],
-  html[data-member-viewport-mode='mobile'] body {
+  html,
+  body {
     width: 100% !important;
     min-height: 100% !important;
     max-height: none !important;
-    overflow-x: clip !important;
-    overflow-y: auto !important;
+  }
+
+  body {
+    overflow-x: hidden !important;
     overscroll-behavior-y: auto !important;
     touch-action: pan-x pan-y !important;
   }
 
-  html[data-member-viewport-mode='mobile'] #member-desktop-scale-shell,
-  html[data-member-viewport-mode='mobile'] #member-desktop-scale-canvas,
-  html[data-member-viewport-mode='mobile'] .public-game-shell,
-  html[data-member-viewport-mode='mobile'] .public-game-shell__content,
-  html[data-member-viewport-mode='mobile'] [data-mobile-home-root='true'],
-  html[data-member-viewport-mode='mobile'] [data-mobile-home-root='true'] *:has(> [data-mobile-section-owner='category-menu']) {
+  #member-desktop-scale-shell,
+  #member-desktop-scale-canvas,
+  .public-game-shell,
+  .public-game-shell__content,
+  [data-mobile-home-root='true'],
+  [data-mobile-home-root='true'] *:has(> [data-mobile-section-owner='category-menu']) {
     height: auto !important;
     min-height: 0 !important;
     max-height: none !important;
-    overflow-x: clip !important;
-    overflow-y: visible !important;
+    overflow: visible !important;
     contain: none !important;
     overscroll-behavior-y: auto !important;
   }
 
-  html[data-member-viewport-mode='mobile'] [data-mobile-home-root='true'] *:has(> [data-mobile-section-owner='category-menu']) {
+  [data-mobile-home-root='true'] *:has(> [data-mobile-section-owner='category-menu']) {
     position: relative !important;
     display: grid !important;
     align-items: start !important;
     grid-template-rows: none !important;
   }
 
-  html[data-member-viewport-mode='mobile'] [data-mobile-section-owner='category-menu'] {
-    position: -webkit-sticky !important;
-    position: sticky !important;
-    top: 60px !important;
+  [data-mobile-section-owner='category-menu'] {
+    position: relative !important;
+    top: 0 !important;
     right: auto !important;
     bottom: auto !important;
     left: 0 !important;
@@ -58,13 +59,14 @@
     overflow: visible !important;
     overscroll-behavior: auto !important;
     scrollbar-width: auto !important;
-    transform: none !important;
-    will-change: auto !important;
+    transform: translate3d(0, var(--mobile-category-follow-y, 0px), 0) !important;
+    transition: none !important;
+    will-change: transform !important;
     touch-action: pan-y !important;
     -webkit-overflow-scrolling: auto !important;
   }
 
-  html[data-member-viewport-mode='mobile'] [data-mobile-content-slot='after-highlight'] {
+  [data-mobile-content-slot='after-highlight'] {
     height: auto !important;
     min-height: 1px !important;
     max-height: none !important;
@@ -74,7 +76,7 @@
     touch-action: pan-x pan-y !important;
   }
 
-  html[data-member-viewport-mode='mobile'] [data-provider-games-stage] {
+  [data-provider-games-stage] {
     height: auto !important;
     min-height: 0 !important;
     max-height: none !important;
