@@ -169,7 +169,7 @@ export const ADMIN_WORKSPACES: readonly AdminWorkspace[] = [
     route: '/settings',
     labelKey: 'admin.navigation.settings.label',
     descriptionKey: 'admin.navigation.settings.description',
-    legacyPrefixes: ['/settings'],
+    legacyPrefixes: ['/settings', '/system-settings'],
     mobilePattern: 'full-screen-workspace',
   },
 ] as const;

@@ -36,6 +36,9 @@ test('legacy routes resolve to one workspace owner', () => {
     ['/content-center', 'content'],
     ['/roles', 'access-security'],
     ['/settings', 'settings'],
+    ['/settings/activities', 'settings'],
+    ['/system-settings', 'settings'],
+    ['/system-settings/providers', 'settings'],
   ]);
 
   for (const [pathname, expected] of examples) {

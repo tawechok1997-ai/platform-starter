@@ -174,6 +174,12 @@ export const navGroups: readonly AdminNavGroup[] = [
       { title: 'ความปลอดภัย', titleEn: 'Security', href: '/security' },
       { title: 'CAPTCHA และป้องกันบอต', titleEn: 'CAPTCHA & bot protection', href: '/anti-bot', permissions: ['security.anti_bot.view'] },
       {
+        title: 'การตั้งค่าระบบ',
+        titleEn: 'System settings',
+        href: '/system-settings',
+        permissions: ['provider.view', 'provider.update', 'game.providers.view', 'game.providers.manage', 'settings.features.view'],
+      },
+      {
         title: 'การตั้งค่า',
         titleEn: 'Settings',
         href: '/settings',
@@ -201,6 +207,7 @@ const additionalRoutePermissions: readonly AdminNavItem[] = [
   { title: 'ข้อมูลสมาชิก', href: '/member-detail', permissions: ['users.view'] },
   { title: 'จัดการยอดเงิน', href: '/money-ops', permissions: ['game.providers.view'] },
   { title: 'ปฏิบัติการความเสี่ยง', href: '/risk-operations', permissions: ['risk.view'] },
+  { title: 'ตั้งค่ากิจกรรม', href: '/settings/activities', permissions: ['settings.features.view'] },
   { title: 'ประวัติ Branding', href: '/settings/branding/history', permissions: ['settings.branding.view'] },
   { title: 'ตัวอย่าง Branding', href: '/settings/branding/preview', permissions: ['settings.branding.view'] },
   { title: 'ตั้งค่า Branding', href: '/settings/branding', permissions: ['settings.branding.view'] },
@@ -230,6 +237,7 @@ export function resolveNavItemHref(item: AdminNavItem, permissions: readonly str
 export function canAccessPath(pathname: string, permissions: readonly string[]) {
   if (isSafeSelfServicePath(pathname)) return true;
   const required = requiredPermissionsForPath(pathname);
+  if (required.some((permission) => permission === denyUnregisteredRoutePermission)) return false;
   return permissions.includes('*') || required.some((permission) => permissions.includes(permission));
 }
 
