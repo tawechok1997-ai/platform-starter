@@ -4,8 +4,9 @@
 @import './member-desktop-quick-card-copy-lock.css';
 
 /* Mobile Home uses the document as its single vertical scroll owner. The
- * category rail is viewport-fixed beneath the header, so the content column
- * moves while the category menu remains visible for the complete page scroll. */
+ * category rail is viewport-fixed beneath the header, while the content slot
+ * is explicitly locked to grid column two so removing the rail from normal
+ * flow can never collapse games into the narrow menu column. */
 @media (max-width: 900px) {
   html[data-member-viewport-mode='mobile']:has([data-mobile-home-root='true']),
   html[data-member-viewport-mode='mobile'] body:has([data-mobile-home-root='true']) {
@@ -49,6 +50,7 @@
     bottom: auto !important;
     left: max(env(safe-area-inset-left, 0px), calc((100vw - 640px) / 2)) !important;
     z-index: 100 !important;
+    grid-column: 1 !important;
     align-self: start !important;
     width: var(--mobile-category-rail-width, 53px) !important;
     height: fit-content !important;
@@ -84,13 +86,28 @@
     touch-action: pan-y !important;
   }
 
+  html[data-member-viewport-mode='mobile'] [data-mobile-content-slot='after-highlight'],
+  html[data-member-viewport-mode='mobile'] body:has(.public-game-shell[data-route='/']) [data-mobile-content-slot='after-highlight'] {
+    grid-column: 2 / -1 !important;
+    grid-row: 1 !important;
+  }
+
   [data-mobile-section-owner='header'],
   [data-mobile-section-owner='hero'],
-  [data-mobile-section-owner='auth-actions'],
   [data-mobile-section-owner='announcement'],
   [data-mobile-section-owner='highlight-tabs'] {
     visibility: visible !important;
     opacity: 1 !important;
+  }
+
+  /* The authenticated runtime owns the wallet/header and marks this same root.
+   * Guest actions must stay hidden across later React rerenders. */
+  html[data-member-viewport-mode='mobile'] [data-mobile-home-root='true'][data-mobile-authenticated='true'] [data-mobile-section-owner='auth-actions'],
+  html[data-member-viewport-mode='mobile'] [data-mobile-home-root='true'][data-mobile-authenticated='true'] [data-mobile-auth-layout='drawer'] {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
   }
 
   nav[data-mobile-member-bottom-navigation='true'] {

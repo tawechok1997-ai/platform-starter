@@ -5,11 +5,25 @@ import test from 'node:test';
 const home = readFileSync(new URL('../../member-home.tsx', import.meta.url), 'utf8');
 const followCss = readFileSync(new URL('../../member-mobile-category-follow.css', import.meta.url), 'utf8');
 
-test('Mobile category positioning is owned by the final viewport-fixed CSS contract only', () => {
+test('Mobile category rail stays viewport fixed without collapsing the content grid', () => {
   assert.doesNotMatch(home, /MobileCategoryRailPinRuntime/);
   assert.doesNotMatch(home, /MobileCategoryRailTransformFollower/);
   assert.match(followCss, /data-mobile-section-owner='category-menu'[\s\S]*position:\s*fixed\s*!important/);
   assert.match(followCss, /data-mobile-section-owner='category-menu'[\s\S]*top:\s*calc\(60px \+ env\(safe-area-inset-top, 0px\)\)\s*!important/);
-  assert.match(followCss, /left:\s*max\(env\(safe-area-inset-left, 0px\), calc\(\(100vw - 640px\) \/ 2\)\)\s*!important/);
-  assert.match(followCss, /max-height:\s*calc\(100dvh - 68px - env\(safe-area-inset-top, 0px\)\)\s*!important/);
+  assert.match(followCss, /data-mobile-section-owner='category-menu'[\s\S]*grid-column:\s*1\s*!important/);
+  assert.match(followCss, /data-mobile-content-slot='after-highlight'[\s\S]*grid-column:\s*2 \/ -1\s*!important/);
+  assert.match(followCss, /data-mobile-content-slot='after-highlight'[\s\S]*grid-row:\s*1\s*!important/);
+  assert.doesNotMatch(followCss, /data-mobile-section-owner='category-menu'[\s\S]*position:\s*sticky\s*!important/);
+});
+
+test('Authenticated Mobile Home cannot show guest login and register actions', () => {
+  assert.match(
+    followCss,
+    /data-mobile-home-root='true'\]\[data-mobile-authenticated='true'\][\s\S]*data-mobile-section-owner='auth-actions'/,
+  );
+  assert.match(
+    followCss,
+    /data-mobile-home-root='true'\]\[data-mobile-authenticated='true'\][\s\S]*data-mobile-auth-layout='drawer'/,
+  );
+  assert.match(followCss, /data-mobile-auth-layout='drawer'[\s\S]*display:\s*none\s*!important/);
 });
