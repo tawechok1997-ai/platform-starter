@@ -1,5 +1,7 @@
 # Admin Redesign P3: Navigation และ Role-aware Dashboard
 
+PR: `#483`
+
 Branch: `agent/admin-phase-3-navigation-dashboard`
 
 Base: latest `main`
