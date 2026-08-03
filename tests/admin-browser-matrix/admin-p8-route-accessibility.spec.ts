@@ -1,5 +1,8 @@
 import { expect, test, type Page, type Route } from '@playwright/test';
 
+const LONG_ADMIN_NAME = `ผู้ดูแลระบบทดสอบชื่อยาวมาก${'ADMINPROFILE'.repeat(24)}`;
+const LONG_ROLE_NAME = `ตำแหน่งผู้ดูแลระบบหลายบทบาท${'RESPONSIBILITY'.repeat(18)}`;
+
 const routeCases = [
   {
     path: '/system-settings',
@@ -12,6 +15,12 @@ const routeCases = [
     expectedLink: 'ประวัติการเปลี่ยนแปลง',
   },
 ] as const;
+
+type AdminSessionFixtureOptions = {
+  authMeFailures?: number;
+  displayName?: string;
+  roleName?: string;
+};
 
 for (const routeCase of routeCases) {
   test(`${routeCase.path} is keyboard, label, and overflow safe`, async ({ page }) => {
@@ -96,6 +105,22 @@ test('/system-settings recovers from one temporary auth read failure', async ({ 
   await expect(page).not.toHaveURL(/\/login(?:\?|$)/);
 });
 
+test('/system-settings contains long profile data without horizontal page overflow', async ({ page }) => {
+  await installAdminSession(page, { displayName: LONG_ADMIN_NAME, roleName: LONG_ROLE_NAME });
+  await page.goto('/system-settings', { waitUntil: 'domcontentloaded' });
+  await page.waitForLoadState('networkidle', { timeout: 10_000 }).catch(() => undefined);
+
+  const profileTrigger = page.locator('.admin-sidebar-profile__trigger');
+  if (!await profileTrigger.isVisible()) {
+    await page.getByRole('button', { name: 'เปิดเมนูแอดมิน' }).click();
+  }
+
+  await expect(profileTrigger).toBeVisible();
+  await expect(profileTrigger).toContainText(LONG_ADMIN_NAME);
+  await expect(profileTrigger).toContainText(LONG_ROLE_NAME);
+  await assertRouteSurface(page, routeCases[0]);
+});
+
 async function assertRouteSurface(page: Page, routeCase: typeof routeCases[number]) {
   await expect(page.getByRole('main').first()).toBeVisible();
   await expect(page.getByRole('heading', { name: routeCase.heading }).first()).toBeVisible();
@@ -109,7 +134,7 @@ async function assertRouteSurface(page: Page, routeCase: typeof routeCases[numbe
   expect(overflow.scrollWidth - overflow.clientWidth).toBeLessThanOrEqual(2);
 }
 
-async function installAdminSession(page: Page, options: { authMeFailures?: number } = {}) {
+async function installAdminSession(page: Page, options: AdminSessionFixtureOptions = {}) {
   let authMeAttempts = 0;
   let authMeFailuresServed = 0;
   let firstSuccessfulAuthMeAttempt: number | null = null;
@@ -132,7 +157,7 @@ async function installAdminSession(page: Page, options: { authMeFailures?: numbe
       }
       if (firstSuccessfulAuthMeAttempt === null) firstSuccessfulAuthMeAttempt = authMeAttempts;
     }
-    await fulfillJson(route, fixtureFor(path));
+    await fulfillJson(route, fixtureFor(path, options));
   });
 
   return {
@@ -142,13 +167,13 @@ async function installAdminSession(page: Page, options: { authMeFailures?: numbe
   };
 }
 
-function fixtureFor(path: string) {
+function fixtureFor(path: string, options: AdminSessionFixtureOptions = {}) {
   if (path === '/admin/auth/me') {
     return {
       id: 'p8-admin',
       username: 'p8-admin',
-      displayName: 'P8 Admin',
-      roles: [{ code: 'system_admin', name: 'System Administrator' }],
+      displayName: options.displayName ?? 'P8 Admin',
+      roles: [{ code: 'system_admin', name: options.roleName ?? 'System Administrator' }],
       permissions: ['*'],
     };
   }
