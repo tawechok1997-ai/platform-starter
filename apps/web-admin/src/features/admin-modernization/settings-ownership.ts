@@ -88,7 +88,9 @@ export function validateSensitiveAdminSettingsChange(input: AdminSensitiveChange
   if (!definition) return Object.freeze(['Unknown settings route']);
   if (definition.impact !== 'sensitive') return Object.freeze([]);
   const errors: string[] = [];
-  const requiredPermission = `${definition.permissionBase}.update`;
+  const requiredPermission = definition.permissionBase.endsWith('.update')
+    ? definition.permissionBase
+    : `${definition.permissionBase}.update`;
   if (input.permission !== requiredPermission && input.permission !== '*') errors.push(`Missing permission: ${requiredPermission}`);
   if (!input.confirmed) errors.push('Confirmation is required');
   if (input.reason.trim().length < 8) errors.push('Reason must contain at least 8 characters');
@@ -105,7 +107,15 @@ function route(
   impact: AdminSettingsImpact,
   replacementRoute?: string,
 ): AdminSettingsRouteDefinition {
-  return Object.freeze({ route: normalizeRoute(routePath), owner, status, dataKeys: Object.freeze([...dataKeys]), permissionBase, impact, replacementRoute });
+  const definition = {
+    route: normalizeRoute(routePath),
+    owner,
+    status,
+    dataKeys: Object.freeze([...dataKeys]),
+    permissionBase,
+    impact,
+  };
+  return Object.freeze(replacementRoute ? { ...definition, replacementRoute } : definition);
 }
 
 function normalizeRoute(routePath: string) {
