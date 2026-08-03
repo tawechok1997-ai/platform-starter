@@ -22,7 +22,7 @@ export type AdminDesignSystemOwner = {
 };
 
 export const ADMIN_DESIGN_SYSTEM_OWNERS = [
-  owner('shell', 'apps/web-admin/app/layout.tsx', 'AdminRootLayout'),
+  owner('shell', 'apps/web-admin/app/layout.tsx', 'RootLayout'),
   owner('appearance', 'apps/web-admin/app/admin-appearance-runtime.tsx', 'AdminAppearanceRuntime'),
   owner('page', 'apps/web-admin/app/(admin)/_components/admin-ui.tsx', 'AdminPage', ['page-shell', 'workspace-page']),
   owner('card', 'apps/web-admin/app/(admin)/_components/admin-ui.tsx', 'AdminCard', ['panel', 'surface-card']),
