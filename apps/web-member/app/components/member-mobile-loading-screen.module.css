@@ -8,8 +8,42 @@
   min-height: 100dvh;
   margin-inline: auto;
   overflow: hidden;
+  isolation: isolate;
   color: #fff;
-  background: #100d17;
+  background:
+    radial-gradient(circle at 50% 44%, rgb(130 33 166 / 24%), transparent 31%),
+    linear-gradient(180deg, #171422 0%, #100d17 58%, #0b0810 100%);
+  animation: memberMobileLoadingEnter 220ms ease-out both;
+}
+
+.screen::before {
+  position: absolute;
+  top: 46%;
+  left: 50%;
+  z-index: -1;
+  width: min(54vw, 220px);
+  aspect-ratio: 1;
+  border: 1px solid rgb(187 91 234 / 20%);
+  border-radius: 999px;
+  box-shadow:
+    0 0 32px rgb(187 91 234 / 16%),
+    inset 0 0 26px rgb(187 91 234 / 10%);
+  content: '';
+  transform: translate(-50%, -50%) scale(.8);
+  animation: memberMobileLoadingHalo 1.7s ease-in-out infinite;
+}
+
+.screen::after {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 3px;
+  background: linear-gradient(90deg, transparent 0%, #8312ad 35%, #efc3ff 50%, #8312ad 65%, transparent 100%);
+  background-size: 220% 100%;
+  content: '';
+  box-shadow: 0 0 14px rgb(187 91 234 / 70%);
+  animation: memberMobileLoadingTrack 1.15s linear infinite;
 }
 
 .header {
@@ -22,7 +56,10 @@
   padding: 0 10px;
   grid-template-columns: 36px minmax(0, 1fr) 36px;
   align-items: center;
-  background: #171422;
+  background: linear-gradient(90deg, #171422 0%, #21172b 50%, #171422 100%);
+  background-size: 180% 100%;
+  box-shadow: 0 1px 0 rgb(187 91 234 / 16%);
+  animation: memberMobileLoadingHeader 2.1s ease-in-out infinite;
 }
 
 .menuIcon {
@@ -34,6 +71,8 @@
   gap: 3px;
   border-radius: 10px;
   background: #373147;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 7%);
+  animation: memberMobileLoadingMenu 1.5s ease-in-out infinite;
 }
 
 .menuIcon i {
@@ -42,6 +81,16 @@
   height: 1.5px;
   border-radius: 999px;
   background: #bb5bea;
+  transform-origin: left center;
+  animation: memberMobileLoadingMenuLine 1.5s ease-in-out infinite;
+}
+
+.menuIcon i:nth-child(2) {
+  animation-delay: 90ms;
+}
+
+.menuIcon i:nth-child(3) {
+  animation-delay: 180ms;
 }
 
 .logo {
@@ -51,6 +100,8 @@
   max-height: 28px;
   justify-self: center;
   object-fit: contain;
+  filter: drop-shadow(0 0 0 rgb(187 91 234 / 0%));
+  animation: memberMobileLoadingLogo 1.7s ease-in-out infinite;
 }
 
 .flag {
@@ -61,7 +112,10 @@
   place-items: center;
   overflow: hidden;
   border-radius: 999px;
-  box-shadow: inset 0 2px 3px rgb(0 0 0 / 30%);
+  box-shadow:
+    inset 0 2px 3px rgb(0 0 0 / 30%),
+    0 0 0 0 rgb(187 91 234 / 0%);
+  animation: memberMobileLoadingFlag 1.7s ease-in-out infinite;
 }
 
 .flag img {
@@ -79,25 +133,55 @@
   align-items: center;
   justify-content: center;
   color: #fff;
-  font-size: 16px;
+  font-size: 17px;
   font-weight: 700;
   line-height: 1;
   letter-spacing: -0.25px;
   transform: translate(-50%, -50%);
-  text-shadow: 0 1px 2px rgb(0 0 0 / 35%);
+  text-shadow:
+    0 1px 2px rgb(0 0 0 / 35%),
+    0 0 14px rgb(187 91 234 / 24%);
+  animation: memberMobileLoadingFloat 1.25s ease-in-out infinite;
+}
+
+.loadingWord::after {
+  position: absolute;
+  right: 5%;
+  bottom: -12px;
+  left: 5%;
+  height: 2px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, transparent, rgb(221 158 249 / 82%), transparent);
+  content: '';
+  transform: scaleX(.25);
+  animation: memberMobileLoadingUnderline 1.25s ease-in-out infinite;
+}
+
+.loadingWord > span:not(.spinner) {
+  background: linear-gradient(100deg, #fff 28%, #d789f6 48%, #fff 68%);
+  background-size: 220% 100%;
+  background-clip: text;
+  color: transparent;
+  -webkit-background-clip: text;
+  animation: memberMobileLoadingText 1.65s linear infinite;
 }
 
 .spinner {
   display: inline-block;
-  width: 11px;
-  height: 11px;
+  width: 12px;
+  height: 12px;
   margin: 0 1px;
-  flex: 0 0 11px;
-  border: 2px solid rgb(255 255 255 / 28%);
+  flex: 0 0 12px;
+  border: 2px solid rgb(255 255 255 / 24%);
   border-top-color: #fff;
   border-right-color: #bb5bea;
+  border-bottom-color: rgb(118 0 168 / 68%);
   border-radius: 999px;
-  animation: memberMobileLoadingSpin 700ms linear infinite;
+  box-shadow: 0 0 10px rgb(187 91 234 / 46%);
+  animation:
+    memberMobileLoadingSpin 650ms linear infinite,
+    memberMobileLoadingSpinnerPulse 1.25s ease-in-out infinite;
+  will-change: transform, box-shadow;
 }
 
 .srOnly {
@@ -111,10 +195,82 @@
   border: 0;
 }
 
+@keyframes memberMobileLoadingEnter {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
 @keyframes memberMobileLoadingSpin {
-  to {
-    transform: rotate(360deg);
+  to { transform: rotate(360deg); }
+}
+
+@keyframes memberMobileLoadingHalo {
+  0%, 100% {
+    opacity: .42;
+    transform: translate(-50%, -50%) scale(.8);
   }
+  50% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.08);
+  }
+}
+
+@keyframes memberMobileLoadingFloat {
+  0%, 100% { transform: translate(-50%, -50%); }
+  50% { transform: translate(-50%, calc(-50% - 4px)); }
+}
+
+@keyframes memberMobileLoadingUnderline {
+  0%, 100% { opacity: .3; transform: scaleX(.25); }
+  50% { opacity: 1; transform: scaleX(1); }
+}
+
+@keyframes memberMobileLoadingText {
+  from { background-position: 130% 0; }
+  to { background-position: -130% 0; }
+}
+
+@keyframes memberMobileLoadingSpinnerPulse {
+  0%, 100% { box-shadow: 0 0 7px rgb(187 91 234 / 32%); }
+  50% { box-shadow: 0 0 16px rgb(187 91 234 / 78%); }
+}
+
+@keyframes memberMobileLoadingTrack {
+  from { background-position: 170% 0; }
+  to { background-position: -50% 0; }
+}
+
+@keyframes memberMobileLoadingHeader {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+@keyframes memberMobileLoadingLogo {
+  0%, 100% {
+    opacity: .82;
+    transform: scale(.98);
+    filter: drop-shadow(0 0 0 rgb(187 91 234 / 0%));
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.025);
+    filter: drop-shadow(0 0 9px rgb(187 91 234 / 36%));
+  }
+}
+
+@keyframes memberMobileLoadingMenu {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-1px); }
+}
+
+@keyframes memberMobileLoadingMenuLine {
+  0%, 100% { transform: scaleX(.72); opacity: .7; }
+  50% { transform: scaleX(1); opacity: 1; }
+}
+
+@keyframes memberMobileLoadingFlag {
+  0%, 100% { box-shadow: inset 0 2px 3px rgb(0 0 0 / 30%), 0 0 0 0 rgb(187 91 234 / 0%); }
+  50% { box-shadow: inset 0 2px 3px rgb(0 0 0 / 30%), 0 0 0 4px rgb(187 91 234 / 16%); }
 }
 
 @media (max-width: 900px) {
@@ -124,7 +280,19 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .screen,
+  .screen::before,
+  .screen::after,
+  .header,
+  .menuIcon,
+  .menuIcon i,
+  .logo,
+  .flag,
+  .loadingWord,
+  .loadingWord::after,
+  .loadingWord > span:not(.spinner),
   .spinner {
-    animation-duration: 1.4s;
+    animation-duration: 2.5s;
+    animation-timing-function: linear;
   }
 }
