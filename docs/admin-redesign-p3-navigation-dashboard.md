@@ -4,9 +4,15 @@ PR: `#483`
 
 Branch: `agent/admin-phase-3-navigation-dashboard`
 
-Base: latest `main`
+Head commit: `c4ae5a9feacbfbbb97308fe79b775c0671da207b`
 
-Status: โค้ด P3 ครบแล้ว รอ CI และ Merge
+Merge commit: `5cc3f273622d3110a84470cebd811eb840d2e888`
+
+Merge method: `squash`
+
+Merged: `2026-08-03`
+
+Status: Merge เข้า `main` แล้ว
 
 ## ผลลัพธ์
 
@@ -58,7 +64,8 @@ Deny และ Permission override ยังคงเป็นหน้าที
 ## พฤติกรรม Multi-role
 
 - ค่าเริ่มต้นใช้ตำแหน่งหลัก
-- ผู้ใช้สลับ Workspace ได้จาก Topbar
+- ผู้ใช้สลับ Workspace ได้จาก Topbar บน Desktop และ Tablet
+- บน Mobile ใช้ Workspace chips ในเมนู Profile เพื่อไม่ให้ Topbar บังปุ่มเปิดเมนู
 - ผู้ใช้หลายตำแหน่งเลือก `ทุกตำแหน่งที่ได้รับ` เพื่อดูเมนูรวมได้
 - Favorites และ Recent ที่อยู่นอก Workspace ปัจจุบันถูกซ่อน แต่ข้อมูลเดิมไม่ถูกลบ
 - Route permission guard เดิมยังตรวจซ้ำก่อนแสดงเนื้อหา
@@ -114,10 +121,15 @@ Deny และ Permission override ยังคงเป็นหน้าที
 - `apps/web-admin/app/layout.tsx`
 - `apps/web-admin/app/(admin)/profile/page.tsx`
 
-## เงื่อนไข Merge
+## ผลการตรวจที่ยืนยันก่อน Merge
 
-- Branch ตาม `main` ทัน
-- Build และ Typecheck ผ่าน
-- Admin unit tests ผ่าน
-- Full-system, Security, UI และ Browser regression ผ่าน
-- PR เป็น mergeable
+- Build ผ่านบน implementation P3 ชุดเต็ม
+- R-006 Quality Baseline ผ่าน
+- R-013 UI System ผ่าน
+- P5 Security Audit ผ่าน
+- Admin Verification & Bundle ผ่าน
+- Admin Functional Capability Audit ผ่าน
+- R-013 Visual Regression ผ่าน
+- Browser Matrix ตรวจพบ Mobile Topbar pointer interception และแก้ก่อน Merge โดยย้ายการสลับ Workspace บน Mobile ไป Profile chips
+- Full-System failure รอบก่อนหน้าอยู่ที่ Member viewport isolation และ P3 ถูกสร้างใหม่บน `main` ที่มี Member fix แล้ว
+- PR อยู่สถานะ mergeable ก่อน Squash Merge
