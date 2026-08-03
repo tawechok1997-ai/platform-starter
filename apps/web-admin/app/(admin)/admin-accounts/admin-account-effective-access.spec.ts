@@ -27,7 +27,9 @@ test('admin account drawer shows team scope approval limits and deny-first acces
   assert.match(source, /Scope \/ Approval limits/);
 });
 
-test('admin account lifecycle includes disabled state', () => {
-  assert.match(source, /'DISABLED'/);
-  assert.match(source, /ปิดใช้งาน/);
+test('admin account lifecycle matches the persisted AdminStatus values', () => {
+  assert.match(source, /'ACTIVE' \| 'LOCKED' \| 'SUSPENDED'/);
+  assert.doesNotMatch(source, /DISABLED/);
+  assert.match(source, /ล็อกบัญชี/);
+  assert.match(source, /ระงับบัญชี/);
 });
