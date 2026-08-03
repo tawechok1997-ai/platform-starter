@@ -9,11 +9,46 @@
   margin: 0;
   place-items: center;
   overflow: hidden;
+  isolation: isolate;
   color: #fff;
-  background: #000;
+  background:
+    radial-gradient(circle at 50% 44%, rgb(124 30 160 / 24%), transparent 28%),
+    linear-gradient(180deg, #08060c 0%, #000 100%);
+  animation: memberDesktopLoadingEnter 240ms ease-out both;
+}
+
+.screen::before {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: -1;
+  width: clamp(180px, 22vw, 340px);
+  aspect-ratio: 1;
+  border: 1px solid rgb(187 91 234 / 20%);
+  border-radius: 999px;
+  box-shadow:
+    0 0 42px rgb(187 91 234 / 16%),
+    inset 0 0 34px rgb(187 91 234 / 10%);
+  content: '';
+  transform: translate(-50%, -50%) scale(.82);
+  animation: memberDesktopLoadingHalo 1.8s ease-in-out infinite;
+}
+
+.screen::after {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 3px;
+  background: linear-gradient(90deg, transparent 0%, #8b14bd 34%, #f3c7ff 50%, #8b14bd 66%, transparent 100%);
+  background-size: 240% 100%;
+  content: '';
+  box-shadow: 0 0 16px rgb(187 91 234 / 72%);
+  animation: memberDesktopLoadingTrack 1.25s linear infinite;
 }
 
 .loadingWord {
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -22,7 +57,33 @@
   font-weight: 600;
   line-height: 1;
   letter-spacing: -0.7px;
-  text-shadow: 0 1px 2px rgb(0 0 0 / 45%);
+  text-shadow:
+    0 1px 2px rgb(0 0 0 / 45%),
+    0 0 18px rgb(187 91 234 / 22%);
+  animation: memberDesktopLoadingFloat 1.35s ease-in-out infinite;
+}
+
+.loadingWord::after {
+  position: absolute;
+  right: 4%;
+  bottom: -16px;
+  left: 4%;
+  height: 2px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, transparent, rgb(220 154 249 / 82%), transparent);
+  content: '';
+  transform: scaleX(.28);
+  transform-origin: center;
+  animation: memberDesktopLoadingUnderline 1.35s ease-in-out infinite;
+}
+
+.loadingWord > span:not(.spinner) {
+  background: linear-gradient(100deg, #fff 28%, #d68df4 48%, #fff 68%);
+  background-size: 240% 100%;
+  background-clip: text;
+  color: transparent;
+  -webkit-background-clip: text;
+  animation: memberDesktopLoadingText 1.8s linear infinite;
 }
 
 .spinner {
@@ -31,11 +92,16 @@
   height: 19px;
   margin: 0 2px;
   flex: 0 0 19px;
-  border: 3px solid rgb(255 255 255 / 30%);
+  border: 3px solid rgb(255 255 255 / 24%);
   border-top-color: #fff;
-  border-right-color: #a814d4;
+  border-right-color: #bc43eb;
+  border-bottom-color: rgb(120 0 168 / 62%);
   border-radius: 999px;
-  animation: memberDesktopLoadingSpin 700ms linear infinite;
+  box-shadow: 0 0 13px rgb(187 91 234 / 48%);
+  animation:
+    memberDesktopLoadingSpin 680ms linear infinite,
+    memberDesktopLoadingSpinnerPulse 1.35s ease-in-out infinite;
+  will-change: transform, box-shadow;
 }
 
 .srOnly {
@@ -49,10 +115,49 @@
   border: 0;
 }
 
+@keyframes memberDesktopLoadingEnter {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
 @keyframes memberDesktopLoadingSpin {
-  to {
-    transform: rotate(360deg);
+  to { transform: rotate(360deg); }
+}
+
+@keyframes memberDesktopLoadingHalo {
+  0%, 100% {
+    opacity: .45;
+    transform: translate(-50%, -50%) scale(.82);
   }
+  50% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.08);
+  }
+}
+
+@keyframes memberDesktopLoadingFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+
+@keyframes memberDesktopLoadingUnderline {
+  0%, 100% { opacity: .35; transform: scaleX(.28); }
+  50% { opacity: 1; transform: scaleX(1); }
+}
+
+@keyframes memberDesktopLoadingText {
+  from { background-position: 140% 0; }
+  to { background-position: -140% 0; }
+}
+
+@keyframes memberDesktopLoadingSpinnerPulse {
+  0%, 100% { box-shadow: 0 0 8px rgb(187 91 234 / 32%); }
+  50% { box-shadow: 0 0 20px rgb(187 91 234 / 78%); }
+}
+
+@keyframes memberDesktopLoadingTrack {
+  from { background-position: 180% 0; }
+  to { background-position: -60% 0; }
 }
 
 @media (max-width: 900px) {
@@ -62,7 +167,18 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .screen,
+  .screen::before,
+  .screen::after,
+  .loadingWord,
+  .loadingWord::after,
+  .loadingWord > span:not(.spinner),
   .spinner {
-    animation-duration: 1.4s;
+    animation-duration: 2.4s;
+    animation-timing-function: linear;
+  }
+
+  .loadingWord {
+    transform: none;
   }
 }
