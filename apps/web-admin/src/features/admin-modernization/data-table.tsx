@@ -1,8 +1,9 @@
 'use client';
 
-import type { CSSProperties, Key, KeyboardEvent, ReactNode } from 'react';
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type Key, type KeyboardEvent, type ReactNode } from 'react';
 
-import { nextAdminSort, type AdminTableSort } from './data-query-state';
+import { AdminDataTableViewControls } from './data-table-view-controls';
+import { nextAdminSort, parseAdminTableQuery, type AdminTableQueryState, type AdminTableSort } from './data-query-state';
 import { clampPage, getPageCount, getPaginationTokens, getVisibleItemRange } from './pagination';
 import styles from './data-table.module.css';
 
@@ -52,6 +53,9 @@ export type AdminDataTableProps<T> = {
   sort?: AdminTableSort | null;
   onSortChange?: (sort: AdminTableSort | null) => void;
   visibleColumnIds?: readonly string[];
+  preferenceUserId?: string;
+  preferenceWorkspaceId?: string;
+  syncUrlState?: boolean;
 };
 
 export function AdminDataTable<T>({
@@ -75,15 +79,65 @@ export function AdminDataTable<T>({
   sort = null,
   onSortChange,
   visibleColumnIds,
+  preferenceUserId,
+  preferenceWorkspaceId,
+  syncUrlState = true,
 }: AdminDataTableProps<T>) {
-  const visibleColumnSet = visibleColumnIds ? new Set(visibleColumnIds) : null;
-  const requestedColumns = columns.filter((column) => !column.hidden && (!visibleColumnSet || visibleColumnSet.has(column.id)));
-  const activeColumns = requestedColumns.length > 0 ? requestedColumns : columns.filter((column) => !column.hidden).slice(0, 1);
+  const [savedVisibleColumnIds, setSavedVisibleColumnIds] = useState<readonly string[] | null>(null);
+  const urlStateInitialized = useRef(false);
+  const allColumns = useMemo(() => columns.filter((column) => !column.hidden), [columns]);
+  const allColumnIds = useMemo(() => allColumns.map((column) => column.id), [allColumns]);
+  const effectiveVisibleColumnIds = savedVisibleColumnIds ?? visibleColumnIds;
+  const visibleColumnSet = effectiveVisibleColumnIds ? new Set(effectiveVisibleColumnIds) : null;
+  const requestedColumns = allColumns.filter((column) => !visibleColumnSet || visibleColumnSet.has(column.id));
+  const activeColumns = requestedColumns.length > 0 ? requestedColumns : allColumns.slice(0, 1);
   const pageCount = getPageCount(totalItems, pageSize);
   const currentPage = clampPage(page, pageCount);
   const tokens = getPaginationTokens({ page: currentPage, pageSize, totalItems });
   const range = getVisibleItemRange(currentPage, pageSize, totalItems);
   const clickable = typeof onRowClick === 'function';
+  const queryState = useMemo<AdminTableQueryState>(() => ({
+    page: currentPage,
+    pageSize,
+    search: '',
+    sort,
+    filters: Object.freeze({}),
+  }), [currentPage, pageSize, sort]);
+
+  useEffect(() => {
+    if (!syncUrlState || urlStateInitialized.current || typeof window === 'undefined') return;
+    urlStateInitialized.current = true;
+    const params = new URLSearchParams(window.location.search);
+    const hasTableState = ['page', 'take', 'pageSize', 'sort', 'direction'].some((key) => params.has(key));
+    if (!hasTableState) return;
+    const parsed = parseAdminTableQuery(params, {
+      page: currentPage,
+      pageSize,
+      sort,
+      allowedPageSizes: pageSizeOptions,
+      allowedSortColumns: allColumns.filter((column) => column.sortable).map((column) => column.id),
+    });
+    if (onPageSizeChange && parsed.pageSize !== pageSize) onPageSizeChange(parsed.pageSize);
+    if (onSortChange && !sameSort(parsed.sort, sort)) onSortChange(parsed.sort);
+    if (parsed.page !== currentPage) onPageChange(parsed.page);
+  }, [allColumns, currentPage, onPageChange, onPageSizeChange, onSortChange, pageSize, pageSizeOptions, sort, syncUrlState]);
+
+  useEffect(() => {
+    if (!syncUrlState || typeof window === 'undefined') return;
+    const url = new URL(window.location.href);
+    url.searchParams.set('page', String(currentPage));
+    url.searchParams.set('take', String(pageSize));
+    if (sort) {
+      url.searchParams.set('sort', sort.columnId);
+      url.searchParams.set('direction', sort.direction);
+    } else {
+      url.searchParams.delete('sort');
+      url.searchParams.delete('direction');
+    }
+    const next = `${url.pathname}${url.search}${url.hash}`;
+    const current = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+    if (next !== current) window.history.replaceState(window.history.state, '', next);
+  }, [currentPage, pageSize, sort, syncUrlState]);
 
   function handleRowKeyDown(event: KeyboardEvent<HTMLTableRowElement>, row: T) {
     if (!clickable || (event.key !== 'Enter' && event.key !== ' ')) return;
@@ -112,7 +166,25 @@ export function AdminDataTable<T>({
     </button>;
   }
 
+  const optionalViewProps = {
+    ...(preferenceUserId ? { userId: preferenceUserId } : {}),
+    ...(preferenceWorkspaceId ? { workspaceId: preferenceWorkspaceId } : {}),
+    ...(onPageSizeChange ? { onPageSizeChange } : {}),
+    ...(onSortChange ? { onSortChange } : {}),
+  };
+
   return <section className={styles.surface} aria-busy={loading}>
+    <AdminDataTableViewControls
+      ariaLabel={ariaLabel}
+      columns={allColumns.map((column, index) => ({ id: column.id, label: column.header, required: index === 0 }))}
+      query={queryState}
+      visibleColumns={effectiveVisibleColumnIds ?? allColumnIds}
+      disabled={loading}
+      onVisibleColumnsChange={setSavedVisibleColumnIds}
+      onPageChange={onPageChange}
+      {...optionalViewProps}
+    />
+
     <div className={styles.desktopScroller}>
       <table className={styles.table} aria-label={ariaLabel}>
         {caption ? <caption>{caption}</caption> : null}
@@ -193,4 +265,8 @@ export function columnWidth(width: string): CSSProperties {
 
 function stringifyHeader(header: ReactNode) {
   return typeof header === 'string' || typeof header === 'number' ? String(header) : 'column';
+}
+
+function sameSort(left: AdminTableSort | null, right: AdminTableSort | null) {
+  return left?.columnId === right?.columnId && left?.direction === right?.direction;
 }
