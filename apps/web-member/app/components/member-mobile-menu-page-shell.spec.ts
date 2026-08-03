@@ -4,6 +4,8 @@ import test from 'node:test';
 
 const floatingContact = readFileSync(new URL('./member-floating-contact.tsx', import.meta.url), 'utf8');
 const livePage = readFileSync(new URL('./mobile-home/mobile-live-schedule-page.tsx', import.meta.url), 'utf8');
+const mobileHome = readFileSync(new URL('./mobile-home/mobile-home-root.tsx', import.meta.url), 'utf8');
+const mobilePopup = readFileSync(new URL('./mobile-home/mobile-member-popup-runtime.tsx', import.meta.url), 'utf8');
 
 const menuPages = [
   '/mobile/member/vip',
@@ -27,17 +29,32 @@ test('all public mobile menu pages return to the mobile home instead of browser 
   assert.doesNotMatch(floatingContact, /router\.back\(\)/);
 });
 
-test('drawer referral link keeps the original source copy handler instead of inferred navigation', () => {
+test('every visible referral action delegates to the authenticated copy owner', () => {
+  assert.match(mobileHome, /\['แนะนำเพื่อน', '\/mobile\/member\/affiliate', 'referral'\]/);
+  assert.match(mobilePopup, /label:\s*'แนะนำเพื่อน'[\s\S]*page:\s*'affiliate'/);
+
+  assert.match(floatingContact, /MOBILE_REFERRAL_LABELS = new Set\(\['แนะนำเพื่อน', 'Refer a friend'\]\)/);
+  assert.match(floatingContact, /MOBILE_REFERRAL_ROUTES = new Set\(\['\/affiliate', '\/mobile\/member\/affiliate'\]\)/);
   assert.match(floatingContact, /data-mobile-member-drawer-copy="referral"/);
-  assert.match(floatingContact, /window\.addEventListener\('click', preserveReferralCopy, true\)/);
+  assert.match(floatingContact, /window\.addEventListener\('click', routeReferralActionsToCopyOwner, true\)/);
+  assert.match(floatingContact, /event\.preventDefault\(\)/);
+  assert.match(floatingContact, /event\.stopImmediatePropagation\(\)/);
+  assert.match(floatingContact, /copyAction\.click\(\)/);
+  assert.match(floatingContact, /if \(action\.dataset\.mobileMemberPopup\) return/);
+  assert.match(floatingContact, /button\[aria-label="ปิดเมนู"\]/);
+  assert.match(floatingContact, /data-mobile-popup-owner="menu"/);
+});
+
+test('canonical referral row keeps the real copy handler and source success toast', () => {
+  assert.match(floatingContact, /preserveCanonicalReferralCopyLabel/);
   assert.match(floatingContact, /label\.textContent = 'คัดลอกลิงก์'/);
   assert.match(floatingContact, /window\.queueMicrotask/);
   assert.doesNotMatch(
     floatingContact.slice(
-      floatingContact.indexOf('const preserveReferralCopy'),
-      floatingContact.indexOf('window.addEventListener', floatingContact.indexOf('const preserveReferralCopy')),
+      floatingContact.indexOf('function preserveCanonicalReferralCopyLabel'),
+      floatingContact.indexOf('function normalizeActionLabel'),
     ),
-    /preventDefault|stopPropagation|router\.|location\./,
+    /router\.|location\.|copyAction\.click/,
   );
 });
 
