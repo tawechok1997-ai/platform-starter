@@ -1,6 +1,27 @@
-import { AdminAccessSessionService } from './admin-access-session.service';
+import {
+  ADMIN_PRIVILEGE_CHANGES,
+  AdminAccessSessionService,
+} from './admin-access-session.service';
 
 describe('AdminAccessSessionService', () => {
+  it('covers every access mutation that invalidates active sessions', () => {
+    expect(ADMIN_PRIVILEGE_CHANGES).toEqual([
+      'ASSIGN_ROLE',
+      'REMOVE_ROLE',
+      'SYNC_ROLES',
+      'REVOKE_DELEGATION',
+      'SET_TEAM_MEMBER',
+      'REMOVE_TEAM_MEMBER',
+      'SET_REPORTING_LINE',
+      'SET_PERMISSION_OVERRIDE',
+      'DELETE_PERMISSION_OVERRIDE',
+      'UPDATE_ACCESS_PROFILE',
+      'TRANSFER_OWNERSHIP_OUT',
+      'TRANSFER_OWNERSHIP_IN',
+    ]);
+    expect(new Set(ADMIN_PRIVILEGE_CHANGES).size).toBe(ADMIN_PRIVILEGE_CHANGES.length);
+  });
+
   it('revokes every active admin session for the target account', async () => {
     const updateMany = jest.fn().mockResolvedValue({ count: 3 });
     const createAudit = jest.fn().mockResolvedValue({ id: 'audit-1' });
@@ -10,7 +31,7 @@ describe('AdminAccessSessionService', () => {
     } as any;
 
     const service = new AdminAccessSessionService(prisma);
-    const result = await service.revokeAfterPrivilegeChange('actor-1', 'target-1', 'ASSIGN_ROLE');
+    const result = await service.revokeAfterPrivilegeChange('actor-1', 'target-1', 'SET_REPORTING_LINE');
 
     expect(updateMany).toHaveBeenCalledWith({
       where: {
@@ -28,7 +49,7 @@ describe('AdminAccessSessionService', () => {
         module: 'admin-access',
         targetId: 'target-1',
         newData: expect.objectContaining({
-          change: 'ASSIGN_ROLE',
+          change: 'SET_REPORTING_LINE',
           revokedSessions: 3,
         }),
       }),
@@ -44,18 +65,19 @@ describe('AdminAccessSessionService', () => {
     } as any;
 
     const service = new AdminAccessSessionService(prisma);
-    const result = await service.revokeAfterPrivilegeChange('actor-2', 'target-2', 'REMOVE_ROLE');
+    const result = await service.revokeAfterPrivilegeChange('actor-2', 'target-2', 'REMOVE_TEAM_MEMBER');
 
     expect(result.revokedSessions).toBe(0);
     expect(createAudit).toHaveBeenCalledWith({
       data: expect.objectContaining({
         newData: expect.objectContaining({
-          change: 'REMOVE_ROLE',
+          change: 'REMOVE_TEAM_MEMBER',
           revokedSessions: 0,
         }),
       }),
     });
   });
+
   it('supports ownership transfer revoke reasons', async () => {
     const updateMany = jest.fn().mockResolvedValue({ count: 1 });
     const createAudit = jest.fn().mockResolvedValue({ id: 'audit-3' });
@@ -70,5 +92,4 @@ describe('AdminAccessSessionService', () => {
       }),
     });
   });
-
 });
