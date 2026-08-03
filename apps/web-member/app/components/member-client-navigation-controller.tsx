@@ -62,9 +62,10 @@ export default function MemberClientNavigationController() {
       router.prefetch(destination.href);
     };
 
-    const markRouteLeaving = (event: PointerEvent) => {
+    const markRouteLeaving = (event: MouseEvent) => {
       if (
-        event.button !== 0
+        event.defaultPrevented
+        || event.button !== 0
         || event.metaKey
         || event.ctrlKey
         || event.shiftKey
@@ -117,15 +118,16 @@ export default function MemberClientNavigationController() {
       startTransition(() => router.push(destination.href));
     };
 
-    // Pointer-down gives the current page one paint to soften before the new
-    // route commits. Navigation itself is never delayed.
-    window.addEventListener('pointerdown', markRouteLeaving, true);
+    // Start route motion from click capture, after the browser has resolved the
+    // actual click target. Starting on pointerdown let the leaving CSS disable
+    // pointer events before Next.js Link received its click.
+    window.addEventListener('click', markRouteLeaving, true);
     document.addEventListener('focusin', prefetchFocusedLink);
     document.addEventListener('click', navigatePlainInternalLink);
 
     return () => {
       clearMotionTimer(resetTimerRef);
-      window.removeEventListener('pointerdown', markRouteLeaving, true);
+      window.removeEventListener('click', markRouteLeaving, true);
       document.removeEventListener('focusin', prefetchFocusedLink);
       document.removeEventListener('click', navigatePlainInternalLink);
       setRouteMotion(root, 'idle');
