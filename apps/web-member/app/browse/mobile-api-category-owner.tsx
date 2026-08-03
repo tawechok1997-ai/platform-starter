@@ -17,11 +17,13 @@ import {
 
 const MOBILE_QUERY = '(max-width: 900px)';
 
-const CATEGORY_META: Record<string, {
+type MobileCategoryMeta = {
   title: string;
   assetFolder: string;
   filters: Array<{ key: SourceGameFilterKey; label: string }>;
-}> = {
+};
+
+const CATEGORY_META = {
   casino: {
     title: 'คาสิโน',
     assetFolder: 'casino',
@@ -63,13 +65,15 @@ const CATEGORY_META: Record<string, {
     assetFolder: 'lotto',
     filters: [{ key: 'new', label: 'เกมส์ใหม่' }, { key: 'hot', label: 'เกมส์ฮิต' }],
   },
-};
+} satisfies Record<string, MobileCategoryMeta>;
+
+type MobileCategorySlug = keyof typeof CATEGORY_META;
 
 export default function MobileApiCategoryOwner({
   slug,
   desktop,
 }: {
-  slug: keyof typeof CATEGORY_META;
+  slug: MobileCategorySlug;
   desktop: ReactNode;
 }) {
   const [mobile, setMobile] = useState<boolean | null>(null);
@@ -89,7 +93,7 @@ export default function MobileApiCategoryOwner({
   return <MobileApiCategoryPage slug={slug} />;
 }
 
-function MobileApiCategoryPage({ slug }: { slug: keyof typeof CATEGORY_META }) {
+function MobileApiCategoryPage({ slug }: { slug: MobileCategorySlug }) {
   const [catalog, setCatalog] = useState<SourceCategoryCatalog | null>(null);
   const [loading, setLoading] = useState(true);
   const [failed, setFailed] = useState(false);
@@ -167,7 +171,7 @@ function MobileApiCategoryPage({ slug }: { slug: keyof typeof CATEGORY_META }) {
   return (
     <div
       data-mobile-category-api="connected"
-      data-mobile-category-source-platform={catalog.sourcePlatform ?? 'mobile'}
+      data-mobile-category-source-platform={catalog?.sourcePlatform ?? 'mobile'}
     >
       <SourceGameCategoryPage config={config} />
     </div>
