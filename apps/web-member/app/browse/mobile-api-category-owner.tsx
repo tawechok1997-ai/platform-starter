@@ -42,7 +42,7 @@ const CATEGORY_META = {
     ],
   },
   fishing: {
-    title: 'ตกปลา',
+    title: 'ยิงปลา',
     assetFolder: 'fishing',
     filters: [
       { key: 'hot', label: 'เกมส์ฮิต' },
