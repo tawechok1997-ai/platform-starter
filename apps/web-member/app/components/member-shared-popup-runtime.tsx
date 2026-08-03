@@ -8,6 +8,7 @@ import type { PromotionView } from '../browse/browse-promotions-cms';
 import { MemberModal } from './member-modal-system';
 import '../member-promotion-detail-popup.css';
 import '../member-source-content-popup.css';
+import '../member-source-content-popup-header.css';
 
 const MemberSourceContentPopup = dynamic(
   () => import('./member-source-content-popup'),
@@ -89,7 +90,6 @@ export default function MemberSharedPopupRuntime({
   }, []);
 
   const title = popup ? popupTitle(popup, locale) : '';
-  const icon = popup ? popupIcon(popup, icons) : icons.promotion;
   const showPromotionBack = promotionDetailOpen && popup !== 'language';
   const contentKind = popup && popup !== 'language'
     ? (popup === 'all' ? 'promotion' : popup)
@@ -119,7 +119,11 @@ export default function MemberSharedPopupRuntime({
                   <svg viewBox="0 0 32 32" aria-hidden="true"><path d="m10.4 17.3 7.5 7.5-1.9 1.9L5.3 16 16 5.3l1.9 1.9-7.5 7.5h16.3v2.6H10.4Z" /></svg>
                 </button>
               ) : (
-                <span><img src={icon} alt="" aria-hidden="true" /></span>
+                <span>
+                  {popup === 'language'
+                    ? <img src="/assets/asset-pc/images/เปลียนภาษา.svg" alt="" aria-hidden="true" />
+                    : <PopupHeaderIcon kind={popup} />}
+                </span>
               )}
               <h2>{showPromotionBack ? (locale === 'th' ? 'โปรโมชั่น' : 'Promotion') : title}</h2>
             </div>
@@ -146,6 +150,30 @@ export default function MemberSharedPopupRuntime({
         />
       ) : null}
     </MemberModal>
+  );
+}
+
+function PopupHeaderIcon({ kind }: { kind: PromotionView }) {
+  if (kind === 'activity') {
+    return (
+      <svg className="member-shared-popup-kind-icon" viewBox="0 0 31 30" aria-hidden="true">
+        <path d="m25.2 27.4-13.36-4.98a2.5 2.5 0 0 1-.96-4.1l8.38-8.38a2.5 2.5 0 0 1 4.12 1.06l4.96 13.36a2.5 2.5 0 0 1-3.14 3.04Z" />
+        <path d="M5.6 15.26a4.2 4.2 0 0 1 2.92-.42M10.16 9.56a4.2 4.2 0 0 1-.66-2.9M14.76 2.44a10 10 0 0 0 .26 6.56M3.5 8.56a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z" />
+      </svg>
+    );
+  }
+  if (kind === 'news') {
+    return (
+      <svg className="member-shared-popup-kind-icon" viewBox="0 0 31 31" aria-hidden="true">
+        <path d="m15.86 8.99 7.72 13.37M23.18 21.65 4.16 26.07l-1.22-2.11L16.27 9.7M8.29 25.11l1.05 1.81a2.84 2.84 0 1 0 4.91-2.86l-.17-.29M16.39 5.17V2.67M25.99 14.78h2.51M4.28 14.78h2.5M7.82 6.21 9.6 7.99M23.18 7.99l1.77-1.78" />
+      </svg>
+    );
+  }
+  return (
+    <svg className="member-shared-popup-kind-icon" viewBox="0 0 31 31" aria-hidden="true">
+      <path d="M26.49 25.97V14.29H5.39v11.68a2 2 0 0 0 2 2h17.1a2 2 0 0 0 2-2ZM15.94 27.97V14.28M28.22 11.08v1.2a2 2 0 0 1-2 2H5.66a2 2 0 0 1-2-2v-1.2a2 2 0 0 1 2-2h20.56a2 2 0 0 1 2 2Z" />
+      <path d="M15.94 9.08c0-1.75-2.04-5.83-5.1-5.83-4.99 0-3.17 5.83-.79 5.83M15.94 9.08c0-1.75 2.04-5.83 5.1-5.83 4.98 0 3.17 5.83.78 5.83" />
+    </svg>
   );
 }
 
@@ -196,11 +224,4 @@ function popupTitle(kind: MemberSharedPopupKind, locale: MemberLocale) {
   if (kind === 'activity') return 'กิจกรรม';
   if (kind === 'news') return 'ข่าวสาร';
   return 'โปรโมชั่น';
-}
-
-function popupIcon(kind: MemberSharedPopupKind, icons: ReturnType<typeof useMemberRuntime>['icons']) {
-  if (kind === 'language') return '/assets/asset-pc/images/เปลียนภาษา.svg';
-  if (kind === 'activity') return icons.activity;
-  if (kind === 'news') return icons.news;
-  return icons.promotion;
 }
