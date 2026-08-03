@@ -5,6 +5,7 @@ import test from 'node:test';
 const controller = readFileSync(new URL('./public-live-navigation-controller.tsx', import.meta.url), 'utf8');
 const desktopHome = readFileSync(new URL('./member-home/desktop-home-scaffold.tsx', import.meta.url), 'utf8');
 const mobileLive = readFileSync(new URL('./mobile-home/mobile-live-schedule-page.tsx', import.meta.url), 'utf8');
+const mobileLiveCss = readFileSync(new URL('./mobile-home/mobile-live-schedule-page.module.css', import.meta.url), 'utf8');
 const livePage = readFileSync(new URL('../live/page.tsx', import.meta.url), 'utf8');
 const liveStatus = readFileSync(new URL('../lib/live-service-status.ts', import.meta.url), 'utf8');
 
@@ -15,6 +16,26 @@ test('desktop and mobile live surfaces share one maintenance status owner', () =
   assert.equal(livePage.includes('LIVE_SERVICE_COPY'), true);
   assert.equal(mobileLive.includes('LIVE_SERVICE_COPY'), true);
   assert.equal(controller.includes('LIVE_SERVICE_COPY'), true);
+});
+
+test('desktop live page reuses the responsive schedule owner', () => {
+  assert.equal(livePage.includes('MobileLiveSchedulePage'), true);
+  assert.equal(livePage.includes('data-desktop-live-page="true"'), true);
+  assert.equal(mobileLive.includes('data-live-responsive-page="true"'), true);
+  assert.equal(mobileLive.includes("window.matchMedia(DESKTOP_MEDIA)"), true);
+  assert.equal(mobileLive.includes('router.replace(LIVE_ROUTE)'), true);
+  assert.equal(mobileLiveCss.includes('@media (min-width: 901px)'), true);
+  assert.equal(mobileLiveCss.includes('max-width: 1180px'), true);
+});
+
+test('maintenance keeps the schedule mounted and opens the source popup', () => {
+  assert.equal(mobileLive.includes('MaintenanceSchedulePreview'), true);
+  assert.equal(mobileLive.includes('data-live-maintenance-popup="true"'), true);
+  assert.equal(mobileLive.includes('role="dialog"'), true);
+  assert.equal(mobileLive.includes('maintenanceOpen'), true);
+  assert.equal(mobileLiveCss.includes('.maintenanceOverlay'), true);
+  assert.equal(mobileLiveCss.includes('background: rgb(0 0 0 / 80%)'), true);
+  assert.equal(mobileLiveCss.includes('width: min(480px, 100%)'), true);
 });
 
 test('all desktop and mobile live actions converge on the live page', () => {
