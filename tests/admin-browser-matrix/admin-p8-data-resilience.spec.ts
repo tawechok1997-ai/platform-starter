@@ -30,7 +30,7 @@ test('/security keeps a large session dataset paginated and overflow safe', asyn
   expect(controller.successfulSessionReads()).toBeGreaterThanOrEqual(1);
 });
 
-test('/security survives a network disconnect and recovers without losing the admin session', async ({ page }) => {
+test('/security fails closed during a network disconnect and recovers without losing the admin session', async ({ page }) => {
   const controller = await installSecurityFixture(page, createSessions(SESSION_TOTAL));
 
   await page.goto('/security?tab=sessions', { waitUntil: 'domcontentloaded' });
@@ -44,7 +44,9 @@ test('/security survives a network disconnect and recovers without losing the ad
 
   await expect(page.getByText('โหลดข้อมูลความปลอดภัยไม่สำเร็จ กรุณาลองใหม่')).toBeVisible();
   await expect(page).not.toHaveURL(/\/login(?:\?|$)/);
-  await expect(page.getByText('1–10 จาก 137')).toBeVisible();
+  await expect(page.getByText('ไม่พบเซสชัน')).toBeVisible();
+  await expect(page.getByText('1–10 จาก 137')).toHaveCount(0);
+  await expect(page.locator('a[href="/security?tab=sessions"]')).toHaveAttribute('aria-current', 'page');
   expect(controller.disconnectedAttempts('/admin/auth/me')).toBeGreaterThanOrEqual(2);
   expect(controller.disconnectedAttempts('/admin/auth/sessions')).toBeGreaterThanOrEqual(2);
   expect(controller.disconnectedAttempts('/admin/access/owner-recovery-status')).toBeGreaterThanOrEqual(2);
@@ -55,6 +57,7 @@ test('/security survives a network disconnect and recovers without losing the ad
   await page.getByRole('button', { name: 'รีเฟรช' }).click();
 
   await expect(page.getByText('โหลดข้อมูลความปลอดภัยไม่สำเร็จ กรุณาลองใหม่')).toHaveCount(0);
+  await expect(page.getByText('ไม่พบเซสชัน')).toHaveCount(0);
   await expect(page.getByText('1–10 จาก 141')).toBeVisible();
   await expect(page).not.toHaveURL(/\/login(?:\?|$)/);
   await expectNoPageOverflow(page);
