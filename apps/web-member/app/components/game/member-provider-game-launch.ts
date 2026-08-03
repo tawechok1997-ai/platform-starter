@@ -38,6 +38,7 @@ type LaunchAttempt = {
   message: string;
 };
 
+const DEMO_SLOT_GAME_CODE = 'demo-slot-001';
 const resolutionCache = new Map<string, string | null>();
 
 export async function openMemberProviderGame(
@@ -45,6 +46,13 @@ export async function openMemberProviderGame(
   options: MemberGameLaunchOptions = {},
 ): Promise<void> {
   const normalized = normalizeCandidate(candidate);
+  if (isDemoSlotCandidate(normalized)) {
+    const attempt = await requestLaunch(DEMO_SLOT_GAME_CODE, options.signal, options.locale);
+    if (!attempt.ok) throw new Error(attempt.message);
+    navigateToProvider(attempt.launchUrl, options.locale);
+    return;
+  }
+
   const directIds = uniqueText([
     usableDirectId(normalized.id),
     usableDirectId(normalized.providerGameCode),
@@ -72,8 +80,11 @@ export async function openMemberProviderGame(
 }
 
 async function requestLaunch(gameId: string, signal?: AbortSignal, locale?: 'th' | 'en'): Promise<LaunchAttempt> {
+  const path = isDemoSlotGameId(gameId)
+    ? `/member/provider-simulator/games/${DEMO_SLOT_GAME_CODE}/launch`
+    : `/member/games/${encodeURIComponent(gameId)}/launch`;
   const response = await memberApiFetch(
-    `/member/games/${encodeURIComponent(gameId)}/launch`,
+    path,
     signal ? { method: 'POST', signal } : { method: 'POST' },
   );
   const payload = await response.json().catch(() => null);
@@ -205,6 +216,17 @@ function normalizeCandidate(candidate: MemberGameLaunchCandidate): NormalizedMem
 function usableDirectId(value: string) {
   const id = firstText(value);
   return id && !id.toLowerCase().startsWith('catalog:') ? id : '';
+}
+
+function isDemoSlotCandidate(candidate: NormalizedMemberGameLaunchCandidate) {
+  return isDemoSlotGameId(candidate.providerGameCode)
+    || isDemoSlotGameId(candidate.id)
+    || (candidate.providerCode === 'simulator-provider' && candidate.category === 'slot');
+}
+
+function isDemoSlotGameId(value: string) {
+  const id = firstText(value).toLowerCase();
+  return id === DEMO_SLOT_GAME_CODE || id.endsWith(`:${DEMO_SLOT_GAME_CODE}`);
 }
 
 function stripCatalogPrefix(value: string) {

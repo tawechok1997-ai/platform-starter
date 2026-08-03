@@ -16,6 +16,7 @@ const MOBILE_PROVIDER_CARD_PATHS: Readonly<Record<MobileProviderCategory, Readon
     astar: '/providers/set/1_1_h/astar.png',
   },
   slot: {
+    'simulator-provider': '/assets/demo-slot/simulator-provider-card.svg',
     ygr: '/providers/set/1_1_h/ygr.png',
     hotdog: '/providers/set/1_1_l/hotdog.png',
     misolt: '/providers/set/1_1_h/misolt.png',
@@ -98,7 +99,8 @@ export function mobileProviderCardUrl(category: string, providerCode: string) {
   if (!normalizedCategory) return '';
   const normalizedProvider = normalizeProviderCode(providerCode);
   const path = MOBILE_PROVIDER_CARD_PATHS[normalizedCategory][normalizedProvider];
-  return path ? `${SOURCE_CDN}${path}` : '';
+  if (!path) return '';
+  return /^https?:\/\//i.test(path) || path.startsWith('/assets/') ? path : `${SOURCE_CDN}${path}`;
 }
 
 export function mobileProviderArtworkCount() {
