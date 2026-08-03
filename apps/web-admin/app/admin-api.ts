@@ -1,5 +1,6 @@
 import { mergeHeaders } from '@platform/api-client';
 import { safeAdminErrorMessage, type AdminErrorLocale } from './(admin)/_components/admin-safe-error';
+import { applyAdminSettingsMutationHeaders } from './admin-settings-mutation-owner';
 import { adminNextPath, sessionDecision } from './admin-session-policy';
 
 let inMemoryAccessToken = '';
@@ -32,6 +33,8 @@ export async function adminApiFetch(path: string, options: ApiOptions = {}) {
 
 async function guardedAdminMutationFetch(path: string, options: ApiOptions) {
   const headers = mergeHeaders(options.headers);
+  const sourceRoute = typeof window === 'undefined' ? '' : window.location.pathname;
+  applyAdminSettingsMutationHeaders(headers, path, sourceRoute);
   if (!headers.has('Idempotency-Key')) headers.set('Idempotency-Key', createAdminIdempotencyKey());
   const signature = adminMutationSignature(path, options);
   const existing = inFlightAdminMutations.get(signature);
