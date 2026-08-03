@@ -117,6 +117,7 @@ import './member-mobile-highlight-tabs-source.css';
 import './member-mobile-category-follow.css';
 import './member-source-fonts.css';
 import './member-motion-contract.css';
+import './member-game-interaction-final.css';
 import MemberChrome from './member-chrome';
 import MemberClientNavigationController from './components/member-client-navigation-controller';
 import MemberDragScrollController from './components/member-drag-scroll-controller';
