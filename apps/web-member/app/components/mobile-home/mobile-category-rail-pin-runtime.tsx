@@ -15,52 +15,71 @@ export default function MobileCategoryRailPinRuntime() {
     const railCssText = rail.style.cssText;
     const containerCssText = container.style.cssText;
     let frame = 0;
-
-    const syncGeometry = () => {
-      frame = 0;
-      if (!rail.isConnected || !container.isConnected) return;
-
-      const containerRect = container.getBoundingClientRect();
-      const width = rail.offsetWidth || 53;
-      if (!Number.isFinite(containerRect.left)) return;
-
-      rail.style.setProperty('left', `${containerRect.left.toFixed(3)}px`, 'important');
-      rail.style.setProperty('width', `${width}px`, 'important');
-    };
-
-    const scheduleGeometry = () => {
-      if (frame) return;
-      frame = window.requestAnimationFrame(syncGeometry);
-    };
+    let fixed = false;
 
     container.style.setProperty('overflow', 'visible', 'important');
     container.style.setProperty('align-items', 'stretch', 'important');
 
-    rail.style.setProperty('position', 'fixed', 'important');
-    rail.style.setProperty('top', `${HEADER_HEIGHT}px`, 'important');
-    rail.style.setProperty('right', 'auto', 'important');
-    rail.style.setProperty('bottom', 'auto', 'important');
-    rail.style.setProperty('align-self', 'start', 'important');
-    rail.style.setProperty('max-height', `calc(100dvh - ${HEADER_HEIGHT + VIEWPORT_GAP}px)`, 'important');
-    rail.style.setProperty('overflow-x', 'hidden', 'important');
-    rail.style.setProperty('overflow-y', 'auto', 'important');
-    rail.style.setProperty('overscroll-behavior', 'contain', 'important');
-    rail.style.setProperty('scrollbar-width', 'none', 'important');
-    rail.style.setProperty('transform', 'none', 'important');
-    rail.style.setProperty('will-change', 'auto', 'important');
-    rail.style.setProperty('z-index', '100', 'important');
-    rail.dataset.mobileCategoryFollow = 'fixed';
+    const restoreNaturalRail = () => {
+      rail.style.cssText = railCssText;
+      rail.dataset.mobileCategoryFollow = 'start';
+      fixed = false;
+    };
 
-    const resizeObserver = new ResizeObserver(scheduleGeometry);
+    const applyFixedRail = (left: number, width: number) => {
+      rail.style.setProperty('position', 'fixed', 'important');
+      rail.style.setProperty('top', `${HEADER_HEIGHT}px`, 'important');
+      rail.style.setProperty('right', 'auto', 'important');
+      rail.style.setProperty('bottom', 'auto', 'important');
+      rail.style.setProperty('left', `${left.toFixed(3)}px`, 'important');
+      rail.style.setProperty('width', `${width}px`, 'important');
+      rail.style.setProperty('align-self', 'start', 'important');
+      rail.style.setProperty('max-height', `calc(100dvh - ${HEADER_HEIGHT + VIEWPORT_GAP}px)`, 'important');
+      rail.style.setProperty('overflow-x', 'hidden', 'important');
+      rail.style.setProperty('overflow-y', 'auto', 'important');
+      rail.style.setProperty('overscroll-behavior', 'contain', 'important');
+      rail.style.setProperty('scrollbar-width', 'none', 'important');
+      rail.style.setProperty('transform', 'none', 'important');
+      rail.style.setProperty('will-change', 'auto', 'important');
+      rail.style.setProperty('z-index', '100', 'important');
+      rail.dataset.mobileCategoryFollow = 'fixed';
+      fixed = true;
+    };
+
+    const syncPosition = () => {
+      frame = 0;
+      if (!rail.isConnected || !container.isConnected) return;
+
+      const containerRect = container.getBoundingClientRect();
+      const shouldFix = containerRect.top <= HEADER_HEIGHT;
+
+      if (!shouldFix) {
+        if (fixed) restoreNaturalRail();
+        return;
+      }
+
+      const width = rail.offsetWidth || 53;
+      if (!Number.isFinite(containerRect.left)) return;
+      applyFixedRail(containerRect.left, width);
+    };
+
+    const scheduleSync = () => {
+      if (frame) return;
+      frame = window.requestAnimationFrame(syncPosition);
+    };
+
+    const resizeObserver = new ResizeObserver(scheduleSync);
     resizeObserver.observe(container);
-    window.addEventListener('resize', scheduleGeometry, { passive: true });
-    window.visualViewport?.addEventListener('resize', scheduleGeometry, { passive: true });
-    scheduleGeometry();
+    document.addEventListener('scroll', scheduleSync, true);
+    window.addEventListener('resize', scheduleSync, { passive: true });
+    window.visualViewport?.addEventListener('resize', scheduleSync, { passive: true });
+    scheduleSync();
 
     return () => {
       resizeObserver.disconnect();
-      window.removeEventListener('resize', scheduleGeometry);
-      window.visualViewport?.removeEventListener('resize', scheduleGeometry);
+      document.removeEventListener('scroll', scheduleSync, true);
+      window.removeEventListener('resize', scheduleSync);
+      window.visualViewport?.removeEventListener('resize', scheduleSync);
       if (frame) window.cancelAnimationFrame(frame);
       rail.style.cssText = railCssText;
       container.style.cssText = containerCssText;
