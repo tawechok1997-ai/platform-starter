@@ -111,13 +111,27 @@ test('/system-settings contains long profile data without horizontal page overfl
   await page.waitForLoadState('networkidle', { timeout: 10_000 }).catch(() => undefined);
 
   const profileTrigger = page.locator('.admin-sidebar-profile__trigger');
-  if (!await profileTrigger.isVisible()) {
-    await page.getByRole('button', { name: 'เปิดเมนูแอดมิน' }).click();
-  }
-
-  await expect(profileTrigger).toBeVisible();
   await expect(profileTrigger).toContainText(LONG_ADMIN_NAME);
   await expect(profileTrigger).toContainText(LONG_ROLE_NAME);
+
+  if (await profileTrigger.isVisible()) {
+    await expect(profileTrigger).toBeVisible();
+  } else {
+    const menuButton = page.getByRole('button', { name: 'เปิดเมนูแอดมิน' });
+    await expect(menuButton).toBeVisible();
+    await menuButton.click();
+
+    const drawer = page.locator('#admin-sidebar');
+    await expect(drawer).toHaveClass(/\bopen\b/);
+    await expect.poll(() => drawer.evaluate((element) => {
+      const rect = element.getBoundingClientRect();
+      return rect.width > 0
+        && rect.height > 0
+        && rect.left >= -1
+        && rect.right <= window.innerWidth + 1;
+    })).toBe(true);
+  }
+
   await assertRouteSurface(page, routeCases[0]);
 });
 
