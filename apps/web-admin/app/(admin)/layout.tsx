@@ -4,7 +4,7 @@ import { ReactNode, useEffect, useMemo, useRef, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { adminApiFetch, clearAdminSession } from '../admin-api';
 import { AdminButton, AdminEmptyState } from '../components/admin-ui';
-import { canAccessNavItem, localizedNavGroupDescription, localizedNavGroupTitle, localizedNavTitle, navGroups, requiredPermissionsForPath, resolveNavItemHref } from './admin-nav';
+import { canAccessNavItem, canAccessPath, localizedNavGroupDescription, localizedNavGroupTitle, localizedNavTitle, navGroups, resolveNavItemHref } from './admin-nav';
 import { useAdminLocale, type AdminLocale } from './admin-locale';
 import { AdminIcon, iconForAdminHref } from './_components/admin-icon';
 
@@ -199,8 +199,7 @@ export default function AdminProtectedLayout({ children }: { children: ReactNode
   const favoriteItems = useMemo(() => itemsForHrefs(favoriteHrefs, commandItems), [favoriteHrefs, commandItems]);
   const recentItems = useMemo(() => itemsForHrefs(recentHrefs, commandItems), [recentHrefs, commandItems]);
 
-  const required = requiredPermissionsForPath(pathname);
-  const canViewRoute = required.length === 0 || permissions.includes('*') || required.some((permission) => permissions.includes(permission));
+  const canViewRoute = canAccessPath(pathname, permissions);
 
   async function logout() {
     try {
