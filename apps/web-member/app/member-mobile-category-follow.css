@@ -45,7 +45,7 @@
   html[data-member-viewport-mode='mobile'] [data-mobile-section-owner='category-menu'],
   html[data-member-viewport-mode='mobile'] body:has(.public-game-shell[data-route='/']) [data-mobile-section-owner='category-menu'] {
     position: sticky !important;
-    top: calc(60px + env(safe-area-inset-top, 0px)) !important;
+    top: calc(64px + env(safe-area-inset-top, 0px)) !important;
     right: auto !important;
     bottom: auto !important;
     left: auto !important;
@@ -54,7 +54,7 @@
     align-self: start !important;
     width: var(--mobile-category-rail-width, 53px) !important;
     height: fit-content !important;
-    max-height: calc(100dvh - 68px - env(safe-area-inset-top, 0px)) !important;
+    max-height: calc(100dvh - 72px - env(safe-area-inset-top, 0px)) !important;
     padding: 12px 0 28px 8px !important;
     overflow-x: hidden !important;
     overflow-y: auto !important;
