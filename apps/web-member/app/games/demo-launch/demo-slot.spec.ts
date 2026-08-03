@@ -40,6 +40,16 @@ test('slot spin uses a client idempotency UUID and exposes round evidence', () =
   assert.match(history, /data-demo-slot-ledger-history="true"/);
 });
 
+test('slot page shows the exact wallet debit returned by the API', () => {
+  assert.match(page, /walletMutation\?:/);
+  assert.match(page, /walletMutation\?\.finalBalance/);
+  assert.match(page, /data-demo-slot-debit-proof="true"/);
+  assert.match(page, /BET หักจริง/);
+  assert.match(page, /beforeBalance/);
+  assert.match(page, /afterBalance/);
+  assert.match(page, /หัก BET/);
+});
+
 test('ledger history exposes authenticated round refresh and rollback', () => {
   assert.match(history, /\/member\/provider-simulator\/sessions\/\$\{encodeURIComponent\(sessionId\)\}\/rounds/);
   assert.match(history, /\/rounds\/\$\{encodeURIComponent\(round\.roundId\)\}\/rollback/);
