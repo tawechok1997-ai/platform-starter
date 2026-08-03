@@ -12,6 +12,14 @@ type WalletPayload = {
   currency?: string;
 };
 
+type WalletMutationEntry = {
+  amount?: string;
+  beforeBalance?: string;
+  afterBalance?: string;
+  transactionId?: string;
+  replayed?: boolean;
+};
+
 type SpinPayload = {
   ok?: boolean;
   spinId?: string;
@@ -28,6 +36,11 @@ type SpinPayload = {
   message?: string | string[];
   error?: string;
   game?: { code?: string; name?: string; provider?: string };
+  walletMutation?: {
+    debit?: WalletMutationEntry;
+    credit?: WalletMutationEntry | null;
+    finalBalance?: string;
+  };
   transactions?: { bet?: string; win?: string | null };
 };
 
@@ -125,7 +138,8 @@ export default function DemoLaunchPage() {
       const nextSymbols = Array.isArray(payload.symbols) && payload.symbols.length === 3
         ? payload.symbols
         : INITIAL_SYMBOLS;
-      const nextBalance = payload.balance ?? wallet.balance ?? '0.00';
+      const nextBalance = payload.walletMutation?.finalBalance ?? payload.balance ?? wallet.balance ?? '0.00';
+      const debit = payload.walletMutation?.debit;
       setSymbols(nextSymbols);
       setLastResult(payload);
       setSessionHistory((current) => [{
@@ -137,8 +151,8 @@ export default function DemoLaunchPage() {
       setWallet((current) => ({ ...current, balance: nextBalance, currency: payload.currency ?? current.currency }));
       setMessage(
         payload.result === 'WIN'
-          ? `ชนะ ${formatCredits(payload.winAmount ?? '0.00')} · WIN ถูกบันทึกเข้ากระเป๋าแล้ว`
-          : `แพ้ ${formatCredits(payload.betAmount ?? numericAmount)} · BET ถูกหักจากกระเป๋าแล้ว`,
+          ? `หัก BET ${formatCredits(debit?.amount ?? payload.betAmount ?? numericAmount)} แล้วเติม WIN ${formatCredits(payload.winAmount ?? '0.00')}`
+          : `หัก BET ${formatCredits(debit?.amount ?? payload.betAmount ?? numericAmount)} จาก Wallet สมาชิกแล้ว`,
       );
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : 'หมุนสล็อตไม่สำเร็จ');
@@ -192,6 +206,16 @@ export default function DemoLaunchPage() {
               </strong>
             ) : null}
           </div>
+
+          {lastResult?.walletMutation?.debit ? (
+            <div className={styles.notice} data-demo-slot-debit-proof="true" aria-live="polite">
+              <strong>BET หักจริง {formatCredits(lastResult.walletMutation.debit.amount ?? lastResult.betAmount ?? 0)}</strong>
+              <span className={styles.muted}>
+                Wallet {formatCredits(lastResult.walletMutation.debit.beforeBalance ?? 0)} → {formatCredits(lastResult.walletMutation.debit.afterBalance ?? 0)}
+                {lastResult.walletMutation.debit.replayed ? ' · idempotent replay' : ''}
+              </span>
+            </div>
+          ) : null}
 
           {error ? <div className={`${styles.notice} ${styles.error}`} role="alert">{error}</div> : null}
           {!session ? (
