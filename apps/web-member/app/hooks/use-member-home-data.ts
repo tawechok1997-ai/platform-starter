@@ -17,6 +17,7 @@ export function useMemberHomeData(gamesEnabled: boolean) {
   const { typedSettings } = useSiteSettings();
   const featureSettings = typedSettings.features as Record<string, unknown>;
   const [lobby, setLobby] = useState<GameLobbyPayload>({});
+  const [onlineGames, setOnlineGames] = useState<Game[]>([]);
   const [classicGames, setClassicGames] = useState<Game[]>([]);
   const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
   const [recentIds, setRecentIds] = useState<string[]>([]);
@@ -26,6 +27,7 @@ export function useMemberHomeData(gamesEnabled: boolean) {
   const loadGames = useCallback(async () => {
     if (!gamesEnabled) {
       setLobby({});
+      setOnlineGames([]);
       setClassicGames([]);
       setIsGamesLoading(false);
       return;
@@ -39,6 +41,7 @@ export function useMemberHomeData(gamesEnabled: boolean) {
       const items = randomizedCatalog.map(toGame);
       const featured = selectHomeGameSection(catalog, 'featured', 'pc', featureSettings, 8).map(toGame);
       const popular = selectHomeGameSection(catalog, 'popular', 'pc', featureSettings, 10).map(toGame);
+      const online = selectHomeGameSection(catalog, 'online', 'pc', featureSettings, 6).map(toGame);
       const classic = selectHomeGameSection(catalog, 'classic', 'pc', featureSettings, 6).map(toGame);
       const newestCandidates = randomizedCatalog
         .filter((game) => game.tags.includes('new') || game.fresh);
@@ -46,6 +49,7 @@ export function useMemberHomeData(gamesEnabled: boolean) {
         .map(toGame);
       const categories = Array.from(new Set(randomizedCatalog.flatMap((game) => [game.category, ...game.tags])));
 
+      setOnlineGames(online);
       setClassicGames(classic);
       setLobby({
         items,
@@ -59,6 +63,7 @@ export function useMemberHomeData(gamesEnabled: boolean) {
             code: game.provider,
             name: game.providerName,
             logoUrl: game.providerIcon,
+            sourceLogoUrl: game.providerIconSource,
           }] as const)).values()),
       });
     } catch (catalogError) {
@@ -69,7 +74,8 @@ export function useMemberHomeData(gamesEnabled: boolean) {
         });
         const nextLobby = payload && typeof payload === 'object' && !Array.isArray(payload) ? payload : {};
         const fallbackGames = Array.isArray(nextLobby.items) ? nextLobby.items.filter(Boolean) as Game[] : [];
-        setClassicGames(fallbackGames.slice(0, 6));
+        setOnlineGames(fallbackGames.slice(0, 6));
+        setClassicGames(fallbackGames.slice(6, 12).length ? fallbackGames.slice(6, 12) : fallbackGames.slice(0, 6));
         setLobby((currentLobby) => sameLobbyPayload(currentLobby, nextLobby) ? currentLobby : nextLobby);
       } catch {
         setGamesMessage(catalogError instanceof Error ? catalogError.message : 'โหลดเกมไม่สำเร็จ');
@@ -107,6 +113,7 @@ export function useMemberHomeData(gamesEnabled: boolean) {
     categories,
     featured,
     popular,
+    onlineGames,
     classicGames,
     recentGames,
     favoriteGames,
@@ -127,14 +134,24 @@ function toGame(item: MemberCatalogGame): Game {
     category: item.category,
     platform: item.platform,
     imageUrl: item.image,
+    imageSource: item.imageSource,
     iconUrl: item.image,
     isFeatured: item.popular || item.tags.includes('hot'),
     isNew: item.fresh || item.tags.includes('new'),
     isPopular: item.popular || item.tags.includes('popular'),
+    badge: item.badge,
+    tags: item.tags,
+    players: item.players,
+    media: [{
+      type: 'COVER',
+      cachedUrl: item.image,
+      sourceUrl: item.imageSource,
+    }],
     provider: {
       code: item.provider,
       name: item.providerName,
       logoUrl: item.providerIcon,
+      sourceLogoUrl: item.providerIconSource,
     },
   };
 }
