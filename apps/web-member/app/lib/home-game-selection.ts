@@ -11,6 +11,7 @@ export type HomeGameSelectionCandidate = {
   providerGameCode?: string;
   name: string;
   provider?: string;
+  providerCode?: string;
   category?: string;
   tags?: readonly string[];
   players?: number;
@@ -139,7 +140,7 @@ export function selectHomeGameSection<T extends HomeGameSelectionCandidate>(
 }
 
 export function homeGameReference(item: HomeGameSelectionCandidate) {
-  const provider = normalize(item.provider ?? '');
+  const provider = normalize(item.providerCode ?? item.provider ?? '');
   const code = normalize(item.providerGameCode ?? item.id);
   return provider && code ? `${provider}:${code}` : normalize(item.id);
 }
@@ -202,7 +203,7 @@ function matchesReference(item: HomeGameSelectionCandidate, reference: string) {
   const candidates = [
     normalize(item.id),
     normalize(item.providerGameCode ?? ''),
-    homeGameReference(item),
+    normalize(homeGameReference(item)),
     normalize(item.name),
   ];
   return candidates.includes(normalized);
@@ -210,6 +211,7 @@ function matchesReference(item: HomeGameSelectionCandidate, reference: string) {
 
 function namePriority(name: string, names: readonly string[]) {
   const normalizedName = normalize(name);
+  if (!normalizedName) return 0;
   const index = names.findIndex((candidate) => {
     const normalizedCandidate = normalize(candidate);
     return normalizedName === normalizedCandidate
@@ -222,7 +224,7 @@ function namePriority(name: string, names: readonly string[]) {
 function uniqueGames<T extends HomeGameSelectionCandidate>(items: readonly T[]) {
   const seen = new Set<string>();
   return items.filter((item) => {
-    const key = homeGameReference(item) || normalize(item.id);
+    const key = normalize(homeGameReference(item)) || normalize(item.id);
     if (!key || seen.has(key)) return false;
     seen.add(key);
     return true;
