@@ -5,6 +5,7 @@ import test from 'node:test';
 const configuredNavigation = readFileSync(new URL('./member-navigation-runtime.ts', import.meta.url), 'utf8');
 const fallbackNavigation = readFileSync(new URL('./member-runtime-contract.ts', import.meta.url), 'utf8');
 const chrome = readFileSync(new URL('./member-chrome.tsx', import.meta.url), 'utf8');
+const clientNavigation = readFileSync(new URL('./components/member-client-navigation-controller.tsx', import.meta.url), 'utf8');
 
 const canonicalRoutes = {
   casino: '/browse/games?category=casino',
@@ -38,4 +39,10 @@ test('desktop header consumes the normalized runtime navigation', () => {
   assert.match(chrome, /navigation\.filter\(\(item\) => item\.desktop\)/);
   assert.match(chrome, /href=\{item\.href\}/);
   assert.match(chrome, /className="member-desktop-nav member-desktop-nav--guest"/);
+});
+
+test('route motion waits for click so pointerdown cannot cancel desktop links', () => {
+  assert.match(clientNavigation, /window\.addEventListener\('click', markRouteLeaving, true\)/);
+  assert.match(clientNavigation, /window\.removeEventListener\('click', markRouteLeaving, true\)/);
+  assert.doesNotMatch(clientNavigation, /window\.addEventListener\('pointerdown', markRouteLeaving, true\)/);
 });
