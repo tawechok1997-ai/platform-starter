@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import test from 'node:test';
 
 import {
@@ -6,6 +7,8 @@ import {
   navGroups,
   requiredPermissionsForPath,
 } from './admin-nav';
+
+const layoutSource = readFileSync(new URL('./layout.tsx', import.meta.url), 'utf8');
 
 test('system settings is discoverable from the administration navigation group', () => {
   const administration = navGroups.find((group) => group.id === 'administration');
@@ -48,4 +51,11 @@ test('unregistered P8 routes remain denied even for wildcard admins', () => {
   assert.deepEqual(requiredPermissionsForPath('/p8-unregistered-route'), ['__admin.route.unregistered__']);
   assert.equal(canAccessPath('/p8-unregistered-route', ['admin.view']), false);
   assert.equal(canAccessPath('/p8-unregistered-route', ['*']), false);
+});
+
+test('protected layout delegates route authorization to the canonical fail-closed owner', () => {
+  assert.match(layoutSource, /import \{[^}]*canAccessPath[^}]*\} from '\.\/admin-nav';/s);
+  assert.match(layoutSource, /const canViewRoute = canAccessPath\(pathname, permissions\);/);
+  assert.doesNotMatch(layoutSource, /permissions\.includes\('\*'\) \|\| required\.some/);
+  assert.doesNotMatch(layoutSource, /requiredPermissionsForPath\(pathname\)/);
 });

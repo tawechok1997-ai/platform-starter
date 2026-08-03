@@ -20,8 +20,6 @@ on:
       - apps/web-admin/app/admin-api.ts
       - apps/web-admin/src/**
   pull_request:
-    branches:
-      - main
     paths:
       - .github/workflows/admin-browser-regression-matrix.yml
       - playwright.admin-matrix.config.ts
@@ -66,8 +64,8 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Install Chromium
-        run: pnpm exec playwright install --with-deps chromium
+      - name: Install browser engines
+        run: pnpm exec playwright install --with-deps chromium firefox webkit
 
       - name: Describe browser target
         shell: bash
