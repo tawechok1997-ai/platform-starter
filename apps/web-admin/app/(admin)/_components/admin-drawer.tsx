@@ -102,25 +102,26 @@ export function AdminDrawer({ open, title, description, closeLabel = 'ปิด'
 
   const sizeClass = size === 'compact' ? styles.compact : size === 'wide' ? styles.wide : '';
   return createPortal(
-    <div className={styles.layer} role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget && !busyRef.current) onCloseRef.current(); }}>
+    <div className={`${styles.layer} admin-overlay-drawer-layer`} role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget && !busyRef.current) onCloseRef.current(); }}>
       <aside
         ref={drawerRef}
-        className={`${styles.drawer} ${sizeClass}`.trim()}
+        className={`${styles.drawer} ${sizeClass} admin-overlay-drawer`.trim()}
+        data-size={size}
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
         aria-describedby={description ? descriptionId : undefined}
         tabIndex={-1}
       >
-        <header className={styles.header}>
-          <div className={styles.copy}>
+        <header className={`${styles.header} admin-overlay-drawer__header`}>
+          <div className={`${styles.copy} admin-overlay-drawer__copy`}>
             <h2 id={titleId}>{title}</h2>
             {description ? <p id={descriptionId}>{description}</p> : null}
           </div>
           <button ref={closeButtonRef} type="button" className="admin-ui-button admin-ui-button--ghost admin-ui-button--compact" disabled={busy} onClick={onClose}>{closeLabel}</button>
         </header>
-        <div className={styles.body}>{children}</div>
-        {footer ? <footer className={styles.footer}>{footer}</footer> : null}
+        <div className={`${styles.body} admin-overlay-drawer__body`}>{children}</div>
+        {footer ? <footer className={`${styles.footer} admin-overlay-drawer__footer`}>{footer}</footer> : null}
       </aside>
     </div>,
     document.body,

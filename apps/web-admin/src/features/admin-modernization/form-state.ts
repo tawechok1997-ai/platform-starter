@@ -65,5 +65,6 @@ function visitDiff(before: unknown, after: unknown, path: string, diffs: AdminVa
 }
 
 function isPlainRecord(value: unknown): value is Record<string, unknown> {
-  return Boolean(value) && typeof value === 'object' && !Array.isArray(value) && Object.getPrototypeOf(value) === Object.prototype;
+  if (value === null || typeof value !== 'object' || Array.isArray(value)) return false;
+  return Object.getPrototypeOf(value) === Object.prototype;
 }

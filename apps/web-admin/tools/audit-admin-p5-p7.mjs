@@ -69,7 +69,7 @@ async function walk(root) {
   for (const entry of entries) {
     const target = path.join(root, entry.name);
     if (entry.isDirectory()) files.push(...await walk(target));
-    else if (/\.(?:ts|tsx|css|mjs)$/.test(entry.name)) files.push(target);
+    else if (/\.(?:ts|tsx|css|mjs)$/.test(entry.name) && !/\.spec\.(?:ts|tsx)$/.test(entry.name)) files.push(target);
   }
   return files;
 }
