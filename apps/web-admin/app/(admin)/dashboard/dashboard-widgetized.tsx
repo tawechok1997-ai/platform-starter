@@ -109,6 +109,14 @@ type DashboardData = {
   loadedAt: string | null;
 };
 
+type DashboardAccess = {
+  finance: boolean;
+  wallet: boolean;
+  topUps: boolean;
+  withdrawals: boolean;
+  risk: boolean;
+};
+
 type PriorityItem = {
   id: string;
   label: string;
@@ -198,7 +206,8 @@ export default function WidgetizedAdminDashboard() {
   ), [text]);
 
   const metrics = useMemo(() => buildMetrics(data), [data]);
-  const priorityItems = useMemo(() => buildPriorityItems(metrics, text), [metrics, text]);
+  const access = useMemo(() => buildAccess(data.permissions), [data.permissions]);
+  const priorityItems = useMemo(() => buildPriorityItems(metrics, text, access), [access, metrics, text]);
   const canViewAnything = localizedRegistry.visibleTo(data.permissions).length > 0;
   const hasAnyError = data.financeError || data.riskError || data.identityError;
 
@@ -231,6 +240,7 @@ export default function WidgetizedAdminDashboard() {
       renderWidget={(context) => renderDashboardWidget({
         context,
         data,
+        access,
         loading,
         locale,
         text,
@@ -247,6 +257,7 @@ export default function WidgetizedAdminDashboard() {
 function renderDashboardWidget({
   context,
   data,
+  access,
   loading,
   locale,
   text,
@@ -258,6 +269,7 @@ function renderDashboardWidget({
 }: {
   context: AdminWidgetRenderContext;
   data: DashboardData;
+  access: DashboardAccess;
   loading: boolean;
   locale: AdminLocale;
   text: Copy;
@@ -282,7 +294,9 @@ function renderDashboardWidget({
   } as const;
 
   if (id === 'operations.priority-work') {
-    const state = resolveState(loading, data.financeError && data.riskError, priorityItems.length === 0, false);
+    const relevantFinance = access.topUps || access.withdrawals;
+    const allRelevantSourcesFailed = (!access.risk || data.riskError) && (!relevantFinance || data.financeError);
+    const state = resolveState(loading, allRelevantSourcesFailed, priorityItems.length === 0, false);
     return <AdminWidget
       {...common}
       state={state}
@@ -396,8 +410,8 @@ function renderDashboardWidget({
 
   if (id === 'finance.pending-queues') {
     const queueRows = [
-      ...(data.summary?.queues.topUps ?? []).map((item) => ({ ...item, queueType: text.series.deposit, href: '/topups' })),
-      ...(data.summary?.queues.withdrawals ?? []).map((item) => ({ ...item, queueType: text.series.withdrawal, href: '/withdrawals' })),
+      ...(access.topUps ? (data.summary?.queues.topUps ?? []).map((item) => ({ ...item, queueType: text.series.deposit, href: '/topups' })) : []),
+      ...(access.withdrawals ? (data.summary?.queues.withdrawals ?? []).map((item) => ({ ...item, queueType: text.series.withdrawal, href: '/withdrawals' })) : []),
     ].sort((left, right) => new Date(left.createdAt).getTime() - new Date(right.createdAt).getTime());
     const state = resolveState(loading, data.financeError, queueRows.length === 0, snapshotPartial);
     return <AdminWidget
@@ -407,7 +421,7 @@ function renderDashboardWidget({
       errorMessage={text.error.finance}
       partialMessage={text.partial.snapshot}
       onRetry={retry}
-      onDrillDown={() => navigate(metrics.pendingWithdrawals > 0 ? '/withdrawals' : '/topups')}
+      onDrillDown={() => navigate(access.withdrawals && metrics.pendingWithdrawals > 0 ? '/withdrawals' : '/topups')}
       onExport={() => exportTableCsv(id, [
         [text.table.type, text.table.member, text.table.amount, text.table.status, text.table.createdAt],
         ...queueRows.map((item) => [item.queueType, memberLabel(item), item.amount, item.status, item.createdAt]),
@@ -425,30 +439,33 @@ function renderDashboardWidget({
   }
 
   const activityRows = [
-    ...data.riskItems.map((item) => ({
+    ...(access.risk ? data.riskItems.map((item) => ({
       id: `risk:${item.id}`,
       label: item.title,
       helper: `${text.severity[item.severity]} · ${new Date(item.createdAt).toLocaleString(locale === 'th' ? 'th-TH' : 'en-US')}`,
       value: item.status,
       href: '/risk-alerts',
       createdAt: item.createdAt,
-    })),
-    ...(data.summary?.recentLedgers ?? []).map((item) => ({
+    })) : []),
+    ...(access.wallet ? (data.summary?.recentLedgers ?? []).map((item) => ({
       id: `ledger:${item.id}`,
       label: `${item.type} · ${memberLabel(item)}`,
       helper: new Date(item.createdAt).toLocaleString(locale === 'th' ? 'th-TH' : 'en-US'),
       value: formatMoney(Number(item.amount)),
       href: '/wallets',
       createdAt: item.createdAt,
-    })),
+    })) : []),
   ].sort((left, right) => new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime());
-  const state = resolveState(loading, data.financeError && data.riskError, activityRows.length === 0, data.financeError !== data.riskError || snapshotPartial);
+  const relevantSourceErrors = [access.risk ? data.riskError : null, access.wallet ? data.financeError : null].filter((value): value is boolean => value !== null);
+  const allRelevantSourcesFailed = relevantSourceErrors.length > 0 && relevantSourceErrors.every(Boolean);
+  const someRelevantSourceFailed = relevantSourceErrors.some(Boolean);
+  const state = resolveState(loading, allRelevantSourcesFailed, activityRows.length === 0, someRelevantSourceFailed || snapshotPartial);
   return <AdminWidget
     {...common}
     state={state}
     emptyMessage={text.empty.activity}
     errorMessage={text.error.activity}
-    partialMessage={data.financeError !== data.riskError ? text.partial.source : text.partial.snapshot}
+    partialMessage={someRelevantSourceFailed ? text.partial.source : text.partial.snapshot}
     onRetry={retry}
     onDrillDown={() => navigate(activityRows[0]?.href ?? '/dashboard')}
     onExport={() => exportTableCsv(id, [
@@ -571,9 +588,19 @@ function buildMetrics(data: DashboardData) {
   };
 }
 
-function buildPriorityItems(metrics: ReturnType<typeof buildMetrics>, text: Copy): PriorityItem[] {
+function buildAccess(permissions: readonly string[]): DashboardAccess {
+  return {
+    finance: hasAnyPermission(permissions, ['reports.view', 'wallet.view', 'topups.view', 'deposit.view', 'withdraw.view']),
+    wallet: hasAnyPermission(permissions, ['wallet.view']),
+    topUps: hasAnyPermission(permissions, ['topups.view', 'deposit.view']),
+    withdrawals: hasAnyPermission(permissions, ['withdraw.view']),
+    risk: hasAnyPermission(permissions, ['risk.view']),
+  };
+}
+
+function buildPriorityItems(metrics: ReturnType<typeof buildMetrics>, text: Copy, access: DashboardAccess): PriorityItem[] {
   const items: PriorityItem[] = [];
-  if (metrics.openRiskTotal > 0) items.push({
+  if (access.risk && metrics.openRiskTotal > 0) items.push({
     id: 'risk',
     label: metrics.riskCounts.CRITICAL > 0 ? text.priority.criticalRisk : text.priority.openRisk,
     helper: `${metrics.riskCounts.CRITICAL} ${text.severity.CRITICAL}`,
@@ -581,7 +608,7 @@ function buildPriorityItems(metrics: ReturnType<typeof buildMetrics>, text: Copy
     href: '/risk-alerts',
     tone: metrics.riskCounts.CRITICAL > 0 ? 'danger' : 'warning',
   });
-  if (metrics.pendingWithdrawals > 0) items.push({
+  if (access.withdrawals && metrics.pendingWithdrawals > 0) items.push({
     id: 'withdrawals',
     label: text.priority.withdrawals,
     helper: text.priority.review,
@@ -589,7 +616,7 @@ function buildPriorityItems(metrics: ReturnType<typeof buildMetrics>, text: Copy
     href: '/withdrawals',
     tone: 'danger',
   });
-  if (metrics.pendingTopUps > 0) items.push({
+  if (access.topUps && metrics.pendingTopUps > 0) items.push({
     id: 'topups',
     label: text.priority.deposits,
     helper: text.priority.review,
@@ -598,6 +625,11 @@ function buildPriorityItems(metrics: ReturnType<typeof buildMetrics>, text: Copy
     tone: 'warning',
   });
   return items;
+}
+
+function hasAnyPermission(permissions: readonly string[], required: readonly string[]): boolean {
+  const held = new Set(permissions);
+  return held.has('*') || required.some((permission) => held.has(permission));
 }
 
 function resolveState(loading: boolean, error: boolean, empty: boolean, partial: boolean): AdminWidgetDataState {
