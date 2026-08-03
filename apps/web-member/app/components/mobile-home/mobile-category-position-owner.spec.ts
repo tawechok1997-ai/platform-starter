@@ -9,7 +9,7 @@ test('Mobile category rail begins below top content and sticks within its own se
   assert.doesNotMatch(home, /MobileCategoryRailPinRuntime/);
   assert.doesNotMatch(home, /MobileCategoryRailTransformFollower/);
   assert.match(followCss, /data-mobile-section-owner='category-menu'[\s\S]*position:\s*sticky\s*!important/);
-  assert.match(followCss, /data-mobile-section-owner='category-menu'[\s\S]*top:\s*calc\(60px \+ env\(safe-area-inset-top, 0px\)\)\s*!important/);
+  assert.match(followCss, /data-mobile-section-owner='category-menu'[\s\S]*top:\s*calc\(64px \+ env\(safe-area-inset-top, 0px\)\)\s*!important/);
   assert.match(followCss, /data-mobile-section-owner='category-menu'[\s\S]*grid-column:\s*1\s*!important/);
   assert.match(followCss, /data-mobile-content-slot='after-highlight'[\s\S]*grid-column:\s*2 \/ -1\s*!important/);
   assert.match(followCss, /data-mobile-content-slot='after-highlight'[\s\S]*grid-row:\s*1\s*!important/);
