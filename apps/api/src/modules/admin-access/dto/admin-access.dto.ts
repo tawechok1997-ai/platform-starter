@@ -116,7 +116,7 @@ export class SyncAdminRolesDto extends PreviewAdminRoleSelectionDto {
 
 export class ChangeAdminStatusDto {
   @IsString()
-  @IsIn(['ACTIVE', 'SUSPENDED', 'DISABLED'])
+  @IsIn(['ACTIVE', 'SUSPENDED', 'LOCKED'])
   status!: string;
 
   @IsString()
