@@ -7,6 +7,7 @@ import {
 } from '../lib/member-document-overlay-lock';
 
 const DESKTOP_DESIGN_WIDTH = 1455;
+const MOBILE_LAYOUT_MAX_WIDTH = 900;
 const WIDTH_CONDITION = /\(\s*(min|max)-width\s*:\s*(\d+(?:\.\d+)?)px\s*\)/gi;
 
 type WidthCondition = {
@@ -37,11 +38,12 @@ export default function PublicDesktopViewportBootstrap() {
   useLayoutEffect(() => {
     clearLegacyBodyScaling();
     nativeMatchMedia ??= window.matchMedia.bind(window);
-    installVirtualMatchMedia();
 
     const shell = document.getElementById('member-desktop-scale-shell');
     const canvas = document.getElementById('member-desktop-scale-canvas');
     if (!shell || !canvas) return;
+
+    installVirtualMatchMedia();
 
     const shellCssText = shell.style.cssText;
     const canvasCssText = canvas.style.cssText;
@@ -165,6 +167,7 @@ export default function PublicDesktopViewportBootstrap() {
       styleObserver?.disconnect();
       if (mediaRulesVirtualized) restoreMediaRules();
       restoreCanvas();
+      uninstallVirtualMatchMedia();
       delete document.documentElement.dataset.memberViewportMode;
     };
   }, []);
@@ -207,12 +210,29 @@ function installVirtualMatchMedia() {
   }) as typeof window.matchMedia;
 }
 
+function uninstallVirtualMatchMedia() {
+  if (!matchMediaPatched || !nativeMatchMedia) return;
+  window.matchMedia = nativeMatchMedia;
+  matchMediaPatched = false;
+}
+
 function shouldUseDesktopCanvas() {
   return !isMobileOnlyDevice() && getMemberDesktopViewportWidth() < DESKTOP_DESIGN_WIDTH;
 }
 
 function isMobileOnlyDevice() {
   if (!nativeMatchMedia) return false;
+
+  const viewportWidth = Math.max(1, document.documentElement.clientWidth || window.innerWidth || 1);
+  const pathname = window.location.pathname.toLowerCase();
+  if (
+    viewportWidth <= MOBILE_LAYOUT_MAX_WIDTH
+    || pathname === '/mobile'
+    || pathname.startsWith('/mobile/')
+  ) {
+    return true;
+  }
+
   const hasDesktopPointer = nativeMatchMedia('(any-hover: hover), (any-pointer: fine)').matches;
   const coarsePrimary = nativeMatchMedia('(hover: none) and (pointer: coarse)').matches;
   return coarsePrimary && !hasDesktopPointer;
