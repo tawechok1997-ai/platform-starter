@@ -3,154 +3,359 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { memberApiFetch } from '../../member-api';
+import styles from './demo-slot.module.css';
 
-type Transfer = { id: string; type: string; status: string; amount: string; currency: string; providerTransactionId?: string | null; errorMessage?: string | null; createdAt: string; responsePayload?: any };
-type WalletPayload = { balance?: string; lockedBalance?: string; currency?: string };
+type WalletPayload = {
+  balance?: string;
+  lockedBalance?: string;
+  currency?: string;
+};
 
-const quickAmounts = ['100', '300', '500', '1000'];
+type SpinPayload = {
+  ok?: boolean;
+  spinId?: string;
+  roundId?: string;
+  result?: 'WIN' | 'LOSS';
+  symbols?: string[];
+  multiplier?: number;
+  betAmount?: string;
+  winAmount?: string;
+  netAmount?: string;
+  balance?: string;
+  currency?: string;
+  replayed?: boolean;
+  message?: string | string[];
+  error?: string;
+  game?: { code?: string; name?: string; provider?: string };
+  transactions?: { bet?: string; win?: string | null };
+};
+
+type SpinHistoryItem = {
+  spinId: string;
+  roundId: string;
+  result: 'WIN' | 'LOSS';
+  symbols: string[];
+  betAmount: string;
+  winAmount: string;
+  netAmount: string;
+  multiplier: number;
+  balance: string;
+  replayed: boolean;
+  createdAt: number;
+};
+
+const QUICK_BETS = [10, 50, 100, 500];
+const INITIAL_SYMBOLS = ['🍒', '🔔', '7️⃣'];
 
 export default function DemoLaunchPage() {
   const params = useSearchParams();
-  const game = params.get('game') ?? 'demo-game';
-  const session = params.get('session') ?? '-';
-  const [amount, setAmount] = useState('100');
-  const [message, setMessage] = useState('');
-  const [busy, setBusy] = useState('');
-  const [transfers, setTransfers] = useState<Transfer[]>([]);
+  const session = params.get('session')?.trim() ?? '';
+  const requestedGame = params.get('game')?.trim() || 'demo-slot-001';
+  const provider = params.get('provider')?.trim() || 'Simulator Provider';
   const [wallet, setWallet] = useState<WalletPayload>({});
+  const [amount, setAmount] = useState('50');
+  const [symbols, setSymbols] = useState<string[]>(INITIAL_SYMBOLS);
+  const [history, setHistory] = useState<SpinHistoryItem[]>([]);
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState('เครดิตเดิมพันและเงินรางวัลจะหักหรือเพิ่มในบัญชีสมาชิกนี้โดยตรง');
+  const [error, setError] = useState('');
+  const [lastResult, setLastResult] = useState<SpinPayload | null>(null);
 
-  useEffect(() => { loadAll(); }, [session]);
+  useEffect(() => {
+    void loadWallet();
+  }, []);
 
-  const currency = wallet.currency ?? transfers[0]?.currency ?? 'THB';
-  const latest = transfers[0];
-  const successfulIn = useMemo(() => transfers.filter((item) => item.type === 'TRANSFER_IN' && item.status === 'SUCCESS').reduce((sum, item) => sum + Number(item.amount || 0), 0), [transfers]);
-  const successfulOut = useMemo(() => transfers.filter((item) => item.type === 'TRANSFER_OUT' && item.status === 'SUCCESS').reduce((sum, item) => sum + Number(item.amount || 0), 0), [transfers]);
-  const estimatedGameBalance = Math.max(successfulIn - successfulOut, 0);
+  const balance = Number(wallet.balance ?? 0);
+  const lockedBalance = Number(wallet.lockedBalance ?? 0);
+  const numericAmount = Number(amount);
+  const canSpin = Boolean(session)
+    && Number.isFinite(numericAmount)
+    && numericAmount >= 1
+    && numericAmount <= 10_000
+    && numericAmount <= balance
+    && !busy;
+  const totalBet = useMemo(
+    () => history.reduce((sum, item) => sum + Number(item.betAmount), 0),
+    [history],
+  );
+  const totalWin = useMemo(
+    () => history.reduce((sum, item) => sum + Number(item.winAmount), 0),
+    [history],
+  );
 
-  async function loadAll() { await Promise.all([loadWallet(), loadTransfers()]); }
   async function loadWallet() {
-    const res = await memberApiFetch('/member/wallet');
-    const data = await res.json().catch(() => null);
-    if (res.ok) setWallet(data?.wallet ?? data ?? {});
-  }
-  async function loadTransfers() {
-    if (!session || session === '-') return;
-    const res = await memberApiFetch(`/member/game-sessions/${session}/transfers`);
-    const data = await res.json().catch(() => null);
-    if (res.ok) setTransfers(data?.items ?? []);
-  }
-
-  function setAllAmount() {
-    const available = Number(wallet.balance ?? 0);
-    if (available > 0) setAmount(available.toFixed(2));
+    try {
+      const response = await memberApiFetch('/member/wallet');
+      const payload = await response.json().catch(() => null);
+      if (!response.ok) throw new Error(readMessage(payload, 'โหลดเครดิตสมาชิกไม่สำเร็จ'));
+      setWallet(payload?.wallet ?? payload ?? {});
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : 'โหลดเครดิตสมาชิกไม่สำเร็จ');
+    }
   }
 
-  async function transfer(type: 'transfer-in' | 'transfer-out') {
-    if (!session || session === '-') { setMessage('ไม่พบ session สำหรับโยกเงิน'); return; }
-    const numericAmount = Number(amount);
-    if (!Number.isFinite(numericAmount) || numericAmount <= 0) { setMessage('กรุณาใส่จำนวนเงินให้ถูกต้อง'); return; }
-    setBusy(type);
-    setMessage(type === 'transfer-in' ? 'กำลังโยกเงินเข้าเกม...' : 'กำลังโยกเงินกลับเข้าวอเลต...');
-    const res = await memberApiFetch(`/member/game-sessions/${session}/${type}`, { method: 'POST', body: JSON.stringify({ amount }) });
-    const data = await res.json().catch(() => null);
-    setBusy('');
-    if (!res.ok || !data?.ok) {
-      const rolledBack = data?.transfer?.responsePayload?.walletRollbackLedgerId || data?.walletSync?.rollback;
-      setMessage(rolledBack ? 'โยกเงินไม่สำเร็จ ระบบคืนเงินเข้าวอเลตแล้ว' : data?.transfer?.errorMessage ?? data?.message ?? data?.errorMessage ?? 'โยกเงินไม่สำเร็จ ยอดเงินไม่ถูกเปลี่ยน');
-      await loadAll();
+  async function spin() {
+    setError('');
+    if (!session) {
+      setError('ไม่พบ Game Session กรุณาเปิดเกมผ่านหน้ารวมเกมอีกครั้ง');
       return;
     }
-    const label = type === 'transfer-in' ? 'โยกเข้าเกม' : 'โยกกลับวอเลต';
-    const balanceAfter = data.walletSync?.balanceAfter ? ` · ยอดคงเหลือ ${formatMoney(data.walletSync.balanceAfter, data.transfer.currency)}` : '';
-    setMessage(`${label} สำเร็จ ${formatMoney(data.transfer.amount, data.transfer.currency)}${balanceAfter}`);
-    await loadAll();
+    if (!Number.isFinite(numericAmount) || numericAmount < 1 || numericAmount > 10_000) {
+      setError('เดิมพันได้ตั้งแต่ 1 ถึง 10,000 เครดิตต่อรอบ');
+      return;
+    }
+    if (numericAmount > balance) {
+      setError('เครดิตในบัญชีไม่พอสำหรับเดิมพันรอบนี้');
+      return;
+    }
+
+    const spinId = createSpinId();
+    setBusy(true);
+    setLastResult(null);
+    setMessage('กำลังส่ง BET ไปยัง Provider Simulator...');
+
+    try {
+      const [response] = await Promise.all([
+        memberApiFetch(`/member/provider-simulator/sessions/${encodeURIComponent(session)}/spin`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ spinId, amount: numericAmount }),
+        }),
+        wait(650),
+      ]);
+      const payload = await response.json().catch(() => null) as SpinPayload | null;
+      if (!response.ok || !payload?.ok || !payload.roundId || !payload.result) {
+        throw new Error(readMessage(payload, 'หมุนสล็อตไม่สำเร็จ'));
+      }
+
+      const nextSymbols = Array.isArray(payload.symbols) && payload.symbols.length === 3
+        ? payload.symbols
+        : INITIAL_SYMBOLS;
+      const nextBalance = payload.balance ?? wallet.balance ?? '0.00';
+      const item: SpinHistoryItem = {
+        spinId: payload.spinId ?? spinId,
+        roundId: payload.roundId,
+        result: payload.result,
+        symbols: nextSymbols,
+        betAmount: payload.betAmount ?? numericAmount.toFixed(2),
+        winAmount: payload.winAmount ?? '0.00',
+        netAmount: payload.netAmount ?? (-numericAmount).toFixed(2),
+        multiplier: Number(payload.multiplier ?? 0),
+        balance: nextBalance,
+        replayed: payload.replayed === true,
+        createdAt: Date.now(),
+      };
+
+      setSymbols(nextSymbols);
+      setLastResult(payload);
+      setHistory((current) => [item, ...current].slice(0, 12));
+      setWallet((current) => ({ ...current, balance: nextBalance, currency: payload.currency ?? current.currency }));
+      setMessage(
+        payload.result === 'WIN'
+          ? `ชนะ ${formatCredits(payload.winAmount ?? '0.00')} · WIN ถูกบันทึกเข้ากระเป๋าแล้ว`
+          : `แพ้ ${formatCredits(payload.betAmount ?? numericAmount)} · BET ถูกหักจากกระเป๋าแล้ว`,
+      );
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : 'หมุนสล็อตไม่สำเร็จ');
+      setMessage('รอบไม่สำเร็จ ระบบจะไม่เดายอดเงินเอง กรุณาตรวจ Wallet Ledger');
+      await loadWallet();
+    } finally {
+      setBusy(false);
+    }
   }
 
-  return <main style={pageStyle}>
-    <section style={cardStyle}>
-      <header style={headerStyle}>
-        <div>
-          <span style={eyebrowStyle}>Game Session</span>
-          <h1 style={titleStyle}>โยกเงินเข้าออกเกม</h1>
-          <p style={mutedStyle}>เงิน sync กับวอเลตจริง ถ้า provider fail หลังหักยอด ระบบจะ rollback คืนให้ ไม่ใช่ปล่อยเงินหายไปพักร้อน</p>
-        </div>
-        <button type="button" onClick={loadAll} style={ghostButtonStyle} disabled={Boolean(busy)}>รีเฟรช</button>
-      </header>
+  return (
+    <main className={styles.page} data-member-wallet-slot="true">
+      <div className={styles.shell}>
+        <section className={styles.machine} aria-label="สล็อตจำลองที่ใช้เครดิตบัญชีสมาชิก">
+          <header className={styles.header}>
+            <div>
+              <span className={styles.eyebrow}>
+                <i className={styles.onlineDot} aria-hidden="true" /> Provider Simulator
+              </span>
+              <h1 className={styles.title}>Demo Fortune Slot</h1>
+              <p className={styles.subtitle}>
+                ทดสอบ BET, WIN, idempotency และ Wallet Ledger ด้วยเครดิตบัญชีสมาชิกปัจจุบัน
+              </p>
+            </div>
+            <div className={styles.balanceCard} aria-live="polite">
+              <span>เครดิตคงเหลือ</span>
+              <strong>{formatCredits(wallet.balance ?? 0)}</strong>
+            </div>
+          </header>
 
-      <div style={screenStyle}>
-        <span style={pillStyle}>กำลังเล่น</span>
-        <strong>{game}</strong>
-        <span>Session</span>
-        <code style={codeStyle}>{session}</code>
+          <div className={styles.reelFrame}>
+            <div className={`${styles.reels} ${busy ? styles.rolling : ''}`} aria-busy={busy}>
+              {symbols.map((symbol, index) => (
+                <div className={styles.reel} key={`${index}-${symbol}`} aria-label={`รีล ${index + 1}: ${symbol}`}>
+                  {busy ? '✦' : symbol}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className={styles.resultRow} role="status" aria-live="polite">
+            <div>
+              <strong className={lastResult?.result === 'WIN' ? styles.resultWin : lastResult ? styles.resultLoss : ''}>
+                {busy ? 'กำลังหมุน...' : lastResult?.result === 'WIN' ? 'ชนะรอบนี้' : lastResult ? 'ไม่ถูกรางวัล' : 'พร้อมหมุน'}
+              </strong>
+              <span className={styles.muted}>{message}</span>
+            </div>
+            {lastResult ? (
+              <strong className={lastResult.result === 'WIN' ? styles.resultWin : styles.resultLoss}>
+                {signedCredits(lastResult.netAmount ?? '0.00')}
+              </strong>
+            ) : null}
+          </div>
+
+          {error ? <div className={`${styles.notice} ${styles.error}`} role="alert">{error}</div> : null}
+          {!session ? (
+            <div className={`${styles.notice} ${styles.error}`} role="alert">
+              หน้านี้ต้องเปิดจากเกม Demo ที่สร้าง GameSession แล้ว การเปิด URL ตรงๆ จะไม่ยอมให้หักเครดิต
+            </div>
+          ) : null}
+
+          <section className={styles.controls} aria-label="ตั้งค่าเดิมพัน">
+            <div className={styles.betBox}>
+              <label className={styles.betLabel} htmlFor="demo-slot-bet">เดิมพันต่อรอบ</label>
+              <input
+                id="demo-slot-bet"
+                className={styles.betInput}
+                value={amount}
+                onChange={(event) => setAmount(event.target.value)}
+                inputMode="decimal"
+                min="1"
+                max="10000"
+                step="0.01"
+                disabled={busy}
+                aria-describedby="demo-slot-bet-help"
+              />
+              <div className={styles.quickBets}>
+                {QUICK_BETS.map((value) => (
+                  <button
+                    key={value}
+                    type="button"
+                    className={styles.quickButton}
+                    aria-pressed={Number(amount) === value}
+                    onClick={() => setAmount(String(value))}
+                    disabled={busy}
+                  >
+                    {value}
+                  </button>
+                ))}
+              </div>
+              <small id="demo-slot-bet-help" className={styles.muted}>ขั้นต่ำ 1 · สูงสุด 10,000 เครดิต</small>
+            </div>
+            <button
+              type="button"
+              className={styles.spinButton}
+              onClick={spin}
+              disabled={!canSpin}
+              data-demo-slot-spin="true"
+            >
+              {busy ? 'กำลัง SETTLE...' : 'หมุนสล็อต'}
+            </button>
+          </section>
+
+          <div className={styles.stats}>
+            <div className={styles.stat}><span>เดิมพันรวมรอบนี้</span><strong>{formatCredits(totalBet)}</strong></div>
+            <div className={styles.stat}><span>ชนะรวมรอบนี้</span><strong>{formatCredits(totalWin)}</strong></div>
+            <div className={styles.stat}><span>ยอดล็อก</span><strong>{formatCredits(lockedBalance)}</strong></div>
+          </div>
+        </section>
+
+        <aside className={styles.sidePanel}>
+          <section>
+            <div className={styles.sectionTitle}>
+              <strong>ตารางรางวัล</strong>
+              <span className={styles.muted}>คูณจากยอดเดิมพัน</span>
+            </div>
+            <div className={styles.payTable}>
+              <div className={styles.payRow}><span>💎 💎 💎</span><strong>×20</strong></div>
+              <div className={styles.payRow}><span>7️⃣ 7️⃣ 7️⃣</span><strong>×10</strong></div>
+              <div className={styles.payRow}><span>⭐ ⭐ ⭐</span><strong>×6</strong></div>
+              <div className={styles.payRow}><span>🔔 🔔 🔔</span><strong>×4</strong></div>
+              <div className={styles.payRow}><span>🍒 / 🍋 สามตัว</span><strong>×2</strong></div>
+              <div className={styles.payRow}><span>สัญลักษณ์เหมือนกันสองตัว</span><strong>×1.5</strong></div>
+            </div>
+          </section>
+
+          <section>
+            <div className={styles.sectionTitle}>
+              <strong>ประวัติรอบ</strong>
+              <span className={styles.muted}>{history.length} รอบ</span>
+            </div>
+            <div className={styles.history}>
+              {history.map((item) => (
+                <div className={styles.historyRow} key={item.spinId}>
+                  <div>
+                    <strong>{item.symbols.join(' ')}</strong>
+                    <span className={styles.historyMeta}>
+                      {new Date(item.createdAt).toLocaleTimeString('th-TH')} · เดิมพัน {formatCredits(item.betAmount)}
+                    </span>
+                    <span className={styles.sessionText}>{item.roundId}</span>
+                  </div>
+                  <div className={styles.historyResult}>
+                    <strong className={item.result === 'WIN' ? styles.resultWin : styles.resultLoss}>
+                      {signedCredits(item.netAmount)}
+                    </strong>
+                    <span className={styles.historyMeta}>
+                      {item.result === 'WIN' ? `×${item.multiplier}` : 'LOSS'}{item.replayed ? ' · replay' : ''}
+                    </span>
+                  </div>
+                </div>
+              ))}
+              {history.length === 0 ? <p className={styles.empty}>กดหมุนเพื่อสร้าง BET/WIN รอบแรก</p> : null}
+            </div>
+          </section>
+
+          <section>
+            <div className={styles.sectionTitle}><strong>Session ตรวจสอบ</strong></div>
+            <p className={styles.sessionText}>Game: {requestedGame}</p>
+            <p className={styles.sessionText}>Provider: {provider}</p>
+            <p className={styles.sessionText}>Session: {session || 'missing'}</p>
+          </section>
+
+          <div className={styles.footerActions}>
+            <a className={styles.linkButton} href="/games">กลับหน้าเกม</a>
+            <button className={styles.ghostButton} type="button" onClick={loadWallet} disabled={busy}>รีเฟรชเครดิต</button>
+          </div>
+        </aside>
       </div>
-
-      <section style={balanceGridStyle}>
-        <BalanceCard label="ยอดใช้ได้" value={formatMoney(wallet.balance ?? '0.00', currency)} tone="green" />
-        <BalanceCard label="ยอดพัก" value={formatMoney(wallet.lockedBalance ?? '0.00', currency)} tone="yellow" />
-        <BalanceCard label="ในเกมโดยประมาณ" value={formatMoney(estimatedGameBalance, currency)} tone="blue" />
-      </section>
-
-      <section style={panelStyle}>
-        <div style={sectionHeadStyle}><strong>โยกเงิน</strong><span style={smallStyle}>เลือกยอดแล้วกดเข้า/ออก</span></div>
-        <input value={amount} onChange={(event) => setAmount(event.target.value)} inputMode="decimal" style={inputStyle} placeholder="จำนวนเงิน" />
-        <div style={quickRowStyle}>{quickAmounts.map((item) => <button key={item} type="button" style={chipStyle} onClick={() => setAmount(item)}>{item}</button>)}<button type="button" style={chipStyle} onClick={setAllAmount}>ทั้งหมด</button></div>
-        <div style={actionRowStyle}>
-          <button type="button" style={buttonStyle} disabled={Boolean(busy)} onClick={() => transfer('transfer-in')}>{busy === 'transfer-in' ? 'กำลังโยก...' : 'โยกเข้าเกม'}</button>
-          <button type="button" style={secondaryButtonStyle} disabled={Boolean(busy)} onClick={() => transfer('transfer-out')}>{busy === 'transfer-out' ? 'กำลังโยก...' : 'โยกกลับวอเลต'}</button>
-        </div>
-        {message && <div style={noticeStyle}>{message}</div>}
-      </section>
-
-      <section style={panelStyle}>
-        <div style={sectionHeadStyle}><strong>สถานะล่าสุด</strong><span style={smallStyle}>{latest ? new Date(latest.createdAt).toLocaleString('th-TH') : 'ยังไม่มีรายการ'}</span></div>
-        {latest ? <div style={latestStyle}><div><strong>{transferLabel(latest.type)}</strong><p style={mutedStyle}>{formatMoney(latest.amount, latest.currency)} · {latest.providerTransactionId ?? latest.errorMessage ?? '-'}</p></div><em style={statusStyle(latest.status, latest.responsePayload)}>{statusLabel(latest.status, latest.responsePayload)}</em></div> : <p style={mutedStyle}>ยังไม่มีรายการโยกเงินใน session นี้</p>}
-      </section>
-
-      <section style={panelStyle}>
-        <div style={sectionHeadStyle}><strong>ประวัติโยกเงิน</strong><span style={smallStyle}>{transfers.length} รายการ</span></div>
-        {transfers.map((item) => <div key={item.id} style={historyRowStyle}><div><strong>{transferLabel(item.type)}</strong><p style={mutedStyle}>{formatMoney(item.amount, item.currency)} · {item.providerTransactionId ?? item.errorMessage ?? '-'}</p><small style={smallStyle}>{new Date(item.createdAt).toLocaleString('th-TH')}</small></div><em style={statusStyle(item.status, item.responsePayload)}>{statusLabel(item.status, item.responsePayload)}</em></div>)}
-        {transfers.length === 0 && <p style={mutedStyle}>ยังไม่มีรายการโยกเงินใน session นี้</p>}
-      </section>
-
-      <div style={footerActionsStyle}>
-        <a href="/games" style={linkButtonStyle}>กลับไปหน้าเกม</a>
-        <a href="/transactions" style={outlineLinkStyle}>ดูประวัติ</a>
-      </div>
-    </section>
-  </main>;
+    </main>
+  );
 }
 
-function BalanceCard({ label, value, tone }: { label: string; value: string; tone: 'green' | 'yellow' | 'blue' }) { return <div style={{ ...walletCardStyle, ...balanceToneStyle[tone] }}><span>{label}</span><strong>{value}</strong></div>; }
-function transferLabel(type: string) { return type === 'TRANSFER_IN' ? 'โยกเข้าเกม' : type === 'TRANSFER_OUT' ? 'โยกกลับวอเลต' : type; }
-function statusLabel(status: string, responsePayload?: any) { if (status === 'SUCCESS') return 'สำเร็จ'; if (responsePayload?.walletRollbackLedgerId) return 'คืนยอดแล้ว'; if (status === 'FAILED') return 'ไม่สำเร็จ'; if (status === 'PENDING') return 'กำลังทำรายการ'; return status; }
-function statusStyle(status: string, responsePayload?: any) { const base = { fontStyle: 'normal', fontWeight: 950, borderRadius: 999, padding: '6px 10px', height: 'fit-content' } as const; if (status === 'SUCCESS') return { ...base, color: '#bbf7d0', background: 'rgba(34,197,94,.12)' }; if (responsePayload?.walletRollbackLedgerId) return { ...base, color: '#fde68a', background: 'rgba(245,197,66,.12)' }; if (status === 'FAILED') return { ...base, color: '#fecaca', background: 'rgba(239,68,68,.14)' }; return { ...base, color: '#facc15', background: 'rgba(245,197,66,.12)' }; }
-function formatMoney(value: string | number, currency: string) { return `${currency} ${Number(value).toLocaleString('th-TH', { minimumFractionDigits: 2 })}`; }
+function createSpinId() {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') return crypto.randomUUID();
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (character) => {
+    const random = Math.floor(Math.random() * 16);
+    const value = character === 'x' ? random : (random & 0x3) | 0x8;
+    return value.toString(16);
+  });
+}
 
-const pageStyle = { minHeight: '100dvh', background: 'radial-gradient(circle at top,#1f2937,#050505 58%)', color: '#fff', display: 'grid', placeItems: 'center', padding: 14 } as const;
-const cardStyle = { width: '100%', maxWidth: 600, border: '1px solid rgba(245,197,66,.24)', borderRadius: 28, padding: 18, background: 'rgba(15,23,42,.88)', boxShadow: '0 28px 80px rgba(0,0,0,.45)', display: 'grid', gap: 14, minWidth: 0 } as const;
-const headerStyle = { display: 'flex', gap: 12, justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap' as const };
-const eyebrowStyle = { color: '#facc15', fontWeight: 950, letterSpacing: '.1em', textTransform: 'uppercase' as const, fontSize: 12 };
-const titleStyle = { margin: '4px 0 8px', fontSize: 'clamp(30px,7vw,40px)', lineHeight: 1.05 } as const;
-const mutedStyle = { margin: 0, color: '#cbd5e1', lineHeight: 1.6 } as const;
-const smallStyle = { color: '#94a3b8', fontSize: 12 } as const;
-const screenStyle = { minHeight: 150, borderRadius: 22, border: '1px solid rgba(148,163,184,.2)', background: 'linear-gradient(135deg,rgba(245,197,66,.16),rgba(59,130,246,.12))', display: 'grid', placeItems: 'center', textAlign: 'center' as const, gap: 8, padding: 18 };
-const balanceGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(3,minmax(0,1fr))', gap: 8 } as const;
-const walletCardStyle = { border: '1px solid rgba(148,163,184,.2)', borderRadius: 18, padding: 12, display: 'grid', gap: 6, minWidth: 0 } as const;
-const balanceToneStyle = { green: { background: 'rgba(34,197,94,.10)', borderColor: 'rgba(34,197,94,.28)' }, yellow: { background: 'rgba(245,197,66,.10)', borderColor: 'rgba(245,197,66,.28)' }, blue: { background: 'rgba(59,130,246,.10)', borderColor: 'rgba(59,130,246,.28)' } } as const;
-const panelStyle = { border: '1px solid rgba(148,163,184,.2)', borderRadius: 20, padding: 14, background: 'rgba(2,6,23,.52)', display: 'grid', gap: 12 } as const;
-const sectionHeadStyle = { display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'center', flexWrap: 'wrap' as const };
-const inputStyle = { minHeight: 48, borderRadius: 14, border: '1px solid rgba(148,163,184,.24)', background: '#0f172a', color: '#fff', padding: '0 12px', fontWeight: 900, fontSize: 18 };
-const quickRowStyle = { display: 'flex', gap: 8, flexWrap: 'wrap' as const };
-const chipStyle = { border: '1px solid rgba(148,163,184,.2)', borderRadius: 999, background: 'rgba(148,163,184,.1)', color: '#e2e8f0', minHeight: 34, padding: '0 12px', fontWeight: 900 } as const;
-const actionRowStyle = { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 } as const;
-const codeStyle = { maxWidth: '100%', overflowWrap: 'anywhere' as const, color: '#fef3c7', background: 'rgba(0,0,0,.24)', borderRadius: 12, padding: '8px 10px' };
-const buttonStyle = { minHeight: 50, borderRadius: 16, display: 'grid', placeItems: 'center', background: '#f5c542', color: '#111827', fontWeight: 950, textDecoration: 'none', border: 0 } as const;
-const secondaryButtonStyle = { ...buttonStyle, background: '#334155', color: '#e2e8f0' } as const;
-const ghostButtonStyle = { minHeight: 40, borderRadius: 999, border: '1px solid rgba(148,163,184,.2)', padding: '0 12px', background: 'rgba(148,163,184,.08)', color: '#e2e8f0', fontWeight: 900 } as const;
-const linkButtonStyle = { minHeight: 48, borderRadius: 16, display: 'grid', placeItems: 'center', background: '#f5c542', color: '#111827', fontWeight: 950, textDecoration: 'none' } as const;
-const outlineLinkStyle = { ...linkButtonStyle, background: '#334155', color: '#e2e8f0' } as const;
-const footerActionsStyle = { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 } as const;
-const noticeStyle = { padding: 12, borderRadius: 14, border: '1px solid rgba(148,163,184,.18)', background: 'rgba(15,23,42,.75)', color: '#e2e8f0' } as const;
-const latestStyle = { display: 'flex', justifyContent: 'space-between', gap: 10, border: '1px solid rgba(148,163,184,.18)', borderRadius: 14, padding: 12, background: 'rgba(15,23,42,.55)', flexWrap: 'wrap' as const } as const;
-const historyRowStyle = { ...latestStyle } as const;
-const pillStyle = { borderRadius: 999, padding: '5px 10px', background: 'rgba(34,197,94,.12)', color: '#bbf7d0', fontSize: 12, fontWeight: 950 } as const;
+function readMessage(payload: unknown, fallback: string) {
+  if (!payload || typeof payload !== 'object') return fallback;
+  const record = payload as Record<string, unknown>;
+  const message = record.message;
+  if (Array.isArray(message)) return message.filter((item): item is string => typeof item === 'string').join(', ') || fallback;
+  if (typeof message === 'string' && message.trim()) return message;
+  if (typeof record.error === 'string' && record.error.trim()) return record.error;
+  return fallback;
+}
+
+function formatCredits(value: string | number) {
+  const amount = Number(value);
+  return `${Number.isFinite(amount) ? amount.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00'} เครดิต`;
+}
+
+function signedCredits(value: string | number) {
+  const amount = Number(value);
+  const sign = amount > 0 ? '+' : '';
+  return `${sign}${formatCredits(Number.isFinite(amount) ? amount : 0)}`;
+}
+
+function wait(milliseconds: number) {
+  return new Promise<void>((resolve) => window.setTimeout(resolve, milliseconds));
+}
