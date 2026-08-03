@@ -27,10 +27,10 @@ test('CMS wrapper preserves source-specific activity fields stripped by the stri
 });
 
 test('source popup reads separate thumbnail and banner metadata from CMS', () => {
-  assert.match(popup, /record\.thumbnailImageUrl/);
-  assert.match(popup, /record\.bannerImageUrl/);
-  assert.match(popup, /record\.endsAt/);
-  assert.match(popup, /record\.terms/);
+  for (const field of ['thumbnailImageUrl', 'bannerImageUrl', 'endsAt', 'terms']) {
+    assert.match(popup, new RegExp(`(?:raw|record)\\.${field}`));
+  }
+  assert.match(popup, /cmsContentSetting\(settings\)/);
 });
 
 test('new environments seed both source activities without overwriting existing CMS settings', () => {

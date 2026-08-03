@@ -4,15 +4,11 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { PromotionView } from '../browse/browse-promotions-cms';
 import { memberApiFetch } from '../member-api';
 import { resolveLocalAssetOrSource } from '../lib/local-asset-by-basename';
-import {
-  loadPublicPromotionCampaigns,
-  PROMOTION_ASSET_CAMPAIGNS,
-  type MemberPromotionCampaign,
-  type PromotionMemberCategory,
-} from '../promotion-campaign-runtime';
-import { cmsResponsiveMediaUrls, type CmsContent } from '../site-settings';
+import type { MemberPromotionCampaign, PromotionMemberCategory } from '../promotion-campaign-runtime';
+import { cmsContentSetting, cmsResponsiveMediaUrls, type CmsContent } from '../site-settings';
 import { useSiteSettings } from '../site-settings-provider';
 import { useMemberSession } from '../member-session-provider';
+import { loadLivePromotionCampaigns } from './member-source-content-runtime';
 
 const CATEGORY_OPTIONS: Array<{ value: 'all' | PromotionMemberCategory; label: string }> = [
   { value: 'all', label: 'ทั้งหมด' },
@@ -47,6 +43,8 @@ type NewsItem = {
   image: string;
 };
 
+type CampaignLoadState = 'loading' | 'ready' | 'error';
+
 type ResponsiveSourceProps = {
   desktop: string;
   mobile?: string;
@@ -55,41 +53,17 @@ type ResponsiveSourceProps = {
   className?: string;
 };
 
-const SOURCE_ACTIVITY_FALLBACK: ActivityItem[] = [
-  {
-    id: 'predict-lottery',
-    title: 'ทายผลหวย',
-    summary: 'กิจกรรมทายผลหวย',
-    expiresAt: '2026-08-01',
-    thumbnail: sourceAsset('https://cdn.zabbet.com/event/predict/1784904726144-c10c3ca6-cf70-41d3-a763-aa33c8917b2d.jpeg'),
-    banner: sourceAsset('https://cdn.zabbet.com/event/predict/1784904660399-a6cb7821-1abb-4422-bbc2-27606ba0e7b4.jpeg'),
-    terms: ['กรุณาทายผลให้ครบทั้ง 3 ตัวบน และ 2 ตัวล่าง', 'ตรวจสอบเวลาปิดรับคำทายก่อนส่งข้อมูล'],
-    statusLabel: 'หมดเวลาทายผล',
-    numberPrediction: true,
-  },
-  {
-    id: 'turnover-reward',
-    title: 'ทำยอด Turn รับรางวัลจุใจ',
-    summary: 'ทำยอดตามเงื่อนไขเพื่อรับรางวัล',
-    expiresAt: '',
-    thumbnail: sourceAsset('https://cdn.zabbet.com/event/predict/1719130004352-5323a6c4-0ad4-4cda-8475-dd0f5701b61b.png'),
-    banner: sourceAsset('https://cdn.zabbet.com/event/predict/1719130004352-5323a6c4-0ad4-4cda-8475-dd0f5701b61b.png'),
-    terms: ['ยอด Turn และรางวัลเป็นไปตามประกาศของกิจกรรม'],
-    statusLabel: '',
-    numberPrediction: false,
-  },
-];
-
 export default function MemberSourceContentPopup({
   view,
   detailBackSignal = 0,
   onDetailOpenChange,
 }: Props) {
   const { ready, isLoggedIn } = useMemberSession();
-  const { typedSettings } = useSiteSettings();
-  const content = typedSettings.features.cms_content;
+  const { settings, reload } = useSiteSettings();
+  const content = useMemo(() => cmsContentSetting(settings), [settings]);
   const popupRootRef = useRef<HTMLElement | null>(null);
-  const [campaigns, setCampaigns] = useState<MemberPromotionCampaign[]>(PROMOTION_ASSET_CAMPAIGNS);
+  const [campaigns, setCampaigns] = useState<MemberPromotionCampaign[]>([]);
+  const [campaignLoadState, setCampaignLoadState] = useState<CampaignLoadState>('loading');
   const [category, setCategory] = useState<'all' | PromotionMemberCategory>('all');
   const [selectedCampaign, setSelectedCampaign] = useState<MemberPromotionCampaign | null>(null);
   const [selectedActivityId, setSelectedActivityId] = useState('');
@@ -98,8 +72,8 @@ export default function MemberSourceContentPopup({
 
   const resetPopupScroll = useCallback(() => {
     const root = popupRootRef.current;
-    const contentOwner = root?.closest<HTMLElement>('.member-shared-popup-content');
-    contentOwner?.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+    root?.closest<HTMLElement>('.member-shared-popup-content')
+      ?.scrollTo({ top: 0, left: 0, behavior: 'auto' });
     root?.querySelectorAll<HTMLElement>([
       '.member-source-promotion-grid',
       '.member-source-activity-list',
@@ -109,16 +83,25 @@ export default function MemberSourceContentPopup({
   }, []);
 
   useEffect(() => {
+    void reload();
+  }, [reload]);
+
+  useEffect(() => {
     const controller = new AbortController();
     let cancelled = false;
+    setCampaignLoadState('loading');
 
-    void loadPublicPromotionCampaigns(controller.signal).then((nextCampaigns) => {
-      if (!cancelled) {
-        setCampaigns(nextCampaigns.length > 0 ? nextCampaigns : PROMOTION_ASSET_CAMPAIGNS);
-      }
-    }).catch(() => {
-      if (!cancelled) setCampaigns(PROMOTION_ASSET_CAMPAIGNS);
-    });
+    void loadLivePromotionCampaigns(controller.signal)
+      .then((nextCampaigns) => {
+        if (cancelled) return;
+        setCampaigns(nextCampaigns);
+        setCampaignLoadState('ready');
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setCampaigns([]);
+        setCampaignLoadState('error');
+      });
 
     return () => {
       cancelled = true;
@@ -153,7 +136,9 @@ export default function MemberSourceContentPopup({
 
   const activities = useMemo(() => buildActivities(content), [content]);
   const newsItems = useMemo(() => buildNews(content), [content]);
-  const selectedActivity = activities.find((item) => item.id === selectedActivityId) ?? activities[0] ?? null;
+  const selectedActivity = activities.find((item) => item.id === selectedActivityId)
+    ?? activities[0]
+    ?? null;
 
   useEffect(() => {
     if (activities.length === 0) return;
@@ -166,7 +151,9 @@ export default function MemberSourceContentPopup({
     if (claiming) return;
     if (!ready || !isLoggedIn) {
       const next = `${location.pathname}${location.search}`;
-      dispatchEvent(new CustomEvent('member:auth-open', { detail: { mode: 'login', next } }));
+      dispatchEvent(new CustomEvent('member:auth-open', {
+        detail: { mode: 'login', next },
+      }));
       return;
     }
 
@@ -175,13 +162,15 @@ export default function MemberSourceContentPopup({
     try {
       const response = await memberApiFetch('/member/promotion-claims', {
         method: 'POST',
-        body: JSON.stringify({ campaignId: campaign.id, note: `ขอรับโปรโมชั่น ${campaign.title}` }),
+        body: JSON.stringify({
+          campaignId: campaign.id,
+          note: `ขอรับโปรโมชั่น ${campaign.title}`,
+        }),
       });
       const payload: unknown = await response.json().catch(() => null);
-      const message = response.ok
+      setClaimMessage(response.ok
         ? campaign.claimSuccessMessage
-        : text(record(payload).message, 'รับโปรโมชั่นไม่สำเร็จ กรุณาตรวจสอบเงื่อนไข');
-      setClaimMessage(message);
+        : text(asRecord(payload).message, 'รับโปรโมชั่นไม่สำเร็จ กรุณาตรวจสอบเงื่อนไข'));
     } catch {
       setClaimMessage('เชื่อมต่อระบบโปรโมชั่นไม่สำเร็จ กรุณาลองอีกครั้ง');
     } finally {
@@ -191,7 +180,12 @@ export default function MemberSourceContentPopup({
 
   if (selectedCampaign) {
     return (
-      <section ref={popupRootRef} className="member-source-content-popup member-source-promotion-detail" data-source-popup-view="promotion-detail">
+      <section
+        ref={popupRootRef}
+        className="member-source-content-popup member-source-promotion-detail"
+        data-source-popup-view="promotion-detail"
+        data-content-source="api"
+      >
         <ResponsiveSourceImage
           desktop={selectedCampaign.desktopImageUrl || selectedCampaign.imageUrl}
           mobile={selectedCampaign.mobileImageUrl}
@@ -210,7 +204,12 @@ export default function MemberSourceContentPopup({
           {plainText(selectedCampaign.termsHtml) ? <p>{plainText(selectedCampaign.termsHtml)}</p> : null}
         </div>
         {claimMessage ? <p className="member-source-claim-message" role="status">{claimMessage}</p> : null}
-        <button type="button" className="member-source-claim-button" disabled={claiming} onClick={() => void claimCampaign(selectedCampaign)}>
+        <button
+          type="button"
+          className="member-source-claim-button"
+          disabled={claiming}
+          onClick={() => void claimCampaign(selectedCampaign)}
+        >
           {claiming ? 'กำลังส่งคำขอ...' : selectedCampaign.claimButtonLabel}
         </button>
       </section>
@@ -219,7 +218,12 @@ export default function MemberSourceContentPopup({
 
   if (view === 'activity') {
     return (
-      <section ref={popupRootRef} className="member-source-content-popup member-source-activity-popup" data-source-popup-view="activity">
+      <section
+        ref={popupRootRef}
+        className="member-source-content-popup member-source-activity-popup"
+        data-source-popup-view="activity"
+        data-content-source="cms"
+      >
         <div className="member-source-activity-list" role="listbox" aria-label="รายการกิจกรรม">
           {activities.map((item) => {
             const active = item.id === selectedActivity?.id;
@@ -233,20 +237,31 @@ export default function MemberSourceContentPopup({
                 onClick={() => setSelectedActivityId(item.id)}
               >
                 <SourceImage src={item.thumbnail} fallback={item.banner} alt="" />
-                <span><strong>{item.title}</strong><i />{item.expiresAt ? <small>หมดเขต : {item.expiresAt}</small> : null}</span>
+                <span>
+                  <strong>{item.title}</strong>
+                  <i />
+                  {item.expiresAt ? <small>หมดเขต : {item.expiresAt}</small> : null}
+                </span>
               </button>
             );
           })}
         </div>
         <span className="member-source-activity-divider" aria-hidden="true" />
-        {selectedActivity ? <ActivityDetail item={selectedActivity} /> : <EmptyState label="ยังไม่มีกิจกรรม" />}
+        {selectedActivity
+          ? <ActivityDetail item={selectedActivity} />
+          : <EmptyState label="ยังไม่มีกิจกรรม" />}
       </section>
     );
   }
 
   if (view === 'news') {
     return (
-      <section ref={popupRootRef} className="member-source-content-popup member-source-news-popup" data-source-popup-view="news">
+      <section
+        ref={popupRootRef}
+        className="member-source-content-popup member-source-news-popup"
+        data-source-popup-view="news"
+        data-content-source="cms"
+      >
         {newsItems.length > 0 ? (
           <div className="member-source-news-list">
             {newsItems.map((item) => (
@@ -262,7 +277,12 @@ export default function MemberSourceContentPopup({
   }
 
   return (
-    <section ref={popupRootRef} className="member-source-content-popup member-source-promotion-popup" data-source-popup-view="promotion">
+    <section
+      ref={popupRootRef}
+      className="member-source-content-popup member-source-promotion-popup"
+      data-source-popup-view="promotion"
+      data-content-source="api"
+    >
       <nav className="member-source-promotion-categories" aria-label="หมวดโปรโมชั่น">
         {CATEGORY_OPTIONS.map((option) => (
           <button
@@ -276,7 +296,7 @@ export default function MemberSourceContentPopup({
         ))}
       </nav>
       <div className="member-source-promotion-grid">
-        {visibleCampaigns.map((campaign) => (
+        {visibleCampaigns.length > 0 ? visibleCampaigns.map((campaign) => (
           <button
             type="button"
             key={campaign.id}
@@ -295,7 +315,11 @@ export default function MemberSourceContentPopup({
             />
             <strong>{campaign.title}</strong>
           </button>
-        ))}
+        )) : (
+          <div className="member-source-promotion-empty">
+            <EmptyState label={promotionEmptyLabel(campaignLoadState)} />
+          </div>
+        )}
       </div>
     </section>
   );
@@ -325,10 +349,19 @@ function ActivityDetail({ item }: { item: ActivityItem }) {
   );
 }
 
-function SourceImage({ src, fallback = '', alt, className = '' }: { src: string; fallback?: string; alt: string; className?: string }) {
-  const initial = sourceAsset(src || fallback);
+function SourceImage({
+  src,
+  fallback = '',
+  alt,
+  className = '',
+}: {
+  src: string;
+  fallback?: string;
+  alt: string;
+  className?: string;
+}) {
   const fallbackSource = sourceAsset(fallback);
-  const [current, setCurrent] = useState(initial);
+  const [current, setCurrent] = useState(() => sourceAsset(src || fallback));
   const [failed, setFailed] = useState(false);
 
   useEffect(() => {
@@ -355,7 +388,13 @@ function SourceImage({ src, fallback = '', alt, className = '' }: { src: string;
   );
 }
 
-function ResponsiveSourceImage({ desktop, mobile = '', fallback = '', alt, className = '' }: ResponsiveSourceProps) {
+function ResponsiveSourceImage({
+  desktop,
+  mobile = '',
+  fallback = '',
+  alt,
+  className = '',
+}: ResponsiveSourceProps) {
   const fallbackSource = sourceAsset(fallback);
   const [sources, setSources] = useState(() => createResponsiveSources(desktop, mobile, fallback));
 
@@ -387,14 +426,6 @@ function ResponsiveSourceImage({ desktop, mobile = '', fallback = '', alt, class
   );
 }
 
-function createResponsiveSources(desktop: string, mobile: string, fallback: string) {
-  return {
-    desktop: sourceAsset(desktop || fallback),
-    mobile: sourceAsset(mobile || desktop || fallback),
-    failed: false,
-  };
-}
-
 function EmptyState({ label }: { label: string }) {
   return (
     <div className="member-source-empty-state" role="status">
@@ -413,33 +444,32 @@ function buildActivities(content: CmsContent): ActivityItem[] {
     && item.lifecycle !== 'draft'
     && item.lifecycle !== 'archived'
     && item.kind === 'event');
-  if (source.length === 0) return SOURCE_ACTIVITY_FALLBACK;
 
   return source.map((item, index) => {
     const media = cmsResponsiveMediaUrls(content, item);
-    const raw = item as unknown as Record<string, unknown>;
+    const record = item as unknown as Record<string, unknown>;
     const title = item.title || `กิจกรรม ${index + 1}`;
-    const expiresAt = firstText(raw.endsAt, raw.expiresAt, raw.endDate);
+    const expiresAt = firstText(record.endsAt, record.expiresAt, record.endDate);
     const defaultImage = firstText(media.desktop, media.mobile, item.imageUrl);
     const thumbnail = sourceAsset(firstText(
-      raw.thumbnailImageUrl,
-      raw.thumbnailUrl,
-      raw.cardImageUrl,
-      raw.listImageUrl,
+      record.thumbnailImageUrl,
+      record.thumbnailUrl,
+      record.cardImageUrl,
+      record.listImageUrl,
       defaultImage,
     ));
     const banner = sourceAsset(firstText(
-      raw.bannerImageUrl,
-      raw.detailImageUrl,
-      raw.heroImageUrl,
-      raw.coverImageUrl,
+      record.bannerImageUrl,
+      record.detailImageUrl,
+      record.heroImageUrl,
+      record.coverImageUrl,
       defaultImage,
       thumbnail,
     ));
-    const numberPrediction = booleanValue(raw.numberPrediction)
-      || firstText(raw.activityType, raw.eventType).toLowerCase() === 'lottery'
+    const numberPrediction = booleanValue(record.numberPrediction)
+      || firstText(record.activityType, record.eventType).toLowerCase() === 'lottery'
       || /หวย|lottery/i.test(title);
-    const terms = stringList(raw.terms);
+    const terms = stringList(record.terms);
 
     return {
       id: item.id || `activity-${index + 1}`,
@@ -449,7 +479,7 @@ function buildActivities(content: CmsContent): ActivityItem[] {
       thumbnail,
       banner,
       terms: terms.length > 0 ? terms : ['ตรวจสอบรายละเอียดและเงื่อนไขก่อนเข้าร่วมกิจกรรม'],
-      statusLabel: firstText(raw.statusLabel, raw.statusText)
+      statusLabel: firstText(record.statusLabel, record.statusText)
         || (expiresAt && isPastDate(expiresAt) ? 'หมดเวลาทายผล' : ''),
       numberPrediction,
     };
@@ -473,11 +503,25 @@ function buildNews(content: CmsContent): NewsItem[] {
   });
 }
 
+function promotionEmptyLabel(state: CampaignLoadState) {
+  if (state === 'loading') return 'กำลังโหลดโปรโมชั่น...';
+  if (state === 'error') return 'โหลดข้อมูลโปรโมชั่นไม่สำเร็จ';
+  return 'ยังไม่มีโปรโมชั่น';
+}
+
+function createResponsiveSources(desktop: string, mobile: string, fallback: string) {
+  return {
+    desktop: sourceAsset(desktop || fallback),
+    mobile: sourceAsset(mobile || desktop || fallback),
+    failed: false,
+  };
+}
+
 function sourceAsset(url: string) {
   return resolveLocalAssetOrSource(url, 'pc');
 }
 
-function record(value: unknown): Record<string, unknown> {
+function asRecord(value: unknown): Record<string, unknown> {
   return value && typeof value === 'object' && !Array.isArray(value)
     ? value as Record<string, unknown>
     : {};
