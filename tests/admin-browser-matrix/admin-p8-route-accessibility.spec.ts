@@ -20,16 +20,7 @@ for (const routeCase of routeCases) {
     await page.goto(routeCase.path, { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('networkidle', { timeout: 10_000 }).catch(() => undefined);
 
-    await expect(page.getByRole('main').first()).toBeVisible();
-    await expect(page.getByRole('heading', { name: routeCase.heading }).first()).toBeVisible();
-    await expect(page.getByRole('link', { name: routeCase.expectedLink }).first()).toBeVisible();
-    await expect(page.getByText(/ไม่มีสิทธิ์เปิดหน้าการตั้งค่านี้/)).toHaveCount(0);
-
-    const overflow = await page.evaluate(() => ({
-      clientWidth: document.documentElement.clientWidth,
-      scrollWidth: document.documentElement.scrollWidth,
-    }));
-    expect(overflow.scrollWidth - overflow.clientWidth).toBeLessThanOrEqual(2);
+    await assertRouteSurface(page, routeCase);
 
     await page.keyboard.press('Tab');
     await expect.poll(() => page.evaluate(() => {
@@ -65,9 +56,59 @@ for (const routeCase of routeCases) {
     ));
     expect(unlabeledControls).toEqual([]);
   });
+
+  test(`${routeCase.path} survives forced colors and WCAG text spacing`, async ({ page }) => {
+    await page.emulateMedia({ forcedColors: 'active', reducedMotion: 'reduce' });
+    await installAdminSession(page);
+    await page.goto(routeCase.path, { waitUntil: 'domcontentloaded' });
+    await page.addStyleTag({
+      content: `
+        :where(p, li, a, button, label, input, textarea, select, h1, h2, h3, h4, h5, h6) {
+          line-height: 1.5 !important;
+          letter-spacing: 0.12em !important;
+          word-spacing: 0.16em !important;
+        }
+        p { margin-bottom: 2em !important; }
+      `,
+    });
+    await page.waitForLoadState('networkidle', { timeout: 10_000 }).catch(() => undefined);
+
+    await assertRouteSurface(page, routeCase);
+    await page.keyboard.press('Tab');
+    await expect.poll(() => page.evaluate(() => {
+      const active = document.activeElement as HTMLElement | null;
+      if (!active || active === document.body || active === document.documentElement) return false;
+      const rect = active.getBoundingClientRect();
+      return rect.width > 0 && rect.height > 0;
+    })).toBe(true);
+  });
 }
 
-async function installAdminSession(page: Page) {
+test('/system-settings recovers from one temporary auth read failure', async ({ page }) => {
+  const session = await installAdminSession(page, { authMeFailures: 1 });
+  await page.goto('/system-settings', { waitUntil: 'domcontentloaded' });
+  await page.waitForLoadState('networkidle', { timeout: 10_000 }).catch(() => undefined);
+
+  await expect(page.getByRole('heading', { name: 'การตั้งค่าระบบ' }).first()).toBeVisible();
+  await expect.poll(session.authMeAttempts).toBe(2);
+  await expect(page).not.toHaveURL(/\/login(?:\?|$)/);
+});
+
+async function assertRouteSurface(page: Page, routeCase: typeof routeCases[number]) {
+  await expect(page.getByRole('main').first()).toBeVisible();
+  await expect(page.getByRole('heading', { name: routeCase.heading }).first()).toBeVisible();
+  await expect(page.getByRole('link', { name: routeCase.expectedLink }).first()).toBeVisible();
+  await expect(page.getByText(/ไม่มีสิทธิ์เปิดหน้าการตั้งค่านี้/)).toHaveCount(0);
+
+  const overflow = await page.evaluate(() => ({
+    clientWidth: document.documentElement.clientWidth,
+    scrollWidth: document.documentElement.scrollWidth,
+  }));
+  expect(overflow.scrollWidth - overflow.clientWidth).toBeLessThanOrEqual(2);
+}
+
+async function installAdminSession(page: Page, options: { authMeFailures?: number } = {}) {
+  let authMeAttempts = 0;
   await page.addInitScript(() => {
     window.sessionStorage.setItem('admin_access_token', 'p8-accessibility-token');
     window.localStorage.setItem('admin_session_hint', '1');
@@ -77,8 +118,17 @@ async function installAdminSession(page: Page) {
   await page.route('**/api/admin/**', async (route) => {
     const url = new URL(route.request().url());
     const path = url.pathname.replace(/^\/api\/admin/, '/admin');
+    if (path === '/admin/auth/me') {
+      authMeAttempts += 1;
+      if (authMeAttempts <= (options.authMeFailures ?? 0)) {
+        await fulfillJson(route, { message: 'temporary unavailable' }, 503);
+        return;
+      }
+    }
     await fulfillJson(route, fixtureFor(path));
   });
+
+  return { authMeAttempts: () => authMeAttempts };
 }
 
 function fixtureFor(path: string) {
