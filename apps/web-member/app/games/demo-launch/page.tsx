@@ -90,14 +90,25 @@ export default function DemoLaunchPage() {
     [sessionHistory],
   );
 
-  async function loadWallet() {
+  async function readWallet(): Promise<WalletPayload> {
+    const response = await memberApiFetch('/member/wallet');
+    const payload = await response.json().catch(() => null);
+    if (!response.ok) throw new Error(readMessage(payload, 'โหลดเครดิตสมาชิกไม่สำเร็จ'));
+    const nextWallet = payload?.wallet ?? payload;
+    if (!nextWallet || typeof nextWallet !== 'object') {
+      throw new Error('API Wallet ไม่ได้ส่งยอดคงเหลือของสมาชิกกลับมา');
+    }
+    return nextWallet as WalletPayload;
+  }
+
+  async function loadWallet(): Promise<WalletPayload | null> {
     try {
-      const response = await memberApiFetch('/member/wallet');
-      const payload = await response.json().catch(() => null);
-      if (!response.ok) throw new Error(readMessage(payload, 'โหลดเครดิตสมาชิกไม่สำเร็จ'));
-      setWallet(payload?.wallet ?? payload ?? {});
+      const nextWallet = await readWallet();
+      setWallet(nextWallet);
+      return nextWallet;
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : 'โหลดเครดิตสมาชิกไม่สำเร็จ');
+      return null;
     }
   }
 
@@ -138,7 +149,6 @@ export default function DemoLaunchPage() {
       const nextSymbols = Array.isArray(payload.symbols) && payload.symbols.length === 3
         ? payload.symbols
         : INITIAL_SYMBOLS;
-      const nextBalance = payload.walletMutation?.finalBalance ?? payload.balance ?? wallet.balance ?? '0.00';
       const debit = payload.walletMutation?.debit;
       setSymbols(nextSymbols);
       setLastResult(payload);
@@ -148,12 +158,22 @@ export default function DemoLaunchPage() {
         betAmount: payload.betAmount ?? numericAmount.toFixed(2),
         winAmount: payload.winAmount ?? '0.00',
       }, ...current].slice(0, 50));
-      setWallet((current) => ({ ...current, balance: nextBalance, currency: payload.currency ?? current.currency }));
-      setMessage(
-        payload.result === 'WIN'
-          ? `หัก BET ${formatCredits(debit?.amount ?? payload.betAmount ?? numericAmount)} แล้วเติม WIN ${formatCredits(payload.winAmount ?? '0.00')}`
-          : `หัก BET ${formatCredits(debit?.amount ?? payload.betAmount ?? numericAmount)} จาก Wallet สมาชิกแล้ว`,
-      );
+
+      const persistedWallet = await loadWallet();
+      const expectedBalance = payload.walletMutation?.finalBalance ?? payload.balance;
+      const settlementMessage = payload.result === 'WIN'
+        ? `หัก BET ${formatCredits(debit?.amount ?? payload.betAmount ?? numericAmount)} แล้วเติม WIN ${formatCredits(payload.winAmount ?? '0.00')}`
+        : `หัก BET ${formatCredits(debit?.amount ?? payload.betAmount ?? numericAmount)} จาก Wallet สมาชิกแล้ว`;
+
+      if (!persistedWallet) {
+        setError('BET/WIN ถูกบันทึกแล้ว แต่โหลด Wallet หลังทำรายการไม่สำเร็จ กรุณากดรีเฟรชเครดิต');
+        setMessage('รอบถูกบันทึกใน WalletLedger แล้ว แต่หน้าจอจะไม่เดายอดคงเหลือเอง');
+      } else if (expectedBalance !== undefined && !moneyEquals(persistedWallet.balance, expectedBalance)) {
+        setError('ยอดตอบกลับจากรอบไม่ตรงกับ Wallet ที่อ่านจากฐานข้อมูล ระบบใช้ยอด Wallet จริงเป็นหลัก');
+        setMessage(`${settlementMessage} · แสดงยอดจาก Wallet DB`);
+      } else {
+        setMessage(`${settlementMessage} · ยืนยันยอดจาก Wallet DB แล้ว`);
+      }
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : 'หมุนสล็อตไม่สำเร็จ');
       setMessage('รอบไม่สำเร็จ ระบบจะไม่เดายอดเงินเอง กรุณาตรวจ Wallet Ledger');
@@ -177,8 +197,8 @@ export default function DemoLaunchPage() {
                 ทดสอบ BET, WIN, REFUND, ROLLBACK และ Wallet Ledger ด้วยเครดิตบัญชีสมาชิกปัจจุบัน
               </p>
             </div>
-            <div className={styles.balanceCard} aria-live="polite">
-              <span>เครดิตคงเหลือ</span>
+            <div className={styles.balanceCard} aria-live="polite" data-demo-slot-wallet-readback="true">
+              <span>เครดิตคงเหลือจาก Wallet</span>
               <strong>{formatCredits(wallet.balance ?? 0)}</strong>
             </div>
           </header>
@@ -211,7 +231,8 @@ export default function DemoLaunchPage() {
             <div className={styles.notice} data-demo-slot-debit-proof="true" aria-live="polite">
               <strong>BET หักจริง {formatCredits(lastResult.walletMutation.debit.amount ?? lastResult.betAmount ?? 0)}</strong>
               <span className={styles.muted}>
-                Wallet {formatCredits(lastResult.walletMutation.debit.beforeBalance ?? 0)} → {formatCredits(lastResult.walletMutation.debit.afterBalance ?? 0)}
+                Ledger {formatCredits(lastResult.walletMutation.debit.beforeBalance ?? 0)} → {formatCredits(lastResult.walletMutation.debit.afterBalance ?? 0)}
+                {' · '}Wallet DB ปัจจุบัน {formatCredits(wallet.balance ?? 0)}
                 {lastResult.walletMutation.debit.replayed ? ' · idempotent replay' : ''}
               </span>
             </div>
@@ -329,6 +350,12 @@ function readMessage(payload: unknown, fallback: string) {
   if (typeof message === 'string' && message.trim()) return message;
   if (typeof record.error === 'string' && record.error.trim()) return record.error;
   return fallback;
+}
+
+function moneyEquals(left: string | number | undefined, right: string | number | undefined) {
+  const leftAmount = Number(left);
+  const rightAmount = Number(right);
+  return Number.isFinite(leftAmount) && Number.isFinite(rightAmount) && Math.abs(leftAmount - rightAmount) < 0.005;
 }
 
 function formatCredits(value: string | number) {
