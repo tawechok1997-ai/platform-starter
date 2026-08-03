@@ -81,13 +81,23 @@ const CLASSIC_NAMES = [
 export function defaultHomeGameSelectionConfig(): HomeGameSelectionConfig {
   return {
     version: 1,
-    sections: Object.fromEntries(SECTION_KEYS.map((section) => [section, {
-      mode: 'hybrid',
-      pc: [],
-      mobile: [],
-      limitPc: DEFAULT_LIMITS[section].pc,
-      limitMobile: DEFAULT_LIMITS[section].mobile,
-    }])) as HomeGameSelectionConfig['sections'],
+    sections: {
+      featured: defaultSectionSelection('featured'),
+      popular: defaultSectionSelection('popular'),
+      online: defaultSectionSelection('online'),
+      classic: defaultSectionSelection('classic'),
+    },
+  };
+}
+
+function defaultSectionSelection(section: HomeGameSectionKey): HomeGameSectionSelection {
+  const limits = DEFAULT_LIMITS[section];
+  return {
+    mode: 'hybrid',
+    pc: [],
+    mobile: [],
+    limitPc: limits.pc,
+    limitMobile: limits.mobile,
   };
 }
 
