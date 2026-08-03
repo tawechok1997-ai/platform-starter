@@ -33,13 +33,13 @@ Admin ต้องใช้ระบบกลางชุดเดียวก�
 | P1 | Appearance foundation และ Theme owner กลาง | Merge แล้ว | #445 |
 | P2 | Role 5 แบบ, Multi-role และ Team | กำลังทำในอีก PR | #477 |
 | P3 | Navigation registry และ Dashboard ตามตำแหน่ง | Merge แล้ว | #483 |
-| P4 | Chart system และ Widget registry | กำลังทำแบบ Draft | #487 |
+| P4 | Chart system และ Widget registry | กำลังทำแบบ Draft | #496 |
 | P5 | Table, Form และ Detail drawer กลาง | ยังไม่เริ่ม | - |
 | P6 | Settings migration และ System Settings | ยังไม่เริ่ม | - |
 | P7 | Design System adoption และ CSS cleanup | ยังไม่เริ่ม | - |
 | P8 | Security, Accessibility และ Browser Matrix | ยังไม่เริ่ม | - |
 
-> P4 ถูกเปิดเป็น Draft แยกจาก P2 ตามคำสั่งให้ทำงานรอ CI โดยต้องรักษา Owner ของ P3 และ Sync `main` ก่อน Review สุดท้าย
+> P4 ใช้ Branch สะอาดจาก `main` หลัง P3 Merge และรักษา P3 เป็น Owner ของ Workspace selection โดยไม่สร้าง Storage หรือ Switcher ซ้ำ
 
 ---
 
@@ -201,13 +201,13 @@ Status: Merge เข้า `main` แล้ว
 
 # P4: Chart และ Widget System
 
-PR: `#487`
+PR: `#496`
 
-Branch: `agent/admin-phase-4-chart-widget-system`
+Branch: `agent/admin-phase-4-chart-widget-system-v2`
 
-Base ตอนเปิด Phase: `51e455b4f3f2c8ac1a8522c015e68978474a5bc1`
+Base: `main` หลัง P3 Merge และ Sync Member commits ล่าสุดแล้ว
 
-Status: Draft — Batch 1 และ Batch 2 เสร็จ อยู่ระหว่าง Sync P3, CI และเก็บข้อผิดพลาดจริง
+Status: Draft — Implementation และ P3 integration เสร็จ อยู่ระหว่าง CI และเก็บข้อผิดพลาดจริง
 
 ## ทำแล้ว
 
@@ -230,16 +230,17 @@ Status: Draft — Batch 1 และ Batch 2 เสร็จ อยู่ระ�
 - วิดเจ็ต Dashboard 6 รายการ: งานเร่งด่วน, กระแสเงิน, ยอดกระเป๋า, ความเสี่ยง, คิวการเงิน และกิจกรรมล่าสุด
 - ภาษาไทยและอังกฤษ รวมคำว่า Total และ Legend ในกราฟ
 - Desktop, Tablet, Mobile, Compact density, High contrast และ Reduced motion
-- Unit/Contract tests สำหรับ Registry, Layout, Date range, Export และ Dashboard owner
-- Browser interaction tests สำหรับ Date range, CSV, PNG, Fullscreen, Hide/Restore, Persistence, Overflow และ RBAC
+- Unit/Contract tests สำหรับ Registry, Permission, Workspace, Layout, Date range, Export และ Dashboard owner
+- Browser interaction tests สำหรับ Date range, CSV, PNG, Fullscreen, Hide/Restore, Persistence, Overflow, RBAC และ P3 Workspace switching
 - ปรับ TypeScript ให้ผ่าน `noUncheckedIndexedAccess` และ `exactOptionalPropertyTypes`
 
 ## การเชื่อมกับ P3
 
 - รักษา `AdminWorkspaceRuntime` เป็น Owner ของ Workspace selection
-- P4 ต้องอ่าน Event `admin:workspace-change` และกรองชุด Widget ตาม Workspace ที่ P3 เลือก
-- ห้ามสร้าง Workspace storage หรือ switcher ซ้ำ
-- Layout storage ของ P4 ต้องเก็บรายการครบ แม้บาง Widget ถูกซ่อนชั่วคราวจาก Workspace filter
+- Widget Workspace อ่าน Event `admin:workspace-change` และค่า `data-admin-workspace` จาก P3
+- Widget definitions ระบุ Workspace ที่เกี่ยวข้องโดยไม่สร้าง Workspace registry ซ้ำ
+- ไม่สร้าง `admin_workspace_selection_v1` หรือ Switcher ใหม่ใน P4
+- Layout storage เก็บรายการครบ แม้บาง Widget ถูกซ่อนชั่วคราวจาก Workspace filter
 
 ## Owner ใหม่
 
@@ -259,8 +260,6 @@ Status: Draft — Batch 1 และ Batch 2 เสร็จ อยู่ระ�
 
 ## งานที่เหลือ
 
-- Sync P3 และ `main` ล่าสุดเข้า Branch P4
-- เชื่อม Widget visibility กับ `admin:workspace-change`
 - อ่านและแก้ CI ของ Head ล่าสุด
 - ตรวจหลักฐาน Browser Matrix และ Visual Regression
 - Sync `main` หลัง P2 Merge
