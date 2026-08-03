@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { getMemberGameCatalog, type MemberCatalogGame } from '../lib/member-game-catalog';
+import { randomizeGameCatalog } from '../lib/randomize-game-catalog';
 import { requestJson } from '../member-api';
 import type { Game, GameLobbyPayload, LedgerItem, MoneyRequest } from '../types/member-api';
 
@@ -28,17 +29,21 @@ export function useMemberHomeData(gamesEnabled: boolean) {
     setGamesMessage('');
     try {
       const catalog = await getMemberGameCatalog('pc');
-      const items = catalog.map(toGame);
-      const featured = catalog
-        .filter((game) => game.tags.includes('hot') || game.tags.includes('popular') || game.popular)
+      const randomizedCatalog = randomizeGameCatalog(catalog);
+      const items = randomizedCatalog.map(toGame);
+      const featuredCandidates = randomizedCatalog
+        .filter((game) => game.tags.includes('hot') || game.tags.includes('popular') || game.popular);
+      const popularCandidates = randomizedCatalog
+        .filter((game) => game.popular || game.tags.includes('hot') || game.tags.includes('popular'));
+      const newestCandidates = randomizedCatalog
+        .filter((game) => game.tags.includes('new') || game.fresh);
+      const featured = randomizeGameCatalog(featuredCandidates.length ? featuredCandidates : randomizedCatalog)
         .map(toGame);
-      const popular = [...catalog]
-        .sort((left, right) => gameScore(right) - gameScore(left))
+      const popular = randomizeGameCatalog(popularCandidates.length ? popularCandidates : randomizedCatalog)
         .map(toGame);
-      const newest = catalog
-        .filter((game) => game.tags.includes('new') || game.fresh)
+      const newest = randomizeGameCatalog(newestCandidates.length ? newestCandidates : randomizedCatalog)
         .map(toGame);
-      const categories = Array.from(new Set(catalog.flatMap((game) => [game.category, ...game.tags])));
+      const categories = Array.from(new Set(randomizedCatalog.flatMap((game) => [game.category, ...game.tags])));
 
       setLobby({
         items,
@@ -46,7 +51,7 @@ export function useMemberHomeData(gamesEnabled: boolean) {
         popular,
         newest,
         categories,
-        providers: Array.from(new Map(catalog
+        providers: Array.from(new Map(randomizedCatalog
           .filter((game) => game.provider)
           .map((game) => [game.provider, {
             code: game.provider,
@@ -127,12 +132,6 @@ function toGame(item: MemberCatalogGame): Game {
       logoUrl: item.providerIcon,
     },
   };
-}
-
-function gameScore(item: MemberCatalogGame) {
-  return (item.popular ? 1_000_000 : 0)
-    + (item.fresh ? 100_000 : 0)
-    + item.players;
 }
 
 function readIds(key: string) {
