@@ -1,0 +1,189 @@
+.chart {
+  min-width: 0;
+  display: grid;
+  gap: 14px;
+}
+
+.svg {
+  width: 100%;
+  min-height: 220px;
+  display: block;
+  overflow: visible;
+}
+
+.grid line {
+  stroke: var(--color-border-subtle);
+  stroke-width: 1;
+}
+
+.grid text,
+.xAxis text,
+.donutLabel {
+  fill: var(--color-text-secondary);
+  font-size: 11px;
+  font-family: inherit;
+}
+
+.zeroLine {
+  stroke: var(--color-border-strong) !important;
+}
+
+.line {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.area {
+  fill: currentColor;
+  opacity: 0.13;
+}
+
+.pointHalo {
+  fill: transparent;
+}
+
+.point {
+  fill: var(--color-surface-raised);
+  stroke: currentColor;
+  stroke-width: 3;
+  vector-effect: non-scaling-stroke;
+}
+
+.bar,
+.interactiveBar {
+  fill: currentColor;
+}
+
+.interactiveBar,
+.interactiveDatum,
+.interactiveDonut {
+  cursor: pointer;
+}
+
+.interactiveBar:hover,
+.interactiveBar:focus,
+.interactiveDatum:hover .point,
+.interactiveDatum:focus .point,
+.interactiveDonut:hover,
+.interactiveDonut:focus {
+  filter: brightness(1.12);
+  outline: none;
+}
+
+.interactiveDatum:hover .pointHalo,
+.interactiveDatum:focus .pointHalo {
+  fill: currentColor;
+  opacity: 0.15;
+}
+
+.donutTrack,
+.donutSegment,
+.interactiveDonut {
+  fill: none;
+  stroke-width: 28;
+}
+
+.donutTrack {
+  stroke: var(--color-border-subtle);
+}
+
+.donutSegment,
+.interactiveDonut {
+  stroke: currentColor;
+  stroke-linecap: butt;
+}
+
+.donutValue {
+  fill: var(--color-text-primary);
+  font-size: 28px;
+  font-weight: 760;
+  font-family: inherit;
+}
+
+.legend {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.legend i {
+  width: 9px;
+  height: 9px;
+  flex: 0 0 auto;
+  border-radius: 999px;
+  background: currentColor;
+}
+
+.svg [data-tone='brand'],
+.legend [data-tone='brand'] { color: var(--color-brand-primary); }
+.svg [data-tone='success'],
+.legend [data-tone='success'] { color: var(--color-success, #22c55e); }
+.svg [data-tone='warning'],
+.legend [data-tone='warning'] { color: var(--color-warning, #f59e0b); }
+.svg [data-tone='danger'],
+.legend [data-tone='danger'] { color: var(--color-danger, #ef4444); }
+.svg [data-tone='info'],
+.legend [data-tone='info'] { color: var(--color-info, #38bdf8); }
+.svg [data-tone='neutral'],
+.legend [data-tone='neutral'] { color: var(--color-text-secondary); }
+
+.screenReaderData {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+:root[data-admin-contrast='high'] .line,
+:root[data-admin-contrast='high'] .point {
+  stroke-width: 4;
+}
+
+:root[data-admin-contrast='high'] .grid line {
+  stroke: var(--color-border-strong);
+}
+
+@media (max-width: 640px) {
+  .svg {
+    min-height: 200px;
+  }
+
+  .grid text {
+    font-size: 10px;
+  }
+
+  .xAxis text {
+    font-size: 9px;
+  }
+
+  .legend {
+    gap: 7px 12px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .interactiveBar,
+  .interactiveDatum,
+  .interactiveDonut {
+    transition: none;
+  }
+}
