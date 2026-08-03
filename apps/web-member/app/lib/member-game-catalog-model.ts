@@ -217,7 +217,19 @@ function normalizePlatform(value: unknown, fallback: MemberGamePlatform): Member
 
 function resolveAsset(source: string, platform: MemberGamePlatform) {
   if (!source) return '';
-  return resolveLocalAssetOrSource(source, platform) || source;
+
+  const preferred = resolveLocalAssetOrSource(source, platform);
+  if (isLocalAsset(preferred)) return preferred;
+
+  const alternatePlatform: MemberGamePlatform = platform === 'pc' ? 'mobile' : 'pc';
+  const alternate = resolveLocalAssetOrSource(source, alternatePlatform);
+  if (isLocalAsset(alternate)) return alternate;
+
+  return preferred || alternate || source;
+}
+
+function isLocalAsset(value: string) {
+  return value.startsWith('/assets/');
 }
 
 function readPlayers(item: RawCatalogGame) {
