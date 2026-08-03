@@ -97,7 +97,7 @@ export function AdminEmptyState({
     <AdminCard className={classes('admin-ui-empty', compact && 'admin-ui-empty--compact', className)}>
       <div>
         {icon}
-        <strong>{title}</strong>
+        <strong role="heading" aria-level={2}>{title}</strong>
         <p>{description}</p>
       </div>
       {actionHref && actionLabel ? <AdminLinkButton href={actionHref}>{actionLabel}</AdminLinkButton> : null}
