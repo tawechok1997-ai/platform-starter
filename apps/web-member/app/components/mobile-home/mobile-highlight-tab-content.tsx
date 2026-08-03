@@ -106,30 +106,17 @@ export default function MobileHighlightTabContent({ activeTab }: MobileHighlight
       }
     };
 
-    const selectFromClick = (event: MouseEvent) => {
-      const target = event.target;
-      if (!(target instanceof Element)) return;
-      const trigger = target.closest<HTMLElement>('[data-mobile-category-id]');
-      if (!trigger || (root && !root.contains(trigger))) return;
-      const category = trigger.dataset.mobileCategoryId;
-      if (isMobileCategoryId(category)) applyCategory(category);
-    };
-
     const selectFromEvent = (event: Event) => {
       const category = (event as CustomEvent<{ category?: unknown }>).detail?.category;
       if (isMobileCategoryId(category)) applyCategory(category);
     };
 
     applyCategory('home');
-    window.addEventListener('click', selectFromClick, true);
     window.addEventListener('member:mobile-category-select', selectFromEvent);
     return () => {
-      window.removeEventListener('click', selectFromClick, true);
       window.removeEventListener('member:mobile-category-select', selectFromEvent);
       if (scrollFrame) window.cancelAnimationFrame(scrollFrame);
-      if (root?.dataset.mobileActiveCategory === activeCategory) {
-        delete root.dataset.mobileActiveCategory;
-      }
+      if (root) delete root.dataset.mobileActiveCategory;
     };
   }, []);
 
