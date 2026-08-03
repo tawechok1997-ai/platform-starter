@@ -237,6 +237,7 @@ export function resolveNavItemHref(item: AdminNavItem, permissions: readonly str
 export function canAccessPath(pathname: string, permissions: readonly string[]) {
   if (isSafeSelfServicePath(pathname)) return true;
   const required = requiredPermissionsForPath(pathname);
+  if (required.some((permission) => permission === denyUnregisteredRoutePermission)) return false;
   return permissions.includes('*') || required.some((permission) => permissions.includes(permission));
 }
 
