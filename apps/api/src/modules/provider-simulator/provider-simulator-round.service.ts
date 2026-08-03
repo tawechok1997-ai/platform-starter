@@ -50,7 +50,7 @@ export class ProviderSimulatorRoundService {
   }
 
   private async reconstructFromWallet(userId: string, roundId: string, gameCode: string) {
-    const ledger = await this.walletService.getMemberLedger(userId, 100);
+    const ledger = await this.walletService.getMemberLedger(userId, 100, { roundId, gameCode });
     return this.reconstruct(ledger.items, roundId, gameCode);
   }
 
@@ -61,9 +61,9 @@ export class ProviderSimulatorRoundService {
     gameCode: string,
   ) {
     const items = await tx.walletLedger.findMany({
-      where: { userId },
+      where: { userId, referenceType: { startsWith: 'game_' } },
       orderBy: { createdAt: 'desc' },
-      take: 100,
+      take: 1000,
     });
     return this.reconstruct(items, roundId, gameCode);
   }
