@@ -4,18 +4,30 @@ import { useEffect, useMemo, useState } from 'react';
 import { adminApiFetch } from '../../admin-api';
 import { AdminCard, AdminEmptyState, AdminLinkButton } from '../../components/admin-ui';
 import { AdminIcon } from '../_components/admin-icon';
+import {
+  inferAdminWorkspaceAssignments,
+  resolveAssignedAdminWorkspaces,
+  resolvePrimaryAdminWorkspace,
+  type AdminWorkspaceIdentity,
+} from '../admin-workspace-registry';
 
-type AdminRole = string | { name?: string; code?: string; level?: number };
+type AdminRole = string | {
+  name?: string;
+  code?: string;
+  templateCode?: string;
+  level?: number;
+  workspaceId?: string;
+  primary?: boolean;
+  enabled?: boolean;
+};
 
-type AdminProfile = {
+type AdminProfile = AdminWorkspaceIdentity & {
   id?: string;
   username?: string;
   email?: string;
   displayName?: string;
   firstName?: string;
   lastName?: string;
-  position?: string;
-  department?: string;
   avatarUrl?: string;
   status?: string;
   twoFactorEnabled?: boolean;
@@ -54,6 +66,18 @@ export default function AdminProfilePage() {
     if (!profile) return 'ผู้ดูแลระบบ';
     return profile.displayName || [profile.firstName, profile.lastName].filter(Boolean).join(' ') || profile.username || 'ผู้ดูแลระบบ';
   }, [profile]);
+  const workspaceAssignments = useMemo(
+    () => inferAdminWorkspaceAssignments(profile),
+    [profile],
+  );
+  const assignedWorkspaces = useMemo(
+    () => resolveAssignedAdminWorkspaces(workspaceAssignments),
+    [workspaceAssignments],
+  );
+  const primaryWorkspace = useMemo(
+    () => resolvePrimaryAdminWorkspace(workspaceAssignments),
+    [workspaceAssignments],
+  );
 
   if (loading) return <ProfileSkeleton />;
 
@@ -82,6 +106,13 @@ export default function AdminProfilePage() {
               <span data-tone="success">{profile.status || 'ACTIVE'}</span>
               <span data-tone={profile.twoFactorEnabled ? 'brand' : 'warning'}>{profile.twoFactorEnabled ? '2FA เปิดใช้งาน' : 'ยังไม่เปิด 2FA'}</span>
               {roleNames.map((role) => <span key={role}>{role}</span>)}
+            </div>
+            <div className="admin-profile-page-workspaces" aria-label="พื้นที่ทำงานที่ได้รับ">
+              {assignedWorkspaces.map((workspace) => (
+                <span key={workspace.id} data-primary={workspace.id === primaryWorkspace?.id || undefined}>
+                  {workspace.title}{workspace.id === primaryWorkspace?.id ? ' · หลัก' : ''}
+                </span>
+              ))}
             </div>
           </div>
         </div>
@@ -118,6 +149,21 @@ export default function AdminProfilePage() {
           </ul>
         </AdminCard>
       </section>
+
+      <AdminCard className="admin-profile-panel admin-profile-panel--workspaces" elevated>
+        <div className="admin-profile-panel__head"><div><span>WORKSPACE ACCESS</span><h2>พื้นที่ทำงานตามตำแหน่ง</h2><p>เมนู Dashboard และทางลัดจะปรับตามตำแหน่งหลักและตำแหน่งเสริมทั้งหมด</p></div><AdminIcon name="dashboard" /></div>
+        <div className="admin-profile-workspace-list">
+          {assignedWorkspaces.map((workspace) => (
+            <article key={workspace.id} data-primary={workspace.id === primaryWorkspace?.id || undefined}>
+              <header>
+                <strong>{workspace.title}</strong>
+                {workspace.id === primaryWorkspace?.id && <span>ตำแหน่งหลัก</span>}
+              </header>
+              <p>{workspace.description}</p>
+            </article>
+          ))}
+        </div>
+      </AdminCard>
 
       <AdminCard className="admin-profile-panel admin-profile-panel--permissions" elevated>
         <div className="admin-profile-panel__head"><div><span>ACCESS CONTROL</span><h2>Role และสิทธิ์การเข้าถึง</h2><p>{permissions.includes('*') ? 'บัญชีนี้มีสิทธิ์ระดับสูงสุด' : `มีสิทธิ์ทั้งหมด ${permissions.length} รายการ`}</p></div><AdminIcon name="security" /></div>
