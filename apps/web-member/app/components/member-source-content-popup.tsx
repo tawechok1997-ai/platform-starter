@@ -4,11 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { PromotionView } from '../browse/browse-promotions-cms';
 import { memberApiFetch } from '../member-api';
 import { resolveLocalAssetOrSource } from '../lib/local-asset-by-basename';
-import {
-  PROMOTION_ASSET_CAMPAIGNS,
-  type MemberPromotionCampaign,
-  type PromotionMemberCategory,
-} from '../promotion-campaign-runtime';
+import type { MemberPromotionCampaign, PromotionMemberCategory } from '../promotion-campaign-runtime';
 import { cmsContentSetting, cmsResponsiveMediaUrls, type CmsContent } from '../site-settings';
 import { useSiteSettings } from '../site-settings-provider';
 import { useMemberSession } from '../member-session-provider';
@@ -47,6 +43,8 @@ type NewsItem = {
   image: string;
 };
 
+type CampaignLoadState = 'loading' | 'ready' | 'error';
+
 type ResponsiveSourceProps = {
   desktop: string;
   mobile?: string;
@@ -54,33 +52,6 @@ type ResponsiveSourceProps = {
   alt: string;
   className?: string;
 };
-
-type CampaignLoadState = 'loading' | 'ready' | 'error';
-
-const SOURCE_ACTIVITY_FALLBACK: ActivityItem[] = [
-  {
-    id: 'predict-lottery',
-    title: 'ทายผลหวย',
-    summary: 'กิจกรรมทายผลหวย',
-    expiresAt: '2026-08-01',
-    thumbnail: sourceAsset('https://cdn.zabbet.com/event/predict/1784904726144-c10c3ca6-cf70-41d3-a763-aa33c8917b2d.jpeg'),
-    banner: sourceAsset('https://cdn.zabbet.com/event/predict/1784904660399-a6cb7821-1abb-4422-bbc2-27606ba0e7b4.jpeg'),
-    terms: ['กรุณาทายผลให้ครบทั้ง 3 ตัวบน และ 2 ตัวล่าง', 'ตรวจสอบเวลาปิดรับคำทายก่อนส่งข้อมูล'],
-    statusLabel: 'หมดเวลาทายผล',
-    numberPrediction: true,
-  },
-  {
-    id: 'turnover-reward',
-    title: 'ทำยอด Turn รับรางวัลจุใจ',
-    summary: 'ทำยอดตามเงื่อนไขเพื่อรับรางวัล',
-    expiresAt: '',
-    thumbnail: sourceAsset('https://cdn.zabbet.com/event/predict/1719130004352-5323a6c4-0ad4-4cda-8475-dd0f5701b61b.png'),
-    banner: sourceAsset('https://cdn.zabbet.com/event/predict/1719130004352-5323a6c4-0ad4-4cda-8475-dd0f5701b61b.png'),
-    terms: ['ยอด Turn และรางวัลเป็นไปตามประกาศของกิจกรรม'],
-    statusLabel: '',
-    numberPrediction: false,
-  },
-];
 
 export default function MemberSourceContentPopup({
   view,
@@ -90,7 +61,6 @@ export default function MemberSourceContentPopup({
   const { ready, isLoggedIn } = useMemberSession();
   const { settings, reload } = useSiteSettings();
   const content = useMemo(() => cmsContentSetting(settings), [settings]);
-  const demoEnabled = settings.features?.presentation_demo_enabled === true;
   const popupRootRef = useRef<HTMLElement | null>(null);
   const [campaigns, setCampaigns] = useState<MemberPromotionCampaign[]>([]);
   const [campaignLoadState, setCampaignLoadState] = useState<CampaignLoadState>('loading');
@@ -102,8 +72,8 @@ export default function MemberSourceContentPopup({
 
   const resetPopupScroll = useCallback(() => {
     const root = popupRootRef.current;
-    const contentOwner = root?.closest<HTMLElement>('.member-shared-popup-content');
-    contentOwner?.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+    root?.closest<HTMLElement>('.member-shared-popup-content')
+      ?.scrollTo({ top: 0, left: 0, behavior: 'auto' });
     root?.querySelectorAll<HTMLElement>([
       '.member-source-promotion-grid',
       '.member-source-activity-list',
@@ -121,25 +91,23 @@ export default function MemberSourceContentPopup({
     let cancelled = false;
     setCampaignLoadState('loading');
 
-    void loadLivePromotionCampaigns(controller.signal).then((nextCampaigns) => {
-      if (cancelled) return;
-      setCampaigns(nextCampaigns.length > 0
-        ? nextCampaigns
-        : demoEnabled
-          ? PROMOTION_ASSET_CAMPAIGNS
-          : []);
-      setCampaignLoadState('ready');
-    }).catch(() => {
-      if (cancelled) return;
-      setCampaigns(demoEnabled ? PROMOTION_ASSET_CAMPAIGNS : []);
-      setCampaignLoadState('error');
-    });
+    void loadLivePromotionCampaigns(controller.signal)
+      .then((nextCampaigns) => {
+        if (cancelled) return;
+        setCampaigns(nextCampaigns);
+        setCampaignLoadState('ready');
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setCampaigns([]);
+        setCampaignLoadState('error');
+      });
 
     return () => {
       cancelled = true;
       controller.abort();
     };
-  }, [demoEnabled]);
+  }, []);
 
   useEffect(() => {
     setCategory('all');
@@ -166,9 +134,11 @@ export default function MemberSourceContentPopup({
     .filter((item) => category === 'all' || item.memberCategory === category)
     .sort((left, right) => right.priority - left.priority), [campaigns, category]);
 
-  const activities = useMemo(() => buildActivities(content, demoEnabled), [content, demoEnabled]);
+  const activities = useMemo(() => buildActivities(content), [content]);
   const newsItems = useMemo(() => buildNews(content), [content]);
-  const selectedActivity = activities.find((item) => item.id === selectedActivityId) ?? activities[0] ?? null;
+  const selectedActivity = activities.find((item) => item.id === selectedActivityId)
+    ?? activities[0]
+    ?? null;
 
   useEffect(() => {
     if (activities.length === 0) return;
@@ -181,7 +151,9 @@ export default function MemberSourceContentPopup({
     if (claiming) return;
     if (!ready || !isLoggedIn) {
       const next = `${location.pathname}${location.search}`;
-      dispatchEvent(new CustomEvent('member:auth-open', { detail: { mode: 'login', next } }));
+      dispatchEvent(new CustomEvent('member:auth-open', {
+        detail: { mode: 'login', next },
+      }));
       return;
     }
 
@@ -190,13 +162,15 @@ export default function MemberSourceContentPopup({
     try {
       const response = await memberApiFetch('/member/promotion-claims', {
         method: 'POST',
-        body: JSON.stringify({ campaignId: campaign.id, note: `ขอรับโปรโมชั่น ${campaign.title}` }),
+        body: JSON.stringify({
+          campaignId: campaign.id,
+          note: `ขอรับโปรโมชั่น ${campaign.title}`,
+        }),
       });
       const payload: unknown = await response.json().catch(() => null);
-      const message = response.ok
+      setClaimMessage(response.ok
         ? campaign.claimSuccessMessage
-        : text(record(payload).message, 'รับโปรโมชั่นไม่สำเร็จ กรุณาตรวจสอบเงื่อนไข');
-      setClaimMessage(message);
+        : text(asRecord(payload).message, 'รับโปรโมชั่นไม่สำเร็จ กรุณาตรวจสอบเงื่อนไข'));
     } catch {
       setClaimMessage('เชื่อมต่อระบบโปรโมชั่นไม่สำเร็จ กรุณาลองอีกครั้ง');
     } finally {
@@ -210,7 +184,7 @@ export default function MemberSourceContentPopup({
         ref={popupRootRef}
         className="member-source-content-popup member-source-promotion-detail"
         data-source-popup-view="promotion-detail"
-        data-content-source={demoEnabled ? 'demo' : 'api'}
+        data-content-source="api"
       >
         <ResponsiveSourceImage
           desktop={selectedCampaign.desktopImageUrl || selectedCampaign.imageUrl}
@@ -230,7 +204,12 @@ export default function MemberSourceContentPopup({
           {plainText(selectedCampaign.termsHtml) ? <p>{plainText(selectedCampaign.termsHtml)}</p> : null}
         </div>
         {claimMessage ? <p className="member-source-claim-message" role="status">{claimMessage}</p> : null}
-        <button type="button" className="member-source-claim-button" disabled={claiming} onClick={() => void claimCampaign(selectedCampaign)}>
+        <button
+          type="button"
+          className="member-source-claim-button"
+          disabled={claiming}
+          onClick={() => void claimCampaign(selectedCampaign)}
+        >
           {claiming ? 'กำลังส่งคำขอ...' : selectedCampaign.claimButtonLabel}
         </button>
       </section>
@@ -243,7 +222,7 @@ export default function MemberSourceContentPopup({
         ref={popupRootRef}
         className="member-source-content-popup member-source-activity-popup"
         data-source-popup-view="activity"
-        data-content-source={demoEnabled ? 'demo' : 'cms'}
+        data-content-source="cms"
       >
         <div className="member-source-activity-list" role="listbox" aria-label="รายการกิจกรรม">
           {activities.map((item) => {
@@ -258,13 +237,19 @@ export default function MemberSourceContentPopup({
                 onClick={() => setSelectedActivityId(item.id)}
               >
                 <SourceImage src={item.thumbnail} fallback={item.banner} alt="" />
-                <span><strong>{item.title}</strong><i />{item.expiresAt ? <small>หมดเขต : {item.expiresAt}</small> : null}</span>
+                <span>
+                  <strong>{item.title}</strong>
+                  <i />
+                  {item.expiresAt ? <small>หมดเขต : {item.expiresAt}</small> : null}
+                </span>
               </button>
             );
           })}
         </div>
         <span className="member-source-activity-divider" aria-hidden="true" />
-        {selectedActivity ? <ActivityDetail item={selectedActivity} /> : <EmptyState label="ยังไม่มีกิจกรรม" />}
+        {selectedActivity
+          ? <ActivityDetail item={selectedActivity} />
+          : <EmptyState label="ยังไม่มีกิจกรรม" />}
       </section>
     );
   }
@@ -296,7 +281,7 @@ export default function MemberSourceContentPopup({
       ref={popupRootRef}
       className="member-source-content-popup member-source-promotion-popup"
       data-source-popup-view="promotion"
-      data-content-source={demoEnabled ? 'demo' : 'api'}
+      data-content-source="api"
     >
       <nav className="member-source-promotion-categories" aria-label="หมวดโปรโมชั่น">
         {CATEGORY_OPTIONS.map((option) => (
@@ -331,7 +316,7 @@ export default function MemberSourceContentPopup({
             <strong>{campaign.title}</strong>
           </button>
         )) : (
-          <div style={{ gridColumn: '1 / -1' }}>
+          <div className="member-source-promotion-empty">
             <EmptyState label={promotionEmptyLabel(campaignLoadState)} />
           </div>
         )}
@@ -364,10 +349,19 @@ function ActivityDetail({ item }: { item: ActivityItem }) {
   );
 }
 
-function SourceImage({ src, fallback = '', alt, className = '' }: { src: string; fallback?: string; alt: string; className?: string }) {
-  const initial = sourceAsset(src || fallback);
+function SourceImage({
+  src,
+  fallback = '',
+  alt,
+  className = '',
+}: {
+  src: string;
+  fallback?: string;
+  alt: string;
+  className?: string;
+}) {
   const fallbackSource = sourceAsset(fallback);
-  const [current, setCurrent] = useState(initial);
+  const [current, setCurrent] = useState(() => sourceAsset(src || fallback));
   const [failed, setFailed] = useState(false);
 
   useEffect(() => {
@@ -394,7 +388,13 @@ function SourceImage({ src, fallback = '', alt, className = '' }: { src: string;
   );
 }
 
-function ResponsiveSourceImage({ desktop, mobile = '', fallback = '', alt, className = '' }: ResponsiveSourceProps) {
+function ResponsiveSourceImage({
+  desktop,
+  mobile = '',
+  fallback = '',
+  alt,
+  className = '',
+}: ResponsiveSourceProps) {
   const fallbackSource = sourceAsset(fallback);
   const [sources, setSources] = useState(() => createResponsiveSources(desktop, mobile, fallback));
 
@@ -426,14 +426,6 @@ function ResponsiveSourceImage({ desktop, mobile = '', fallback = '', alt, class
   );
 }
 
-function createResponsiveSources(desktop: string, mobile: string, fallback: string) {
-  return {
-    desktop: sourceAsset(desktop || fallback),
-    mobile: sourceAsset(mobile || desktop || fallback),
-    failed: false,
-  };
-}
-
 function EmptyState({ label }: { label: string }) {
   return (
     <div className="member-source-empty-state" role="status">
@@ -447,38 +439,37 @@ function EmptyState({ label }: { label: string }) {
   );
 }
 
-function buildActivities(content: CmsContent, allowDemoFallback: boolean): ActivityItem[] {
+function buildActivities(content: CmsContent): ActivityItem[] {
   const source = (content.announcements ?? []).filter((item) => item.enabled
     && item.lifecycle !== 'draft'
     && item.lifecycle !== 'archived'
     && item.kind === 'event');
-  if (source.length === 0) return allowDemoFallback ? SOURCE_ACTIVITY_FALLBACK : [];
 
   return source.map((item, index) => {
     const media = cmsResponsiveMediaUrls(content, item);
-    const raw = item as unknown as Record<string, unknown>;
+    const record = item as unknown as Record<string, unknown>;
     const title = item.title || `กิจกรรม ${index + 1}`;
-    const expiresAt = firstText(raw.endsAt, raw.expiresAt, raw.endDate);
+    const expiresAt = firstText(record.endsAt, record.expiresAt, record.endDate);
     const defaultImage = firstText(media.desktop, media.mobile, item.imageUrl);
     const thumbnail = sourceAsset(firstText(
-      raw.thumbnailImageUrl,
-      raw.thumbnailUrl,
-      raw.cardImageUrl,
-      raw.listImageUrl,
+      record.thumbnailImageUrl,
+      record.thumbnailUrl,
+      record.cardImageUrl,
+      record.listImageUrl,
       defaultImage,
     ));
     const banner = sourceAsset(firstText(
-      raw.bannerImageUrl,
-      raw.detailImageUrl,
-      raw.heroImageUrl,
-      raw.coverImageUrl,
+      record.bannerImageUrl,
+      record.detailImageUrl,
+      record.heroImageUrl,
+      record.coverImageUrl,
       defaultImage,
       thumbnail,
     ));
-    const numberPrediction = booleanValue(raw.numberPrediction)
-      || firstText(raw.activityType, raw.eventType).toLowerCase() === 'lottery'
+    const numberPrediction = booleanValue(record.numberPrediction)
+      || firstText(record.activityType, record.eventType).toLowerCase() === 'lottery'
       || /หวย|lottery/i.test(title);
-    const terms = stringList(raw.terms);
+    const terms = stringList(record.terms);
 
     return {
       id: item.id || `activity-${index + 1}`,
@@ -488,7 +479,7 @@ function buildActivities(content: CmsContent, allowDemoFallback: boolean): Activ
       thumbnail,
       banner,
       terms: terms.length > 0 ? terms : ['ตรวจสอบรายละเอียดและเงื่อนไขก่อนเข้าร่วมกิจกรรม'],
-      statusLabel: firstText(raw.statusLabel, raw.statusText)
+      statusLabel: firstText(record.statusLabel, record.statusText)
         || (expiresAt && isPastDate(expiresAt) ? 'หมดเวลาทายผล' : ''),
       numberPrediction,
     };
@@ -518,11 +509,19 @@ function promotionEmptyLabel(state: CampaignLoadState) {
   return 'ยังไม่มีโปรโมชั่น';
 }
 
+function createResponsiveSources(desktop: string, mobile: string, fallback: string) {
+  return {
+    desktop: sourceAsset(desktop || fallback),
+    mobile: sourceAsset(mobile || desktop || fallback),
+    failed: false,
+  };
+}
+
 function sourceAsset(url: string) {
   return resolveLocalAssetOrSource(url, 'pc');
 }
 
-function record(value: unknown): Record<string, unknown> {
+function asRecord(value: unknown): Record<string, unknown> {
   return value && typeof value === 'object' && !Array.isArray(value)
     ? value as Record<string, unknown>
     : {};
