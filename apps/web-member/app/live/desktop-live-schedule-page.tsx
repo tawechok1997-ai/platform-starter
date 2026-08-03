@@ -13,8 +13,7 @@ import styles from './desktop-live-schedule-page.module.css';
 type SortMode = 'league' | 'time';
 
 const TIMEZONE = 'Asia/Bangkok';
-const LIVE_BACKGROUND = '/assets/asset-pc/images/game/live/bg_live.webp';
-const LIVE_BACKGROUND_FRONT = '/assets/asset-pc/images/live/bg_live.webp';
+const LIVE_BACKGROUND = '/assets/asset-pc/images/live/bg_live.webp';
 const LIVE_LOGO = '/assets/asset-pc/images/live/logo_live.webp';
 
 export default function DesktopLiveSchedulePage() {
@@ -74,7 +73,7 @@ export default function DesktopLiveSchedulePage() {
       <img className={styles.backgroundBase} src={LIVE_BACKGROUND} alt="" aria-hidden="true" />
       <div className={styles.backgroundPurple} aria-hidden="true" />
       <div className={styles.backgroundFade} aria-hidden="true" />
-      <img className={styles.backgroundFront} src={LIVE_BACKGROUND_FRONT} alt="" aria-hidden="true" />
+      <img className={styles.backgroundFront} src={LIVE_BACKGROUND} alt="" aria-hidden="true" />
       <div className={styles.backgroundFrontFade} aria-hidden="true" />
 
       <div className={styles.canvas}>
