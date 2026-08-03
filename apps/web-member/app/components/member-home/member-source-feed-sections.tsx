@@ -1,10 +1,14 @@
 'use client';
 
-import { useEffect, useMemo, useState, type SyntheticEvent } from 'react';
-import { getMemberGameCatalog, type MemberCatalogGame } from '../../lib/member-game-catalog';
-import { randomizeGameCatalog } from '../../lib/randomize-game-catalog';
+import { useMemo, useState, type SyntheticEvent } from 'react';
 import { useMemberLocale, type MemberLocale } from '../../member-locale-provider';
+import type { Game } from '../../types/member-api';
 import { hideDecorativeImage } from '../image-fallback';
+import {
+  resolveHomeGameFallback,
+  resolveHomeGameImage,
+  resolveHomeProviderLogo,
+} from './local-game-asset-resolver';
 import { V47_ASSETS } from './v47-asset-map';
 
 type LobbyGame = {
@@ -20,7 +24,6 @@ type LobbyGame = {
   tags: string[];
   provider: string;
   players: number;
-  popular: boolean;
 };
 
 type LocalizedText = Record<MemberLocale, string>;
@@ -108,34 +111,13 @@ const LIVE_ITEMS: LiveItem[] = [
   },
 ];
 
-let lobbyGamesRequest: Promise<LobbyGame[]> | null = null;
-
-function useLobbyGames() {
-  const [items, setItems] = useState<LobbyGame[]>(FALLBACK_GAMES);
-
-  useEffect(() => {
-    let cancelled = false;
-    void getLobbyGames().then((games) => {
-      if (!cancelled && games.length) setItems(games);
-    });
-    return () => { cancelled = true; };
-  }, []);
-
-  return items;
-}
-
-function useRenderableGames(limit: number, order: 'popular' | 'online') {
-  const games = useLobbyGames();
+function useRenderableGames(sourceGames: Game[], limit: number) {
   const [invalidKeys, setInvalidKeys] = useState<Set<string>>(() => new Set());
 
-  const items = useMemo(() => {
-    const valid = games.filter((item) => !invalidKeys.has(gameKey(item)));
-    const preferred = order === 'popular'
-      ? valid.filter((item) => item.popular || item.tags.includes('hot') || item.tags.includes('popular'))
-      : valid.filter((item) => item.players > 0);
-    const source = preferred.length > 0 ? preferred : valid;
-    return randomizeGameCatalog(source).slice(0, limit);
-  }, [games, invalidKeys, limit, order]);
+  const games = useMemo(() => {
+    const source = sourceGames.length > 0 ? sourceGames.map(toLobbyGame) : FALLBACK_GAMES;
+    return source.filter((item) => !invalidKeys.has(gameKey(item))).slice(0, limit);
+  }, [invalidKeys, limit, sourceGames]);
 
   const reject = (item: LobbyGame) => {
     const key = gameKey(item);
@@ -147,41 +129,30 @@ function useRenderableGames(limit: number, order: 'popular' | 'online') {
     });
   };
 
-  return { items, reject };
+  return { games, reject };
 }
 
-async function getLobbyGames() {
-  if (!lobbyGamesRequest) {
-    lobbyGamesRequest = getMemberGameCatalog('pc')
-      .then((items) => {
-        const apiGames = items.map(mapCatalogGame);
-        return apiGames.length > 0
-          ? randomizeGameCatalog(apiGames)
-          : randomizeGameCatalog(FALLBACK_GAMES);
-      })
-      .catch(() => {
-        lobbyGamesRequest = null;
-        return randomizeGameCatalog(FALLBACK_GAMES);
-      });
-  }
-  return lobbyGamesRequest;
-}
+function toLobbyGame(item: Game): LobbyGame {
+  const imageSource = item.imageSource
+    || item.media?.find((media) => media.sourceUrl)?.sourceUrl
+    || '';
+  const provider = item.provider?.code || item.provider?.name || '';
+  const tags = Array.isArray(item.tags) ? item.tags : [];
+  const badge = item.badge || (item.isNew ? 'NEW' : item.isPopular ? 'HOT' : '');
 
-function mapCatalogGame(item: MemberCatalogGame): LobbyGame {
   return {
     id: item.id,
     providerGameCode: item.providerGameCode,
     name: item.name,
-    imageUrl: item.image,
-    imageSource: item.imageSource,
-    providerLogo: item.providerIcon,
-    providerLogoSource: item.providerIconSource,
-    badge: item.badge,
-    category: item.category,
-    tags: item.tags,
-    provider: item.provider,
+    imageUrl: resolveHomeGameImage(item) || resolveHomeGameFallback(item),
+    imageSource,
+    providerLogo: resolveHomeProviderLogo(item.provider),
+    providerLogoSource: item.provider?.sourceLogoUrl || item.provider?.logoUrl || '',
+    badge,
+    category: item.category || 'all',
+    tags,
+    provider,
     players: item.players || estimatedPlayers(item.providerGameCode || item.id),
-    popular: item.popular,
   };
 }
 
@@ -206,7 +177,6 @@ function fallbackGame(
     tags: [category, badge === 'HOT' ? 'hot' : 'new'],
     badge,
     players: estimatedPlayers(id),
-    popular: badge === 'HOT',
   };
 }
 
@@ -238,7 +208,8 @@ function restoreRemoteImage(
   reject?: () => void,
 ) {
   const image = event.currentTarget;
-  if (source && image.src !== source && /^https?:\/\//i.test(source)) {
+  const current = image.getAttribute('src') || '';
+  if (source && current !== source && /^https?:\/\//i.test(source)) {
     image.src = source;
     return;
   }
@@ -263,13 +234,13 @@ function SourceHeading({ title, icon, iconSize = 25, notice }: {
   );
 }
 
-export function SourcePopularSection() {
+export function SourcePopularSection({ games: sourceGames }: { games: Game[] }) {
   const { locale } = useMemberLocale();
   const copy = FEED_COPY[locale];
-  const { items: games, reject } = useRenderableGames(10, 'popular');
+  const { games, reject } = useRenderableGames(sourceGames, 10);
 
   return (
-    <section className="source-feed-host source-feed-host--popular" data-section-kind="popular" data-content-state="catalog">
+    <section className="source-feed-host source-feed-host--popular" data-section-kind="popular" data-content-state={sourceGames.length ? 'catalog' : 'fallback'}>
       <div className="member-source-feed-mount member-source-feed-mount--popular">
         <div className="source-feed-section source-popular-section">
           <SourceHeading title={copy.popularTitle} icon="/assets/asset-pc/images/highlight/icongamehit.webp" iconSize={24} />
@@ -280,6 +251,7 @@ export function SourcePopularSection() {
                 className="source-popular-card"
                 href={gameHref(item)}
                 title={item.name}
+                data-game-card="popular"
                 data-game-tags={item.tags.join(',')}
               >
                 <span className="source-popular-card__art">
@@ -288,6 +260,7 @@ export function SourcePopularSection() {
                     src={item.imageUrl}
                     alt=""
                     aria-hidden="true"
+                    data-no-fallback="true"
                     onError={(event) => restoreRemoteImage(event, item.imageSource)}
                   />
                   <img
@@ -295,6 +268,7 @@ export function SourcePopularSection() {
                     src={item.imageUrl}
                     alt={item.name}
                     loading="lazy"
+                    data-no-fallback="true"
                     onError={(event) => restoreRemoteImage(event, item.imageSource, () => reject(item))}
                   />
                   {item.providerLogo ? (
@@ -303,6 +277,7 @@ export function SourcePopularSection() {
                         src={item.providerLogo}
                         alt=""
                         aria-hidden="true"
+                        data-no-fallback="true"
                         onError={(event) => restoreRemoteImage(event, item.providerLogoSource)}
                       />
                     </span>
@@ -320,24 +295,32 @@ export function SourcePopularSection() {
   );
 }
 
-export function SourceOnlineSection() {
+export function SourceOnlineSection({ games: sourceGames }: { games: Game[] }) {
   const { locale } = useMemberLocale();
   const copy = FEED_COPY[locale];
-  const { items: games, reject } = useRenderableGames(6, 'online');
+  const { games, reject } = useRenderableGames(sourceGames, 6);
 
   return (
-    <section className="source-feed-host source-feed-host--online" data-section-kind="online" data-content-state="catalog">
+    <section className="source-feed-host source-feed-host--online" data-section-kind="online" data-content-state={sourceGames.length ? 'catalog' : 'fallback'}>
       <div className="member-source-feed-mount member-source-feed-mount--online">
         <div className="source-feed-section source-online-section">
           <SourceHeading title={copy.onlineTitle} icon="/assets/asset-pc/images/home/mostonline1.webp" notice={copy.onlineNotice} />
           <div className="source-online-track" data-drag-scroll="true">
             {games.map((item) => (
-              <a key={gameKey(item)} className="source-online-card" href={gameHref(item)} title={item.name} data-game-tags={item.tags.join(',')}>
+              <a
+                key={gameKey(item)}
+                className="source-online-card"
+                href={gameHref(item)}
+                title={item.name}
+                data-game-card="online"
+                data-game-tags={item.tags.join(',')}
+              >
                 <span className="source-online-card__art">
                   <img
                     src={item.imageUrl}
                     alt={item.name}
                     loading="lazy"
+                    data-no-fallback="true"
                     onError={(event) => restoreRemoteImage(event, item.imageSource, () => reject(item))}
                   />
                 </span>
