@@ -48,7 +48,7 @@ test('category menu follows by bounded transform without leaving the grid', () =
   assert.match(follower, /Math\.max\(0, HEADER_OFFSET - containerRect\.top\)/);
   assert.match(follower, /--mobile-category-follow-y/);
   assert.match(follower, /ResizeObserver/);
-  assert.match(follower, /window\.addEventListener\('scroll', schedule/);
+  assert.match(follower, /document\.addEventListener\('scroll', schedule, \{ capture: true, passive: true \}\)/);
 });
 
 test('rail ancestors do not clip bounded vertical movement', () => {
