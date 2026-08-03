@@ -7,6 +7,7 @@ const css = readFileSync(new URL('./mobile-home-root.module.css', import.meta.ur
 const home = readFileSync(new URL('../../member-home.tsx', import.meta.url), 'utf8');
 const layoutOwner = readFileSync(new URL('../../member-mobile-home-bottom-owner.css', import.meta.url), 'utf8');
 const followOwner = readFileSync(new URL('../../member-mobile-category-follow.css', import.meta.url), 'utf8');
+const follower = readFileSync(new URL('./mobile-category-rail-transform-follower.tsx', import.meta.url), 'utf8');
 const tabRuntime = readFileSync(new URL('./mobile-category-tab-runtime.tsx', import.meta.url), 'utf8');
 
 test('mobile category rail has one owner and reads central navigation', () => {
@@ -31,25 +32,28 @@ test('mobile category rail keeps responsive sizes', () => {
 });
 
 test('game categories keep one normal document scroll owner', () => {
-  assert.match(followOwner, /body \{[\s\S]*overflow-y:\s*auto\s*!important/);
   assert.doesNotMatch(followOwner, /body:has\([\s\S]*overflow:\s*hidden\s*!important/);
   assert.match(followOwner, /data-mobile-content-slot='after-highlight'[\s\S]*overflow-y:\s*visible\s*!important/);
   assert.match(followOwner, /data-provider-games-stage[\s\S]*overflow:\s*visible\s*!important/);
+  assert.doesNotMatch(followOwner, /data-mobile-section-owner='category-menu'[\s\S]*overflow-y:\s*auto/);
 });
 
-test('category menu is the single native sticky follower beneath the mobile header', () => {
-  assert.doesNotMatch(home, /MobileCategoryRailFollowRuntime/);
-  assert.match(followOwner, /data-mobile-section-owner='category-menu'[\s\S]*position:\s*-webkit-sticky\s*!important/);
-  assert.match(followOwner, /data-mobile-section-owner='category-menu'[\s\S]*position:\s*sticky\s*!important/);
-  assert.match(followOwner, /data-mobile-section-owner='category-menu'[\s\S]*top:\s*60px\s*!important/);
-  assert.match(followOwner, /data-mobile-section-owner='category-menu'[\s\S]*max-height:\s*none\s*!important/);
-  assert.match(followOwner, /data-mobile-section-owner='category-menu'[\s\S]*overflow:\s*visible\s*!important/);
-  assert.match(followOwner, /data-mobile-section-owner='category-menu'[\s\S]*transform:\s*none\s*!important/);
+test('category menu follows by bounded transform without leaving the grid', () => {
+  assert.match(home, /MobileCategoryRailTransformFollower/);
+  assert.match(followOwner, /data-mobile-section-owner='category-menu'[\s\S]*position:\s*relative\s*!important/);
+  assert.match(followOwner, /translate3d\(0, var\(--mobile-category-follow-y, 0px\), 0\)/);
+  assert.doesNotMatch(followOwner, /data-mobile-section-owner='category-menu'[\s\S]*position:\s*fixed/);
+  assert.match(follower, /const HEADER_OFFSET = 60/);
+  assert.match(follower, /containerHeight - railHeight/);
+  assert.match(follower, /Math\.max\(0, HEADER_OFFSET - containerRect\.top\)/);
+  assert.match(follower, /--mobile-category-follow-y/);
+  assert.match(follower, /ResizeObserver/);
+  assert.match(follower, /window\.addEventListener\('scroll', schedule/);
 });
 
-test('sticky rail ancestors do not clip vertical movement', () => {
-  assert.match(followOwner, /data-mobile-home-root='true'[\s\S]*overflow-y:\s*visible\s*!important/);
-  assert.match(followOwner, /\*:has\(> \[data-mobile-section-owner='category-menu'\]\)[\s\S]*overflow-y:\s*visible\s*!important/);
+test('rail ancestors do not clip bounded vertical movement', () => {
+  assert.match(followOwner, /data-mobile-home-root='true'[\s\S]*overflow:\s*visible\s*!important/);
+  assert.match(followOwner, /\*:has\(> \[data-mobile-section-owner='category-menu'\]\)[\s\S]*overflow:\s*visible\s*!important/);
   assert.match(followOwner, /\*:has\(> \[data-mobile-section-owner='category-menu'\]\)[\s\S]*contain:\s*none\s*!important/);
 });
 
