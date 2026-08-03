@@ -1,9 +1,9 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { PromotionView } from '../browse/browse-promotions-cms';
 import { memberApiFetch } from '../member-api';
-import { resolveLocalAssetByBasename } from '../lib/local-asset-by-basename';
+import { resolveLocalAssetOrSource } from '../lib/local-asset-by-basename';
 import {
   loadPublicPromotionCampaigns,
   PROMOTION_ASSET_CAMPAIGNS,
@@ -35,6 +35,8 @@ const SOURCE_ACTIVITY_FALLBACK: ActivityItem[] = [
     thumbnail: sourceAsset('https://cdn.zabbet.com/event/predict/1784904726144-c10c3ca6-cf70-41d3-a763-aa33c8917b2d.jpeg'),
     banner: sourceAsset('https://cdn.zabbet.com/event/predict/1784904660399-a6cb7821-1abb-4422-bbc2-27606ba0e7b4.jpeg'),
     terms: ['กรุณาทายผลให้ครบทั้ง 3 ตัวบน และ 2 ตัวล่าง', 'ตรวจสอบเวลาปิดรับคำทายก่อนส่งข้อมูล'],
+    statusLabel: 'หมดเวลาทายผล',
+    numberPrediction: true,
   },
   {
     id: 'turnover-reward',
@@ -44,6 +46,8 @@ const SOURCE_ACTIVITY_FALLBACK: ActivityItem[] = [
     thumbnail: sourceAsset('https://cdn.zabbet.com/event/predict/1719130004352-5323a6c4-0ad4-4cda-8475-dd0f5701b61b.png'),
     banner: sourceAsset('https://cdn.zabbet.com/event/predict/1719130004352-5323a6c4-0ad4-4cda-8475-dd0f5701b61b.png'),
     terms: ['ยอด Turn และรางวัลเป็นไปตามประกาศของกิจกรรม'],
+    statusLabel: '',
+    numberPrediction: false,
   },
 ];
 
@@ -61,6 +65,8 @@ type ActivityItem = {
   thumbnail: string;
   banner: string;
   terms: string[];
+  statusLabel: string;
+  numberPrediction: boolean;
 };
 
 type NewsItem = {
@@ -70,12 +76,21 @@ type NewsItem = {
   image: string;
 };
 
+type ResponsiveSourceProps = {
+  desktop: string;
+  mobile?: string;
+  fallback?: string;
+  alt: string;
+  className?: string;
+};
+
 export default function MemberSourceContentPopup({
   view,
   detailBackSignal = 0,
   onDetailOpenChange,
 }: Props) {
   const { ready, isLoggedIn } = useMemberSession();
+  const popupRootRef = useRef<HTMLElement | null>(null);
   const [content, setContent] = useState<CmsContent | null>(null);
   const [campaigns, setCampaigns] = useState<MemberPromotionCampaign[]>(PROMOTION_ASSET_CAMPAIGNS);
   const [category, setCategory] = useState<'all' | PromotionMemberCategory>('all');
@@ -83,6 +98,18 @@ export default function MemberSourceContentPopup({
   const [selectedActivityId, setSelectedActivityId] = useState('');
   const [claiming, setClaiming] = useState(false);
   const [claimMessage, setClaimMessage] = useState('');
+
+  const resetPopupScroll = useCallback(() => {
+    const root = popupRootRef.current;
+    const contentOwner = root?.closest<HTMLElement>('.member-shared-popup-content');
+    contentOwner?.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+    root?.querySelectorAll<HTMLElement>([
+      '.member-source-promotion-grid',
+      '.member-source-activity-list',
+      '.member-source-activity-detail',
+      '.member-source-news-list',
+    ].join(',')).forEach((owner) => owner.scrollTo({ top: 0, left: 0, behavior: 'auto' }));
+  }, []);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -94,6 +121,8 @@ export default function MemberSourceContentPopup({
       if (cancelled) return;
       setContent(cmsContentSetting(settings));
       setCampaigns(nextCampaigns.length ? nextCampaigns : PROMOTION_ASSET_CAMPAIGNS);
+    }).catch(() => {
+      if (!cancelled) setCampaigns(PROMOTION_ASSET_CAMPAIGNS);
     });
     return () => {
       cancelled = true;
@@ -102,6 +131,8 @@ export default function MemberSourceContentPopup({
   }, []);
 
   useEffect(() => {
+    setCategory('all');
+    setSelectedActivityId('');
     setSelectedCampaign(null);
     setClaimMessage('');
     onDetailOpenChange?.(false);
@@ -113,6 +144,11 @@ export default function MemberSourceContentPopup({
     setClaimMessage('');
     onDetailOpenChange?.(false);
   }, [detailBackSignal, onDetailOpenChange]);
+
+  useEffect(() => {
+    const frame = window.requestAnimationFrame(resetPopupScroll);
+    return () => window.cancelAnimationFrame(frame);
+  }, [category, detailBackSignal, resetPopupScroll, selectedCampaign, view]);
 
   const visibleCampaigns = useMemo(() => campaigns
     .filter((item) => item.enabled && item.lifecycle === 'published')
@@ -128,11 +164,18 @@ export default function MemberSourceContentPopup({
     if (!activities.some((item) => item.id === selectedActivityId)) setSelectedActivityId(activities[0]!.id);
   }, [activities, selectedActivityId]);
 
+  useEffect(() => {
+    const detail = popupRootRef.current?.querySelector<HTMLElement>('.member-source-activity-detail');
+    detail?.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+  }, [selectedActivityId]);
+
   async function claimCampaign(campaign: MemberPromotionCampaign) {
     if (claiming) return;
     if (!ready || !isLoggedIn) {
       const next = `${window.location.pathname}${window.location.search}`;
-      window.location.assign(`/?auth=login&next=${encodeURIComponent(next)}`);
+      window.dispatchEvent(new CustomEvent('member:auth-open', {
+        detail: { mode: 'login', next },
+      }));
       return;
     }
 
@@ -156,11 +199,13 @@ export default function MemberSourceContentPopup({
 
   if (selectedCampaign) {
     return (
-      <section className="member-source-content-popup member-source-promotion-detail">
-        <picture>
-          <source media="(max-width: 640px)" srcSet={selectedCampaign.mobileImageUrl || selectedCampaign.desktopImageUrl || selectedCampaign.imageUrl} />
-          <img src={selectedCampaign.desktopImageUrl || selectedCampaign.imageUrl || selectedCampaign.sourceImageUrl} alt={selectedCampaign.title} />
-        </picture>
+      <section ref={popupRootRef} className="member-source-content-popup member-source-promotion-detail" data-source-popup-view="promotion-detail">
+        <ResponsiveSourceImage
+          desktop={selectedCampaign.desktopImageUrl || selectedCampaign.imageUrl}
+          mobile={selectedCampaign.mobileImageUrl}
+          fallback={selectedCampaign.sourceImageUrl}
+          alt={selectedCampaign.title}
+        />
         <h3>{selectedCampaign.title}</h3>
         <p>{selectedCampaign.description}</p>
         <dl>
@@ -182,7 +227,7 @@ export default function MemberSourceContentPopup({
 
   if (view === 'activity') {
     return (
-      <section className="member-source-content-popup member-source-activity-popup">
+      <section ref={popupRootRef} className="member-source-content-popup member-source-activity-popup" data-source-popup-view="activity">
         <div className="member-source-activity-list" role="listbox" aria-label="รายการกิจกรรม">
           {activities.map((item) => {
             const active = item.id === selectedActivity?.id;
@@ -194,7 +239,7 @@ export default function MemberSourceContentPopup({
                 aria-selected={active}
                 onClick={() => setSelectedActivityId(item.id)}
               >
-                <img src={item.thumbnail} alt="" />
+                <SourceImage src={item.thumbnail} fallback={item.banner} alt="" />
                 <span><strong>{item.title}</strong><i />{item.expiresAt ? <small>หมดเขต : {item.expiresAt}</small> : null}</span>
               </button>
             );
@@ -208,12 +253,12 @@ export default function MemberSourceContentPopup({
 
   if (view === 'news') {
     return (
-      <section className="member-source-content-popup member-source-news-popup">
+      <section ref={popupRootRef} className="member-source-content-popup member-source-news-popup" data-source-popup-view="news">
         {newsItems.length ? (
           <div className="member-source-news-list">
             {newsItems.map((item) => (
               <article key={item.id}>
-                {item.image ? <img src={item.image} alt="" /> : null}
+                {item.image ? <SourceImage src={item.image} alt="" /> : null}
                 <div><h3>{item.title}</h3><p>{item.summary}</p></div>
               </article>
             ))}
@@ -224,7 +269,7 @@ export default function MemberSourceContentPopup({
   }
 
   return (
-    <section className="member-source-content-popup member-source-promotion-popup">
+    <section ref={popupRootRef} className="member-source-content-popup member-source-promotion-popup" data-source-popup-view="promotion">
       <nav className="member-source-promotion-categories" aria-label="หมวดโปรโมชั่น">
         {CATEGORY_OPTIONS.map((option) => (
           <button
@@ -249,10 +294,12 @@ export default function MemberSourceContentPopup({
               onDetailOpenChange?.(true);
             }}
           >
-            <picture>
-              <source media="(max-width: 640px)" srcSet={campaign.mobileImageUrl || campaign.desktopImageUrl || campaign.imageUrl} />
-              <img src={campaign.desktopImageUrl || campaign.imageUrl || campaign.sourceImageUrl} alt={campaign.title} />
-            </picture>
+            <ResponsiveSourceImage
+              desktop={campaign.desktopImageUrl || campaign.imageUrl}
+              mobile={campaign.mobileImageUrl}
+              fallback={campaign.sourceImageUrl}
+              alt={campaign.title}
+            />
             <strong>{campaign.title}</strong>
           </button>
         ))}
@@ -262,14 +309,13 @@ export default function MemberSourceContentPopup({
 }
 
 function ActivityDetail({ item }: { item: ActivityItem }) {
-  const isLottery = item.id === 'predict-lottery';
   return (
     <article className="member-source-activity-detail">
       <h3>{item.title}</h3>
-      {isLottery ? <span className="member-source-activity-status">หมดเวลาทายผล</span> : null}
-      <img src={item.banner} alt={item.title} />
+      {item.statusLabel ? <span className="member-source-activity-status">{item.statusLabel}</span> : null}
+      <SourceImage src={item.banner} fallback={item.thumbnail} alt={item.title} />
       <h4>{item.summary}</h4>
-      {isLottery ? (
+      {item.numberPrediction ? (
         <>
           <p className="member-source-activity-instruction">กรุณาทายผลให้ครบทั้ง 3 ตัวบน และ 2 ตัวล่าง</p>
           <div className="member-source-number-inputs">
@@ -283,6 +329,71 @@ function ActivityDetail({ item }: { item: ActivityItem }) {
         <ul>{item.terms.map((term) => <li key={term}>{term}</li>)}</ul>
       </details>
     </article>
+  );
+}
+
+function SourceImage({ src, fallback = '', alt, className = '' }: { src: string; fallback?: string; alt: string; className?: string }) {
+  const initial = sourceAsset(src || fallback);
+  const fallbackSource = sourceAsset(fallback);
+  const [current, setCurrent] = useState(initial);
+  const [failed, setFailed] = useState(false);
+
+  useEffect(() => {
+    setCurrent(sourceAsset(src || fallback));
+    setFailed(false);
+  }, [fallback, src]);
+
+  if (!current || failed) return <span className={`member-source-image-placeholder ${className}`.trim()} aria-hidden="true" />;
+  return (
+    <img
+      src={current}
+      alt={alt}
+      className={className || undefined}
+      loading="lazy"
+      decoding="async"
+      onError={() => {
+        if (fallbackSource && current !== fallbackSource) setCurrent(fallbackSource);
+        else setFailed(true);
+      }}
+    />
+  );
+}
+
+function ResponsiveSourceImage({ desktop, mobile = '', fallback = '', alt, className = '' }: ResponsiveSourceProps) {
+  const fallbackSource = sourceAsset(fallback);
+  const initialDesktop = sourceAsset(desktop || fallback);
+  const initialMobile = sourceAsset(mobile || desktop || fallback);
+  const [sources, setSources] = useState({ desktop: initialDesktop, mobile: initialMobile, failed: false });
+
+  useEffect(() => {
+    setSources({
+      desktop: sourceAsset(desktop || fallback),
+      mobile: sourceAsset(mobile || desktop || fallback),
+      failed: false,
+    });
+  }, [desktop, fallback, mobile]);
+
+  if (!sources.desktop || sources.failed) {
+    return <span className={`member-source-image-placeholder member-source-responsive-placeholder ${className}`.trim()} aria-hidden="true" />;
+  }
+
+  return (
+    <picture className={className || undefined}>
+      <source media="(max-width: 640px)" srcSet={sources.mobile || sources.desktop} />
+      <img
+        src={sources.desktop}
+        alt={alt}
+        loading="lazy"
+        decoding="async"
+        onError={() => {
+          if (fallbackSource && sources.desktop !== fallbackSource) {
+            setSources({ desktop: fallbackSource, mobile: fallbackSource, failed: false });
+          } else {
+            setSources((current) => ({ ...current, failed: true }));
+          }
+        }}
+      />
+    </picture>
   );
 }
 
@@ -307,18 +418,44 @@ function buildActivities(content: CmsContent | null): ActivityItem[] {
     && item.lifecycle !== 'archived'
     && item.kind === 'event');
   if (!source.length) return SOURCE_ACTIVITY_FALLBACK;
+
   return source.map((item, index) => {
     const media = content ? cmsResponsiveMediaUrls(content, item) : { desktop: '', mobile: '' };
     const record = item as unknown as Record<string, unknown>;
-    const image = sourceAsset(media.desktop || media.mobile || '');
+    const title = item.title || `กิจกรรม ${index + 1}`;
+    const expiresAt = firstText(record.endsAt, record.expiresAt, record.endDate);
+    const defaultImage = firstText(media.desktop, media.mobile, item.imageUrl);
+    const thumbnail = sourceAsset(firstText(
+      record.thumbnailImageUrl,
+      record.thumbnailUrl,
+      record.cardImageUrl,
+      record.listImageUrl,
+      defaultImage,
+    ));
+    const banner = sourceAsset(firstText(
+      record.bannerImageUrl,
+      record.detailImageUrl,
+      record.heroImageUrl,
+      record.coverImageUrl,
+      defaultImage,
+      thumbnail,
+    ));
+    const numberPrediction = booleanValue(record.numberPrediction)
+      || firstText(record.activityType, record.eventType).toLowerCase() === 'lottery'
+      || /หวย|lottery/i.test(title);
+    const terms = stringList(record.terms);
+
     return {
       id: item.id || `activity-${index + 1}`,
-      title: item.title || `กิจกรรม ${index + 1}`,
-      summary: item.message || item.title || '',
-      expiresAt: text(record.endsAt) || text(record.expiresAt),
-      thumbnail: image,
-      banner: image,
-      terms: ['ตรวจสอบรายละเอียดและเงื่อนไขก่อนเข้าร่วมกิจกรรม'],
+      title,
+      summary: item.message || title,
+      expiresAt,
+      thumbnail,
+      banner,
+      terms: terms.length ? terms : ['ตรวจสอบรายละเอียดและเงื่อนไขก่อนเข้าร่วมกิจกรรม'],
+      statusLabel: firstText(record.statusLabel, record.statusText)
+        || (expiresAt && isPastDate(expiresAt) ? 'หมดเวลาทายผล' : ''),
+      numberPrediction,
     };
   });
 }
@@ -334,18 +471,37 @@ function buildNews(content: CmsContent | null): NewsItem[] {
       id: item.id || `news-${index + 1}`,
       title: item.title || `ข่าวสาร ${index + 1}`,
       summary: item.message || '',
-      image: sourceAsset(media.desktop || media.mobile || ''),
+      image: sourceAsset(firstText(media.desktop, media.mobile, item.imageUrl)),
     };
   });
 }
 
 function sourceAsset(url: string) {
-  if (!url) return '';
-  return resolveLocalAssetByBasename(url, 'pc') || url;
+  return resolveLocalAssetOrSource(url, 'pc');
 }
 
-function text(value: unknown) {
-  return typeof value === 'string' ? value : '';
+function firstText(...values: unknown[]) {
+  for (const value of values) {
+    if (typeof value === 'string' && value.trim()) return value.trim();
+  }
+  return '';
+}
+
+function stringList(value: unknown) {
+  if (Array.isArray(value)) {
+    return value.filter((item): item is string => typeof item === 'string' && Boolean(item.trim())).map((item) => item.trim());
+  }
+  if (typeof value !== 'string') return [];
+  return value.split(/\r?\n|\|/).map((item) => item.trim()).filter(Boolean);
+}
+
+function booleanValue(value: unknown) {
+  return value === true || value === 'true' || value === 1 || value === '1';
+}
+
+function isPastDate(value: string) {
+  const timestamp = Date.parse(value);
+  return Number.isFinite(timestamp) && timestamp < Date.now();
 }
 
 function plainText(value: string) {
