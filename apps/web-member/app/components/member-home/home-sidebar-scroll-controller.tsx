@@ -40,6 +40,8 @@ export default function HomeSidebarScrollController() {
     placeholder.setAttribute('aria-hidden', 'true');
     placeholder.style.pointerEvents = 'none';
     placeholder.style.visibility = 'hidden';
+    placeholder.style.minWidth = '0';
+    placeholder.style.minHeight = '1px';
     sidebar.before(placeholder);
 
     let frame = 0;
@@ -57,8 +59,6 @@ export default function HomeSidebarScrollController() {
 
       sidebar.style.setProperty('left', `${left.toFixed(3)}px`, 'important');
       sidebar.style.setProperty('width', `${width.toFixed(3)}px`, 'important');
-      placeholder.style.width = `${width.toFixed(3)}px`;
-      placeholder.style.minHeight = '1px';
     };
 
     const scheduleGeometry = () => {
@@ -86,9 +86,10 @@ export default function HomeSidebarScrollController() {
     sidebar.style.setProperty('scrollbar-gutter', 'stable', 'important');
     sidebar.dataset.scrollState = 'fixed';
 
+    // Observe only the stable grid owner. Observing the placeholder while also
+    // writing geometry derived from it can create a ResizeObserver feedback loop.
     const resizeObserver = new ResizeObserver(scheduleGeometry);
     resizeObserver.observe(body);
-    resizeObserver.observe(placeholder);
     window.addEventListener('resize', scheduleGeometry, { passive: true });
     window.visualViewport?.addEventListener('resize', scheduleGeometry, { passive: true });
     scheduleGeometry();

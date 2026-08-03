@@ -17,11 +17,15 @@ const CARD_SELECTOR = [
   '[data-game-card]',
   '.member-game-card',
 ].join(',');
+const DESKTOP_HOME_SELECTOR = '.desktop-reference-home';
 
 export default function MemberHomeRuntimeController() {
   const runtime = useMemberRuntime();
 
   useLayoutEffect(() => {
+    const host = document.querySelector<HTMLElement>(DESKTOP_HOME_SELECTOR);
+    if (!host) return;
+
     let frame = 0;
     const mobile = window.matchMedia('(max-width: 900px)');
 
@@ -54,8 +58,11 @@ export default function MemberHomeRuntimeController() {
 
     sync();
     const observer = new MutationObserver(schedule);
-    observer.observe(document.body, { childList: true, subtree: true, characterData: true });
-    window.addEventListener('resize', schedule);
+    // React owns the text and attributes. We only need to resync when the
+    // Desktop Home inserts or removes structural nodes, not whenever any text
+    // anywhere in document.body changes.
+    observer.observe(host, { childList: true, subtree: true });
+    window.addEventListener('resize', schedule, { passive: true });
     mobile.addEventListener?.('change', schedule);
 
     return () => {

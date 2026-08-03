@@ -21,7 +21,29 @@ const DESKTOP_CANVAS_SELECTOR = '#member-desktop-scale-canvas';
 
 function isHorizontalRail(element: HTMLElement) {
   const overflowX = window.getComputedStyle(element).overflowX;
-  return overflowX === 'auto' || overflowX === 'scroll';
+  return (overflowX === 'auto' || overflowX === 'scroll')
+    && element.scrollWidth > element.clientWidth + 2;
+}
+
+function findHorizontalRail(target: EventTarget | null) {
+  if (!(target instanceof Element)) return null;
+
+  const explicitRail = target.closest<HTMLElement>('[data-drag-scroll]');
+  if (explicitRail) return explicitRail;
+
+  const desktopCanvas = target.closest<HTMLElement>(DESKTOP_CANVAS_SELECTOR);
+  if (!desktopCanvas) return null;
+
+  let element: HTMLElement | null = target instanceof HTMLElement ? target : target.parentElement;
+  while (element && element !== desktopCanvas) {
+    if (isHorizontalRail(element)) {
+      element.dataset.dragScroll = 'auto';
+      return element;
+    }
+    element = element.parentElement;
+  }
+
+  return null;
 }
 
 export default function MemberDragScrollController() {
@@ -32,39 +54,10 @@ export default function MemberDragScrollController() {
     let drag: DragState | null = null;
     let suppressClickUntil = 0;
     let suppressClickRail: HTMLElement | null = null;
-    let railScanFrame = 0;
-
-    const markDesktopRails = () => {
-      railScanFrame = 0;
-      const desktopCanvas = document.querySelector<HTMLElement>(DESKTOP_CANVAS_SELECTOR);
-      if (!desktopCanvas) return;
-
-      desktopCanvas.querySelectorAll<HTMLElement>('*').forEach((element) => {
-        if (element.hasAttribute('data-drag-scroll')) return;
-        if (!isHorizontalRail(element)) return;
-        element.dataset.dragScroll = 'auto';
-      });
-    };
-
-    const scheduleDesktopRailScan = () => {
-      if (railScanFrame) return;
-      railScanFrame = window.requestAnimationFrame(markDesktopRails);
-    };
-
-    scheduleDesktopRailScan();
-
-    const desktopCanvas = document.querySelector<HTMLElement>(DESKTOP_CANVAS_SELECTOR);
-    const railObserver = desktopCanvas ? new MutationObserver(scheduleDesktopRailScan) : null;
-    if (desktopCanvas && railObserver) {
-      railObserver.observe(desktopCanvas, { childList: true, subtree: true });
-    }
-
-    const findRail = (target: EventTarget | null) =>
-      target instanceof Element ? target.closest<HTMLElement>('[data-drag-scroll]') : null;
 
     const onPointerDown = (event: PointerEvent) => {
       if (event.pointerType !== 'mouse' || event.button !== 0) return;
-      const rail = findRail(event.target);
+      const rail = findHorizontalRail(event.target);
       if (!rail || rail.scrollWidth <= rail.clientWidth + 2) return;
 
       drag = {
@@ -115,7 +108,7 @@ export default function MemberDragScrollController() {
 
     const onClickCapture = (event: MouseEvent) => {
       if (!suppressClickRail || performance.now() > suppressClickUntil) return;
-      const rail = findRail(event.target);
+      const rail = findHorizontalRail(event.target);
       if (rail !== suppressClickRail) return;
 
       event.preventDefault();
@@ -125,7 +118,7 @@ export default function MemberDragScrollController() {
     };
 
     const onNativeDragStart = (event: DragEvent) => {
-      if (findRail(event.target)) event.preventDefault();
+      if (findHorizontalRail(event.target)) event.preventDefault();
     };
 
     document.addEventListener('pointerdown', onPointerDown, { passive: true });
@@ -136,8 +129,6 @@ export default function MemberDragScrollController() {
     document.addEventListener('click', onClickCapture, true);
 
     return () => {
-      railObserver?.disconnect();
-      if (railScanFrame) window.cancelAnimationFrame(railScanFrame);
       document.removeEventListener('pointerdown', onPointerDown);
       document.removeEventListener('pointermove', onPointerMove);
       document.removeEventListener('pointerup', finishDrag);

@@ -47,10 +47,10 @@ const POPUP_CLOSED_VERSION_KEY = 'member_cms_popup_closed_version';
 const MOBILE_HOME_QUERY = '(max-width: 900px)';
 
 export default function MemberHome(props: MemberHomeProps) {
-  // Mobile is the safe server-rendered default. It prevents a blank page while
-  // the client bundle hydrates, and useLayoutEffect switches wide screens to
-  // Desktop before the hydrated frame is painted.
-  const [viewportMode, setViewportMode] = useState<ViewportMode>('mobile');
+  // Keep the server and first client render intentionally lightweight. Rendering
+  // the complete Mobile tree first on every Desktop visit caused both viewport
+  // owners, their observers and their image work to run during hydration.
+  const [viewportMode, setViewportMode] = useState<ViewportMode | null>(null);
 
   useLayoutEffect(() => {
     const media = window.matchMedia(MOBILE_HOME_QUERY);
@@ -60,6 +60,10 @@ export default function MemberHome(props: MemberHomeProps) {
     media.addEventListener?.('change', syncViewport);
     return () => media.removeEventListener?.('change', syncViewport);
   }, []);
+
+  if (viewportMode === null) {
+    return <div className="member-home-viewport-pending" data-member-home-viewport-pending="true" aria-hidden="true" />;
+  }
 
   if (viewportMode === 'mobile') {
     return (
