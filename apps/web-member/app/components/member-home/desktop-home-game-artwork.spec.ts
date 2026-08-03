@@ -24,5 +24,6 @@ test('desktop strips preload artwork and skip broken games before syncing cards'
   assert.match(runtime, /game\.imageSource/);
   assert.match(runtime, /image\.naturalWidth > 1/);
   assert.match(runtime, /slice\(0, limit\)/);
-  assert.match(runtime, /selectHomeGameSection\(catalog, key, 'pc', featureSettings, 30\)/);
+  assert.match(runtime, /selectHomeGameSection\(catalog, section, 'pc', featureSettings, 30\)/);
+  assert.doesNotMatch(runtime, /Object\.fromEntries/);
 });
