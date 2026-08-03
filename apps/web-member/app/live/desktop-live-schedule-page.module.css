@@ -1,0 +1,398 @@
+.page {
+  position: relative;
+  width: 100%;
+  min-height: 760px;
+  padding-bottom: 72px;
+  overflow: hidden;
+  color: #fff;
+  background: #110e16;
+}
+
+.backgroundBase,
+.backgroundFront {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: block;
+  width: 100%;
+  min-height: 600px;
+  object-fit: cover;
+  pointer-events: none;
+}
+
+.backgroundFront { top: 60px; }
+
+.backgroundPurple,
+.backgroundFade,
+.backgroundFrontFade {
+  position: absolute;
+  inset: 0 0 auto;
+  width: 100%;
+  height: 720px;
+  pointer-events: none;
+}
+
+.backgroundPurple {
+  opacity: .6;
+  background: linear-gradient(106deg, #3a263c -46.77%, #610074 80.31%);
+}
+
+.backgroundFade,
+.backgroundFrontFade {
+  background: linear-gradient(182deg, rgb(115 115 115 / 0%) 29.43%, #110e16 52.3%, #110e16 85.96%);
+}
+
+.backgroundFrontFade { top: 60px; }
+
+.canvas {
+  position: relative;
+  z-index: 2;
+  width: min(1440px, calc(100% - 30px));
+  margin: 0 auto;
+}
+
+.hero {
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.heroLogo {
+  display: block;
+  width: 1000px;
+  height: 370px;
+  margin: 0 auto;
+  object-fit: contain;
+}
+
+.hero h1 {
+  margin: -56px 0 20px;
+  font-size: 48px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -.8px;
+}
+
+.sportPanel {
+  display: flex;
+  width: 100%;
+  height: 90px;
+  padding: 0 32px;
+  align-items: center;
+  gap: 16px;
+  border-radius: 18px;
+  background: linear-gradient(180deg, #2a2639 .01%, #171422 100%);
+}
+
+.sportActive {
+  position: relative;
+  display: inline-flex;
+  width: 208px;
+  height: 48px;
+  padding: 2px;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 24px;
+  color: #fff;
+  background: linear-gradient(165.34deg, #944fe8 -17.16%, #7600a8 91.36%);
+  box-shadow: 0 0 6px 2px rgb(223 163 242 / 50%);
+  font-size: 16px;
+  font-weight: 700;
+  cursor: default;
+}
+
+.sportActive::before {
+  position: absolute;
+  inset: 2px;
+  border-radius: 22px;
+  background: #080f1c;
+  content: '';
+}
+
+.sportActive { isolation: isolate; }
+.sportActive::before { z-index: -1; }
+
+.sortPanel {
+  display: flex;
+  width: 100%;
+  height: 68px;
+  margin-top: 20px;
+  padding: 0 32px;
+  align-items: center;
+  border-radius: 12px;
+  background: #191721;
+}
+
+.sortControl {
+  display: flex;
+  overflow: hidden;
+  border: 1px solid #3f3b4b;
+  border-radius: 8px;
+}
+
+.sortControl button {
+  display: inline-flex;
+  width: 167px;
+  height: 44px;
+  padding: 0;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  color: #fff;
+  background: linear-gradient(0deg, #1b1824, #3f3b4b);
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.sortControl button + button { border-left: 1px solid #3f3b4b; }
+.sortControl .sortActive { background: linear-gradient(190deg, #944fe8, #7600a8); }
+
+.schedule {
+  width: 100%;
+  margin-top: 20px;
+  overflow: hidden;
+  border-radius: 2px;
+}
+
+.league {
+  width: 100%;
+  background: #15131a;
+}
+
+.leagueHeader {
+  display: flex;
+  min-height: 48px;
+  padding: 10px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  border-top: 1px solid #504a60;
+  border-bottom: 1px solid #504a60;
+}
+
+.leagueHeader strong {
+  min-width: 0;
+  overflow: hidden;
+  color: #ca80ee;
+  font-size: 18px;
+  font-weight: 800;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.leagueHeader time {
+  flex: 0 0 auto;
+  color: #a84fee;
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.match {
+  display: grid;
+  width: 100%;
+  min-height: 80px;
+  padding: 16px 24px;
+  grid-template-columns: minmax(0, 1fr) 160px;
+  align-items: center;
+  gap: 24px;
+  border-bottom: 1px solid #504a60;
+  background: #15131a;
+}
+
+.match:nth-child(even) { background: #191721; }
+
+.fixture {
+  display: grid;
+  width: 100%;
+  max-width: 940px;
+  margin: 0 auto;
+  grid-template-columns: minmax(0, 1fr) 92px minmax(0, 1fr);
+  align-items: center;
+  gap: 20px;
+}
+
+.team {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 8px;
+}
+
+.teamHome { justify-content: flex-end; text-align: right; }
+.teamAway { justify-content: flex-start; text-align: left; }
+
+.team > span:not(.teamLogo) {
+  width: 300px;
+  overflow: hidden;
+  font-size: 16px;
+  font-weight: 400;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.teamLogo {
+  display: grid;
+  width: 48px;
+  height: 48px;
+  flex: 0 0 48px;
+  place-items: center;
+}
+
+.teamLogo img,
+.teamLogo svg {
+  display: block;
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+}
+
+.kickoff {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+}
+
+.kickoff time {
+  color: #a84fee;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.kickoff b {
+  display: inline-flex;
+  min-width: 38px;
+  height: 18px;
+  padding: 0 5px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 3px;
+  color: #fff;
+  background: #e51d25;
+  font-size: 10px;
+  font-weight: 900;
+  line-height: 18px;
+}
+
+.watchButton {
+  display: inline-flex;
+  min-width: 148px;
+  min-height: 36px;
+  padding: 5px 8px 5px 12px;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  border: 1px solid #4c4858;
+  border-radius: 6px;
+  color: #fff;
+  background: #15131a;
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: border-color .18s ease, background .18s ease, transform .18s ease;
+}
+
+.watchButton:hover:not(:disabled) {
+  border-color: #a84fee;
+  background: linear-gradient(180deg, #32243f, #1b1824);
+  transform: translateY(-1px);
+}
+
+.watchButton[data-requires-auth='true'] {
+  border-color: transparent;
+  background: linear-gradient(165deg, #944fe8 -17%, #7600a8 91%);
+  box-shadow: 0 0 14px rgb(148 79 232 / 26%);
+}
+
+.watchButton:disabled {
+  opacity: .48;
+  cursor: default;
+  transform: none;
+}
+
+.watchButton svg { width: 20px; height: 20px; }
+
+.state {
+  display: flex;
+  min-height: 220px;
+  padding: 32px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-top: 1px solid #504a60;
+  border-bottom: 1px solid #504a60;
+  color: #bcb7c5;
+  background: #15131a;
+  text-align: center;
+}
+
+.state strong { color: #fff; font-size: 18px; }
+.state span { font-size: 14px; }
+.state button {
+  min-width: 112px;
+  height: 36px;
+  margin-top: 8px;
+  border: 0;
+  border-radius: 8px;
+  color: #fff;
+  background: linear-gradient(165deg, #944fe8 -17%, #7600a8 91%);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.skeleton {
+  display: flex;
+  flex-direction: column;
+}
+
+.skeleton section {
+  position: relative;
+  overflow: hidden;
+  border-bottom: 1px solid #504a60;
+  background: #15131a;
+}
+
+.skeleton section::after {
+  position: absolute;
+  inset: 0;
+  content: '';
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgb(255 255 255 / 8%), transparent);
+  animation: desktopLiveSkeleton 1.2s infinite;
+}
+
+.skeleton header { height: 48px; border-bottom: 1px solid #504a60; background: rgb(255 255 255 / 4%); }
+.skeleton div { height: 80px; background: rgb(255 255 255 / 2%); }
+
+@keyframes desktopLiveSkeleton { to { transform: translateX(100%); } }
+
+@media (max-width: 900px) {
+  .page { min-height: 100dvh; padding: 0 12px 48px; }
+  .backgroundBase,
+  .backgroundFront,
+  .backgroundPurple,
+  .backgroundFade,
+  .backgroundFrontFade { display: none; }
+  .canvas { width: 100%; }
+  .heroLogo { width: min(100%, 520px); height: 180px; }
+  .hero h1 { margin: -24px 0 16px; font-size: 32px; }
+  .sportPanel { height: 72px; padding: 0 16px; border-radius: 12px; }
+  .sportActive { width: 160px; height: 42px; }
+  .sortPanel { height: 60px; margin-top: 12px; padding: 0 12px; }
+  .sortControl { width: 100%; }
+  .sortControl button { width: 50%; height: 40px; font-size: 14px; }
+  .match { grid-template-columns: minmax(0, 1fr); gap: 12px; padding: 14px 12px; }
+  .fixture { grid-template-columns: minmax(0, 1fr) 64px minmax(0, 1fr); gap: 8px; }
+  .team > span:not(.teamLogo) { width: auto; font-size: 12px; }
+  .teamLogo,
+  .teamLogo img,
+  .teamLogo svg { width: 36px; height: 36px; }
+  .teamLogo { flex-basis: 36px; }
+  .kickoff time { font-size: 13px; }
+  .watchButton { width: 100%; }
+}
