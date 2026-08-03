@@ -166,19 +166,23 @@ export function AdminDataTable<T>({
     </button>;
   }
 
+  const optionalViewProps = {
+    ...(preferenceUserId ? { userId: preferenceUserId } : {}),
+    ...(preferenceWorkspaceId ? { workspaceId: preferenceWorkspaceId } : {}),
+    ...(onPageSizeChange ? { onPageSizeChange } : {}),
+    ...(onSortChange ? { onSortChange } : {}),
+  };
+
   return <section className={styles.surface} aria-busy={loading}>
     <AdminDataTableViewControls
       ariaLabel={ariaLabel}
       columns={allColumns.map((column, index) => ({ id: column.id, label: column.header, required: index === 0 }))}
       query={queryState}
       visibleColumns={effectiveVisibleColumnIds ?? allColumnIds}
-      userId={preferenceUserId}
-      workspaceId={preferenceWorkspaceId}
       disabled={loading}
       onVisibleColumnsChange={setSavedVisibleColumnIds}
       onPageChange={onPageChange}
-      onPageSizeChange={onPageSizeChange}
-      onSortChange={onSortChange}
+      {...optionalViewProps}
     />
 
     <div className={styles.desktopScroller}>
