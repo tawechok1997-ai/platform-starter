@@ -1,14 +1,15 @@
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import test from 'node:test';
 
 const root = readFileSync(new URL('./mobile-home-root.tsx', import.meta.url), 'utf8');
 const css = readFileSync(new URL('./mobile-home-root.module.css', import.meta.url), 'utf8');
+const contentOwner = readFileSync(new URL('./mobile-highlight-tab-content.tsx', import.meta.url), 'utf8');
 const home = readFileSync(new URL('../../member-home.tsx', import.meta.url), 'utf8');
 const layout = readFileSync(new URL('../../layout.tsx', import.meta.url), 'utf8');
 const layoutOwner = readFileSync(new URL('../../member-mobile-home-bottom-owner.css', import.meta.url), 'utf8');
 const followOwner = readFileSync(new URL('../../member-mobile-category-follow.css', import.meta.url), 'utf8');
-const tabRuntime = readFileSync(new URL('./mobile-category-tab-runtime.tsx', import.meta.url), 'utf8');
+const duplicateRuntime = new URL('./mobile-category-tab-runtime.tsx', import.meta.url);
 
 test('mobile category rail has one rendered owner and reads central navigation', () => {
   assert.equal((root.match(/data-mobile-section-owner="category-menu"/g) ?? []).length, 1);
@@ -62,22 +63,24 @@ test('standalone Mobile member pages keep their header and scroll inside the pag
   assert.match(followOwner, /main\[data-mobile-member-page\] > :not\(header\)[\s\S]*overflow-y:\s*visible\s*!important/);
 });
 
-test('category switches preserve top chrome and reset the document scroller', () => {
+test('category content preserves top chrome and resets the document scroller', () => {
   assert.doesNotMatch(home, /MobileCategoryFooterGuard/);
-  assert.match(tabRuntime, /data-mobile-section-owner="header"/);
-  assert.match(tabRuntime, /data-mobile-section-owner="hero"/);
-  assert.match(tabRuntime, /data-mobile-section-owner="auth-actions"/);
-  assert.match(tabRuntime, /data-mobile-section-owner="announcement"/);
-  assert.match(tabRuntime, /restoreTopChrome\(root\)/);
-  assert.match(tabRuntime, /document\.scrollingElement/);
-  assert.match(tabRuntime, /scrollOwner\.scrollTo\(\{ top: 0/);
-  assert.doesNotMatch(tabRuntime, /root\.scrollTo\(/);
+  assert.match(contentOwner, /data-mobile-section-owner="header"/);
+  assert.match(contentOwner, /data-mobile-section-owner="hero"/);
+  assert.match(contentOwner, /data-mobile-section-owner="auth-actions"/);
+  assert.match(contentOwner, /data-mobile-section-owner="announcement"/);
+  assert.match(contentOwner, /restoreTopChrome\(root\)/);
+  assert.match(contentOwner, /document\.scrollingElement/);
+  assert.match(contentOwner, /scrollOwner\.scrollTo\(\{ top: 0/);
+  assert.doesNotMatch(contentOwner, /root\.scrollTo\(/);
 });
 
-test('category click broadcasts the canonical event including card pages', () => {
-  assert.match(tabRuntime, /new CustomEvent\(MOBILE_CATEGORY_SELECT_EVENT/);
-  assert.match(tabRuntime, /value === 'card'/);
-  assert.match(tabRuntime, /releaseStalePageLock\(root\)/);
+test('category content accepts every canonical category without a second runtime', () => {
+  assert.match(contentOwner, /window\.addEventListener\('click', selectFromClick, true\)/);
+  assert.match(contentOwner, /window\.addEventListener\('member:mobile-category-select', selectFromEvent\)/);
+  assert.match(contentOwner, /'card'/);
+  assert.doesNotMatch(home, /MobileCategoryTabRuntime/);
+  assert.equal(existsSync(duplicateRuntime), false);
 });
 
 test('active and inactive category cards keep the supplied surfaces', () => {
