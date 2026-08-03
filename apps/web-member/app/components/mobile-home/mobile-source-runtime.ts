@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { getMemberGameCatalog, type MemberCatalogGame } from '../../lib/member-game-catalog';
+import { randomizeGameCatalog } from '../../lib/randomize-game-catalog';
 import { memberApiFetch } from '../../member-api';
 import {
   PRESENTATION_LIVE_MATCHES,
@@ -140,25 +141,18 @@ export function useMobileSourceRuntime() {
     [catalogGames],
   );
   const popularGames = useMemo(
-    () => [...(taggedPopular.length > 0 ? taggedPopular : catalogGames)]
-      .sort((left, right) => gamePopularityScore(right) - gamePopularityScore(left))
-      .slice(0, 10),
+    () => (taggedPopular.length > 0 ? taggedPopular : catalogGames).slice(0, 10),
     [catalogGames, taggedPopular],
   );
   const onlineGames = useMemo(
-    () => [...catalogGames]
-      .filter((item) => item.players > 0)
-      .sort((left, right) => right.players - left.players)
-      .slice(0, 6),
+    () => catalogGames.filter((item) => item.players > 0).slice(0, 6),
     [catalogGames],
   );
-  const classicGames = useMemo(
-    () => catalogGames
-      .filter((item) => item.tags.some((tag) => ['arcade', 'classic', 'card', 'table'].includes(tag)))
-      .sort((left, right) => gamePopularityScore(right) - gamePopularityScore(left))
-      .slice(0, 12),
-    [catalogGames],
-  );
+  const classicGames = useMemo(() => {
+    const tagged = catalogGames
+      .filter((item) => item.tags.some((tag) => ['arcade', 'classic', 'card', 'table'].includes(tag)));
+    return (tagged.length > 0 ? tagged : catalogGames).slice(0, 12);
+  }, [catalogGames]);
 
   const leaderboard = useMemo<MobileSourceLeaderboardRow[]>(() => {
     if (homeData.leaderboard.length > 0) {
@@ -241,7 +235,7 @@ export function useMobileSourceRuntime() {
 async function getCatalogGames() {
   if (!catalogRequest) {
     catalogRequest = getMemberGameCatalog('mobile')
-      .then((items) => items.map(mapCatalogGame))
+      .then((items) => randomizeGameCatalog(items.map(mapCatalogGame)))
       .catch((error) => {
         catalogRequest = null;
         throw error;
@@ -342,12 +336,6 @@ function safePathname(value: string) {
   const normalized = value.trim().replace(/\\/g, '/');
   if (!/^https?:\/\//i.test(normalized)) return normalized.split(/[?#]/, 1)[0] ?? '';
   try { return new URL(normalized).pathname; } catch { return ''; }
-}
-
-function gamePopularityScore(item: MobileSourceGame) {
-  return (item.popular ? 100_000 : 0)
-    + (item.badge === 'NEW' ? 10_000 : 0)
-    + item.players;
 }
 
 function normalizeSearch(value: string) {
