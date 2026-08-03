@@ -34,11 +34,12 @@ test('slot keeps the supplied provider order and merges providers returned by th
   assert.match(slot, /code: 'hotdog'[\s\S]*layout: 'wide-banner'[\s\S]*badge: 'new'/);
   assert.match(slot, /catalogPlatform="mobile"/);
   assert.match(slot, /providerAssetPlatform="mobile"/);
-  assert.match(slot, /gameAssetPlatform="pc"/);
+  assert.match(slot, /gameAssetPlatform="mobile"/);
+  assert.doesNotMatch(slot, /gameAssetPlatform="pc"/);
   assert.match(slot, /includeCatalogProviders/);
 });
 
-test('fishing keeps source providers and uses the shared PC game-art library', () => {
+test('fishing keeps source providers and uses the Mobile game-art library', () => {
   let previous = -1;
   for (const provider of FISHING_PROVIDER_ORDER) {
     const current = fishing.indexOf(`code: '${provider}'`);
@@ -51,17 +52,19 @@ test('fishing keeps source providers and uses the shared PC game-art library', (
   assert.match(fishing, /code: 'misoltfish'[\s\S]*layout: 'wide-banner'/);
   assert.match(fishing, /catalogPlatform="mobile"/);
   assert.match(fishing, /providerAssetPlatform="mobile"/);
-  assert.match(fishing, /gameAssetPlatform="pc"/);
+  assert.match(fishing, /gameAssetPlatform="mobile"/);
+  assert.doesNotMatch(fishing, /gameAssetPlatform="pc"/);
   assert.match(fishing, /includeCatalogProviders/);
 });
 
-test('card keeps Mobile provider artwork and resolves game artwork from the shared PC library', () => {
+test('card resolves both provider and game artwork from the Mobile identity map', () => {
   assert.match(card, /code: 'kingm'[\s\S]*layout: 'wide-hero'/);
   assert.match(card, /code: 'amb'[\s\S]*layout: 'wide-banner'/);
   assert.match(card, /includeCatalogProviders/);
   assert.match(card, /catalogPlatform="mobile"/);
   assert.match(card, /providerAssetPlatform="mobile"/);
-  assert.match(card, /gameAssetPlatform="pc"/);
+  assert.match(card, /gameAssetPlatform="mobile"/);
+  assert.doesNotMatch(card, /gameAssetPlatform="pc"/);
 });
 
 test('shared provider flow selects a provider before exposing its games', () => {

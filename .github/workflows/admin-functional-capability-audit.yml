@@ -2,11 +2,15 @@ name: Admin Functional Capability Audit
 
 on:
   push:
-    branches:
-      - fix/admin-professional-hierarchy-rbac
+    branches: [main]
+    paths:
+      - 'apps/web-admin/**'
+      - 'docs/admin-complete-route-coverage-spec.md'
+      - '.github/workflows/admin-functional-capability-audit.yml'
   pull_request:
     paths:
       - 'apps/web-admin/**'
+      - 'docs/admin-complete-route-coverage-spec.md'
       - '.github/workflows/admin-functional-capability-audit.yml'
   workflow_dispatch:
 
@@ -24,21 +28,48 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
+        with:
+          version: 11.18.0
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: pnpm
-      - run: pnpm install --frozen-lockfile=false
+      - run: pnpm install --frozen-lockfile --prefer-offline
       - name: Generate route registry
+        id: route_registry
         run: pnpm --filter @platform/web-admin inventory:admin-routes
+      - name: Publish route registry summary
+        if: always()
+        shell: bash
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+          const path = 'docs/admin-route-registry.generated.json';
+          if (!fs.existsSync(path)) {
+            fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, '## Admin route registry\n\nRegistry generation did not produce an artifact.\n');
+            process.exit(0);
+          }
+          const registry = JSON.parse(fs.readFileSync(path, 'utf8'));
+          const lines = [
+            '## Admin route registry and capability audit',
+            '',
+            `- Total routes: **${registry.totalRoutes ?? 0}**`,
+            `- Unassigned routes: **${registry.unassignedCount ?? 0}**`,
+            `- Permission gaps: **${registry.permissionGapCount ?? 0}**`,
+            `- Contract findings: **${registry.contractFindingCount ?? 0}**`,
+            `- Route registry outcome: **${{ steps.route_registry.outcome }}**`,
+          ];
+          fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, `${lines.join('\n')}\n`);
+          NODE
       - name: Audit functional capability coverage
         run: node --import tsx apps/web-admin/tools/audit-admin-capabilities.mjs
-      - name: Upload Admin capability report
+      - name: Upload Admin route and capability reports
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: admin-functional-capability-audit
+          name: admin-route-and-capability-audit
           path: |
+            docs/admin-route-registry.generated.json
             docs/admin-functional-audit.generated.json
             docs/admin-functional-audit.generated.md
           if-no-files-found: error

@@ -170,7 +170,7 @@ const defaultSettings = [
   ['features.quick_news_summary', 'ข่าวสารที่คุณไม่ควรพลาด', 'FEATURES', 'STRING', true, false],
   ['features.jackpot_title', 'Jackpot', 'FEATURES', 'STRING', true, false],
   ['features.jackpot_subtitle', 'Epic of the day', 'FEATURES', 'STRING', true, false],
-  ['features.jackpot_image_url', '/assets/asset-pc/images/FEZX/highlight/1725948738165-4cb4f1ec-44ed-4b21-99ed-398fbb6d7b25.gif', 'FEATURES', 'URL', true, false],
+  ['features.jackpot_image_url', '/assets/asset-pc/images/FEZX/highlight/1725948738165-4cb4f1ec-44ed-4b21-99ed-398fbb6d7b25_220.gif', 'FEATURES', 'URL', true, false],
   ['features.leaderboard_title', 'Leaderboard', 'FEATURES', 'STRING', true, false],
   ['features.leaderboard_limit', 5, 'FEATURES', 'NUMBER', true, false],
   ['legal.terms', '', 'LEGAL', 'RICH_TEXT', true, false],

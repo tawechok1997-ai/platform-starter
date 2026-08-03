@@ -100,8 +100,8 @@ export const REFERENCE_TRUST_BADGES = fromPairs([
 export const REFERENCE_HOME_ASSETS = {
   logo: '/reference-v6/logo.webp',
   sidePromotion: '/assets/asset-pc/images/FEZX/lobby_settings/26b4660d-776c-4bc4-ac49-21077498ae8d.jpg',
-  jackpot: '/assets/asset-pc/images/FEZX/highlight/1725948738165-4cb4f1ec-44ed-4b21-99ed-398fbb6d7b25.gif',
-  jackpotStill: '/assets/asset-pc/images/FEZX/highlight/1725948738165-4cb4f1ec-44ed-4b21-99ed-398fbb6d7b25.gif',
+  jackpot: '/assets/asset-pc/images/FEZX/highlight/1725948738165-4cb4f1ec-44ed-4b21-99ed-398fbb6d7b25_220.gif',
+  jackpotStill: '/assets/asset-pc/images/FEZX/highlight/1725948738165-4cb4f1ec-44ed-4b21-99ed-398fbb6d7b25_220.gif',
   leaderboard: '/assets/asset-pc/images/home/leader-board.svg',
   tournament: '/assets/asset-pc/images/home/tournament.svg',
   tournamentBanner: '/assets/asset-pc/images/ZAB1/tournament/4a7df032-03f5-4999-ba59-f38d12c13761.png',
