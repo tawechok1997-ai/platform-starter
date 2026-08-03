@@ -62,15 +62,6 @@ type AdminAccessPolicyState = {
   subordinateAdminIds: string[];
 };
 
-const EMPTY_ACCESS_POLICY_STATE: AdminAccessPolicyState = {
-  overrides: [],
-  scope: {},
-  approvalLimits: {},
-  teamIds: [],
-  managerAdminId: null,
-  subordinateAdminIds: [],
-};
-
 @Injectable()
 export class AdminAuthGuard implements CanActivate {
   constructor(
@@ -247,8 +238,8 @@ export class AdminAuthGuard implements CanActivate {
         subordinateAdminIds: reporting[0]?.subordinateAdminIds ?? [],
       };
     } catch (error) {
-      console.error('admin access policy lookup failed; continuing with role and delegation access only', error);
-      return { ...EMPTY_ACCESS_POLICY_STATE };
+      console.error('admin access policy lookup failed; rejecting the admin session', error);
+      throw new UnauthorizedException('Admin access policy is unavailable');
     }
   }
 
