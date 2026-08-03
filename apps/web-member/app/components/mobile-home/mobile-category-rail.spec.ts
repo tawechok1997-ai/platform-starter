@@ -30,30 +30,38 @@ test('mobile category rail keeps responsive sizes', () => {
   assert.match(css, /@media \(min-width: 430px\)[\s\S]*width:\s*60px[\s\S]*height:\s*60px/);
 });
 
-test('game categories keep one normal document scroll owner', () => {
-  assert.doesNotMatch(followOwner, /body:has\([\s\S]*overflow:\s*hidden\s*!important/);
-  assert.match(followOwner, /data-mobile-content-slot='after-highlight'[\s\S]*overflow-y:\s*visible\s*!important/);
-  assert.match(followOwner, /data-provider-games-stage[\s\S]*overflow-y:\s*visible\s*!important/);
+test('mobile Home uses one app-shell scroll owner', () => {
+  assert.match(followOwner, /html:has\(\[data-mobile-home-root='true'\]\)[\s\S]*overflow:\s*hidden\s*!important/);
+  assert.match(followOwner, /\[data-mobile-home-root='true'\]\s*\{[\s\S]*height:\s*100dvh\s*!important/);
+  assert.match(followOwner, /\[data-mobile-home-root='true'\]\s*\{[\s\S]*overflow-y:\s*auto\s*!important/);
+  assert.match(followOwner, /overscroll-behavior-y:\s*contain\s*!important/);
+  assert.doesNotMatch(home, /MobileCategoryRailTransformFollower/);
+});
+
+test('category menu is attached beneath the header without owning scroll', () => {
+  assert.match(followOwner, /data-mobile-section-owner='category-menu'[\s\S]*position:\s*fixed\s*!important/);
+  assert.match(followOwner, /data-mobile-section-owner='category-menu'[\s\S]*top:\s*var\(--mobile-app-header-height\)\s*!important/);
+  assert.match(followOwner, /data-mobile-section-owner='category-menu'[\s\S]*bottom:\s*var\(--mobile-app-bottom-height\)\s*!important/);
+  assert.match(followOwner, /data-mobile-section-owner='category-menu'[\s\S]*overflow:\s*hidden\s*!important/);
+  assert.match(followOwner, /data-mobile-section-owner='category-menu'[\s\S]*transform:\s*none\s*!important/);
   assert.doesNotMatch(followOwner, /data-mobile-section-owner='category-menu'[\s\S]*overflow-y:\s*auto/);
 });
 
-test('category menu uses one native sticky owner without JavaScript following', () => {
-  assert.doesNotMatch(home, /MobileCategoryRailTransformFollower/);
-  assert.match(followOwner, /data-mobile-section-owner='category-menu'[\s\S]*position:\s*-webkit-sticky\s*!important/);
-  assert.match(followOwner, /data-mobile-section-owner='category-menu'[\s\S]*position:\s*sticky\s*!important/);
-  assert.match(followOwner, /data-mobile-section-owner='category-menu'[\s\S]*top:\s*64px\s*!important/);
-  assert.match(followOwner, /data-mobile-section-owner='category-menu'[\s\S]*max-height:\s*none\s*!important/);
-  assert.match(followOwner, /data-mobile-section-owner='category-menu'[\s\S]*overflow:\s*visible\s*!important/);
-  assert.match(followOwner, /data-mobile-section-owner='category-menu'[\s\S]*transform:\s*none\s*!important/);
+test('all Home content occupies the right scroll column', () => {
+  assert.match(followOwner, /div:has\(> \[data-mobile-section-owner='highlight-tabs'\]\)[\s\S]*padding-left:\s*var\(--mobile-app-rail-width\)\s*!important/);
+  assert.match(followOwner, /data-mobile-bottom-owner='true'[\s\S]*padding-left:\s*var\(--mobile-app-rail-width\)\s*!important/);
+  assert.match(followOwner, /\*:has\(> \[data-mobile-section-owner='category-menu'\]\)[\s\S]*display:\s*block\s*!important/);
+  assert.match(followOwner, /data-mobile-content-slot='after-highlight'[\s\S]*overflow-y:\s*visible\s*!important/);
 });
 
-test('sticky rail ancestors do not clip vertical movement', () => {
-  assert.match(followOwner, /data-mobile-home-root='true'[\s\S]*overflow-y:\s*visible\s*!important/);
-  assert.match(followOwner, /\*:has\(> \[data-mobile-section-owner='category-menu'\]\)[\s\S]*overflow-y:\s*visible\s*!important/);
-  assert.match(followOwner, /\*:has\(> \[data-mobile-section-owner='category-menu'\]\)[\s\S]*contain:\s*none\s*!important/);
+test('standalone Mobile member pages keep their header and scroll inside the page shell', () => {
+  assert.match(followOwner, /main\[data-mobile-member-page\][\s\S]*height:\s*100dvh\s*!important/);
+  assert.match(followOwner, /main\[data-mobile-member-page\][\s\S]*overflow-y:\s*auto\s*!important/);
+  assert.match(followOwner, /main\[data-mobile-member-page\] > header:first-child[\s\S]*position:\s*sticky\s*!important/);
+  assert.match(followOwner, /main\[data-mobile-member-page\] > :not\(header\)[\s\S]*overflow-y:\s*visible\s*!important/);
 });
 
-test('category switches preserve and restore the complete top chrome', () => {
+test('category switches preserve the complete top chrome and reset the app-shell scroller', () => {
   assert.doesNotMatch(home, /MobileCategoryFooterGuard/);
   assert.doesNotMatch(tabRuntime, /bottomStructure\.hidden/);
   assert.match(tabRuntime, /data-mobile-section-owner="header"/);
@@ -61,7 +69,8 @@ test('category switches preserve and restore the complete top chrome', () => {
   assert.match(tabRuntime, /data-mobile-section-owner="auth-actions"/);
   assert.match(tabRuntime, /data-mobile-section-owner="announcement"/);
   assert.match(tabRuntime, /restoreTopChrome\(root\)/);
-  assert.match(tabRuntime, /window\.scrollTo\(\{ top: 0/);
+  assert.match(tabRuntime, /root\.scrollTo\(\{ top: 0/);
+  assert.doesNotMatch(tabRuntime, /document\.scrollingElement\?\.scrollTo/);
 });
 
 test('category click broadcasts the canonical event including card pages', () => {

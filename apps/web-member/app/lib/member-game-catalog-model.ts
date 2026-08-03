@@ -67,10 +67,37 @@ export type RawCatalogGame = {
   createdAt?: string | null;
 };
 
+const PLACEHOLDER_PREFIX = /^(?:demo|sample|simulator|simulation|mock|fixture|test)(?:\b|[-_:])/i;
+const PLACEHOLDER_ID_SEGMENT = /(?:^|[-_:])(?:demo|sample|simulator|simulation|mock|fixture|test)(?:$|[-_:])/i;
+
+export function isPlaceholderMemberCatalogGame(item: RawCatalogGame) {
+  const providerObject = item.provider && typeof item.provider === 'object' ? item.provider : null;
+  const name = firstText(item.name);
+  const providerCode = firstText(
+    providerObject?.code,
+    item.providerId,
+    typeof item.provider === 'string' ? item.provider : null,
+  );
+  const providerName = firstText(
+    providerObject?.name,
+    typeof item.provider === 'string' ? item.provider : null,
+    providerObject?.code,
+    item.providerId,
+  );
+  const id = firstText(item.providerGameCode, item.code, item.id);
+
+  return PLACEHOLDER_PREFIX.test(name)
+    || PLACEHOLDER_PREFIX.test(providerCode)
+    || PLACEHOLDER_PREFIX.test(providerName)
+    || PLACEHOLDER_ID_SEGMENT.test(id);
+}
+
 export function mapMemberCatalogGame(
   item: RawCatalogGame,
   requestedPlatform: MemberGamePlatform,
 ): MemberCatalogGame | null {
+  if (isPlaceholderMemberCatalogGame(item)) return null;
+
   const providerObject = item.provider && typeof item.provider === 'object' ? item.provider : null;
   const provider = normalizeProvider(firstText(
     providerObject?.code,

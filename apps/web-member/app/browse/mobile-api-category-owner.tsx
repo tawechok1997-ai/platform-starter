@@ -153,7 +153,7 @@ function MobileApiCategoryPage({ slug }: { slug: MobileCategorySlug }) {
     return <main className="member-loading-screen">กำลังโหลดเกมจาก API...</main>;
   }
 
-  if (failed || !config) {
+  if (failed || !catalog || !config) {
     return (
       <main
         className="browse-page"

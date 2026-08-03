@@ -11,8 +11,8 @@ import {
 import MemberGameSectionRuntimeController from './components/member-game-section-runtime-controller';
 import MemberHomeRuntimeController from './components/member-home-runtime-controller';
 import { CmsPopup } from './components/member-home-sections';
-import DesktopHomeGameSectionRuntime from './components/member-home/desktop-home-game-section-runtime';
 import { DesktopHomeScaffold } from './components/member-home/desktop-home-scaffold';
+import { DesktopGameFeedProvider } from './components/member-home/member-source-feed-sections';
 import HomeSidebarScrollController from './components/member-home/home-sidebar-scroll-controller';
 import MobileAuthenticatedAvatarRuntime from './components/mobile-home/mobile-authenticated-avatar-runtime';
 import MobileAuthenticatedHomeRuntime from './components/mobile-home/mobile-authenticated-home-runtime';
@@ -91,7 +91,6 @@ function DesktopMemberHome(props: MemberHomeProps) {
   const gameSections = {
     featured: data.featured,
     popular: data.popular,
-    classic: data.classicGames,
     recent: data.recentGames,
     favorites: data.favoriteGames,
   };
@@ -109,19 +108,20 @@ function DesktopMemberHome(props: MemberHomeProps) {
 
   return (
     <>
-      <DesktopHomeGameSectionRuntime />
-      <DesktopHomeScaffold
-        content={props.cmsContent}
-        icons={icons}
-        siteName={props.siteName}
-        showPromotion={props.showPromotion && features.games}
-        games={gameSections}
-        isGamesLoading={data.isGamesLoading}
-        gamesMessage={data.gamesMessage}
-        onOpenPromotion={openHomePopup('promotion')}
-        onOpenActivity={openHomePopup('activity')}
-        onOpenNews={openHomePopup('news')}
-      />
+      <DesktopGameFeedProvider popular={data.popular} online={data.onlineGames}>
+        <DesktopHomeScaffold
+          content={props.cmsContent}
+          icons={icons}
+          siteName={props.siteName}
+          showPromotion={props.showPromotion && features.games}
+          games={gameSections}
+          isGamesLoading={data.isGamesLoading}
+          gamesMessage={data.gamesMessage}
+          onOpenPromotion={openHomePopup('promotion')}
+          onOpenActivity={openHomePopup('activity')}
+          onOpenNews={openHomePopup('news')}
+        />
+      </DesktopGameFeedProvider>
       <HomeSidebarScrollController />
       <MemberHomeRuntimeController />
       <MemberGameSectionRuntimeController />

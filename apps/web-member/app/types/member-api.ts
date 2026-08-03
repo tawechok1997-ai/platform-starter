@@ -31,6 +31,7 @@ export type GameProviderSummary = {
   name?: string | null;
   code?: string | null;
   logoUrl?: string | null;
+  sourceLogoUrl?: string | null;
 };
 
 export type Game = {
@@ -40,10 +41,14 @@ export type Game = {
   category: string;
   platform?: string;
   imageUrl?: string | null;
+  imageSource?: string | null;
   iconUrl?: string | null;
   isFeatured?: boolean;
   isNew?: boolean;
   isPopular?: boolean;
+  badge?: 'HOT' | 'NEW' | '';
+  tags?: string[];
+  players?: number;
   provider?: GameProviderSummary | null;
   media?: GameMedia[];
 };
