@@ -141,6 +141,11 @@ export default function MemberNavigationAuthController() {
     if (safeNext) url.searchParams.set('next', safeNext);
     else url.searchParams.delete('next');
 
+    // A protected link may already have started capture-phase route motion.
+    // Auth opens an in-place overlay, so cancel that false leaving state before
+    // updating the canonical query string.
+    document.documentElement.dataset.memberRouteMotion = 'idle';
+
     // MemberChrome is the sole pre-login overlay owner. This controller only
     // updates the canonical request state and never mounts a second dialog.
     router.replace(`${url.pathname}${url.search}${url.hash}`, { scroll: false });
