@@ -20,7 +20,7 @@ for (const routeCase of routeCases) {
     await page.goto(routeCase.path, { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('networkidle', { timeout: 10_000 }).catch(() => undefined);
 
-    await expect(page.locator('main')).toBeVisible();
+    await expect(page.getByRole('main').first()).toBeVisible();
     await expect(page.getByRole('heading', { name: routeCase.heading }).first()).toBeVisible();
     await expect(page.getByRole('link', { name: routeCase.expectedLink }).first()).toBeVisible();
     await expect(page.getByText(/ไม่มีสิทธิ์เปิดหน้าการตั้งค่านี้/)).toHaveCount(0);
