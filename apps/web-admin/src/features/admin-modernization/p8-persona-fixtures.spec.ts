@@ -8,13 +8,13 @@ import {
   validateP8PersonaFixtures,
 } from './p8-persona-fixtures';
 
-const rolePermissions = {
+const rolePermissions: Readonly<Record<string, readonly string[]>> = {
   finance: ['wallet.view', 'reports.view'],
   deposit_withdrawal: ['wallet.view', 'topups.approve', 'withdraw.success'],
   marketing: ['promotion.view', 'settings.features.view', 'reports.view'],
   manager: ['admin.access.view', 'admin.access.manage', 'users.view'],
   system_admin: ['admin.access.view', 'provider.update', 'settings.features.view'],
-} as const;
+};
 
 test('persona fixtures use the five deterministic P2 role codes without wildcard shortcuts', () => {
   assert.equal(P8_PERSONA_FIXTURES.length, 7);
