@@ -75,6 +75,7 @@ export const PROVIDER_DISPLAY_NAMES: Record<string, string> = {
   reg: 'Relax Gaming',
   rsg: 'RSG',
   rsgfish: 'RSG Fishing',
+  'simulator-provider': 'Simulator Provider',
   spg: 'Spadegaming',
   spgfish: 'Spadegaming Fishing',
   spp: 'SimplePlay',
@@ -87,8 +88,12 @@ export const PROVIDER_DISPLAY_NAMES: Record<string, string> = {
   ygrfish: 'YGR Fishing',
 };
 
+const DEMO_SLOT_ASSET = 'apps/web-member/public/assets/demo-slot/demo-fortune-slot.svg';
+const DEMO_PROVIDER_LOGO = 'apps/web-member/public/assets/demo-slot/simulator-provider-logo.svg';
+
 const MOBILE_GAME_CATALOG: readonly SimulatorGameCatalogItem[] = [
-  { code: 'demo-slot-001', name: 'Demo Fortune Slot', provider: 'simulator-provider', platform: 'both', category: 'slot', accent: '#7c3aed', symbol: '7', tags: ['เกมส์สล็อต', 'เกมส์ใหม่'] },
+  { code: 'demo-slot-001', name: 'Demo Fortune Slot', provider: 'simulator-provider', platform: 'mobile', category: 'slot', accent: '#7c3aed', symbol: '7', tags: ['เกมส์สล็อต', 'เกมส์ใหม่', 'เกมส์ฮิต'], assetPath: DEMO_SLOT_ASSET, providerLogoPath: DEMO_PROVIDER_LOGO },
+  { code: 'demo-slot-001', name: 'Demo Fortune Slot', provider: 'simulator-provider', platform: 'desktop', category: 'slot', accent: '#7c3aed', symbol: '7', tags: ['เกมส์สล็อต', 'เกมส์ใหม่', 'เกมส์ฮิต'], assetPath: DEMO_SLOT_ASSET, providerLogoPath: DEMO_PROVIDER_LOGO },
   { code: 'thai-hi-lo-2', name: 'Thai Hi-Lo 2', provider: 'kingm', platform: 'mobile', category: 'casino', accent: '#f59e0b', symbol: 'HL', assetPath: 'asset/catalog/mobile/games/kingmaker/thai-hi-lo-2.jpg', providerLogoPath: 'asset/catalog/mobile/providers/kingmaker.png' },
   { code: 'bushido-ways', name: 'Bushido Ways', provider: 'nlc', platform: 'mobile', category: 'slot', accent: '#dc2626', symbol: '武', assetPath: 'asset/catalog/mobile/games/nolimit-city/bushido-ways.jpg', providerLogoPath: 'asset/catalog/mobile/providers/nolimit-city.png' },
   { code: 'el-paso', name: 'El Paso', provider: 'nlc', platform: 'mobile', category: 'slot', accent: '#b45309', symbol: 'EP', assetPath: 'asset/catalog/mobile/games/nolimit-city/el-paso.jpg', providerLogoPath: 'asset/catalog/mobile/providers/nolimit-city.png' },
