@@ -5,14 +5,14 @@ import type { PromotionView } from '../browse/browse-promotions-cms';
 import { memberApiFetch } from '../member-api';
 import { resolveLocalAssetOrSource } from '../lib/local-asset-by-basename';
 import {
-  loadPublicPromotionCampaigns,
   PROMOTION_ASSET_CAMPAIGNS,
   type MemberPromotionCampaign,
   type PromotionMemberCategory,
 } from '../promotion-campaign-runtime';
-import { cmsResponsiveMediaUrls, type CmsContent } from '../site-settings';
+import { cmsContentSetting, cmsResponsiveMediaUrls, type CmsContent } from '../site-settings';
 import { useSiteSettings } from '../site-settings-provider';
 import { useMemberSession } from '../member-session-provider';
+import { loadLivePromotionCampaigns } from './member-source-content-runtime';
 
 const CATEGORY_OPTIONS: Array<{ value: 'all' | PromotionMemberCategory; label: string }> = [
   { value: 'all', label: 'ทั้งหมด' },
@@ -55,6 +55,8 @@ type ResponsiveSourceProps = {
   className?: string;
 };
 
+type CampaignLoadState = 'loading' | 'ready' | 'error';
+
 const SOURCE_ACTIVITY_FALLBACK: ActivityItem[] = [
   {
     id: 'predict-lottery',
@@ -86,10 +88,12 @@ export default function MemberSourceContentPopup({
   onDetailOpenChange,
 }: Props) {
   const { ready, isLoggedIn } = useMemberSession();
-  const { typedSettings } = useSiteSettings();
-  const content = typedSettings.features.cms_content;
+  const { settings, reload } = useSiteSettings();
+  const content = useMemo(() => cmsContentSetting(settings), [settings]);
+  const demoEnabled = settings.features?.presentation_demo_enabled === true;
   const popupRootRef = useRef<HTMLElement | null>(null);
-  const [campaigns, setCampaigns] = useState<MemberPromotionCampaign[]>(PROMOTION_ASSET_CAMPAIGNS);
+  const [campaigns, setCampaigns] = useState<MemberPromotionCampaign[]>([]);
+  const [campaignLoadState, setCampaignLoadState] = useState<CampaignLoadState>('loading');
   const [category, setCategory] = useState<'all' | PromotionMemberCategory>('all');
   const [selectedCampaign, setSelectedCampaign] = useState<MemberPromotionCampaign | null>(null);
   const [selectedActivityId, setSelectedActivityId] = useState('');
@@ -109,22 +113,33 @@ export default function MemberSourceContentPopup({
   }, []);
 
   useEffect(() => {
+    void reload();
+  }, [reload]);
+
+  useEffect(() => {
     const controller = new AbortController();
     let cancelled = false;
+    setCampaignLoadState('loading');
 
-    void loadPublicPromotionCampaigns(controller.signal).then((nextCampaigns) => {
-      if (!cancelled) {
-        setCampaigns(nextCampaigns.length > 0 ? nextCampaigns : PROMOTION_ASSET_CAMPAIGNS);
-      }
+    void loadLivePromotionCampaigns(controller.signal).then((nextCampaigns) => {
+      if (cancelled) return;
+      setCampaigns(nextCampaigns.length > 0
+        ? nextCampaigns
+        : demoEnabled
+          ? PROMOTION_ASSET_CAMPAIGNS
+          : []);
+      setCampaignLoadState('ready');
     }).catch(() => {
-      if (!cancelled) setCampaigns(PROMOTION_ASSET_CAMPAIGNS);
+      if (cancelled) return;
+      setCampaigns(demoEnabled ? PROMOTION_ASSET_CAMPAIGNS : []);
+      setCampaignLoadState('error');
     });
 
     return () => {
       cancelled = true;
       controller.abort();
     };
-  }, []);
+  }, [demoEnabled]);
 
   useEffect(() => {
     setCategory('all');
@@ -151,7 +166,7 @@ export default function MemberSourceContentPopup({
     .filter((item) => category === 'all' || item.memberCategory === category)
     .sort((left, right) => right.priority - left.priority), [campaigns, category]);
 
-  const activities = useMemo(() => buildActivities(content), [content]);
+  const activities = useMemo(() => buildActivities(content, demoEnabled), [content, demoEnabled]);
   const newsItems = useMemo(() => buildNews(content), [content]);
   const selectedActivity = activities.find((item) => item.id === selectedActivityId) ?? activities[0] ?? null;
 
@@ -191,7 +206,12 @@ export default function MemberSourceContentPopup({
 
   if (selectedCampaign) {
     return (
-      <section ref={popupRootRef} className="member-source-content-popup member-source-promotion-detail" data-source-popup-view="promotion-detail">
+      <section
+        ref={popupRootRef}
+        className="member-source-content-popup member-source-promotion-detail"
+        data-source-popup-view="promotion-detail"
+        data-content-source={demoEnabled ? 'demo' : 'api'}
+      >
         <ResponsiveSourceImage
           desktop={selectedCampaign.desktopImageUrl || selectedCampaign.imageUrl}
           mobile={selectedCampaign.mobileImageUrl}
@@ -219,7 +239,12 @@ export default function MemberSourceContentPopup({
 
   if (view === 'activity') {
     return (
-      <section ref={popupRootRef} className="member-source-content-popup member-source-activity-popup" data-source-popup-view="activity">
+      <section
+        ref={popupRootRef}
+        className="member-source-content-popup member-source-activity-popup"
+        data-source-popup-view="activity"
+        data-content-source={demoEnabled ? 'demo' : 'cms'}
+      >
         <div className="member-source-activity-list" role="listbox" aria-label="รายการกิจกรรม">
           {activities.map((item) => {
             const active = item.id === selectedActivity?.id;
@@ -246,7 +271,12 @@ export default function MemberSourceContentPopup({
 
   if (view === 'news') {
     return (
-      <section ref={popupRootRef} className="member-source-content-popup member-source-news-popup" data-source-popup-view="news">
+      <section
+        ref={popupRootRef}
+        className="member-source-content-popup member-source-news-popup"
+        data-source-popup-view="news"
+        data-content-source="cms"
+      >
         {newsItems.length > 0 ? (
           <div className="member-source-news-list">
             {newsItems.map((item) => (
@@ -262,7 +292,12 @@ export default function MemberSourceContentPopup({
   }
 
   return (
-    <section ref={popupRootRef} className="member-source-content-popup member-source-promotion-popup" data-source-popup-view="promotion">
+    <section
+      ref={popupRootRef}
+      className="member-source-content-popup member-source-promotion-popup"
+      data-source-popup-view="promotion"
+      data-content-source={demoEnabled ? 'demo' : 'api'}
+    >
       <nav className="member-source-promotion-categories" aria-label="หมวดโปรโมชั่น">
         {CATEGORY_OPTIONS.map((option) => (
           <button
@@ -276,7 +311,7 @@ export default function MemberSourceContentPopup({
         ))}
       </nav>
       <div className="member-source-promotion-grid">
-        {visibleCampaigns.map((campaign) => (
+        {visibleCampaigns.length > 0 ? visibleCampaigns.map((campaign) => (
           <button
             type="button"
             key={campaign.id}
@@ -295,7 +330,11 @@ export default function MemberSourceContentPopup({
             />
             <strong>{campaign.title}</strong>
           </button>
-        ))}
+        )) : (
+          <div style={{ gridColumn: '1 / -1' }}>
+            <EmptyState label={promotionEmptyLabel(campaignLoadState)} />
+          </div>
+        )}
       </div>
     </section>
   );
@@ -408,12 +447,12 @@ function EmptyState({ label }: { label: string }) {
   );
 }
 
-function buildActivities(content: CmsContent): ActivityItem[] {
+function buildActivities(content: CmsContent, allowDemoFallback: boolean): ActivityItem[] {
   const source = (content.announcements ?? []).filter((item) => item.enabled
     && item.lifecycle !== 'draft'
     && item.lifecycle !== 'archived'
     && item.kind === 'event');
-  if (source.length === 0) return SOURCE_ACTIVITY_FALLBACK;
+  if (source.length === 0) return allowDemoFallback ? SOURCE_ACTIVITY_FALLBACK : [];
 
   return source.map((item, index) => {
     const media = cmsResponsiveMediaUrls(content, item);
@@ -471,6 +510,12 @@ function buildNews(content: CmsContent): NewsItem[] {
       image: sourceAsset(firstText(media.desktop, media.mobile, item.imageUrl)),
     };
   });
+}
+
+function promotionEmptyLabel(state: CampaignLoadState) {
+  if (state === 'loading') return 'กำลังโหลดโปรโมชั่น...';
+  if (state === 'error') return 'โหลดข้อมูลโปรโมชั่นไม่สำเร็จ';
+  return 'ยังไม่มีโปรโมชั่น';
 }
 
 function sourceAsset(url: string) {
