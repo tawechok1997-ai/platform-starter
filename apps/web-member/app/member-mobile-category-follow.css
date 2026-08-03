@@ -4,9 +4,9 @@
 @import './member-desktop-quick-card-copy-lock.css';
 
 /* Mobile Home uses the document as its single vertical scroll owner. The
- * category rail is viewport-fixed beneath the header, while the content slot
- * is explicitly locked to grid column two so removing the rail from normal
- * flow can never collapse games into the narrow menu column. */
+ * category rail begins in normal document flow beside the content and becomes
+ * sticky only after its own section reaches the header. This prevents the rail
+ * from covering the hero, auth actions, announcement and highlight tabs. */
 @media (max-width: 900px) {
   html[data-member-viewport-mode='mobile']:has([data-mobile-home-root='true']),
   html[data-member-viewport-mode='mobile'] body:has([data-mobile-home-root='true']) {
@@ -44,11 +44,11 @@
 
   html[data-member-viewport-mode='mobile'] [data-mobile-section-owner='category-menu'],
   html[data-member-viewport-mode='mobile'] body:has(.public-game-shell[data-route='/']) [data-mobile-section-owner='category-menu'] {
-    position: fixed !important;
+    position: sticky !important;
     top: calc(60px + env(safe-area-inset-top, 0px)) !important;
     right: auto !important;
     bottom: auto !important;
-    left: max(env(safe-area-inset-left, 0px), calc((100vw - 640px) / 2)) !important;
+    left: auto !important;
     z-index: 100 !important;
     grid-column: 1 !important;
     align-self: start !important;
