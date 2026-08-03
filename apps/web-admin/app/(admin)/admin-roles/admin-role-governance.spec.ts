@@ -14,6 +14,13 @@ test('role governance wires multi-role preview and synchronized role updates', (
   assert.match(source, /maximum|สูงสุด 8|length >= 8/);
 });
 
+test('role governance blocks synchronized role updates when preview is denied or invalid', () => {
+  assert.match(source, /async function previewRoles\(\): Promise<RolePreview \| null>/);
+  assert.match(source, /const checkedPreview = rolePreview\?\.grantable \? rolePreview : await previewRoles\(\)/);
+  assert.match(source, /if \(!checkedPreview\?\.grantable\) return;/);
+  assert.doesNotMatch(source, /if \(!rolePreview\?\.grantable\) await previewRoles\(\);\s*setBusy\('roles'\)/);
+});
+
 test('role governance wires team hierarchy and direct reporting lines', () => {
   assert.match(source, /\/admin\/access\/teams/);
   assert.match(source, /\/members/);
