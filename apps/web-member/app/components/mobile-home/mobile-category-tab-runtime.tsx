@@ -68,11 +68,13 @@ export default function MobileCategoryTabRuntime() {
     const frame = activeCategory === 'home'
       ? 0
       : window.requestAnimationFrame(() => {
-        root.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+        const scrollOwner = document.scrollingElement;
+        if (scrollOwner) scrollOwner.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+        else window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
       });
 
-    // The Mobile root owns scrolling. Header, category rail and bottom
-    // navigation stay attached while only the page content moves.
+    // Mobile Home uses the document as the vertical scroll owner. The category
+    // rail remains sticky inside its content grid and stops before the footer.
     return () => {
       if (frame) window.cancelAnimationFrame(frame);
       if (root.dataset.mobileActiveCategory === activeCategory) {
