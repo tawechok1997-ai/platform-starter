@@ -2,8 +2,10 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { getMemberGameCatalog, type MemberCatalogGame } from '../lib/member-game-catalog';
+import { selectHomeGameSection } from '../lib/home-game-selection';
 import { randomizeGameCatalog } from '../lib/randomize-game-catalog';
 import { requestJson } from '../member-api';
+import { useSiteSettings } from '../site-settings-provider';
 import type { Game, GameLobbyPayload, LedgerItem, MoneyRequest } from '../types/member-api';
 
 const FAVORITES_KEY = 'member_favorite_game_ids';
@@ -12,7 +14,10 @@ const EMPTY_MONEY_REQUESTS: MoneyRequest[] = [];
 const EMPTY_LEDGERS: LedgerItem[] = [];
 
 export function useMemberHomeData(gamesEnabled: boolean) {
+  const { typedSettings } = useSiteSettings();
+  const featureSettings = typedSettings.features as Record<string, unknown>;
   const [lobby, setLobby] = useState<GameLobbyPayload>({});
+  const [classicGames, setClassicGames] = useState<Game[]>([]);
   const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
   const [recentIds, setRecentIds] = useState<string[]>([]);
   const [gamesMessage, setGamesMessage] = useState('');
@@ -21,6 +26,7 @@ export function useMemberHomeData(gamesEnabled: boolean) {
   const loadGames = useCallback(async () => {
     if (!gamesEnabled) {
       setLobby({});
+      setClassicGames([]);
       setIsGamesLoading(false);
       return;
     }
@@ -31,20 +37,16 @@ export function useMemberHomeData(gamesEnabled: boolean) {
       const catalog = await getMemberGameCatalog('pc');
       const randomizedCatalog = randomizeGameCatalog(catalog);
       const items = randomizedCatalog.map(toGame);
-      const featuredCandidates = randomizedCatalog
-        .filter((game) => game.tags.includes('hot') || game.tags.includes('popular') || game.popular);
-      const popularCandidates = randomizedCatalog
-        .filter((game) => game.popular || game.tags.includes('hot') || game.tags.includes('popular'));
+      const featured = selectHomeGameSection(catalog, 'featured', 'pc', featureSettings, 8).map(toGame);
+      const popular = selectHomeGameSection(catalog, 'popular', 'pc', featureSettings, 10).map(toGame);
+      const classic = selectHomeGameSection(catalog, 'classic', 'pc', featureSettings, 6).map(toGame);
       const newestCandidates = randomizedCatalog
         .filter((game) => game.tags.includes('new') || game.fresh);
-      const featured = randomizeGameCatalog(featuredCandidates.length ? featuredCandidates : randomizedCatalog)
-        .map(toGame);
-      const popular = randomizeGameCatalog(popularCandidates.length ? popularCandidates : randomizedCatalog)
-        .map(toGame);
       const newest = randomizeGameCatalog(newestCandidates.length ? newestCandidates : randomizedCatalog)
         .map(toGame);
       const categories = Array.from(new Set(randomizedCatalog.flatMap((game) => [game.category, ...game.tags])));
 
+      setClassicGames(classic);
       setLobby({
         items,
         featured,
@@ -66,6 +68,8 @@ export function useMemberHomeData(gamesEnabled: boolean) {
           suppressSessionExpiryRedirect: true,
         });
         const nextLobby = payload && typeof payload === 'object' && !Array.isArray(payload) ? payload : {};
+        const fallbackGames = Array.isArray(nextLobby.items) ? nextLobby.items.filter(Boolean) as Game[] : [];
+        setClassicGames(fallbackGames.slice(0, 6));
         setLobby((currentLobby) => sameLobbyPayload(currentLobby, nextLobby) ? currentLobby : nextLobby);
       } catch {
         setGamesMessage(catalogError instanceof Error ? catalogError.message : 'โหลดเกมไม่สำเร็จ');
@@ -73,7 +77,7 @@ export function useMemberHomeData(gamesEnabled: boolean) {
     } finally {
       setIsGamesLoading(false);
     }
-  }, [gamesEnabled]);
+  }, [featureSettings, gamesEnabled]);
 
   useEffect(() => {
     const storedFavorites = readIds(FAVORITES_KEY);
@@ -90,7 +94,7 @@ export function useMemberHomeData(gamesEnabled: boolean) {
   const popularSource = Array.isArray(lobby.popular) && lobby.popular.length
     ? lobby.popular
     : games.filter((game) => game?.isPopular);
-  const featured = featuredSource.slice(0, 10);
+  const featured = featuredSource.slice(0, 8);
   const popular = popularSource.slice(0, 10);
   const recentGames = recentIds.map((id) => games.find((game) => game?.id === id)).filter(Boolean) as Game[];
   const favoriteGames = favoriteIds.map((id) => games.find((game) => game?.id === id)).filter(Boolean) as Game[];
@@ -103,6 +107,7 @@ export function useMemberHomeData(gamesEnabled: boolean) {
     categories,
     featured,
     popular,
+    classicGames,
     recentGames,
     favoriteGames,
     activityMessage: '',
