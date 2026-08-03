@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState, type SyntheticEvent } from 'react';
 import { getMemberGameCatalog, type MemberCatalogGame } from '../../lib/member-game-catalog';
+import { randomizeGameCatalog } from '../../lib/randomize-game-catalog';
 import { useMemberLocale, type MemberLocale } from '../../member-locale-provider';
 import { hideDecorativeImage } from '../image-fallback';
 import { V47_ASSETS } from './v47-asset-map';
@@ -133,10 +134,7 @@ function useRenderableGames(limit: number, order: 'popular' | 'online') {
       ? valid.filter((item) => item.popular || item.tags.includes('hot') || item.tags.includes('popular'))
       : valid.filter((item) => item.players > 0);
     const source = preferred.length > 0 ? preferred : valid;
-    source.sort(order === 'online'
-      ? (left, right) => right.players - left.players
-      : (left, right) => gameScore(right) - gameScore(left));
-    return source.slice(0, limit);
+    return randomizeGameCatalog(source).slice(0, limit);
   }, [games, invalidKeys, limit, order]);
 
   const reject = (item: LobbyGame) => {
@@ -155,10 +153,13 @@ function useRenderableGames(limit: number, order: 'popular' | 'online') {
 async function getLobbyGames() {
   if (!lobbyGamesRequest) {
     lobbyGamesRequest = getMemberGameCatalog('pc')
-      .then((items) => dedupeGames([...items.map(mapCatalogGame), ...FALLBACK_GAMES]))
+      .then((items) => dedupeGames([
+        ...randomizeGameCatalog(items.map(mapCatalogGame)),
+        ...randomizeGameCatalog(FALLBACK_GAMES),
+      ]))
       .catch(() => {
         lobbyGamesRequest = null;
-        return FALLBACK_GAMES;
+        return randomizeGameCatalog(FALLBACK_GAMES);
       });
   }
   return lobbyGamesRequest;
@@ -213,12 +214,6 @@ function dedupeGames(items: LobbyGame[]) {
 
 function gameKey(item: LobbyGame) {
   return `${item.provider}:${item.providerGameCode || item.id}`.toLowerCase();
-}
-
-function gameScore(item: LobbyGame) {
-  return (item.popular ? 1_000_000 : 0)
-    + (item.badge === 'NEW' ? 100_000 : 0)
-    + item.players;
 }
 
 function estimatedPlayers(seed: string) {
