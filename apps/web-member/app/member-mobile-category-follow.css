@@ -3,12 +3,11 @@
 @import './member-home-section-icons.css';
 @import './member-desktop-quick-card-copy-lock.css';
 
-/* Mobile category rail contract:
- * - the document owns vertical scrolling
- * - the rail remains a normal left-grid item
- * - a bounded translate follows the viewport beneath the 60px header
- * - it stops at the bottom of the category content container
- * - no fixed positioning, DOM removal, or nested vertical scroller exists
+/* Mobile category contract:
+ * - the document is the only vertical scroll owner
+ * - header, hero, auth actions and announcement stay in the normal page flow
+ * - the category rail uses native sticky positioning
+ * - no JavaScript transform or nested vertical scroller is allowed
  */
 @media (max-width: 900px) {
   html,
@@ -33,9 +32,20 @@
     height: auto !important;
     min-height: 0 !important;
     max-height: none !important;
-    overflow: visible !important;
+    overflow-x: clip !important;
+    overflow-y: visible !important;
     contain: none !important;
     overscroll-behavior-y: auto !important;
+  }
+
+  body:has(.public-game-shell[data-route='/']) [data-mobile-home-root='true'],
+  body:has(.public-game-shell[data-route='/']) [data-mobile-home-root='true'] *:has(> [data-mobile-section-owner='category-menu']) {
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow-x: clip !important;
+    overflow-y: visible !important;
+    contain: none !important;
   }
 
   [data-mobile-home-root='true'] *:has(> [data-mobile-section-owner='category-menu']) {
@@ -45,13 +55,15 @@
     grid-template-rows: none !important;
   }
 
-  [data-mobile-section-owner='category-menu'] {
-    position: relative !important;
-    top: 0 !important;
+  [data-mobile-section-owner='category-menu'],
+  body:has(.public-game-shell[data-route='/']) [data-mobile-section-owner='category-menu'] {
+    position: -webkit-sticky !important;
+    position: sticky !important;
+    top: 64px !important;
     right: auto !important;
     bottom: auto !important;
     left: 0 !important;
-    z-index: 98 !important;
+    z-index: 100 !important;
     align-self: start !important;
     height: max-content !important;
     min-height: 0 !important;
@@ -59,14 +71,20 @@
     overflow: visible !important;
     overscroll-behavior: auto !important;
     scrollbar-width: auto !important;
-    transform: translate3d(0, var(--mobile-category-follow-y, 0px), 0) !important;
+    transform: none !important;
     transition: none !important;
-    will-change: transform !important;
+    will-change: auto !important;
     touch-action: pan-y !important;
     -webkit-overflow-scrolling: auto !important;
   }
 
-  [data-mobile-content-slot='after-highlight'] {
+  [data-mobile-section-owner='category-menu']::-webkit-scrollbar,
+  body:has(.public-game-shell[data-route='/']) [data-mobile-section-owner='category-menu']::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  [data-mobile-content-slot='after-highlight'],
+  body:has(.public-game-shell[data-route='/']) [data-mobile-content-slot='after-highlight'] {
     height: auto !important;
     min-height: 1px !important;
     max-height: none !important;
@@ -76,10 +94,22 @@
     touch-action: pan-x pan-y !important;
   }
 
-  [data-provider-games-stage] {
+  [data-provider-games-stage],
+  body:has(.public-game-shell[data-route='/']) [data-provider-games-stage] {
     height: auto !important;
     min-height: 0 !important;
     max-height: none !important;
-    overflow: visible !important;
+    overflow-x: hidden !important;
+    overflow-y: visible !important;
+    overscroll-behavior-y: auto !important;
+    touch-action: pan-x pan-y !important;
+  }
+
+  [data-mobile-section-owner='header'],
+  [data-mobile-section-owner='hero'],
+  [data-mobile-section-owner='auth-actions'],
+  [data-mobile-section-owner='announcement'] {
+    visibility: visible !important;
+    opacity: 1 !important;
   }
 }
