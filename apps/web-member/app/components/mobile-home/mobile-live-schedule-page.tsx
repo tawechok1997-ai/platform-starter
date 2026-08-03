@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
 import {
   LIVE_ROUTE,
   LIVE_SERVICE_COPY,
@@ -14,8 +15,11 @@ type Props = { onBack: () => void };
 type SortMode = 'league' | 'time';
 
 const TIMEZONE = 'Asia/Bangkok';
+const DESKTOP_MEDIA = '(min-width: 901px)';
 
 export default function MobileLiveSchedulePage({ onBack }: Props) {
+  const pathname = usePathname();
+  const router = useRouter();
   const { locale } = useMemberLocale();
   const copy = LIVE_SERVICE_COPY[locale];
   const maintenance = LIVE_SERVICE_STATUS.mode === 'maintenance';
@@ -24,6 +28,20 @@ export default function MobileLiveSchedulePage({ onBack }: Props) {
   const [loading, setLoading] = useState(!maintenance);
   const [error, setError] = useState('');
   const [refreshKey, setRefreshKey] = useState(0);
+  const [maintenanceOpen, setMaintenanceOpen] = useState(maintenance);
+
+  useEffect(() => {
+    if (!pathname.startsWith('/mobile/')) return undefined;
+
+    const media = window.matchMedia(DESKTOP_MEDIA);
+    const redirectDesktop = () => {
+      if (media.matches) router.replace(LIVE_ROUTE);
+    };
+
+    redirectDesktop();
+    media.addEventListener('change', redirectDesktop);
+    return () => media.removeEventListener('change', redirectDesktop);
+  }, [pathname, router]);
 
   useEffect(() => {
     if (maintenance) {
@@ -66,6 +84,7 @@ export default function MobileLiveSchedulePage({ onBack }: Props) {
     <main
       className={styles.page}
       data-mobile-live-page="true"
+      data-live-responsive-page="true"
       data-live-service-status={LIVE_SERVICE_STATUS.mode}
     >
       <header className={styles.header}>
@@ -78,63 +97,122 @@ export default function MobileLiveSchedulePage({ onBack }: Props) {
       </div>
 
       <section className={styles.content}>
-        {maintenance ? (
-          <div className={styles.state} role="status" aria-live="polite">
-            <strong>{copy.badge}</strong>
-            <span>{copy.description}</span>
-            <span>{copy.tableDescription}</span>
-            <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 8 }}>
-              <button type="button" onClick={() => window.location.assign(LIVE_ROUTE)}>{copy.details}</button>
-              <button type="button" onClick={() => window.location.assign('/')}>{copy.home}</button>
-            </div>
+        <div className={styles.toolbar}>
+          <h2>{copy.football}</h2>
+          <div className={styles.sort} aria-label="เรียงรายการถ่ายทอดสด">
+            <button type="button" className={sortMode === 'time' ? styles.active : ''} onClick={() => setSortMode('time')}>เรียงเวลา</button>
+            <button type="button" className={sortMode === 'league' ? styles.active : ''} onClick={() => setSortMode('league')}>เรียงลีก</button>
           </div>
-        ) : (
-          <>
-            <div className={styles.toolbar}>
-              <h2>{copy.football}</h2>
-              <div className={styles.sort} aria-label="เรียงรายการถ่ายทอดสด">
-                <button type="button" className={sortMode === 'time' ? styles.active : ''} onClick={() => setSortMode('time')}>เรียงเวลา</button>
-                <button type="button" className={sortMode === 'league' ? styles.active : ''} onClick={() => setSortMode('league')}>เรียงลีก</button>
-              </div>
-            </div>
+        </div>
 
-            {loading ? <LiveScheduleSkeleton /> : null}
+        {maintenance ? (
+          <MaintenanceSchedulePreview copy={copy} onOpen={() => setMaintenanceOpen(true)} />
+        ) : null}
 
-            {!loading && error ? (
-              <div className={styles.state} role="alert">
-                <strong>โหลดรายการถ่ายทอดสดไม่สำเร็จ</strong>
-                <span>{error}</span>
-                <button type="button" onClick={() => setRefreshKey((value) => value + 1)}>ลองใหม่</button>
-              </div>
-            ) : null}
+        {!maintenance && loading ? <LiveScheduleSkeleton /> : null}
 
-            {!loading && !error && groups.length === 0 ? (
-              <div className={styles.state}>
-                <strong>ยังไม่พบรายการถ่ายทอดสด</strong>
-                <span>โซนเวลา: ไทย (GMT+7)</span>
-                <button type="button" onClick={() => setRefreshKey((value) => value + 1)}>โหลดใหม่</button>
-              </div>
-            ) : null}
+        {!maintenance && !loading && error ? (
+          <div className={styles.state} role="alert">
+            <strong>โหลดรายการถ่ายทอดสดไม่สำเร็จ</strong>
+            <span>{error}</span>
+            <button type="button" onClick={() => setRefreshKey((value) => value + 1)}>ลองใหม่</button>
+          </div>
+        ) : null}
 
-            {!loading && !error && groups.length > 0 ? (
-              <div className={styles.leagueList}>
-                {groups.map((group) => (
-                  <section className={styles.league} key={`${group.league}-${group.date}`}>
-                    <header>
-                      <strong>{group.league}</strong>
-                      <time>{group.date}</time>
-                    </header>
-                    <div>
-                      {group.matches.map((match) => <MatchRow key={match.id} match={match} />)}
-                    </div>
-                  </section>
-                ))}
-              </div>
-            ) : null}
-          </>
-        )}
+        {!maintenance && !loading && !error && groups.length === 0 ? (
+          <div className={styles.state}>
+            <strong>ยังไม่พบรายการถ่ายทอดสด</strong>
+            <span>โซนเวลา: ไทย (GMT+7)</span>
+            <button type="button" onClick={() => setRefreshKey((value) => value + 1)}>โหลดใหม่</button>
+          </div>
+        ) : null}
+
+        {!maintenance && !loading && !error && groups.length > 0 ? (
+          <div className={styles.leagueList}>
+            {groups.map((group) => (
+              <section className={styles.league} key={`${group.league}-${group.date}`}>
+                <header>
+                  <strong>{group.league}</strong>
+                  <time>{group.date}</time>
+                </header>
+                <div>
+                  {group.matches.map((match) => <MatchRow key={match.id} match={match} />)}
+                </div>
+              </section>
+            ))}
+          </div>
+        ) : null}
       </section>
+
+      {maintenance && maintenanceOpen ? (
+        <MaintenancePopup
+          copy={copy}
+          showDetails={pathname !== LIVE_ROUTE}
+          onClose={() => setMaintenanceOpen(false)}
+          onDetails={() => window.location.assign(LIVE_ROUTE)}
+          onHome={() => router.push('/')}
+          onSport={() => router.push('/browse/games?category=sport')}
+        />
+      ) : null}
     </main>
+  );
+}
+
+function MaintenanceSchedulePreview({
+  copy,
+  onOpen,
+}: {
+  copy: (typeof LIVE_SERVICE_COPY)[keyof typeof LIVE_SERVICE_COPY];
+  onOpen: () => void;
+}) {
+  return (
+    <div className={styles.maintenancePreview} data-live-maintenance-preview="true">
+      <div>
+        <span className={styles.maintenancePulse} aria-hidden="true" />
+        <strong>{copy.tableStatus}</strong>
+      </div>
+      <p>{copy.tableDescription}</p>
+      <button type="button" onClick={onOpen}>{copy.details}</button>
+    </div>
+  );
+}
+
+function MaintenancePopup({
+  copy,
+  showDetails,
+  onClose,
+  onDetails,
+  onHome,
+  onSport,
+}: {
+  copy: (typeof LIVE_SERVICE_COPY)[keyof typeof LIVE_SERVICE_COPY];
+  showDetails: boolean;
+  onClose: () => void;
+  onDetails: () => void;
+  onHome: () => void;
+  onSport: () => void;
+}) {
+  return (
+    <div className={styles.maintenanceOverlay} role="presentation" data-live-maintenance-popup="true">
+      <section className={styles.maintenanceDialog} role="dialog" aria-modal="true" aria-labelledby="live-maintenance-title">
+        <div className={styles.maintenanceBorder} aria-hidden="true" />
+        <div className={styles.maintenanceCap} aria-hidden="true">
+          <svg viewBox="0 0 192 36" fill="none"><path d="M0 0H192L186.5 18s-3.58 9.44-10.5 13.81C169.32 36.04 159.56 36 159.56 36H30.94S21.58 36.14 15 31.81C8.24 27.37 4.75 18 4.75 18L0 0Z" fill="url(#live-cap)" /><defs><linearGradient id="live-cap" x1="96" y1="36" x2="96" y2="0"><stop stopColor="#505050" /><stop offset=".32" stopColor="#474747" /><stop offset=".79" stopColor="#313131" /></linearGradient></defs></svg>
+          <span>{copy.badge}</span>
+        </div>
+        <button className={styles.maintenanceClose} type="button" aria-label="ปิดหน้าต่าง" onClick={onClose}>×</button>
+
+        <span className={styles.maintenanceIcon} aria-hidden="true"><LiveIcon /></span>
+        <h2 id="live-maintenance-title">{copy.title}</h2>
+        <p>{copy.description}</p>
+
+        <div className={styles.maintenanceActions}>
+          {showDetails ? <button type="button" onClick={onDetails}>{copy.details}</button> : null}
+          <button type="button" onClick={onHome}>{copy.home}</button>
+          <button type="button" onClick={onSport}>{copy.sport}</button>
+        </div>
+      </section>
+    </div>
   );
 }
 
@@ -217,4 +295,8 @@ function ShieldIcon() {
 
 function CoinIcon() {
   return <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="#ffed57" /><path d="M8 4.2v7.6M10.2 5.5H7.1a1.3 1.3 0 0 0 0 2.6h1.8a1.3 1.3 0 1 1 0 2.6H5.8" stroke="#c48300" strokeWidth="1.1" strokeLinecap="round" /></svg>;
+}
+
+function LiveIcon() {
+  return <svg viewBox="0 0 48 48" fill="none"><path d="M17 8h14M24 8v7M11 18h26a5 5 0 0 1 5 5v14a5 5 0 0 1-5 5H11a5 5 0 0 1-5-5V23a5 5 0 0 1 5-5Z" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" /><path d="m20 25 9 5-9 5V25Z" fill="currentColor" /><path d="M10 12 5 7M38 12l5-5" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" /></svg>;
 }
