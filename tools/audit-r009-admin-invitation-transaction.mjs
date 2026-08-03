@@ -21,8 +21,13 @@ function transactionCloseIndex(method, transactionStart) {
 
 const createMethod = methodSlice(service, '  async create(', '\n  async list(');
 const reissueMethod = methodSlice(service, '  async reissue(', '\n  private readAdminUserId(');
+const controllerCreateMethod = methodSlice(
+  controller,
+  '  createInvitation(',
+  '\n  @RequirePermission(\'admin.access.view\')\n  @Get(\'owner-recovery-status\')',
+);
 
-if (!createMethod || !reissueMethod) {
+if (!createMethod || !reissueMethod || !controllerCreateMethod) {
   console.error('R-009 admin invitation transaction audit: command methods not found.');
   process.exit(1);
 }
@@ -33,11 +38,18 @@ const createAuditAction = createMethod.indexOf("action: 'CREATE_ADMIN_INVITATION
 const reissueTransactionStart = reissueMethod.indexOf('this.prisma.$transaction(async (tx) =>');
 const reissueTransactionEnd = transactionCloseIndex(reissueMethod, reissueTransactionStart);
 const reissueAuditAction = reissueMethod.indexOf("action: 'REISSUE_ADMIN_INVITATION'");
+const controllerRoutesCreation = [
+  'return this.invitationCommands.create(',
+  'req.user.id',
+  'body.email',
+  'roleIds',
+  'body.expiresInHours',
+].every((signal) => controllerCreateMethod.includes(signal));
 
 const checks = [
   ['controller imports invitation command service', controller.includes("import { AdminInvitationAdminService } from './admin-invitation-admin.service';")],
   ['controller injects invitation command service', controller.includes('private readonly invitationCommands: AdminInvitationAdminService')],
-  ['controller routes creation through command service', controller.includes('return this.invitationCommands.create(req.user.id, body.email, body.roleId, body.expiresInHours);')],
+  ['controller routes creation through command service', controllerRoutesCreation],
   ['create transaction owner exists', createTransactionStart >= 0],
   ['create transaction close exists', createTransactionEnd >= 0],
   ['create admin write uses tx', createMethod.includes('await tx.adminUser.create(')],
