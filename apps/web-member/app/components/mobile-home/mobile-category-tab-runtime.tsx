@@ -68,12 +68,11 @@ export default function MobileCategoryTabRuntime() {
     const frame = activeCategory === 'home'
       ? 0
       : window.requestAnimationFrame(() => {
-        window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
-        document.scrollingElement?.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+        root.scrollTo({ top: 0, left: 0, behavior: 'auto' });
       });
 
-    // Only the category content changes. Header, hero, auth actions,
-    // announcement and highlight tabs remain mounted for every game category.
+    // The Mobile root owns scrolling. Header, category rail and bottom
+    // navigation stay attached while only the page content moves.
     return () => {
       if (frame) window.cancelAnimationFrame(frame);
       if (root.dataset.mobileActiveCategory === activeCategory) {
