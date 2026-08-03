@@ -23,22 +23,22 @@ export type AdminWidgetLabels = {
 export type AdminWidgetProps = {
   widgetId: string;
   title: string;
-  description?: string;
-  state?: AdminWidgetDataState;
+  description?: string | undefined;
+  state?: AdminWidgetDataState | undefined;
   labels: AdminWidgetLabels;
-  pinned?: boolean;
-  emptyMessage?: string;
-  errorMessage?: string;
-  partialMessage?: string;
-  exportFormats?: readonly AdminWidgetExportFormat[];
-  allowFullscreen?: boolean;
-  allowDrillDown?: boolean;
-  onRetry?: () => void;
-  onPinnedChange?: (pinned: boolean) => void;
-  onDrillDown?: () => void;
-  onExport?: (format: AdminWidgetExportFormat) => void;
-  actions?: ReactNode;
-  footer?: ReactNode;
+  pinned?: boolean | undefined;
+  emptyMessage?: string | undefined;
+  errorMessage?: string | undefined;
+  partialMessage?: string | undefined;
+  exportFormats?: readonly AdminWidgetExportFormat[] | undefined;
+  allowFullscreen?: boolean | undefined;
+  allowDrillDown?: boolean | undefined;
+  onRetry?: (() => void) | undefined;
+  onPinnedChange?: ((pinned: boolean) => void) | undefined;
+  onDrillDown?: (() => void) | undefined;
+  onExport?: ((format: AdminWidgetExportFormat) => void) | undefined;
+  actions?: ReactNode | undefined;
+  footer?: ReactNode | undefined;
   children: ReactNode;
 };
 
@@ -137,7 +137,7 @@ function ToolbarButton({
   children,
 }: {
   label: string;
-  pressed?: boolean;
+  pressed?: boolean | undefined;
   onClick: () => void;
   children: ReactNode;
 }) {
@@ -160,7 +160,7 @@ function WidgetLoading({ label }: { label: string }) {
   </div>;
 }
 
-function WidgetState({ title, action }: { title: string; action?: ReactNode }) {
+function WidgetState({ title, action }: { title: string; action?: ReactNode | undefined }) {
   return <div className={styles.state} role="status">
     <StateIcon />
     <strong>{title}</strong>
