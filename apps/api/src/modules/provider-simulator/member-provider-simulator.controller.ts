@@ -1,4 +1,4 @@
-import { Body, Controller, Param, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Param, ParseUUIDPipe, Post, Req, UseGuards } from '@nestjs/common';
 import type { MemberActor, MemberRequestContext } from '../../common/actors';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { MemberAuthGuard } from '../../common/guards/member-auth.guard';
@@ -22,7 +22,7 @@ export class MemberProviderSimulatorController {
 
   @Post('sessions/:sessionId/spin')
   spin(
-    @Param('sessionId') sessionId: string,
+    @Param('sessionId', new ParseUUIDPipe({ version: '4' })) sessionId: string,
     @CurrentUser() member: MemberActor,
     @Body() body: MemberSimulatorSlotSpinDto,
   ) {
