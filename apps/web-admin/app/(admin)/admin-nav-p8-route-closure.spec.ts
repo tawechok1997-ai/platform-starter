@@ -44,8 +44,8 @@ test('activity settings uses the specific feature permission instead of the pare
   assert.equal(canAccessPath('/settings/activities', ['settings.website.view']), false);
 });
 
-test('unregistered P8 routes remain denied', () => {
+test('unregistered P8 routes remain denied even for wildcard admins', () => {
   assert.deepEqual(requiredPermissionsForPath('/p8-unregistered-route'), ['__admin.route.unregistered__']);
   assert.equal(canAccessPath('/p8-unregistered-route', ['admin.view']), false);
-  assert.equal(canAccessPath('/p8-unregistered-route', ['*']), true);
+  assert.equal(canAccessPath('/p8-unregistered-route', ['*']), false);
 });
