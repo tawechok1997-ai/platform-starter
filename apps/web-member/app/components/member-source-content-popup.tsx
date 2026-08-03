@@ -10,12 +10,8 @@ import {
   type MemberPromotionCampaign,
   type PromotionMemberCategory,
 } from '../promotion-campaign-runtime';
-import {
-  cmsContentSetting,
-  cmsResponsiveMediaUrls,
-  loadPublicSiteSettings,
-  type CmsContent,
-} from '../site-settings';
+import { cmsResponsiveMediaUrls, type CmsContent } from '../site-settings';
+import { useSiteSettings } from '../site-settings-provider';
 import { useMemberSession } from '../member-session-provider';
 
 const CATEGORY_OPTIONS: Array<{ value: 'all' | PromotionMemberCategory; label: string }> = [
@@ -90,8 +86,9 @@ export default function MemberSourceContentPopup({
   onDetailOpenChange,
 }: Props) {
   const { ready, isLoggedIn } = useMemberSession();
+  const { typedSettings } = useSiteSettings();
+  const content = typedSettings.features.cms_content;
   const popupRootRef = useRef<HTMLElement | null>(null);
-  const [content, setContent] = useState<CmsContent | null>(null);
   const [campaigns, setCampaigns] = useState<MemberPromotionCampaign[]>(PROMOTION_ASSET_CAMPAIGNS);
   const [category, setCategory] = useState<'all' | PromotionMemberCategory>('all');
   const [selectedCampaign, setSelectedCampaign] = useState<MemberPromotionCampaign | null>(null);
@@ -115,13 +112,10 @@ export default function MemberSourceContentPopup({
     const controller = new AbortController();
     let cancelled = false;
 
-    void Promise.all([
-      loadPublicSiteSettings(),
-      loadPublicPromotionCampaigns(controller.signal),
-    ]).then(([settings, nextCampaigns]) => {
-      if (cancelled) return;
-      setContent(cmsContentSetting(settings));
-      setCampaigns(nextCampaigns.length > 0 ? nextCampaigns : PROMOTION_ASSET_CAMPAIGNS);
+    void loadPublicPromotionCampaigns(controller.signal).then((nextCampaigns) => {
+      if (!cancelled) {
+        setCampaigns(nextCampaigns.length > 0 ? nextCampaigns : PROMOTION_ASSET_CAMPAIGNS);
+      }
     }).catch(() => {
       if (!cancelled) setCampaigns(PROMOTION_ASSET_CAMPAIGNS);
     });
@@ -413,15 +407,15 @@ function EmptyState({ label }: { label: string }) {
   );
 }
 
-function buildActivities(content: CmsContent | null): ActivityItem[] {
-  const source = (content?.announcements ?? []).filter((item) => item.enabled
+function buildActivities(content: CmsContent): ActivityItem[] {
+  const source = (content.announcements ?? []).filter((item) => item.enabled
     && item.lifecycle !== 'draft'
     && item.lifecycle !== 'archived'
     && item.kind === 'event');
   if (source.length === 0) return SOURCE_ACTIVITY_FALLBACK;
 
   return source.map((item, index) => {
-    const media = content ? cmsResponsiveMediaUrls(content, item) : { desktop: '', mobile: '' };
+    const media = cmsResponsiveMediaUrls(content, item);
     const raw = item as unknown as Record<string, unknown>;
     const title = item.title || `กิจกรรม ${index + 1}`;
     const expiresAt = firstText(raw.endsAt, raw.expiresAt, raw.endDate);
@@ -461,14 +455,14 @@ function buildActivities(content: CmsContent | null): ActivityItem[] {
   });
 }
 
-function buildNews(content: CmsContent | null): NewsItem[] {
-  const source = (content?.announcements ?? []).filter((item) => item.enabled
+function buildNews(content: CmsContent): NewsItem[] {
+  const source = (content.announcements ?? []).filter((item) => item.enabled
     && item.lifecycle !== 'draft'
     && item.lifecycle !== 'archived'
     && item.kind === 'news');
 
   return source.map((item, index) => {
-    const media = content ? cmsResponsiveMediaUrls(content, item) : { desktop: '', mobile: '' };
+    const media = cmsResponsiveMediaUrls(content, item);
     return {
       id: item.id || `news-${index + 1}`,
       title: item.title || `ข่าวสาร ${index + 1}`,
