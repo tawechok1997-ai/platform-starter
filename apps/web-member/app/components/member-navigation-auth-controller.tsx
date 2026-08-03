@@ -141,6 +141,11 @@ export default function MemberNavigationAuthController() {
     if (safeNext) url.searchParams.set('next', safeNext);
     else url.searchParams.delete('next');
 
+    // A protected link may already have started capture-phase route motion.
+    // Auth opens an in-place overlay, so cancel that false leaving state before
+    // updating the canonical query string.
+    document.documentElement.dataset.memberRouteMotion = 'idle';
+
     // MemberChrome is the sole pre-login overlay owner. This controller only
     // updates the canonical request state and never mounts a second dialog.
     router.replace(`${url.pathname}${url.search}${url.hash}`, { scroll: false });
@@ -203,6 +208,12 @@ export default function MemberNavigationAuthController() {
         openAuth('login', intended);
         return;
       }
+
+      // Promotion list/detail entry links are owned by MemberSharedPopupRuntime.
+      // Returning here prevents label-based canonicalization from converting a
+      // Desktop popup action into a Mobile page route before the popup listener
+      // receives the same capture-phase click.
+      if (authAction && isSharedPopupTarget(authAction)) return;
 
       if (authAction && !authAction.closest('[data-mobile-member-popup]')) {
         const rawHref = normalize(authAction.getAttribute('href') ?? '');
@@ -269,6 +280,18 @@ function guestPublicMobileTargetFor(action: HTMLAnchorElement) {
 
 function requiresGuestLogin(action: HTMLAnchorElement) {
   return GUEST_LOGIN_REQUIRED_LABELS.has(actionLabel(action));
+}
+
+function isSharedPopupTarget(action: HTMLAnchorElement) {
+  const rawHref = action.getAttribute('href');
+  if (!rawHref) return false;
+  try {
+    const url = new URL(rawHref, window.location.origin);
+    return url.origin === window.location.origin
+      && (url.pathname === '/browse/promotions' || url.pathname === '/promotions');
+  } catch {
+    return false;
+  }
 }
 
 function canonicalTargetFor(action: HTMLAnchorElement) {

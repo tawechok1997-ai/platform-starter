@@ -7,6 +7,10 @@ import { useMemberLocale, type MemberLocale } from '../member-locale-provider';
 import { useMemberSession } from '../member-session-provider';
 import { useSiteSettings } from '../site-settings-provider';
 import { usePendingCount } from '../hooks/use-pending-count';
+import {
+  MEMBER_OPEN_AUTH_EVENT,
+  type MemberOpenAuthDetail,
+} from '../lib/member-auth-events';
 import MemberFooter from '../member-footer';
 import MemberAuthOverlay, { type MemberAuthMode } from './auth/member-auth-overlay';
 import DailyMissionModal from './mission/daily-mission-modal';
@@ -23,7 +27,7 @@ const NAVIGATION = [
   { key: 'sport', href: '/browse/games?category=sport', icon: V47_ASSETS.menuSport },
   { key: 'card', href: '/browse/games?category=card', icon: V47_ASSETS.menuCard },
   { key: 'lottery', href: '/browse/games?category=lottery', icon: V47_ASSETS.menuLottery },
-  { key: 'live', href: '/#live', icon: V47_ASSETS.menuLive },
+  { key: 'live', href: '/live', icon: V47_ASSETS.menuLive },
 ] as const;
 
 type NavigationKey = (typeof NAVIGATION)[number]['key'];
@@ -96,6 +100,22 @@ export default function PersistentMemberShell({ children }: { children: ReactNod
   }, [pathname]);
 
   useEffect(() => {
+    const openAuth = (event: Event) => {
+      if (!(event instanceof CustomEvent)) return;
+      const detail = event.detail as MemberOpenAuthDetail | undefined;
+      if (detail?.mode !== 'login' && detail?.mode !== 'register') return;
+
+      pendingNextRef.current = detail.next?.startsWith('/') && !detail.next.startsWith('//')
+        ? detail.next
+        : null;
+      setAuthMode(detail.mode);
+    };
+
+    window.addEventListener(MEMBER_OPEN_AUTH_EVENT, openAuth);
+    return () => window.removeEventListener(MEMBER_OPEN_AUTH_EVENT, openAuth);
+  }, []);
+
+  useEffect(() => {
     const category = new URLSearchParams(window.location.search).get('category');
     setActiveCategory(category?.trim().toLowerCase() ?? '');
     setMissionOpen(false);
@@ -113,8 +133,8 @@ export default function PersistentMemberShell({ children }: { children: ReactNod
     const next = pendingNextRef.current;
     pendingNextRef.current = null;
     setAuthMode(null);
-    if (next && next.startsWith('/') && !next.startsWith('//')) router.push(next);
-  }, [router, verify]);
+    if (next && next.startsWith('/') && !next.startsWith('//') && next !== pathname) router.push(next);
+  }, [pathname, router, verify]);
 
   if (standalone) return <>{children}</>;
 
@@ -162,7 +182,9 @@ export default function PersistentMemberShell({ children }: { children: ReactNod
           {NAVIGATION.map((item) => {
             const active = item.key === 'home'
               ? pathname === '/' && !activeCategory
-              : pathname.startsWith('/browse') && activeCategory === item.key;
+              : item.key === 'live'
+                ? pathname === '/live' || pathname.startsWith('/live/')
+                : pathname.startsWith('/browse') && activeCategory === item.key;
             return (
               <Link key={item.key} href={item.href} className={active ? 'active' : ''} aria-current={active ? 'page' : undefined}>
                 <span className="public-home-nav-icon-frame"><img src={item.icon} alt="" className="public-home-nav-icon" aria-hidden="true" /></span>

@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useRouter } from 'next/navigation';
+import { acquireMemberDocumentOverlayLock } from '../../lib/member-document-overlay-lock';
 import { useMemberLocale } from '../../member-locale-provider';
 import { useMemberSession } from '../../member-session-provider';
 import {
@@ -73,6 +74,7 @@ export default function PublicGameLoginController() {
   const { ready, isLoggedIn } = useMemberSession();
   const launchAbortRef = useRef<AbortController | null>(null);
   const [launchState, setLaunchState] = useState<LaunchState | null>(null);
+  const launchOverlayOpen = launchState !== null;
 
   useEffect(() => {
     const handleGameAction = async (event: MouseEvent) => {
@@ -155,6 +157,11 @@ export default function PublicGameLoginController() {
   }, [isLoggedIn, locale, ready, router]);
 
   useEffect(() => () => launchAbortRef.current?.abort(), []);
+
+  useEffect(() => {
+    if (!launchOverlayOpen) return;
+    return acquireMemberDocumentOverlayLock();
+  }, [launchOverlayOpen]);
 
   useEffect(() => {
     if (launchState?.status !== 'error') return;

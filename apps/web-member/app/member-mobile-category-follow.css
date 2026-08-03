@@ -3,130 +3,70 @@
 @import './member-home-section-icons.css';
 @import './member-desktop-quick-card-copy-lock.css';
 
-/* Mobile app-shell contract:
- * - the header and authenticated bottom navigation stay attached to the viewport
- * - the category rail is fixed beneath the header from the first frame
- * - the Mobile root is the single vertical scroll owner for Home
- * - standalone Mobile member pages scroll inside their page shell
- * - no scroll listener, transformed follower, or nested rail scroller is allowed
- */
+/* Mobile Home uses the document as its single vertical scroll owner.
+ * The category rail is sticky inside the category-content grid, so it follows
+ * the viewport and naturally stops before the shortcut and footer sections. */
 @media (max-width: 900px) {
-  [data-mobile-home-root='true'] {
-    --mobile-app-header-height: 60px;
-    --mobile-app-bottom-height: calc(60px + env(safe-area-inset-bottom, 0px));
-    --mobile-app-rail-width: 53px;
-  }
-
-  html:has([data-mobile-home-root='true']),
-  body:has([data-mobile-home-root='true']) {
-    width: 100% !important;
-    height: 100% !important;
+  html[data-member-viewport-mode='mobile']:has([data-mobile-home-root='true']),
+  html[data-member-viewport-mode='mobile'] body:has([data-mobile-home-root='true']) {
+    height: auto !important;
     min-height: 100% !important;
-    max-height: 100% !important;
-    overflow: hidden !important;
-    overscroll-behavior: none !important;
-  }
-
-  body:has([data-mobile-home-root='true']) {
-    touch-action: pan-y !important;
-  }
-
-  body:has([data-mobile-home-root='true']) #member-desktop-scale-shell,
-  body:has([data-mobile-home-root='true']) #member-desktop-scale-canvas,
-  body:has([data-mobile-home-root='true']) .public-game-shell,
-  body:has([data-mobile-home-root='true']) .public-game-shell__content,
-  body:has([data-mobile-home-root='true']) .member-persistent-shell,
-  body:has([data-mobile-home-root='true']) .member-persistent-shell__body {
-    width: 100% !important;
-    height: 100% !important;
-    min-width: 0 !important;
-    min-height: 0 !important;
-    max-width: none !important;
-    max-height: 100% !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    overflow: hidden !important;
-    transform: none !important;
-    zoom: 1 !important;
-  }
-
-  [data-mobile-home-root='true'] {
-    position: relative !important;
-    width: min(100%, 640px) !important;
-    height: 100dvh !important;
-    min-height: 0 !important;
-    max-height: 100dvh !important;
-    margin: 0 auto !important;
-    padding-bottom: var(--mobile-app-bottom-height) !important;
+    max-height: none !important;
     overflow-x: hidden !important;
     overflow-y: auto !important;
-    overscroll-behavior-x: none !important;
-    overscroll-behavior-y: contain !important;
-    scroll-padding-top: var(--mobile-app-header-height);
-    scrollbar-width: none !important;
-    touch-action: pan-y !important;
-    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: auto !important;
   }
 
-  [data-mobile-home-root='true']::-webkit-scrollbar {
-    display: none !important;
-  }
-
-  /* The direct content owner is identified by its Highlight Tabs child. All
-   * Home content moves in this right-hand column while the rail stays put. */
-  [data-mobile-home-root='true'] > div:has(> [data-mobile-section-owner='highlight-tabs']),
-  [data-mobile-home-root='true'] > [data-mobile-bottom-owner='true'] {
-    box-sizing: border-box !important;
-    width: 100% !important;
-    min-width: 0 !important;
-    padding-left: var(--mobile-app-rail-width) !important;
-  }
-
-  [data-mobile-home-root='true'] > div:has(> [data-mobile-section-owner='highlight-tabs']) {
+  html[data-member-viewport-mode='mobile'] body:has([data-mobile-home-root='true']) #member-desktop-scale-shell,
+  html[data-member-viewport-mode='mobile'] body:has([data-mobile-home-root='true']) #member-desktop-scale-canvas,
+  html[data-member-viewport-mode='mobile'] body:has([data-mobile-home-root='true']) .public-game-shell,
+  html[data-member-viewport-mode='mobile'] body:has([data-mobile-home-root='true']) .public-game-shell__content,
+  html[data-member-viewport-mode='mobile'] body:has([data-mobile-home-root='true']) .member-persistent-shell,
+  html[data-member-viewport-mode='mobile'] body:has([data-mobile-home-root='true']) .member-persistent-shell__body,
+  html[data-member-viewport-mode='mobile'] [data-mobile-home-root='true'] {
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
     overflow: visible !important;
+    contain: none !important;
+    transform: none !important;
   }
 
-  [data-mobile-home-root='true'] *:has(> [data-mobile-section-owner='category-menu']) {
-    position: static !important;
-    display: block !important;
+  html[data-member-viewport-mode='mobile'] [data-mobile-home-root='true'] *:has(> [data-mobile-section-owner='category-menu']) {
+    position: relative !important;
     min-width: 0 !important;
     min-height: 0 !important;
+    align-items: start !important;
     overflow: visible !important;
     contain: none !important;
   }
 
-  [data-mobile-section-owner='category-menu'],
-  body:has(.public-game-shell[data-route='/']) [data-mobile-section-owner='category-menu'] {
-    position: fixed !important;
-    top: var(--mobile-app-header-height) !important;
+  html[data-member-viewport-mode='mobile'] [data-mobile-section-owner='category-menu'],
+  html[data-member-viewport-mode='mobile'] body:has(.public-game-shell[data-route='/']) [data-mobile-section-owner='category-menu'] {
+    position: -webkit-sticky !important;
+    position: sticky !important;
+    top: calc(64px + env(safe-area-inset-top, 0px)) !important;
     right: auto !important;
-    bottom: var(--mobile-app-bottom-height) !important;
-    left: max(0px, calc(50vw - 320px)) !important;
+    bottom: auto !important;
+    left: auto !important;
     z-index: 100 !important;
-    display: flex !important;
-    box-sizing: border-box !important;
-    width: var(--mobile-app-rail-width) !important;
-    height: auto !important;
-    min-height: 0 !important;
-    max-height: none !important;
-    padding: 8px 0 8px 8px !important;
-    flex-direction: column !important;
-    align-items: center !important;
-    justify-content: flex-start !important;
-    gap: clamp(4px, 1dvh, 10px) !important;
-    overflow: hidden !important;
-    overscroll-behavior: none !important;
+    align-self: start !important;
+    width: var(--mobile-category-rail-width, auto) !important;
+    height: fit-content !important;
+    max-height: calc(100dvh - 72px - env(safe-area-inset-top, 0px)) !important;
+    padding: 12px 0 28px 8px !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    overscroll-behavior: contain !important;
     scrollbar-width: none !important;
     transform: none !important;
     transition: none !important;
     will-change: auto !important;
-    touch-action: manipulation !important;
-    background: #171422 !important;
-    box-shadow: 1px 0 0 rgb(255 255 255 / 4%);
-    pointer-events: auto !important;
+    touch-action: pan-y !important;
+    -webkit-overflow-scrolling: touch;
   }
 
-  [data-mobile-section-owner='category-menu']::-webkit-scrollbar {
+  html[data-member-viewport-mode='mobile'] [data-mobile-section-owner='category-menu']::-webkit-scrollbar {
     display: none !important;
   }
 
@@ -158,8 +98,8 @@
     z-index: 150 !important;
   }
 
-  /* Standalone /mobile/member/* pages use their own page shell as the only
-   * vertical scroll owner. Their header remains attached while content moves. */
+  /* Standalone /mobile/member/* pages keep their own page shell as the only
+   * scroll owner and retain a sticky page header. */
   main[data-mobile-member-page] {
     display: block !important;
     width: min(100%, 640px) !important;
@@ -192,36 +132,15 @@
   }
 }
 
-@media (min-width: 360px) and (max-width: 900px) {
-  [data-mobile-home-root='true'] {
-    --mobile-app-rail-width: 63px;
-  }
-}
-
-@media (min-width: 430px) and (max-width: 900px) {
-  [data-mobile-home-root='true'] {
-    --mobile-app-rail-width: 68px;
-  }
-}
-
 @media (min-width: 640px) and (max-width: 900px) {
-  [data-mobile-home-root='true'] {
-    --mobile-app-rail-width: 72px;
-  }
-
-  [data-mobile-section-owner='category-menu'] {
+  html[data-member-viewport-mode='mobile'] [data-mobile-section-owner='category-menu'] {
     padding-left: 12px !important;
   }
 }
 
 @media (max-height: 560px) and (max-width: 900px) {
-  [data-mobile-section-owner='category-menu'] {
+  html[data-member-viewport-mode='mobile'] [data-mobile-section-owner='category-menu'] {
     gap: 3px !important;
     padding-block: 4px !important;
-  }
-
-  [data-mobile-section-owner='category-menu'] [data-mobile-category-id] {
-    width: 42px !important;
-    height: 42px !important;
   }
 }

@@ -57,6 +57,14 @@ const MOBILE_HIGHLIGHT_TAB_INDEX: Readonly<Record<Exclude<MobileHighlightTab, 'h
   news: 3,
 };
 
+const TOP_CHROME_SELECTOR = [
+  '[data-mobile-section-owner="header"]',
+  '[data-mobile-section-owner="hero"]',
+  '[data-mobile-section-owner="auth-actions"]',
+  '[data-mobile-section-owner="announcement"]',
+  '[data-mobile-section-owner="highlight-tabs"]',
+].join(', ');
+
 export default function MobileHighlightTabContent({ activeTab }: MobileHighlightTabContentProps) {
   const { locale } = useMemberLocale();
   const { home } = useMemberRuntime();
@@ -78,24 +86,50 @@ export default function MobileHighlightTabContent({ activeTab }: MobileHighlight
   }, []);
 
   useEffect(() => {
+    let scrollFrame = 0;
+    const root = document.querySelector<HTMLElement>('[data-mobile-home-root="true"]');
+
+    const applyCategory = (category: MobileCategoryId) => {
+      setActiveCategory((current) => current === category ? current : category);
+      if (root) {
+        root.dataset.mobileActiveCategory = category;
+        restoreTopChrome(root);
+      }
+
+      if (category !== 'home') {
+        if (scrollFrame) window.cancelAnimationFrame(scrollFrame);
+        scrollFrame = window.requestAnimationFrame(() => {
+          const scrollOwner = document.scrollingElement;
+          if (scrollOwner) scrollOwner.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+          else window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+        });
+      }
+    };
+
     const selectFromClick = (event: MouseEvent) => {
       const target = event.target;
       if (!(target instanceof Element)) return;
       const trigger = target.closest<HTMLElement>('[data-mobile-category-id]');
-      const category = trigger?.dataset.mobileCategoryId;
-      if (isMobileCategoryId(category)) setActiveCategory(category);
+      if (!trigger || (root && !root.contains(trigger))) return;
+      const category = trigger.dataset.mobileCategoryId;
+      if (isMobileCategoryId(category)) applyCategory(category);
     };
 
     const selectFromEvent = (event: Event) => {
       const category = (event as CustomEvent<{ category?: unknown }>).detail?.category;
-      if (isMobileCategoryId(category)) setActiveCategory(category);
+      if (isMobileCategoryId(category)) applyCategory(category);
     };
 
+    applyCategory('home');
     window.addEventListener('click', selectFromClick, true);
     window.addEventListener('member:mobile-category-select', selectFromEvent);
     return () => {
       window.removeEventListener('click', selectFromClick, true);
       window.removeEventListener('member:mobile-category-select', selectFromEvent);
+      if (scrollFrame) window.cancelAnimationFrame(scrollFrame);
+      if (root?.dataset.mobileActiveCategory === activeCategory) {
+        delete root.dataset.mobileActiveCategory;
+      }
     };
   }, []);
 
@@ -217,6 +251,16 @@ export default function MobileHighlightTabContent({ activeTab }: MobileHighlight
   }
 
   return <MobileSourceContent />;
+}
+
+function restoreTopChrome(root: HTMLElement) {
+  root.querySelectorAll<HTMLElement>(TOP_CHROME_SELECTOR).forEach((section) => {
+    section.hidden = false;
+    section.removeAttribute('aria-hidden');
+    section.style.removeProperty('display');
+    section.style.removeProperty('visibility');
+    section.style.removeProperty('opacity');
+  });
 }
 
 function ContentList({

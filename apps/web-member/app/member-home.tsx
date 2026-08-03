@@ -8,7 +8,6 @@ import {
   defaultFeatureFlags,
   defaultIconSettings,
 } from './site-settings';
-import MemberGameSectionRuntimeController from './components/member-game-section-runtime-controller';
 import MemberHomeRuntimeController from './components/member-home-runtime-controller';
 import { CmsPopup } from './components/member-home-sections';
 import { DesktopHomeScaffold } from './components/member-home/desktop-home-scaffold';
@@ -16,7 +15,6 @@ import { DesktopGameFeedProvider } from './components/member-home/member-source-
 import HomeSidebarScrollController from './components/member-home/home-sidebar-scroll-controller';
 import MobileAuthenticatedAvatarRuntime from './components/mobile-home/mobile-authenticated-avatar-runtime';
 import MobileAuthenticatedHomeRuntime from './components/mobile-home/mobile-authenticated-home-runtime';
-import MobileCategoryTabRuntime from './components/mobile-home/mobile-category-tab-runtime';
 import MobileCouponPopupBridge from './components/mobile-home/mobile-coupon-popup-bridge';
 import MobileHomeGuidePreview from './components/mobile-home/mobile-home-guide-preview';
 import MobileHomeMotionRuntime from './components/mobile-home/mobile-home-motion-runtime';
@@ -71,7 +69,6 @@ export default function MemberHome(props: MemberHomeProps) {
         <MobileCouponPopupBridge />
         <MobileMemberMenuSourceBridge />
         <MobileAuthenticatedAvatarRuntime />
-        <MobileCategoryTabRuntime />
         <MobileHomeGuidePreview />
         <MobileScrollComfortGuard />
         <MobileHomeMotionRuntime contentVersion={mobileHomeMotionVersion(props.cmsContent)} />
@@ -124,7 +121,6 @@ function DesktopMemberHome(props: MemberHomeProps) {
       </DesktopGameFeedProvider>
       <HomeSidebarScrollController />
       <MemberHomeRuntimeController />
-      <MemberGameSectionRuntimeController />
       {props.cmsContent.popup.enabled && !popupClosed ? (
         <CmsPopup content={props.cmsContent} primaryColor={props.primaryColor} onClose={closePopup} />
       ) : null}
