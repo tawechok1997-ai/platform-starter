@@ -1,5 +1,6 @@
 import { mergeHeaders } from '@platform/api-client';
 import { safeAdminErrorMessage, type AdminErrorLocale } from './(admin)/_components/admin-safe-error';
+import { executeAdminRequest } from './admin-network-policy';
 import { applyAdminSettingsMutationHeaders } from './admin-settings-mutation-owner';
 import { adminNextPath, sessionDecision } from './admin-session-policy';
 
@@ -57,7 +58,7 @@ async function adminApiFetchOnce(path: string, options: ApiOptions = {}) {
   if (!options.skipAuth && token) headers.set('Authorization', `Bearer ${token}`);
 
   const url = proxiedAdminPath(path);
-  const res = await fetch(url, { cache: 'no-store', ...options, headers });
+  const res = await executeAdminRequest(url, { cache: 'no-store', ...options, headers });
   const handled = await handleAdminResponse(res, options, false);
   if (handled !== 'refresh') return sanitizeAdminErrorResponse(res);
 
@@ -68,7 +69,7 @@ async function adminApiFetchOnce(path: string, options: ApiOptions = {}) {
   }
 
   headers.set('Authorization', `Bearer ${refreshed}`);
-  const retry = await fetch(url, { cache: 'no-store', ...options, headers });
+  const retry = await executeAdminRequest(url, { cache: 'no-store', ...options, headers });
   await handleAdminResponse(retry, options, true);
   return sanitizeAdminErrorResponse(retry);
 }
@@ -185,7 +186,7 @@ function redirectToLogin() {
 export async function refreshAdminToken(force = false) {
   if (!force && window.localStorage.getItem(ADMIN_SESSION_HINT) !== '1') return '';
 
-  const res = await fetch('/api/admin/auth/refresh', {
+  const res = await executeAdminRequest('/api/admin/auth/refresh', {
     method: 'POST',
     credentials: 'include',
     headers: {},
