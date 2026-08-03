@@ -22,6 +22,16 @@ test('rendered mobile CDN media resolves against the shared PC library first', (
   assert.doesNotMatch(runtime, /min-width:\s*901px|data-desktop|desktop-reference-home/);
 });
 
+test('game cards keep one image owner and are not rewritten by the mobile scanner', () => {
+  assert.match(runtime, /CARD_OWNED_MEDIA_SELECTOR/);
+  assert.match(runtime, /\[data-no-fallback="true"\]/);
+  assert.match(runtime, /\[data-game-card\]/);
+  assert.match(runtime, /\.source-highlight-game/);
+  assert.match(runtime, /\.source-popular-card/);
+  assert.match(runtime, /\.source-online-card/);
+  assert.match(runtime, /if \(image\.closest\(CARD_OWNED_MEDIA_SELECTOR\)\) return/);
+});
+
 test('local media failure returns to the original CDN only once before generic fallback', () => {
   assert.match(runtime, /mobileOriginalSource/);
   assert.match(runtime, /mobileLocalSource/);
