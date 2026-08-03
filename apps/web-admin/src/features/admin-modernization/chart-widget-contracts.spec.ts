@@ -3,6 +3,7 @@ import test from 'node:test';
 
 import {
   canAccessAdminWidget,
+  canShowAdminWidgetInWorkspace,
   createAdminWidgetRegistry,
   getAdminWidgetLayoutStorageKey,
   moveAdminWidget,
@@ -22,6 +23,7 @@ const definitions: AdminWidgetDefinition[] = [
     title: 'Cash flow',
     chartKind: 'bar',
     requiredPermissions: ['reports.view', 'wallet.view'],
+    workspaceIds: ['finance', 'manager'],
     defaultLayout: { order: 1, columns: 2, rows: 1, pinned: false },
     allowFullscreen: true,
     allowDrillDown: true,
@@ -32,6 +34,7 @@ const definitions: AdminWidgetDefinition[] = [
     title: 'Open alerts',
     chartKind: 'donut',
     requiredPermissions: ['risk.view'],
+    workspaceIds: ['manager', 'system'],
     defaultLayout: { order: 0, columns: 1, rows: 1, pinned: true },
     exportFormats: ['csv'],
   },
@@ -57,6 +60,19 @@ test('widget registry resolves permission-aware visibility', () => {
   assert.deepEqual(registry.visibleTo(['risk.view']).map((item) => item.id), ['risk.open-alerts', 'system.health']);
   assert.equal(registry.visibleTo(['*']).length, definitions.length);
   assert.equal(registry.get('missing'), null);
+});
+
+test('widget workspace filtering follows P3 selection without changing permission authority', () => {
+  const riskDefinition = registry.get('risk.open-alerts');
+  const systemDefinition = registry.get('system.health');
+  assert.ok(riskDefinition);
+  assert.ok(systemDefinition);
+  assert.equal(canShowAdminWidgetInWorkspace(financeDefinition, 'finance'), true);
+  assert.equal(canShowAdminWidgetInWorkspace(financeDefinition, 'payments'), false);
+  assert.equal(canShowAdminWidgetInWorkspace(riskDefinition, 'system'), true);
+  assert.equal(canShowAdminWidgetInWorkspace(riskDefinition, 'finance'), false);
+  assert.equal(canShowAdminWidgetInWorkspace(systemDefinition, 'growth'), true);
+  assert.equal(canShowAdminWidgetInWorkspace(financeDefinition, 'all'), true);
 });
 
 test('default layout pins widgets first and preserves deterministic order', () => {
