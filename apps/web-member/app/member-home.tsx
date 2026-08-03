@@ -11,7 +11,6 @@ import {
 import MemberGameSectionRuntimeController from './components/member-game-section-runtime-controller';
 import MemberHomeRuntimeController from './components/member-home-runtime-controller';
 import { CmsPopup } from './components/member-home-sections';
-import DesktopHomeGameSectionRuntime from './components/member-home/desktop-home-game-section-runtime';
 import { DesktopHomeScaffold } from './components/member-home/desktop-home-scaffold';
 import HomeSidebarScrollController from './components/member-home/home-sidebar-scroll-controller';
 import MobileAuthenticatedAvatarRuntime from './components/mobile-home/mobile-authenticated-avatar-runtime';
@@ -91,6 +90,7 @@ function DesktopMemberHome(props: MemberHomeProps) {
   const gameSections = {
     featured: data.featured,
     popular: data.popular,
+    online: data.onlineGames,
     classic: data.classicGames,
     recent: data.recentGames,
     favorites: data.favoriteGames,
@@ -109,7 +109,6 @@ function DesktopMemberHome(props: MemberHomeProps) {
 
   return (
     <>
-      <DesktopHomeGameSectionRuntime />
       <DesktopHomeScaffold
         content={props.cmsContent}
         icons={icons}
