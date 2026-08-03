@@ -130,6 +130,13 @@ export function AdminWidgetWorkspace({
     setDraggingId('');
   }
 
+  function moveWithinVisibleItems(widgetId: string, visibleIndex: number, offset: number) {
+    const target = visibleItems[visibleIndex + offset];
+    if (!target) return;
+    const targetIndex = layout.items.findIndex((item) => item.widgetId === target.widgetId);
+    if (targetIndex >= 0) layout.move(widgetId, targetIndex);
+  }
+
   return <section
     className={styles.workspace}
     data-editing={editing || undefined}
@@ -189,10 +196,7 @@ export function AdminWidgetWorkspace({
             index={visibleIndex}
             total={visibleItems.length}
             labels={labels}
-            onMove={(offset) => {
-              const currentIndex = layout.items.findIndex((candidate) => candidate.widgetId === item.widgetId);
-              layout.move(item.widgetId, currentIndex + offset);
-            }}
+            onMove={(offset) => moveWithinVisibleItems(item.widgetId, visibleIndex, offset)}
             onUpdate={(patch) => layout.update(item.widgetId, patch)}
           /> : null}
           {renderWidget({
