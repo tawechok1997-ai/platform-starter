@@ -10,6 +10,12 @@ import { assertProviderSimulatorAvailable } from './provider-simulator-config';
 import { GAME_CATALOG } from './provider-simulator-catalog';
 import { ProviderSimulatorTransactionService } from './provider-simulator-transaction.service';
 
+type SlotLaunchInput = {
+  userId: string;
+  ipAddress?: string;
+  userAgent?: string;
+};
+
 type SlotSpinInput = {
   userId: string;
   sessionId: string;
@@ -23,6 +29,8 @@ type SlotSymbol = {
   tripleMultiplier: number;
 };
 
+const DEMO_PROVIDER_CODE = 'simulator-provider';
+const DEMO_GAME_CODE = 'demo-slot-001';
 const SLOT_SYMBOLS: readonly SlotSymbol[] = [
   { symbol: '🍒', weight: 30, tripleMultiplier: 2 },
   { symbol: '🍋', weight: 25, tripleMultiplier: 2 },
@@ -36,7 +44,7 @@ const ALLOWED_SESSION_STATUSES = new Set(['LAUNCHED', 'ACTIVE']);
 const ALLOWED_PROVIDER_CODES = new Set([
   'demo-provider',
   'demo-provider-uat',
-  'simulator-provider',
+  DEMO_PROVIDER_CODE,
   'provider-simulator',
 ]);
 const TOTAL_SYMBOL_WEIGHT = SLOT_SYMBOLS.reduce((total, item) => total + item.weight, 0);
@@ -47,6 +55,121 @@ export class ProviderSimulatorSlotService {
     private readonly prisma: PrismaService,
     private readonly transactions: ProviderSimulatorTransactionService,
   ) {}
+
+  async launch(input: SlotLaunchInput) {
+    assertProviderSimulatorAvailable();
+
+    const launched = await this.prisma.$transaction(async (tx) => {
+      const provider = await tx.gameProvider.upsert({
+        where: { code: DEMO_PROVIDER_CODE },
+        update: {
+          name: 'Simulator Provider',
+          status: 'ACTIVE',
+          currency: 'THB',
+          timezone: 'Asia/Bangkok',
+          metadata: {
+            environment: 'DEMO',
+            launchEnabled: true,
+            seamlessWalletEnabled: true,
+            realMoneyEnabled: false,
+            externalProviderCallbackEnabled: false,
+            source: 'member-slot-simulator',
+          },
+        },
+        create: {
+          name: 'Simulator Provider',
+          code: DEMO_PROVIDER_CODE,
+          status: 'ACTIVE',
+          walletMode: 'SEAMLESS',
+          currency: 'THB',
+          timezone: 'Asia/Bangkok',
+          sortOrder: 1,
+          metadata: {
+            environment: 'DEMO',
+            launchEnabled: true,
+            seamlessWalletEnabled: true,
+            realMoneyEnabled: false,
+            externalProviderCallbackEnabled: false,
+            source: 'member-slot-simulator',
+          },
+        },
+      });
+
+      const game = await tx.game.upsert({
+        where: {
+          providerId_providerGameCode: {
+            providerId: provider.id,
+            providerGameCode: DEMO_GAME_CODE,
+          },
+        },
+        update: {
+          name: 'Demo Fortune Slot',
+          category: 'slot',
+          status: 'ACTIVE',
+          isFeatured: true,
+          isNew: true,
+          isPopular: true,
+          sortOrder: 1,
+          metadata: {
+            source: 'member-slot-simulator',
+            launchReady: true,
+            platform: 'both',
+            realMoneyEnabled: false,
+          },
+        },
+        create: {
+          providerId: provider.id,
+          providerGameCode: DEMO_GAME_CODE,
+          name: 'Demo Fortune Slot',
+          category: 'slot',
+          status: 'ACTIVE',
+          isFeatured: true,
+          isNew: true,
+          isPopular: true,
+          sortOrder: 1,
+          metadata: {
+            source: 'member-slot-simulator',
+            launchReady: true,
+            platform: 'both',
+            realMoneyEnabled: false,
+          },
+        },
+      });
+
+      const session = await tx.gameSession.create({
+        data: {
+          userId: input.userId,
+          providerId: provider.id,
+          gameId: game.id,
+          status: 'LAUNCHED',
+          ipAddress: input.ipAddress,
+          userAgent: input.userAgent,
+          startedAt: new Date(),
+        },
+      });
+      const launchUrl = `/games/demo-launch?game=${encodeURIComponent(DEMO_GAME_CODE)}&session=${encodeURIComponent(session.id)}&provider=${encodeURIComponent(DEMO_PROVIDER_CODE)}`;
+
+      return tx.gameSession.update({
+        where: { id: session.id },
+        data: {
+          launchUrl,
+          providerSessionId: `sim_${session.id}`,
+        },
+        include: {
+          game: { select: { id: true, name: true, providerGameCode: true, category: true } },
+          provider: { select: { id: true, name: true, code: true, currency: true } },
+        },
+      });
+    });
+
+    return {
+      ok: true,
+      session: launched,
+      launchUrl: launched.launchUrl,
+      providerSessionId: launched.providerSessionId,
+      expiresAt: new Date(Date.now() + 30 * 60 * 1000).toISOString(),
+    };
+  }
 
   async spin(input: SlotSpinInput) {
     assertProviderSimulatorAvailable();
