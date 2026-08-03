@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { getMemberGameCatalog, type MemberCatalogGame } from '../../lib/member-game-catalog';
+import { selectHomeGameSection } from '../../lib/home-game-selection';
 import { randomizeGameCatalog } from '../../lib/randomize-game-catalog';
 import { memberApiFetch } from '../../member-api';
 import {
@@ -16,6 +17,7 @@ export type MobileSourceGame = {
   providerGameCode: string;
   name: string;
   provider: string;
+  providerCode: string;
   providerIcon: string;
   image: string;
   badge: 'HOT' | 'NEW' | '';
@@ -85,6 +87,7 @@ let tournamentRequest: Promise<MobileSourceTournament[]> | null = null;
 export function useMobileSourceRuntime() {
   const { homeData, home, gameSections, features, icons } = useMemberRuntime();
   const { typedSettings } = useSiteSettings();
+  const featureSettings = typedSettings.features as Record<string, unknown>;
   const [catalogGames, setCatalogGames] = useState<MobileSourceGame[]>([]);
   const [apiTournaments, setApiTournaments] = useState<MobileSourceTournament[]>([]);
   const [catalogStatus, setCatalogStatus] = useState<LoadStatus>('loading');
@@ -136,23 +139,18 @@ export function useMobileSourceRuntime() {
   );
   const tournaments = apiTournaments.length > 0 ? apiTournaments : cmsTournaments;
 
-  const taggedPopular = useMemo(
-    () => catalogGames.filter((item) => item.popular || item.tags.includes('hot') || item.tags.includes('popular')),
-    [catalogGames],
-  );
   const popularGames = useMemo(
-    () => (taggedPopular.length > 0 ? taggedPopular : catalogGames).slice(0, 10),
-    [catalogGames, taggedPopular],
+    () => selectHomeGameSection(catalogGames, 'popular', 'mobile', featureSettings, 10),
+    [catalogGames, featureSettings],
   );
   const onlineGames = useMemo(
-    () => catalogGames.filter((item) => item.players > 0).slice(0, 6),
-    [catalogGames],
+    () => selectHomeGameSection(catalogGames, 'online', 'mobile', featureSettings, 6),
+    [catalogGames, featureSettings],
   );
-  const classicGames = useMemo(() => {
-    const tagged = catalogGames
-      .filter((item) => item.tags.some((tag) => ['arcade', 'classic', 'card', 'table'].includes(tag)));
-    return (tagged.length > 0 ? tagged : catalogGames).slice(0, 12);
-  }, [catalogGames]);
+  const classicGames = useMemo(
+    () => selectHomeGameSection(catalogGames, 'classic', 'mobile', featureSettings, 12),
+    [catalogGames, featureSettings],
+  );
 
   const leaderboard = useMemo<MobileSourceLeaderboardRow[]>(() => {
     if (homeData.leaderboard.length > 0) {
@@ -192,13 +190,12 @@ export function useMobileSourceRuntime() {
     };
   }, [gameSections]);
   const liveMatches = useMemo(() => {
-    const featureSettings = typedSettings.features as Record<string, unknown>;
     const configured = normalizeLiveMatches(featureSettings.live_match_items);
     if (configured.length > 0) return configured;
     return presentationDemoEnabled(featureSettings)
       ? normalizeLiveMatches(PRESENTATION_LIVE_MATCHES)
       : [];
-  }, [typedSettings.features]);
+  }, [featureSettings]);
   const guides = useMemo<MobileSourceGuide[]>(
     () => typedSettings.features.cms_content.faqs
       .filter((item) => item.enabled && item.lifecycle !== 'draft' && item.lifecycle !== 'archived' && item.question.trim())
@@ -250,6 +247,7 @@ function mapCatalogGame(item: MemberCatalogGame): MobileSourceGame {
     providerGameCode: item.providerGameCode,
     name: item.name,
     provider: item.providerName || item.provider.toUpperCase(),
+    providerCode: item.provider,
     providerIcon: item.providerIcon,
     image: item.image,
     badge: item.badge,
