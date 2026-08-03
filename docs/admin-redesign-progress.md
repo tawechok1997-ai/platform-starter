@@ -32,7 +32,7 @@ Admin ต้องใช้ระบบกลางชุดเดียวก�
 |---|---|---|---|
 | P1 | Appearance foundation และ Theme owner กลาง | Merge แล้ว | #445 |
 | P2 | Role 5 แบบ, Multi-role และ Team | กำลังทำในอีก PR | - |
-| P3 | Navigation registry และ Dashboard ตามตำแหน่ง | โค้ดครบ รอ CI/Merge | #483 |
+| P3 | Navigation registry และ Dashboard ตามตำแหน่ง | Merge แล้ว | #483 |
 | P4 | Chart system และ Widget registry | ยังไม่เริ่ม | - |
 | P5 | Table, Form และ Detail drawer กลาง | ยังไม่เริ่ม | - |
 | P6 | Settings migration และ System Settings | ยังไม่เริ่ม | - |
@@ -144,7 +144,15 @@ PR: `#483`
 
 Branch: `agent/admin-phase-3-navigation-dashboard`
 
-Status: โค้ดครบ รอ CI และ Merge
+Head commit: `c4ae5a9feacbfbbb97308fe79b775c0671da207b`
+
+Merge commit: `5cc3f273622d3110a84470cebd811eb840d2e888`
+
+Merge method: `squash`
+
+Merged: `2026-08-03`
+
+Status: Merge เข้า `main` แล้ว
 
 ## ทำแล้ว
 
@@ -152,6 +160,7 @@ Status: โค้ดครบ รอ CI และ Merge
 - เพิ่มสัญญา `AdminWorkspaceAssignment` สำหรับรับข้อมูลจาก P2
 - รองรับ Multi-role, Primary role และตัวเลือกดูทุกตำแหน่ง
 - เพิ่ม Workspace switcher ใน Topbar
+- บน Mobile ใช้ Workspace chips ใน Profile เพื่อไม่ให้บังปุ่มเปิดเมนู
 - ให้ Sidebar, Favorites, Recent และ Command Palette ใช้ selection กลางชุดเดียวกัน
 - เพิ่ม Dashboard resolver และทางลัดตามตำแหน่ง
 - เพิ่ม Profile workspace list และตัวระบุตำแหน่งหลัก
@@ -176,6 +185,13 @@ Status: โค้ดครบ รอ CI และ Merge
 - `app/(admin)/admin-workspace-registry.spec.ts`
 - `app/(admin)/admin-dashboard-resolver.spec.ts`
 - `app/admin-workspace-runtime.spec.ts`
+
+## ผลการตรวจ
+
+- Build, R-006, UI System, Security, Admin Verification, Functional Audit และ Visual Regression ผ่านบน implementation P3 ชุดเต็ม
+- Browser Matrix พบ Mobile Topbar pointer interception และแก้ก่อน Merge
+- Full-System failure รอบก่อนหน้าอยู่ที่ Member viewport isolation และ Branch ถูกสร้างใหม่บน `main` ที่มี Member fix
+- PR อยู่ในสถานะ mergeable ก่อน Squash Merge
 
 รายละเอียดเต็มอยู่ที่ `docs/admin-redesign-p3-navigation-dashboard.md`
 
