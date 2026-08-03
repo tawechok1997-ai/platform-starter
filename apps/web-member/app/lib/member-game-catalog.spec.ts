@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
   collectMemberGameTags,
+  isPlaceholderMemberCatalogGame,
   mapMemberCatalogGame,
 } from './member-game-catalog-model';
 
@@ -70,4 +71,44 @@ test('keeps PC and mobile icon inventories separated', () => {
   assert.ok(mobile);
   assert.equal(pc.platform, 'pc');
   assert.equal(mobile.platform, 'mobile');
+});
+
+test('rejects demo and simulator rows before they reach home game selection', () => {
+  const rows = [
+    {
+      id: 'catalog:pc:demo:fortune-slot',
+      providerGameCode: 'demo-fortune-slot',
+      name: 'Demo Fortune Slot',
+      category: 'slot',
+      imageUrl: 'https://cdn.example.test/demo-fortune-slot.png',
+      provider: { code: 'demo', name: 'DEMO' },
+    },
+    {
+      id: 'catalog:pc:simulator:live-table',
+      providerGameCode: 'live-table',
+      name: 'Live Table',
+      category: 'casino',
+      imageUrl: 'https://cdn.example.test/live-table.png',
+      provider: { code: 'simulator', name: 'SIMULATOR' },
+    },
+  ] as const;
+
+  for (const row of rows) {
+    assert.equal(isPlaceholderMemberCatalogGame(row), true);
+    assert.equal(mapMemberCatalogGame(row, 'pc'), null);
+  }
+});
+
+test('does not reject a real game merely because an artwork path mentions simulator', () => {
+  const item = {
+    id: 'catalog:pc:pg:demolition-squad',
+    providerGameCode: 'demolition-squad',
+    name: 'Demolition Squad',
+    category: 'slot',
+    imageUrl: 'https://cdn.example.test/provider-simulator/demolition-squad.png',
+    provider: { code: 'pg', name: 'PG Soft' },
+  };
+
+  assert.equal(isPlaceholderMemberCatalogGame(item), false);
+  assert.ok(mapMemberCatalogGame(item, 'pc'));
 });
