@@ -15,3 +15,15 @@ test('Mobile category rail stays viewport fixed without collapsing the content g
   assert.match(followCss, /data-mobile-content-slot='after-highlight'[\s\S]*grid-row:\s*1\s*!important/);
   assert.doesNotMatch(followCss, /data-mobile-section-owner='category-menu'[\s\S]*position:\s*sticky\s*!important/);
 });
+
+test('Authenticated Mobile Home cannot show guest login and register actions', () => {
+  assert.match(
+    followCss,
+    /data-mobile-home-root='true'\]\[data-mobile-authenticated='true'\][\s\S]*data-mobile-section-owner='auth-actions'/,
+  );
+  assert.match(
+    followCss,
+    /data-mobile-home-root='true'\]\[data-mobile-authenticated='true'\][\s\S]*data-mobile-auth-layout='drawer'/,
+  );
+  assert.match(followCss, /data-mobile-auth-layout='drawer'[\s\S]*display:\s*none\s*!important/);
+});
