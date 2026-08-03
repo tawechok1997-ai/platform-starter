@@ -6,171 +6,59 @@ Branch: `agent/admin-phase-8-security-release-readiness`
 
 Stack base ชั่วคราว: `agent/admin-phase-5-7-data-settings-design-system`
 
-สถานะ: Implementation — ทำคู่ขนานได้ แต่ห้าม Merge ก่อน P2, P4 และ P5–P7 ถูก Merge และ Branch ถูก Retarget/Sync กับ `main` ล่าสุด
+สถานะ: **Draft / Implementation** — ห้าม Merge ก่อน P2, P4 และ P5–P7 ถูก Merge, Branch ถูก Retarget/Sync กับ `main` และ Required CI ผ่านบน Head เดียวกัน
 
-## เป้าหมาย
+## CI snapshot
 
-P8 เป็น Release gate ของ Admin ทั้งระบบ โดยไม่สร้าง Owner ซ้ำจาก Phase ก่อนหน้า:
+- Last verified P8 head: `ea916ae49bd904fa77beeb1bc80fd6ef37ec566c`
+- P8-specific workflows: **7/7 ผ่าน**
+- Candidate ปัจจุบันหลังเพิ่ม 200% zoom evidence: `d25d169b3b39765d6cf62c3fc1de5da6bcaa68d3`
+- Candidate ปัจจุบันต้องรอ CI ใหม่ก่อนนับว่าผ่าน
 
-- P2 เป็นเจ้าของ Role, Team, Effective access, Scope, Limit และ DENY
-- P3 เป็นเจ้าของ Workspace selection และ Navigation visibility
-- P4 เป็นเจ้าของ Chart/Widget และ Dashboard interaction
-- P5 เป็นเจ้าของ Table, Form และ Drawer
-- P6 เป็นเจ้าของ `/settings` และ `/system-settings`
-- P7 เป็นเจ้าของ Design-system ownership และ CSS cleanup
-- P8 บังคับ Security, Accessibility, Browser coverage, Resilience และ Release evidence
+Base blockers ที่ไม่อยู่ใน P8 diff:
 
-## Route inventory หลังปิดช่องว่าง
+1. `R012 Frontend Architecture` — Member tests บน Base #492
+2. `R-006 Quality Baseline` — Member lint บน Base #492
+3. `Build` — Provider simulator catalog contract บน Base #492
 
-Route ที่ต้องอยู่ใน P8 coverage รวม **83 routes**:
+## Ownership boundary
 
-- Navigation registry: **57**
-- Additional, nested และ Legacy permission registry: **26**
-- Unregistered known routes: **0**
+P8 เป็น Release gate และไม่สร้าง Owner ซ้ำ:
 
-### Overview — 3
+- P2: Role, Team, Effective access, Scope, Limit และ DENY
+- P3: Workspace selection และ Navigation visibility
+- P4: Chart, Widget และ Dashboard interaction
+- P5: Table, Form และ Drawer
+- P6: `/settings` และ `/system-settings`
+- P7: Design-system ownership และ CSS cleanup
+- P8: Security policy, Accessibility, Browser coverage, Resilience, Performance และ Release evidence
 
-- `/dashboard`
-- `/operations`
-- `/activity-center`
+## Route closure ✅
 
-### Finance — 10
+Route ที่อยู่ใน P8 coverage รวม **83 routes**:
 
-- `/topups`
-- `/withdrawals`
-- `/bulk-queue-operations`
-- `/wallets`
-- `/wallet-ledgers`
-- `/wallet-statement`
-- `/wallet-analytics`
-- `/reconciliation-center`
-- `/reports`
-- `/exports`
+- Navigation registry: 57
+- Additional, nested และ Legacy permission registry: 26
+- Unregistered known routes: 0
 
-### Members — 5
+งานที่ปิดแล้ว:
 
-- `/members`
-- `/member-insights`
-- `/bank-accounts`
-- `/kyc-center`
-- `/support-center`
+- เพิ่ม `/system-settings` เข้า Navigation และ Permission registry
+- เพิ่ม `/settings/activities` ด้วย `settings.features.view`
+- Specific nested route ชนะ Parent route ด้วย longest-prefix ordering
+- ผูก `/system-settings` และ nested routes กับ Workspace `settings`
+- Unknown route ถูกปฏิเสธแม้ Admin มี wildcard `*`
+- Layout ใช้ `canAccessPath()` Owner กลาง
+- มี Regression tests ป้องกัน Permission formula ซ้ำและ Route หลุด Registry
 
-### Risk & Compliance — 3
+## Security policy foundation ✅
 
-- `/risk-alerts`
-- `/provider-risk`
-- `/audit-risk`
-
-### Providers & Integrations — 13
-
-- `/provider-health`
-- `/simple-game-settings`
-- `/provider-setup-wizard`
-- `/provider-presets`
-- `/game-providers`
-- `/provider-credentials`
-- `/provider-adapters`
-- `/provider-wallet-snapshots`
-- `/webhook-logs`
-- `/webhook-settlement`
-- `/webhook-test`
-- `/adapter-test`
-- `/game-api-settings`
-
-### Games — 7
-
-- `/game-control`
-- `/game-control/home-games`
-- `/game-assets`
-- `/game-control/tournaments`
-- `/games`
-- `/game-sessions`
-- `/game-transfers`
-
-### Growth & Partners — 7
-
-- `/growth-center`
-- `/promotion-operations`
-- `/promotion-center`
-- `/promotion-claims`
-- `/bonus-ledgers`
-- `/affiliate-center`
-- `/commission-ledgers`
-
-### Content — 1
-
-- `/content-center`
-
-### Administration — 8
-
-- `/admin-accounts`
-- `/admin-roles`
-- `/admin-invitations`
-- `/audit`
-- `/security`
-- `/anti-bot`
-- `/system-settings`
-- `/settings`
-
-### Additional, nested และ Legacy — 26
-
-- `/profile`
-- `/access`
-- `/activity`
-- `/aml`
-- `/investigation`
-- `/audit-logs`
-- `/blacklist`
-- `/finance`
-- `/kyc`
-- `/ledgers`
-- `/member-detail`
-- `/money-ops`
-- `/risk-operations`
-- `/settings/activities`
-- `/settings/branding/history`
-- `/settings/branding/preview`
-- `/settings/branding`
-- `/settings/icons`
-- `/settings/website`
-- `/settings/theme`
-- `/settings/seo`
-- `/settings/contact`
-- `/settings/maintenance`
-- `/settings/scripts`
-- `/settings/features`
-- `/settings/legal`
-
-## Batch 0 — Inventory และ Route closure ✅
-
-ทำแล้ว:
-
-- เพิ่ม `/system-settings` เข้า Administration navigation
-- ใช้ Permission ชุด Provider/Game/Feature ที่มีอยู่ ไม่สร้าง Permission ใหม่สุ่ม
-- เพิ่ม `/settings/activities` เข้า specific permission registry ด้วย `settings.features.view`
-- specific nested route ชนะ parent `/settings` จาก longest-prefix ordering
-- กำหนด `/system-settings` และ nested routes ให้ Workspace `settings`
-- เพิ่ม tests สำหรับ Navigation discovery, permission fail-closed, nested route และ unknown route
-- เพิ่ม tests ล็อก Workspace owner ของ `/settings/activities` และ `/system-settings`
-
-Owner ที่แก้:
-
-- `apps/web-admin/app/(admin)/admin-nav.ts`
-- `apps/web-admin/src/features/admin-modernization/workspaces.ts`
-
-Tests:
-
-- `apps/web-admin/app/(admin)/admin-nav-p8-route-closure.spec.ts`
-- `apps/web-admin/src/features/admin-modernization/workspaces.spec.ts`
-
-## Batch 1 — Security policy foundation ✅
-
-เพิ่ม pure API policy กลาง:
+Policy กลางรองรับ:
 
 - Permission หรือ wildcard authority
 - Step-up evidence ผูกกับ Admin และ Session เดียวกัน
 - Step-up freshness และ clock-skew validation
-- Reason ขั้นต่ำสำหรับ Sensitive action
+- เหตุผลขั้นต่ำสำหรับ Sensitive action
 - Single/Dual approval
 - Deduplicate approver
 - No requester self-approval
@@ -178,107 +66,66 @@ Tests:
 - Wildcard ไม่ข้าม Step-up, Reason หรือ Approval
 - Fail closed เมื่อ Policy ไม่ผ่าน
 
-Sensitive reveal audit evidence:
+Sensitive reveal evidence:
 
 - เก็บ Action, Permission, Actor, Session, Requester, Target และ Approver
 - เก็บ Step-up method/time
-- เก็บเฉพาะชื่อ Field ที่เปิดเผย
-- เก็บ Reveal expiry
-- ไม่รับหรือบันทึก Secret value ใน evidence contract
+- เก็บเฉพาะชื่อ Field ที่เปิดเผยและเวลา Expiry
+- ไม่รับหรือบันทึก Secret value
 
 Files:
 
 - `apps/api/src/common/admin-sensitive-action-policy.ts`
 - `apps/api/src/common/admin-sensitive-action-policy.spec.ts`
 
-ข้อจำกัดปัจจุบัน:
+ข้อจำกัด:
 
 - Policy contract พร้อมแล้ว
-- ยังไม่ประกาศว่า Endpoint จริงบังคับใช้ จนกว่า P2/P6 จะถูก Sync และ Service owners เรียก policy นี้
-- ห้ามสร้าง Approval queue, 2FA page หรือ Audit owner ซ้ำ
+- การเชื่อมเข้ากับ Endpoint จริงรอ Sync P2/P6 เพื่อไม่สร้าง Service owner ซ้ำ
 
-## หน้าที่ไม่สร้างซ้ำ
+## Accessibility และ Browser evidence ✅
 
-`/security` มี Owner และ Tabs อยู่แล้ว:
+Routes หลักที่ใช้เป็น P8 smoke owner:
 
-- Overview
-- Sessions และ Device information
-- 2FA
-- Owner recovery
+- `/system-settings`
+- `/settings/activities`
 
-P8 จะต่อ Step-up และ evidence เข้ากับ Owner เดิม ไม่สร้าง `/security/sessions`, `/security/2fa` หรือ `/security/recovery` ใหม่
+Coverage ที่ยืนยันแล้ว:
 
-Owner ที่ใช้ต่อ:
+- Main, Heading และ Link landmarks
+- Keyboard focus ไม่ตกที่ Document body
+- Focus target มองเห็นได้
+- Form control มี Label หรือ ARIA name
+- Reduced motion
+- Horizontal page overflow
+- Forced-colors
+- WCAG text-spacing
+- Long admin name/role บน Desktop, Tablet และ Mobile
+- Responsive Drawer อยู่ในขอบ Viewport
+- Chromium Desktop/Tablet/Mobile
+- Firefox Desktop
+- WebKit Desktop
+- Permission-denied title มี Heading semantics
+- Confirm Modal คืน Focus ไป Trigger
+- Dialog semantics, focus containment, Escape และ Scroll lock contracts
+- Data Table keyboard rows, sorting, pagination และ live status contracts
+- Sensitive-display expiry contract
 
-- `/operations` — Approval queue และ No self-approval
-- `/activity-center` — Activity detail
-- `/audit` — Audit trail
-- `/security` — Session, 2FA และ Recovery
+200% zoom candidate:
 
-## Batch 2 — Accessibility 🚧
+- Desktop 1440px ถูกทดสอบด้วย CSS viewport 720px ซึ่งเทียบเท่า Reflow ที่ 200%
+- ตรวจ Heading, Link, Menu button, Drawer bounds, Escape, Focus restore และ Horizontal overflow
+- รอ Browser Matrix ของ Candidate ปัจจุบันยืนยันก่อนปิดรายการ
 
-ทำแล้วชุดแรก:
-
-- เพิ่ม Browser Matrix smoke สำหรับ `/system-settings`
-- เพิ่ม Browser Matrix smoke สำหรับ `/settings/activities`
-- ตรวจ Main/Heading/Link landmarks
-- ตรวจ Keyboard focus ไม่ตกที่ document body
-- ตรวจ Focus target มองเห็นได้
-- ตรวจ Form control มี Label หรือ ARIA name
-- ตรวจ Reduced motion
-- ตรวจ Horizontal overflow
-- ใช้ Matrix เดิมจึงรัน Desktop, Tablet และ Mobile
-
-File:
+Files:
 
 - `tests/admin-browser-matrix/admin-p8-route-accessibility.spec.ts`
+- `tests/admin-browser-matrix/admin-p8-zoom-reflow.spec.ts`
+- `tests/admin-browser-matrix/admin-p8-persona-access.spec.ts`
 
-ยังเหลือ:
+## Persona และ Release matrix ✅
 
-- WCAG AA contrast และ focus visibility ทุก Tier 0 owner
-- Keyboard-only สำหรับ Menu, Tabs, Table, Drawer, Modal, Chart และ Form
-- Focus trap/restore และ Escape behavior
-- Screen-reader live region และ error summary
-- Zoom 200%, text spacing และ forced colors
-
-## Route priority
-
-### Tier 0 — Security และเงิน
-
-ต้องทดสอบ Role, Multi-role, DENY override และทุก Viewport:
-
-- `/security`
-- `/admin-accounts`
-- `/admin-roles`
-- `/admin-invitations`
-- `/access`
-- `/audit`
-- `/operations`
-- `/topups`
-- `/withdrawals`
-- `/bulk-queue-operations`
-- `/wallets`
-- `/reconciliation-center`
-- `/risk-alerts`
-- `/provider-credentials`
-- `/system-settings`
-
-### Tier 1 — Operational owners
-
-- Dashboard/Widget routes
-- Members/KYC/Support
-- Provider/Game operations
-- Growth/Promotion/Affiliate
-- Settings และ `/settings/activities`
-- Export, Report และ Ledger routes
-
-### Tier 2 — Nested และ Legacy
-
-ต้องมี Route guard, Redirect/Deprecation contract, no horizontal overflow และ smoke coverage โดยไม่คูณทุก Persona กับทุก Browser
-
-## Batch 3 — Browser Matrix
-
-Persona:
+Persona 7 แบบ:
 
 1. Finance
 2. Deposit & Withdrawal
@@ -288,46 +135,68 @@ Persona:
 6. Multi-role
 7. Explicit DENY override
 
-Viewport:
+Required matrix:
 
-- Desktop 1440×900
-- Tablet 834×1112
-- Mobile 390×844
+- Tier 0 routes: 15
+- Required cases: 225
+- Deterministic sharding: 5 shards × 45 cases
+- ไม่มีเคสซ้ำและรวมกลับได้ครบ
+- Role codes ใช้ Template จริงจาก P2
+- Multi-role ใช้ Permission union
+- Explicit DENY ชนะแบบ fail-closed
 
-Browser:
+Browser evidence มี Marketing allow, Finance deny, System Admin allow และ Explicit DENY บน Responsive matrix
 
-- Chromium
-- Firefox
-- WebKit
+## Session และ Network resilience ✅
 
-ใช้ Tiered matrix เพื่อควบคุม Runner แต่ Tier 0 ต้องครอบคลุมเต็มกว่า Tier 1–2
+- 401 refresh ได้หนึ่งครั้ง
+- Retry แล้วยัง 401 ต้องกลับ Login
+- 403 ไม่ทำลาย Session
+- 2FA-required ไม่วน Redirect
+- Request timeout 15 วินาที
+- Read-only request retry ได้หนึ่งครั้งเฉพาะ Network/Timeout และ 408/425/429/502/503/504
+- `Retry-After` ถูกจำกัดไม่เกิน 1 วินาที
+- Mutation, 401, 403 และ Caller cancellation ไม่ถูก retry อัตโนมัติ
+- Browser evidence ยืนยัน `/auth/me` ล้ม 503 ครั้งแรกและสำเร็จที่ Attempt 2 โดยไม่ Redirect ไป Login
+- Transport owner ใช้ Policy กลางทั้ง Request ปกติ, Retry หลัง Refresh และ Refresh endpoint
 
-## Batch 4 — Visual, Performance และ Resilience
+Files:
 
-- Visual regression ทุก Owner กลาง
-- Loading, Empty, Error, Partial และ Permission-denied
-- Long text, Long table, Large values และ TH/EN
-- Bundle/route performance budget
-- Drawer, Modal, Chart และ Workspace interaction leak
-- Network timeout, retry และ stale-session behavior
+- `apps/web-admin/app/admin-network-policy.ts`
+- `apps/web-admin/app/admin-network-policy.spec.ts`
+- `apps/web-admin/app/admin-api.ts`
 
-## Batch 5 — Release gate
+## Performance gate ✅
 
-- Production smoke routes
-- Migration/Seed verification
-- Audit evidence และ workflow artifacts
-- ไม่มี duplicate owner, duplicate writer หรือ Legacy write path
-- Retarget `main` หลัง Dependency Merge
-- Sync latest `main`
-- Build, Typecheck, Unit, Full-system, Security, UI System, Browser Matrix และ Visual Regression ผ่านบน Head เดียวกัน
+Production bundle gate อ่าน Build manifest และวัด gzip จากไฟล์จริง:
+
+- Route budget: 220 KB gzip
+- วัดแล้ว: 95 routes
+- Route ใหญ่สุด: `/security` 141.55 KB gzip
+- Chunk budget: 160 KB gzip
+- วัดแล้ว: 131 chunks
+- Chunk ใหญ่สุด: 58.48 KB gzip
+
+Files:
+
+- `apps/web-admin/performance-budget.json`
+- `apps/web-admin/tools/check-performance-budget.mjs`
+- `apps/web-admin/package.json`
+
+## Remaining — 4 กลุ่ม
+
+1. เชื่อม Security policy เข้ากับ P2/P6 sensitive endpoints หลัง Dependency Sync
+2. เพิ่ม Browser interaction สำหรับ Drawer, Modal, Table, Tabs, Security และ Chart หลัง P4/P5 Sync
+3. เพิ่ม Large-table/long-dataset visual evidence และ Offline/Recovery browser scenarios
+4. Retarget `main`, Sync dependencies, รัน Final release gate และ Production smoke
 
 ## Definition of Done
 
 - Route inventory 83 รายการมี Permission และ Workspace owner ครบ
 - ไม่มีหน้าใหม่หลุด Route audit หรือ Browser smoke
 - Sensitive endpoints เรียก P8 policy จริงหลัง Sync P2/P6
-- `/security` รองรับ Session, 2FA, Recovery และ Step-up โดยไม่สร้างหน้าซ้ำ
-- Tier 0 ผ่าน Security/Accessibility/Browser coverage ตาม Persona และ Viewport
-- Legacy routes เป็น Redirect/Deprecated/Read-only ตาม P6 inventory
+- `/security` ใช้ Owner เดิมสำหรับ Session, 2FA, Recovery และ Step-up
+- Tier 0 ผ่าน Security, Accessibility และ Browser coverage ตาม Persona และ Viewport
+- Legacy routes มี Redirect/Deprecated/Read-only contract ตาม P6 inventory
 - Required CI ผ่านบน Head เดียวกัน
 - Branch ถูก Retarget/Sync เข้า `main` หลัง P2, P4 และ P5–P7 Merge
