@@ -10,10 +10,10 @@ Stack base ชั่วคราว: `agent/admin-phase-5-7-data-settings-design
 
 ## CI snapshot
 
-- Last verified P8 evidence head: `d45ecb605241c5e167b4e1af66f0d8c196447bda`
+- Last verified P8 evidence head: `1315c26086e82eb3a4ff89f3db802f9c74ab46c3`
 - P8-specific workflows: **7/7 ผ่าน**
 - Base workflows ที่แดง: 3 รายการและไม่อยู่ใน P8 diff
-- Documentation-only commits หลัง SHA นี้ยังต้องผ่าน Required CI บน PR Head ก่อน Merge
+- Documentation-only commit หลัง SHA นี้ต้องผ่าน Required CI บน PR Head ก่อน Merge
 
 Base blockers:
 
@@ -89,6 +89,7 @@ Routes หลักที่ใช้เป็น P8 smoke owner:
 
 - `/system-settings`
 - `/settings/activities`
+- `/security?tab=sessions`
 
 Coverage ที่ยืนยันแล้ว:
 
@@ -104,6 +105,12 @@ Coverage ที่ยืนยันแล้ว:
 - Responsive Drawer อยู่ในขอบ Viewport
 - 200% desktop-equivalent reflow ที่ CSS viewport 720px
 - Drawer Escape และ Focus restore หลังปิด
+- Dataset เซสชัน 137 แถวพร้อมข้อความ User-Agent ยาว
+- Pagination ด้วย Keyboard, เปลี่ยน Page size เป็น 50 และไม่เกิด Page overflow
+- Network disconnect ทำให้ Security data ถูกล้างแบบ fail-closed และแสดง Empty state
+- Read-only GET retry 1 ครั้งต่อ endpoint ระหว่าง Offline
+- Admin shell และ Session ไม่ถูก Redirect ไป Login จาก Network failure
+- Reconnect แล้ว Refresh สามารถโหลด Dataset ใหม่ 141 แถวได้
 - Chromium Desktop/Tablet/Mobile
 - Firefox Desktop
 - WebKit Desktop
@@ -118,6 +125,7 @@ Files:
 - `tests/admin-browser-matrix/admin-p8-route-accessibility.spec.ts`
 - `tests/admin-browser-matrix/admin-p8-zoom-reflow.spec.ts`
 - `tests/admin-browser-matrix/admin-p8-persona-access.spec.ts`
+- `tests/admin-browser-matrix/admin-p8-data-resilience.spec.ts`
 
 ## Persona และ Release matrix ✅
 
@@ -154,6 +162,9 @@ Browser evidence มี Marketing allow, Finance deny, System Admin allow แล
 - `Retry-After` ถูกจำกัดไม่เกิน 1 วินาที
 - Mutation, 401, 403 และ Caller cancellation ไม่ถูก retry อัตโนมัติ
 - Browser evidence ยืนยัน `/auth/me` ล้ม 503 ครั้งแรกและสำเร็จที่ Attempt 2 โดยไม่ Redirect ไป Login
+- Browser evidence ยืนยัน Offline ทุก Security GET ถูกลอง 2 attempts ก่อน Fail closed
+- Security owner ล้าง Session/Recovery data ที่อ่านไม่สำเร็จ ไม่แสดงข้อมูล stale
+- Reconnect แล้ว Refresh กลับมาดึงข้อมูลใหม่ได้โดยไม่สร้าง Login loop
 - Transport owner ใช้ Policy กลางทั้ง Request ปกติ, Retry หลัง Refresh และ Refresh endpoint
 
 Files:
@@ -161,6 +172,7 @@ Files:
 - `apps/web-admin/app/admin-network-policy.ts`
 - `apps/web-admin/app/admin-network-policy.spec.ts`
 - `apps/web-admin/app/admin-api.ts`
+- `tests/admin-browser-matrix/admin-p8-data-resilience.spec.ts`
 
 ## Performance gate ✅
 
@@ -179,12 +191,11 @@ Files:
 - `apps/web-admin/tools/check-performance-budget.mjs`
 - `apps/web-admin/package.json`
 
-## Remaining — 4 กลุ่ม
+## Remaining — 3 กลุ่ม
 
 1. เชื่อม Security policy เข้ากับ P2/P6 sensitive endpoints หลัง Dependency Sync
 2. เพิ่ม Browser interaction สำหรับ Drawer, Modal, Table, Tabs, Security และ Chart หลัง P4/P5 Sync
-3. เพิ่ม Large-table/long-dataset visual evidence และ Offline/Recovery browser scenarios
-4. Retarget `main`, Sync dependencies, รัน Final release gate และ Production smoke
+3. Retarget `main`, Sync dependencies, รัน Final release gate และ Production smoke
 
 ## Definition of Done
 
