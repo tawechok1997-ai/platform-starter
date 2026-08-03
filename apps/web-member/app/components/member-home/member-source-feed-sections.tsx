@@ -1,6 +1,13 @@
 'use client';
 
-import { useMemo, useState, type SyntheticEvent } from 'react';
+import {
+  createContext,
+  useContext,
+  useMemo,
+  useState,
+  type ReactNode,
+  type SyntheticEvent,
+} from 'react';
 import { useMemberLocale, type MemberLocale } from '../../member-locale-provider';
 import type { Game } from '../../types/member-api';
 import { hideDecorativeImage } from '../image-fallback';
@@ -26,6 +33,11 @@ type LobbyGame = {
   players: number;
 };
 
+type DesktopGameFeedValue = {
+  popular: Game[];
+  online: Game[];
+};
+
 type LocalizedText = Record<MemberLocale, string>;
 
 type LiveItem = {
@@ -35,6 +47,18 @@ type LiveItem = {
   homeLogo: string;
   awayLogo: string;
 };
+
+const EMPTY_GAME_FEEDS: DesktopGameFeedValue = { popular: [], online: [] };
+const DesktopGameFeedContext = createContext<DesktopGameFeedValue>(EMPTY_GAME_FEEDS);
+
+export function DesktopGameFeedProvider({
+  popular,
+  online,
+  children,
+}: DesktopGameFeedValue & { children: ReactNode }) {
+  const value = useMemo(() => ({ popular, online }), [online, popular]);
+  return <DesktopGameFeedContext.Provider value={value}>{children}</DesktopGameFeedContext.Provider>;
+}
 
 const FEED_COPY: Record<MemberLocale, {
   popularTitle: string;
@@ -234,7 +258,9 @@ function SourceHeading({ title, icon, iconSize = 25, notice }: {
   );
 }
 
-export function SourcePopularSection({ games: sourceGames }: { games: Game[] }) {
+export function SourcePopularSection({ games: propGames }: { games?: Game[] } = {}) {
+  const { popular } = useContext(DesktopGameFeedContext);
+  const sourceGames = propGames ?? popular;
   const { locale } = useMemberLocale();
   const copy = FEED_COPY[locale];
   const { games, reject } = useRenderableGames(sourceGames, 10);
@@ -295,7 +321,9 @@ export function SourcePopularSection({ games: sourceGames }: { games: Game[] }) 
   );
 }
 
-export function SourceOnlineSection({ games: sourceGames }: { games: Game[] }) {
+export function SourceOnlineSection({ games: propGames }: { games?: Game[] } = {}) {
+  const { online } = useContext(DesktopGameFeedContext);
+  const sourceGames = propGames ?? online;
   const { locale } = useMemberLocale();
   const copy = FEED_COPY[locale];
   const { games, reject } = useRenderableGames(sourceGames, 6);
