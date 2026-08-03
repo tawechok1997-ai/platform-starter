@@ -34,6 +34,7 @@ export function useAdminWidgetLayout(
     setReady(false);
     if (!adminUserId.trim()) {
       setItems(defaults);
+      setReady(true);
       return;
     }
 
