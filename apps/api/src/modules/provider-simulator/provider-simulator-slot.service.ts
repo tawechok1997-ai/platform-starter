@@ -182,14 +182,23 @@ export class ProviderSimulatorSlotService {
   }
 
   private reels(input: SlotSpinInput) {
-    const secret = process.env.PROVIDER_SIMULATOR_SLOT_SECRET?.trim()
-      || process.env.PROVIDER_SIMULATOR_SECRET?.trim()
-      || 'provider-simulator-slot-v1';
-    const digest = createHmac('sha256', secret)
+    const digest = createHmac('sha256', this.slotSecret())
       .update(`${input.userId}:${input.sessionId}:${input.spinId}`)
       .digest();
 
     return [0, 1, 2].map((index) => this.symbolForTicket(digest.readUInt16BE(index * 2) % TOTAL_SYMBOL_WEIGHT));
+  }
+
+  private slotSecret() {
+    const configured = process.env.PROVIDER_SIMULATOR_SLOT_SECRET?.trim()
+      || process.env.PROVIDER_SIMULATOR_SECRET?.trim();
+    if (configured) return configured;
+
+    const environment = (process.env.NODE_ENV ?? 'development').trim().toLowerCase();
+    if (environment === 'development' || environment === 'test') return 'provider-simulator-slot-v1';
+    throw new ServiceUnavailableException(
+      'PROVIDER_SIMULATOR_SLOT_SECRET or PROVIDER_SIMULATOR_SECRET is required outside development and test',
+    );
   }
 
   private symbolForTicket(ticket: number) {
