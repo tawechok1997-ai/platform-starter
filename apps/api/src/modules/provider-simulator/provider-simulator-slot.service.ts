@@ -173,6 +173,25 @@ export class ProviderSimulatorSlotService {
       netAmount: (winAmount - amount).toFixed(2),
       currency: session.provider.currency,
       balance: afterBalance,
+      walletMutation: {
+        debit: {
+          amount: amountText,
+          beforeBalance: bet.beforeBalance,
+          afterBalance: bet.afterBalance,
+          transactionId: bet.providerTransactionId,
+          replayed: Boolean(bet.replayed),
+        },
+        credit: win
+          ? {
+              amount: winAmount.toFixed(2),
+              beforeBalance: win.beforeBalance,
+              afterBalance: win.afterBalance,
+              transactionId: win.providerTransactionId,
+              replayed: Boolean(win.replayed),
+            }
+          : null,
+        finalBalance: afterBalance,
+      },
       transactions: {
         bet: bet.providerTransactionId,
         win: win?.providerTransactionId ?? null,
