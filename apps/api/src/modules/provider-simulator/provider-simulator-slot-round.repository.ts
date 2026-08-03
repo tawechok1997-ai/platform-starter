@@ -13,8 +13,8 @@ export class ProviderSimulatorSlotRoundRepository {
       where: {
         id: sessionId,
         userId,
-        game: { providerGameCode: DEMO_GAME_CODE },
-        provider: { code: { in: DEMO_PROVIDER_CODES } },
+        game: { is: { providerGameCode: DEMO_GAME_CODE } },
+        provider: { is: { code: { in: DEMO_PROVIDER_CODES } } },
       },
       include: {
         game: { select: { providerGameCode: true, name: true, category: true, status: true } },
