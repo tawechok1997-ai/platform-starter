@@ -31,15 +31,15 @@ Admin ต้องใช้ระบบกลางชุดเดียวก�
 | Phase | ขอบเขต | สถานะ | PR |
 |---|---|---|---|
 | P1 | Appearance foundation และ Theme owner กลาง | Merge แล้ว | #445 |
-| P2 | Role 5 แบบ, Multi-role และ Team | รอ CI และ Merge | #477 |
-| P3 | Navigation registry และ Dashboard ตามตำแหน่ง | ยังไม่เริ่ม | - |
-| P4 | Chart system และ Widget registry | ทำคู่ขนานแบบ Draft | #487 |
+| P2 | Role 5 แบบ, Multi-role และ Team | กำลังทำในอีก PR | #477 |
+| P3 | Navigation registry และ Dashboard ตามตำแหน่ง | Merge แล้ว | #483 |
+| P4 | Chart system และ Widget registry | กำลังทำแบบ Draft | #487 |
 | P5 | Table, Form และ Detail drawer กลาง | ยังไม่เริ่ม | - |
 | P6 | Settings migration และ System Settings | ยังไม่เริ่ม | - |
 | P7 | Design System adoption และ CSS cleanup | ยังไม่เริ่ม | - |
 | P8 | Security, Accessibility และ Browser Matrix | ยังไม่เริ่ม | - |
 
-> P4 ถูกเปิดเป็น Draft แยกจาก `main` ตามคำสั่งให้ทำงานรอ CI ของ P2 โดยไม่รวม Commit ของ P2 เข้ามาใน Branch นี้ ต้อง Sync `main` หลัง P2 Merge ก่อนนำ P4 เข้า Review สุดท้าย
+> P4 ถูกเปิดเป็น Draft แยกจาก P2 ตามคำสั่งให้ทำงานรอ CI โดยต้องรักษา Owner ของ P3 และ Sync `main` ก่อน Review สุดท้าย
 
 ---
 
@@ -113,7 +113,7 @@ PR: `#477`
 
 Branch: `agent/admin-phase-2-role-multirole-team`
 
-Status: Implementation Batch 1–3 เสร็จแล้ว อยู่ระหว่างแก้ CI, Mark ready และ Merge
+Status: ทำแบบขนานในอีก PR โดย P2 เป็นเจ้าของ Role, Permission override, Scope, Team และฐานข้อมูล
 
 ## เป้าหมาย
 
@@ -142,13 +142,60 @@ Status: Implementation Batch 1–3 เสร็จแล้ว อยู่ร�
 
 # P3: Navigation และ Role-aware Dashboard
 
-- Navigation registry กลาง
-- เมนูตาม 5 ตำแหน่ง
-- Workspace filter สำหรับผู้ใช้หลายตำแหน่ง
-- Dashboard resolver ตามตำแหน่งหลักและตำแหน่งเสริม
-- Favorites, Recent และ Command Palette อ่าน registry เดียวกัน
-- Profile แสดงทุกตำแหน่ง
-- ไม่มีเมนูเก่าและใหม่ซ้ำกัน
+PR: `#483`
+
+Branch: `agent/admin-phase-3-navigation-dashboard`
+
+Head commit: `c4ae5a9feacbfbbb97308fe79b775c0671da207b`
+
+Merge commit: `5cc3f273622d3110a84470cebd811eb840d2e888`
+
+Merge method: `squash`
+
+Merged: `2026-08-03`
+
+Status: Merge เข้า `main` แล้ว
+
+## ทำแล้ว
+
+- เพิ่ม Workspace registry กลางครบ 5 ตำแหน่ง
+- เพิ่มสัญญา `AdminWorkspaceAssignment` สำหรับรับข้อมูลจาก P2
+- รองรับ Multi-role, Primary role และตัวเลือกดูทุกตำแหน่ง
+- เพิ่ม Workspace switcher ใน Topbar
+- บน Mobile ใช้ Workspace chips ใน Profile เพื่อไม่ให้บังปุ่มเปิดเมนู
+- ให้ Sidebar, Favorites, Recent และ Command Palette ใช้ selection กลางชุดเดียวกัน
+- เพิ่ม Dashboard resolver และทางลัดตามตำแหน่ง
+- เพิ่ม Profile workspace list และตัวระบุตำแหน่งหลัก
+- รองรับไทย/อังกฤษ, Desktop/Tablet/Mobile และ Reduced motion
+- ไม่แตะ Prisma, Team hierarchy หรือ Permission override ของ P2
+- ไม่ลด Route permission guard เดิม
+
+## Owner ใหม่
+
+| ความสามารถ | Owner |
+|---|---|
+| Workspace metadata | `app/(admin)/admin-workspace-registry.ts` |
+| P2 mapping/fallback | `inferAdminWorkspaceAssignments()` |
+| Workspace selection | `app/admin-workspace-runtime.tsx` |
+| Navigation visibility | `resolveVisibleNavGroupIds()` |
+| Dashboard composition | `app/(admin)/admin-dashboard-resolver.ts` |
+| Storage | `admin_workspace_selection_v1` |
+| Runtime event | `admin:workspace-change` |
+
+## Tests
+
+- `app/(admin)/admin-workspace-registry.spec.ts`
+- `app/(admin)/admin-dashboard-resolver.spec.ts`
+- `app/admin-workspace-runtime.spec.ts`
+
+## ผลการตรวจ
+
+- Build, R-006, UI System, Security, Admin Verification, Functional Audit และ Visual Regression ผ่านบน implementation P3 ชุดเต็ม
+- Browser Matrix พบ Mobile Topbar pointer interception และแก้ก่อน Merge
+- Full-System failure รอบก่อนหน้าอยู่ที่ Member viewport isolation และ Branch ถูกสร้างใหม่บน `main` ที่มี Member fix
+- PR อยู่ในสถานะ mergeable ก่อน Squash Merge
+
+รายละเอียดเต็มอยู่ที่ `docs/admin-redesign-p3-navigation-dashboard.md`
 
 ---
 
@@ -160,29 +207,39 @@ Branch: `agent/admin-phase-4-chart-widget-system`
 
 Base ตอนเปิด Phase: `51e455b4f3f2c8ac1a8522c015e68978474a5bc1`
 
-Status: Draft — Batch 1 และ Batch 2 เสร็จ อยู่ระหว่าง CI และเก็บข้อผิดพลาดจริง
+Status: Draft — Batch 1 และ Batch 2 เสร็จ อยู่ระหว่าง Sync P3, CI และเก็บข้อผิดพลาดจริง
 
 ## ทำแล้ว
 
 - Chart wrapper กลางรองรับ Bar, Stacked Bar, Line, Area และ Donut
+- แยก Domain ของกราฟแบบ Grouped และ Stacked ไม่ให้ค่ารวมบีบสเกลกราฟทั่วไป
 - Widget registry แบบ Typed พร้อมตรวจ Widget ID ซ้ำหรือไม่ถูกต้อง
 - Permission-aware widget visibility
-- Dashboard data adapter กรองข้อมูลย่อยตาม Effective permission อีกชั้น
+- โหลดตัวตนและ Effective permissions ก่อน แล้วเรียก Finance/Risk API เฉพาะเมื่อบัญชีมีสิทธิ์
+- Dashboard data adapter กรองข้อมูลย่อยในวิดเจ็ตรวมตาม Effective permission อีกชั้น
 - Date range: Today, 7, 30, 90 วัน และ Custom
 - Compare period: None, Previous period และ Previous year
 - Drill-down ผ่านเมาส์และคีย์บอร์ด
 - Fullscreen พร้อม Escape และล็อก Body scroll
-- Export CSV และ PNG
+- Export CSV และ PNG โดยฝัง Computed SVG styles ก่อนวาดลง Canvas
 - Loading, Empty, Error และ Partial data state
 - Saved layout ต่อผู้ใช้ด้วย Versioned storage key
 - Cross-tab layout synchronization
 - Drag, Keyboard move, Resize, Pin, Hide/Show และ Restore default
 - Dashboard `/dashboard` ใช้ Widget Workspace กลางแทนกราฟเฉพาะหน้าเดิม
 - วิดเจ็ต Dashboard 6 รายการ: งานเร่งด่วน, กระแสเงิน, ยอดกระเป๋า, ความเสี่ยง, คิวการเงิน และกิจกรรมล่าสุด
-- ภาษาไทยและอังกฤษ
+- ภาษาไทยและอังกฤษ รวมคำว่า Total และ Legend ในกราฟ
 - Desktop, Tablet, Mobile, Compact density, High contrast และ Reduced motion
 - Unit/Contract tests สำหรับ Registry, Layout, Date range, Export และ Dashboard owner
-- Browser interaction tests สำหรับ Date range, CSV, Fullscreen, Hide/Restore, Persistence และ RBAC
+- Browser interaction tests สำหรับ Date range, CSV, PNG, Fullscreen, Hide/Restore, Persistence, Overflow และ RBAC
+- ปรับ TypeScript ให้ผ่าน `noUncheckedIndexedAccess` และ `exactOptionalPropertyTypes`
+
+## การเชื่อมกับ P3
+
+- รักษา `AdminWorkspaceRuntime` เป็น Owner ของ Workspace selection
+- P4 ต้องอ่าน Event `admin:workspace-change` และกรองชุด Widget ตาม Workspace ที่ P3 เลือก
+- ห้ามสร้าง Workspace storage หรือ switcher ซ้ำ
+- Layout storage ของ P4 ต้องเก็บรายการครบ แม้บาง Widget ถูกซ่อนชั่วคราวจาก Workspace filter
 
 ## Owner ใหม่
 
@@ -198,10 +255,12 @@ Status: Draft — Batch 1 และ Batch 2 เสร็จ อยู่ระ�
 
 - Finance API ปัจจุบันส่ง Snapshot ล่าสุด ไม่ใช่ Time-series เต็มช่วงวันที่ จึงแสดง Partial state เมื่อเลือกช่วงมากกว่าวันนี้
 - Saved layout อยู่ใน Browser storage ต่อผู้ใช้ ยังไม่ได้ Sync ข้ามอุปกรณ์ผ่าน Backend
-- P4 Branch ยังไม่รวม P2 และต้อง Sync `main` หลัง P2 Merge ก่อน Review สุดท้าย
+- P2 ยังอยู่คนละ PR และ P4 ต้อง Sync `main` อีกครั้งหลัง P2 Merge
 
 ## งานที่เหลือ
 
+- Sync P3 และ `main` ล่าสุดเข้า Branch P4
+- เชื่อม Widget visibility กับ `admin:workspace-change`
 - อ่านและแก้ CI ของ Head ล่าสุด
 - ตรวจหลักฐาน Browser Matrix และ Visual Regression
 - Sync `main` หลัง P2 Merge
