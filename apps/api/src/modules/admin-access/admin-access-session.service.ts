@@ -2,19 +2,22 @@ import { Injectable } from '@nestjs/common';
 import { buildAdminAuditData } from '../../common/audit/admin-audit.builder';
 import { PrismaService } from '../../database/prisma.service';
 
-export type AdminPrivilegeChange =
-  | 'ASSIGN_ROLE'
-  | 'REMOVE_ROLE'
-  | 'SYNC_ROLES'
-  | 'REVOKE_DELEGATION'
-  | 'SET_TEAM_MEMBER'
-  | 'REMOVE_TEAM_MEMBER'
-  | 'SET_REPORTING_LINE'
-  | 'SET_PERMISSION_OVERRIDE'
-  | 'DELETE_PERMISSION_OVERRIDE'
-  | 'UPDATE_ACCESS_PROFILE'
-  | 'TRANSFER_OWNERSHIP_OUT'
-  | 'TRANSFER_OWNERSHIP_IN';
+export const ADMIN_PRIVILEGE_CHANGES = [
+  'ASSIGN_ROLE',
+  'REMOVE_ROLE',
+  'SYNC_ROLES',
+  'REVOKE_DELEGATION',
+  'SET_TEAM_MEMBER',
+  'REMOVE_TEAM_MEMBER',
+  'SET_REPORTING_LINE',
+  'SET_PERMISSION_OVERRIDE',
+  'DELETE_PERMISSION_OVERRIDE',
+  'UPDATE_ACCESS_PROFILE',
+  'TRANSFER_OWNERSHIP_OUT',
+  'TRANSFER_OWNERSHIP_IN',
+] as const;
+
+export type AdminPrivilegeChange = (typeof ADMIN_PRIVILEGE_CHANGES)[number];
 
 @Injectable()
 export class AdminAccessSessionService {
