@@ -5,16 +5,13 @@ import {
   ServiceUnavailableException,
 } from '@nestjs/common';
 import { createHmac } from 'crypto';
-import { PrismaService } from '../../database/prisma.service';
 import { assertProviderSimulatorAvailable } from './provider-simulator-config';
 import { GAME_CATALOG } from './provider-simulator-catalog';
+import {
+  ProviderSimulatorPersistenceRepository,
+  type SimulatorMemberSlotLaunchInput,
+} from './provider-simulator-persistence.repository';
 import { ProviderSimulatorTransactionService } from './provider-simulator-transaction.service';
-
-type SlotLaunchInput = {
-  userId: string;
-  ipAddress?: string;
-  userAgent?: string;
-};
 
 type SlotSpinInput = {
   userId: string;
@@ -29,7 +26,6 @@ type SlotSymbol = {
   tripleMultiplier: number;
 };
 
-const DEMO_PROVIDER_CODE = 'simulator-provider';
 const DEMO_GAME_CODE = 'demo-slot-001';
 const SLOT_SYMBOLS: readonly SlotSymbol[] = [
   { symbol: '🍒', weight: 30, tripleMultiplier: 2 },
@@ -44,7 +40,7 @@ const ALLOWED_SESSION_STATUSES = new Set(['LAUNCHED', 'ACTIVE']);
 const ALLOWED_PROVIDER_CODES = new Set([
   'demo-provider',
   'demo-provider-uat',
-  DEMO_PROVIDER_CODE,
+  'simulator-provider',
   'provider-simulator',
 ]);
 const TOTAL_SYMBOL_WEIGHT = SLOT_SYMBOLS.reduce((total, item) => total + item.weight, 0);
@@ -52,115 +48,13 @@ const TOTAL_SYMBOL_WEIGHT = SLOT_SYMBOLS.reduce((total, item) => total + item.we
 @Injectable()
 export class ProviderSimulatorSlotService {
   constructor(
-    private readonly prisma: PrismaService,
+    private readonly persistence: ProviderSimulatorPersistenceRepository,
     private readonly transactions: ProviderSimulatorTransactionService,
   ) {}
 
-  async launch(input: SlotLaunchInput) {
+  async launch(input: SimulatorMemberSlotLaunchInput) {
     assertProviderSimulatorAvailable();
-
-    const launched = await this.prisma.$transaction(async (tx) => {
-      const provider = await tx.gameProvider.upsert({
-        where: { code: DEMO_PROVIDER_CODE },
-        update: {
-          name: 'Simulator Provider',
-          status: 'ACTIVE',
-          currency: 'THB',
-          timezone: 'Asia/Bangkok',
-          metadata: {
-            environment: 'DEMO',
-            launchEnabled: true,
-            seamlessWalletEnabled: true,
-            realMoneyEnabled: false,
-            externalProviderCallbackEnabled: false,
-            source: 'member-slot-simulator',
-          },
-        },
-        create: {
-          name: 'Simulator Provider',
-          code: DEMO_PROVIDER_CODE,
-          status: 'ACTIVE',
-          walletMode: 'SEAMLESS',
-          currency: 'THB',
-          timezone: 'Asia/Bangkok',
-          sortOrder: 1,
-          metadata: {
-            environment: 'DEMO',
-            launchEnabled: true,
-            seamlessWalletEnabled: true,
-            realMoneyEnabled: false,
-            externalProviderCallbackEnabled: false,
-            source: 'member-slot-simulator',
-          },
-        },
-      });
-
-      const game = await tx.game.upsert({
-        where: {
-          providerId_providerGameCode: {
-            providerId: provider.id,
-            providerGameCode: DEMO_GAME_CODE,
-          },
-        },
-        update: {
-          name: 'Demo Fortune Slot',
-          category: 'slot',
-          status: 'ACTIVE',
-          isFeatured: true,
-          isNew: true,
-          isPopular: true,
-          sortOrder: 1,
-          metadata: {
-            source: 'member-slot-simulator',
-            launchReady: true,
-            platform: 'both',
-            realMoneyEnabled: false,
-          },
-        },
-        create: {
-          providerId: provider.id,
-          providerGameCode: DEMO_GAME_CODE,
-          name: 'Demo Fortune Slot',
-          category: 'slot',
-          status: 'ACTIVE',
-          isFeatured: true,
-          isNew: true,
-          isPopular: true,
-          sortOrder: 1,
-          metadata: {
-            source: 'member-slot-simulator',
-            launchReady: true,
-            platform: 'both',
-            realMoneyEnabled: false,
-          },
-        },
-      });
-
-      const session = await tx.gameSession.create({
-        data: {
-          userId: input.userId,
-          providerId: provider.id,
-          gameId: game.id,
-          status: 'LAUNCHED',
-          ipAddress: input.ipAddress,
-          userAgent: input.userAgent,
-          startedAt: new Date(),
-        },
-      });
-      const launchUrl = `/games/demo-launch?game=${encodeURIComponent(DEMO_GAME_CODE)}&session=${encodeURIComponent(session.id)}&provider=${encodeURIComponent(DEMO_PROVIDER_CODE)}`;
-
-      return tx.gameSession.update({
-        where: { id: session.id },
-        data: {
-          launchUrl,
-          providerSessionId: `sim_${session.id}`,
-        },
-        include: {
-          game: { select: { id: true, name: true, providerGameCode: true, category: true } },
-          provider: { select: { id: true, name: true, code: true, currency: true } },
-        },
-      });
-    });
+    const launched = await this.persistence.launchMemberSlot(input);
 
     return {
       ok: true,
@@ -174,14 +68,7 @@ export class ProviderSimulatorSlotService {
   async spin(input: SlotSpinInput) {
     assertProviderSimulatorAvailable();
 
-    const session = await this.prisma.gameSession.findFirst({
-      where: { id: input.sessionId, userId: input.userId },
-      include: {
-        game: { select: { providerGameCode: true, name: true, category: true, status: true } },
-        provider: { select: { code: true, name: true, currency: true, status: true } },
-      },
-    });
-
+    const session = await this.persistence.findMemberSlotSession(input.userId, input.sessionId);
     if (!session) throw new NotFoundException('Game session was not found for this member');
     if (!ALLOWED_SESSION_STATUSES.has(session.status)) {
       throw new BadRequestException('Game session is not active');
@@ -203,7 +90,7 @@ export class ProviderSimulatorSlotService {
     const simulatorGame = GAME_CATALOG.find(
       (game) => game.code === gameCode && game.category.trim().toLowerCase() === 'slot',
     );
-    if (!simulatorGame) {
+    if (!simulatorGame || gameCode !== DEMO_GAME_CODE) {
       throw new BadRequestException('The demo slot is missing from the provider simulator catalog');
     }
 
@@ -264,10 +151,7 @@ export class ProviderSimulatorSlotService {
     }
 
     if (session.status === 'LAUNCHED') {
-      await this.prisma.gameSession.updateMany({
-        where: { id: session.id, userId: input.userId, status: 'LAUNCHED' },
-        data: { status: 'ACTIVE' },
-      });
+      await this.persistence.markMemberSlotSessionActive(input.userId, session.id);
     }
 
     const afterBalance = win?.afterBalance ?? bet.afterBalance;
