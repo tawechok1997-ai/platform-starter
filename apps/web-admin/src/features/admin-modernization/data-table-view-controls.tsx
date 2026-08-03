@@ -79,7 +79,6 @@ export function AdminDataTableViewControls({
       setReady(true);
     }
     // Loading must happen once per storage scope; callbacks intentionally use the current table contract.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [storageKey]);
 
   useEffect(() => {

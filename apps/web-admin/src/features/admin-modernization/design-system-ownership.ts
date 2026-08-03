@@ -76,7 +76,7 @@ export function resolveAdminDesignSystemOwner(capability: AdminDesignSystemCapab
 }
 
 export function hasVersionedOwnerName(value: string) {
-  return /(?:^|[-_.\/])(final(?:-v?\d+)?|new-new|v\d+)(?:[-_.\/]|$)/i.test(value);
+  return /(?:^|[-_./])(final(?:-v?\d+)?|new-new|v\d+)(?:[-_./]|$)/i.test(value);
 }
 
 function owner(

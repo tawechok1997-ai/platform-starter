@@ -51,7 +51,6 @@ export default function MembersPage() {
   const [bankStatus, setBankStatus] = useState('ALL');
   const [kycStatus, setKycStatus] = useState('ALL');
   const [page, setPage] = useState(1);
-  const [pageCount, setPageCount] = useState(1);
   const [total, setTotal] = useState(0);
   const [message, setMessage] = useState<MembersMessage | ''>('');
   const [messageTone, setMessageTone] = useState<'neutral' | 'success' | 'warning' | 'danger'>('neutral');
@@ -80,8 +79,8 @@ export default function MembersPage() {
       const res = await adminApiFetch(`/admin/members?${params.toString()}`);
       const data = await res.json().catch(() => null);
       if (!res.ok) throw new Error();
-      setItems(data.items ?? []); setTotal(Number(data.total ?? data.items?.length ?? 0)); setPageCount(Math.max(Number(data.pageCount ?? 1), 1)); showMessage('');
-    } catch { setItems([]); setTotal(0); setPageCount(1); showMessage('loadFailed', 'danger'); } finally { setLoading(false); }
+      setItems(data.items ?? []); setTotal(Number(data.total ?? data.items?.length ?? 0)); showMessage('');
+    } catch { setItems([]); setTotal(0); showMessage('loadFailed', 'danger'); } finally { setLoading(false); }
   }
   function searchMembers(event: FormEvent<HTMLFormElement>) { event.preventDefault(); setPage(1); setSubmittedSearch(search.trim()); }
   function resetFilters() { setSearch(''); setSubmittedSearch(''); setStatus('ALL'); setBankStatus('ALL'); setKycStatus('ALL'); setPage(1); }
