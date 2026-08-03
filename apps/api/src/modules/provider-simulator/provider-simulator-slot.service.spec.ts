@@ -1,6 +1,25 @@
 import { BadRequestException } from '@nestjs/common';
 import { ProviderSimulatorSlotService } from './provider-simulator-slot.service';
 
+const ACTIVE_SESSION = {
+  id: 'session-1',
+  userId: 'user-1',
+  status: 'LAUNCHED',
+  launchUrl: '/games/demo-launch?game=demo-slot-001&session=session-1',
+  game: {
+    providerGameCode: 'demo-slot-001',
+    name: 'Demo Fortune Slot',
+    category: 'slot',
+    status: 'ACTIVE',
+  },
+  provider: {
+    code: 'simulator-provider',
+    name: 'Simulator Provider',
+    currency: 'THB',
+    status: 'ACTIVE',
+  },
+};
+
 describe('ProviderSimulatorSlotService', () => {
   const previousEnv = {
     ENABLE_PROVIDER_SIMULATOR: process.env.ENABLE_PROVIDER_SIMULATOR,
@@ -56,24 +75,7 @@ describe('ProviderSimulatorSlotService', () => {
 
   it('debits BET and credits WIN on the same member wallet with deterministic idempotency ids', async () => {
     const persistence = {
-      findMemberSlotSession: jest.fn().mockResolvedValue({
-        id: 'session-1',
-        userId: 'user-1',
-        status: 'LAUNCHED',
-        launchUrl: '/games/demo-launch?game=demo-slot-001&session=session-1',
-        game: {
-          providerGameCode: 'demo-slot-001',
-          name: 'Demo Fortune Slot',
-          category: 'slot',
-          status: 'ACTIVE',
-        },
-        provider: {
-          code: 'simulator-provider',
-          name: 'Simulator Provider',
-          currency: 'THB',
-          status: 'ACTIVE',
-        },
-      }),
+      findMemberSlotSession: jest.fn().mockResolvedValue(ACTIVE_SESSION),
       markMemberSlotSessionActive: jest.fn().mockResolvedValue({ count: 1 }),
     };
     const transactions = {
@@ -106,6 +108,23 @@ describe('ProviderSimulatorSlotService', () => {
     expect(result.winAmount).toBe('75.00');
     expect(result.netAmount).toBe('25.00');
     expect(result.balance).toBe('1025.00');
+    expect(result.walletMutation).toEqual({
+      debit: {
+        amount: '50.00',
+        beforeBalance: '1000.00',
+        afterBalance: '950.00',
+        transactionId: 'sim_bet_bet_b2176507-2df4-4e4b-b2cb-1929959eb683',
+        replayed: false,
+      },
+      credit: {
+        amount: '75.00',
+        beforeBalance: '950.00',
+        afterBalance: '1025.00',
+        transactionId: 'sim_win_win_b2176507-2df4-4e4b-b2cb-1929959eb683',
+        replayed: false,
+      },
+      finalBalance: '1025.00',
+    });
     expect(transactions.gameTransaction).toHaveBeenNthCalledWith(1, 'BET', expect.objectContaining({
       userId: 'user-1',
       transactionId: 'bet_b2176507-2df4-4e4b-b2cb-1929959eb683',
@@ -118,6 +137,67 @@ describe('ProviderSimulatorSlotService', () => {
       amount: '75.00',
     }));
     expect(persistence.markMemberSlotSessionActive).toHaveBeenCalledWith('user-1', 'session-1');
+  });
+
+  it('debits every new spin from the latest wallet balance', async () => {
+    const persistence = {
+      findMemberSlotSession: jest.fn().mockResolvedValue({ ...ACTIVE_SESSION, status: 'ACTIVE' }),
+      markMemberSlotSessionActive: jest.fn(),
+    };
+    const transactions = {
+      gameTransaction: jest.fn()
+        .mockResolvedValueOnce({
+          providerTransactionId: 'sim_bet_bet_11111111-1111-4111-8111-111111111111',
+          beforeBalance: '1000.00',
+          afterBalance: '900.00',
+          replayed: false,
+        })
+        .mockResolvedValueOnce({
+          providerTransactionId: 'sim_bet_bet_22222222-2222-4222-8222-222222222222',
+          beforeBalance: '900.00',
+          afterBalance: '700.00',
+          replayed: false,
+        }),
+    };
+    const service = new ProviderSimulatorSlotService(persistence as any, transactions as any);
+    jest.spyOn(service as any, 'reels').mockReturnValue(['🍒', '🍋', '🔔']);
+
+    const first = await service.spin({
+      userId: 'user-1',
+      sessionId: 'session-1',
+      spinId: '11111111-1111-4111-8111-111111111111',
+      amount: 100,
+    });
+    const second = await service.spin({
+      userId: 'user-1',
+      sessionId: 'session-1',
+      spinId: '22222222-2222-4222-8222-222222222222',
+      amount: 200,
+    });
+
+    expect(first.result).toBe('LOSS');
+    expect(first.walletMutation.debit).toEqual(expect.objectContaining({
+      amount: '100.00',
+      beforeBalance: '1000.00',
+      afterBalance: '900.00',
+    }));
+    expect(first.balance).toBe('900.00');
+    expect(second.result).toBe('LOSS');
+    expect(second.walletMutation.debit).toEqual(expect.objectContaining({
+      amount: '200.00',
+      beforeBalance: '900.00',
+      afterBalance: '700.00',
+    }));
+    expect(second.balance).toBe('700.00');
+    expect(transactions.gameTransaction).toHaveBeenNthCalledWith(1, 'BET', expect.objectContaining({
+      transactionId: 'bet_11111111-1111-4111-8111-111111111111',
+      amount: '100.00',
+    }));
+    expect(transactions.gameTransaction).toHaveBeenNthCalledWith(2, 'BET', expect.objectContaining({
+      transactionId: 'bet_22222222-2222-4222-8222-222222222222',
+      amount: '200.00',
+    }));
+    expect(persistence.markMemberSlotSessionActive).not.toHaveBeenCalled();
   });
 
   it('rejects sessions that were not launched by the simulator', async () => {
