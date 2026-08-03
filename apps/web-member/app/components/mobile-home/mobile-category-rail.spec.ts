@@ -33,10 +33,11 @@ test('mobile category rail keeps responsive sizes', () => {
 });
 
 test('mobile Home uses the document as its single vertical scroll owner', () => {
+  const rootRule = followOwner.match(/html\[data-member-viewport-mode='mobile'\] \[data-mobile-home-root='true'\]\s*\{([^}]*)\}/)?.[1] ?? '';
   assert.match(followOwner, /body:has\(\[data-mobile-home-root='true'\]\)[\s\S]*overflow-y:\s*auto\s*!important/);
-  assert.match(followOwner, /\[data-mobile-home-root='true'\][\s\S]*height:\s*auto\s*!important/);
-  assert.match(followOwner, /\[data-mobile-home-root='true'\][\s\S]*overflow:\s*visible\s*!important/);
-  assert.doesNotMatch(followOwner, /\[data-mobile-home-root='true'\][\s\S]*height:\s*100dvh\s*!important/);
+  assert.match(rootRule, /height:\s*auto\s*!important/);
+  assert.match(rootRule, /overflow:\s*visible\s*!important/);
+  assert.doesNotMatch(rootRule, /height:\s*100dvh\s*!important/);
   assert.doesNotMatch(home, /MobileCategoryRailTransformFollower/);
 });
 
