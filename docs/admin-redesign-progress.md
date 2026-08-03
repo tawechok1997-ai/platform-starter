@@ -31,13 +31,15 @@ Admin ต้องใช้ระบบกลางชุดเดียวก�
 | Phase | ขอบเขต | สถานะ | PR |
 |---|---|---|---|
 | P1 | Appearance foundation และ Theme owner กลาง | Merge แล้ว | #445 |
-| P2 | Role 5 แบบ, Multi-role และ Team | กำลังทำในอีก PR | - |
+| P2 | Role 5 แบบ, Multi-role และ Team | กำลังทำในอีก PR | #477 |
 | P3 | Navigation registry และ Dashboard ตามตำแหน่ง | Merge แล้ว | #483 |
-| P4 | Chart system และ Widget registry | ยังไม่เริ่ม | - |
+| P4 | Chart system และ Widget registry | กำลังทำแบบ Draft | #487 |
 | P5 | Table, Form และ Detail drawer กลาง | ยังไม่เริ่ม | - |
 | P6 | Settings migration และ System Settings | ยังไม่เริ่ม | - |
 | P7 | Design System adoption และ CSS cleanup | ยังไม่เริ่ม | - |
 | P8 | Security, Accessibility และ Browser Matrix | ยังไม่เริ่ม | - |
+
+> P4 ถูกเปิดเป็น Draft แยกจาก P2 ตามคำสั่งให้ทำงานรอ CI โดยต้องรักษา Owner ของ P3 และ Sync `main` ก่อน Review สุดท้าย
 
 ---
 
@@ -107,9 +109,9 @@ Merged: `2026-08-03`
 
 # P2: Role, Multi-role และ Team
 
-Branch: `agent/admin-phase-2-role-multirole-team`
+PR: `#477`
 
-Base: latest `main` หลัง Merge PR `#445` และอัปเดตเอกสารผล Merge
+Branch: `agent/admin-phase-2-role-multirole-team`
 
 Status: ทำแบบขนานในอีก PR โดย P2 เป็นเจ้าของ Role, Permission override, Scope, Team และฐานข้อมูล
 
@@ -199,13 +201,71 @@ Status: Merge เข้า `main` แล้ว
 
 # P4: Chart และ Widget System
 
-- Chart wrapper และ Widget registry กลาง
-- Date range และ Compare period
-- Drill-down และ Fullscreen
-- Export CSV/PNG
-- Loading, Empty, Error และ Partial data
-- Saved layout ต่อผู้ใช้
-- Drag, Resize, Pin และ Restore default
+PR: `#487`
+
+Branch: `agent/admin-phase-4-chart-widget-system`
+
+Base ตอนเปิด Phase: `51e455b4f3f2c8ac1a8522c015e68978474a5bc1`
+
+Status: Draft — Batch 1 และ Batch 2 เสร็จ อยู่ระหว่าง Sync P3, CI และเก็บข้อผิดพลาดจริง
+
+## ทำแล้ว
+
+- Chart wrapper กลางรองรับ Bar, Stacked Bar, Line, Area และ Donut
+- แยก Domain ของกราฟแบบ Grouped และ Stacked ไม่ให้ค่ารวมบีบสเกลกราฟทั่วไป
+- Widget registry แบบ Typed พร้อมตรวจ Widget ID ซ้ำหรือไม่ถูกต้อง
+- Permission-aware widget visibility
+- โหลดตัวตนและ Effective permissions ก่อน แล้วเรียก Finance/Risk API เฉพาะเมื่อบัญชีมีสิทธิ์
+- Dashboard data adapter กรองข้อมูลย่อยในวิดเจ็ตรวมตาม Effective permission อีกชั้น
+- Date range: Today, 7, 30, 90 วัน และ Custom
+- Compare period: None, Previous period และ Previous year
+- Drill-down ผ่านเมาส์และคีย์บอร์ด
+- Fullscreen พร้อม Escape และล็อก Body scroll
+- Export CSV และ PNG โดยฝัง Computed SVG styles ก่อนวาดลง Canvas
+- Loading, Empty, Error และ Partial data state
+- Saved layout ต่อผู้ใช้ด้วย Versioned storage key
+- Cross-tab layout synchronization
+- Drag, Keyboard move, Resize, Pin, Hide/Show และ Restore default
+- Dashboard `/dashboard` ใช้ Widget Workspace กลางแทนกราฟเฉพาะหน้าเดิม
+- วิดเจ็ต Dashboard 6 รายการ: งานเร่งด่วน, กระแสเงิน, ยอดกระเป๋า, ความเสี่ยง, คิวการเงิน และกิจกรรมล่าสุด
+- ภาษาไทยและอังกฤษ รวมคำว่า Total และ Legend ในกราฟ
+- Desktop, Tablet, Mobile, Compact density, High contrast และ Reduced motion
+- Unit/Contract tests สำหรับ Registry, Layout, Date range, Export และ Dashboard owner
+- Browser interaction tests สำหรับ Date range, CSV, PNG, Fullscreen, Hide/Restore, Persistence, Overflow และ RBAC
+- ปรับ TypeScript ให้ผ่าน `noUncheckedIndexedAccess` และ `exactOptionalPropertyTypes`
+
+## การเชื่อมกับ P3
+
+- รักษา `AdminWorkspaceRuntime` เป็น Owner ของ Workspace selection
+- P4 ต้องอ่าน Event `admin:workspace-change` และกรองชุด Widget ตาม Workspace ที่ P3 เลือก
+- ห้ามสร้าง Workspace storage หรือ switcher ซ้ำ
+- Layout storage ของ P4 ต้องเก็บรายการครบ แม้บาง Widget ถูกซ่อนชั่วคราวจาก Workspace filter
+
+## Owner ใหม่
+
+| ความสามารถ | Owner ใหม่ | ของเดิมที่ถูกแทน |
+|---|---|---|
+| Chart rendering | `src/features/admin-modernization/admin-chart.tsx` | กราฟเฉพาะหน้าใน Dashboard |
+| Widget shell/state/actions | `src/features/admin-modernization/admin-widget.tsx` | Card และ state ที่ประกอบแยกกัน |
+| Widget layout | `src/features/admin-modernization/admin-widget-workspace.tsx` | Layout คงที่ที่ผู้ใช้ปรับไม่ได้ |
+| Registry | `src/features/admin-modernization/chart-widget-contracts.ts` | รายการ Widget แบบกระจัดกระจาย |
+| Dashboard adoption | `app/(admin)/dashboard/dashboard-widgetized.tsx` | `dashboard-professional.tsx` ใน Route owner |
+
+## ข้อจำกัดที่ทราบ
+
+- Finance API ปัจจุบันส่ง Snapshot ล่าสุด ไม่ใช่ Time-series เต็มช่วงวันที่ จึงแสดง Partial state เมื่อเลือกช่วงมากกว่าวันนี้
+- Saved layout อยู่ใน Browser storage ต่อผู้ใช้ ยังไม่ได้ Sync ข้ามอุปกรณ์ผ่าน Backend
+- P2 ยังอยู่คนละ PR และ P4 ต้อง Sync `main` อีกครั้งหลัง P2 Merge
+
+## งานที่เหลือ
+
+- Sync P3 และ `main` ล่าสุดเข้า Branch P4
+- เชื่อม Widget visibility กับ `admin:workspace-change`
+- อ่านและแก้ CI ของ Head ล่าสุด
+- ตรวจหลักฐาน Browser Matrix และ Visual Regression
+- Sync `main` หลัง P2 Merge
+- ยืนยัน Build/Typecheck/Tests หลัง Sync
+- Mark ready และ Merge เมื่อเงื่อนไขทั้งหมดผ่าน
 
 ---
 

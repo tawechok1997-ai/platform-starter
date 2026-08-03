@@ -1,0 +1,67 @@
+import { createAdminWidgetRegistry, type AdminWidgetDefinition } from './chart-widget-contracts';
+
+export const ADMIN_DASHBOARD_WIDGET_DEFINITIONS = [
+  {
+    id: 'operations.priority-work',
+    title: 'Priority work',
+    description: 'Queues and risk alerts that require operator action.',
+    requiredPermissions: ['risk.view', 'topups.view', 'deposit.view', 'withdraw.view'],
+    defaultLayout: { order: 0, columns: 4, rows: 1, pinned: true },
+    allowDrillDown: true,
+  },
+  {
+    id: 'finance.cash-flow',
+    title: 'Cash flow',
+    description: 'Deposits, withdrawals, and net flow over the selected period.',
+    chartKind: 'bar',
+    requiredPermissions: ['reports.view', 'wallet.view', 'topups.view', 'deposit.view', 'withdraw.view'],
+    defaultLayout: { order: 1, columns: 2, rows: 1, pinned: false },
+    allowFullscreen: true,
+    allowDrillDown: true,
+    exportFormats: ['csv', 'png'],
+  },
+  {
+    id: 'wallet.balance-composition',
+    title: 'Wallet balance composition',
+    description: 'Available, locked, and variance balance segments.',
+    chartKind: 'donut',
+    requiredPermissions: ['wallet.view'],
+    defaultLayout: { order: 2, columns: 1, rows: 1, pinned: false },
+    allowFullscreen: true,
+    allowDrillDown: true,
+    exportFormats: ['csv', 'png'],
+  },
+  {
+    id: 'risk.open-severity',
+    title: 'Open risk severity',
+    description: 'Distribution of open alerts by severity.',
+    chartKind: 'donut',
+    requiredPermissions: ['risk.view'],
+    defaultLayout: { order: 3, columns: 1, rows: 1, pinned: false },
+    allowFullscreen: true,
+    allowDrillDown: true,
+    exportFormats: ['csv', 'png'],
+  },
+  {
+    id: 'finance.pending-queues',
+    title: 'Pending finance queues',
+    description: 'Deposit and withdrawal requests awaiting a decision.',
+    requiredPermissions: ['topups.view', 'deposit.view', 'withdraw.view'],
+    defaultLayout: { order: 4, columns: 2, rows: 1, pinned: false },
+    allowFullscreen: true,
+    allowDrillDown: true,
+    exportFormats: ['csv'],
+  },
+  {
+    id: 'activity.recent',
+    title: 'Recent activity',
+    description: 'Latest risk alerts and wallet ledger events.',
+    requiredPermissions: ['risk.view', 'wallet.view'],
+    defaultLayout: { order: 5, columns: 2, rows: 1, pinned: false },
+    allowFullscreen: true,
+    allowDrillDown: true,
+    exportFormats: ['csv'],
+  },
+] as const satisfies readonly AdminWidgetDefinition[];
+
+export const ADMIN_DASHBOARD_WIDGET_REGISTRY = createAdminWidgetRegistry(ADMIN_DASHBOARD_WIDGET_DEFINITIONS);

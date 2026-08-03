@@ -1,0 +1,255 @@
+.workspace {
+  display: grid;
+  gap: var(--admin-page-gap, 20px);
+}
+
+.controls {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 14px;
+  background: var(--color-surface);
+}
+
+.rangeControls,
+.layoutActions {
+  display: flex;
+  align-items: end;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.rangeControls label {
+  min-width: 148px;
+  display: grid;
+  gap: 6px;
+}
+
+.rangeControls span {
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.rangeControls select,
+.rangeControls input,
+.layoutActions button,
+.hiddenPanel button {
+  min-height: var(--admin-control-height, 42px);
+  padding: 0 12px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 10px;
+  background: var(--color-surface-raised);
+  color: var(--color-text-primary);
+  font: inherit;
+}
+
+.layoutActions button,
+.hiddenPanel button {
+  cursor: pointer;
+}
+
+.layoutActions button[data-primary='true'] {
+  border-color: color-mix(in srgb, var(--color-brand-primary) 54%, var(--color-border-subtle));
+  background: var(--color-brand-soft);
+}
+
+.rangeControls select:focus-visible,
+.rangeControls input:focus-visible,
+.layoutActions button:focus-visible,
+.editToolbar button:focus-visible,
+.hiddenPanel button:focus-visible {
+  outline: none;
+  box-shadow: var(--admin-focus-ring);
+}
+
+.rangeError {
+  padding: 11px 14px;
+  border: 1px solid color-mix(in srgb, var(--color-danger, #ef4444) 42%, var(--color-border-subtle));
+  border-radius: 12px;
+  background: var(--color-danger-soft, rgb(239 68 68 / 10%));
+  color: var(--color-text-primary);
+  font-size: 13px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-auto-rows: minmax(240px, auto);
+  gap: 16px;
+}
+
+.gridItem {
+  position: relative;
+  min-width: 0;
+  grid-column: span var(--admin-widget-columns, 1);
+  grid-row: span var(--admin-widget-rows, 1);
+}
+
+.gridItem > :not(.editToolbar) {
+  height: 100%;
+}
+
+.gridItem[data-dragging='true'] {
+  opacity: 0.48;
+}
+
+.workspace[data-editing='true'] .gridItem {
+  padding-top: 46px;
+  border-radius: 16px;
+  outline: 1px dashed color-mix(in srgb, var(--color-brand-primary) 44%, var(--color-border-subtle));
+  outline-offset: 4px;
+}
+
+.workspace[data-editing='true'] .gridItem[data-pinned='true'] {
+  outline-style: solid;
+}
+
+.editToolbar {
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: 4;
+  min-height: 38px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 11px;
+  background: color-mix(in srgb, var(--color-surface-overlay) 94%, transparent);
+  box-shadow: 0 8px 24px rgb(2 6 23 / 12%);
+  overflow-x: auto;
+}
+
+.dragHandle {
+  min-width: 30px;
+  display: inline-grid;
+  place-items: center;
+  color: var(--color-text-secondary);
+  font-weight: 800;
+  letter-spacing: -3px;
+  cursor: grab;
+}
+
+.editToolbar button {
+  min-width: 30px;
+  height: 29px;
+  min-height: 29px;
+  display: inline-grid;
+  place-items: center;
+  padding: 0 6px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-size: 11px;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.editToolbar button:hover:not(:disabled) {
+  border-color: var(--color-border-subtle);
+  background: var(--color-brand-soft);
+  color: var(--color-text-primary);
+}
+
+.editToolbar button:disabled {
+  opacity: 0.34;
+  cursor: not-allowed;
+}
+
+.hiddenPanel {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  border: 1px dashed var(--color-border-strong);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--color-surface) 88%, transparent);
+}
+
+.hiddenPanel > strong {
+  font-size: 13px;
+}
+
+.hiddenPanel > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.hiddenPanel button {
+  min-height: 34px;
+  font-size: 12px;
+}
+
+:root[data-admin-density='compact'] .controls,
+:root[data-admin-density='compact'] .hiddenPanel {
+  padding: 10px;
+}
+
+:root[data-admin-contrast='high'] .controls,
+:root[data-admin-contrast='high'] .hiddenPanel,
+:root[data-admin-contrast='high'] .editToolbar {
+  border-width: 2px;
+}
+
+@media (max-width: 1100px) {
+  .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .gridItem {
+    grid-column: span min(var(--admin-widget-columns, 1), 2);
+  }
+}
+
+@media (max-width: 760px) {
+  .controls {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .rangeControls,
+  .layoutActions {
+    align-items: stretch;
+  }
+
+  .rangeControls label {
+    min-width: min(100%, 190px);
+    flex: 1 1 150px;
+  }
+
+  .layoutActions button {
+    flex: 1 1 auto;
+  }
+}
+
+@media (max-width: 640px) {
+  .grid {
+    grid-template-columns: minmax(0, 1fr);
+    grid-auto-rows: auto;
+  }
+
+  .gridItem {
+    grid-column: 1;
+    grid-row: auto;
+  }
+
+  .workspace[data-editing='true'] .gridItem {
+    padding-top: 48px;
+  }
+
+  .editToolbar {
+    right: auto;
+    max-width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gridItem {
+    transition: none;
+  }
+}
