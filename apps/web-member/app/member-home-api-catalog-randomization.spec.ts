@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 import test from 'node:test';
 
 const desktopHomeData = readFileSync(new URL('./hooks/use-member-home-data.ts', import.meta.url), 'utf8');
+const desktopFeedSections = readFileSync(new URL('./components/member-home/member-source-feed-sections.tsx', import.meta.url), 'utf8');
 const mobileSourceRuntime = readFileSync(new URL('./components/mobile-home/mobile-source-runtime.ts', import.meta.url), 'utf8');
 const catalogModel = readFileSync(new URL('./lib/member-game-catalog-model.ts', import.meta.url), 'utf8');
 const memberHome = readFileSync(new URL('./member-home.tsx', import.meta.url), 'utf8');
@@ -10,6 +11,8 @@ const memberHome = readFileSync(new URL('./member-home.tsx', import.meta.url), '
 test('desktop and mobile home games are loaded from their platform API catalogs and randomized', () => {
   assert.match(desktopHomeData, /getMemberGameCatalog\('pc'\)/);
   assert.match(desktopHomeData, /randomizeGameCatalog\(catalog\)/);
+  assert.match(desktopFeedSections, /getMemberGameCatalog\('pc'\)/);
+  assert.match(desktopFeedSections, /return randomizeGameCatalog\(source\)\.slice\(0, limit\)/);
   assert.match(mobileSourceRuntime, /getMemberGameCatalog\('mobile'\)/);
   assert.match(mobileSourceRuntime, /randomizeGameCatalog\(items\.map\(mapCatalogGame\)\)/);
 });
