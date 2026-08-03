@@ -25,29 +25,56 @@ describe('ProviderSimulatorSlotService', () => {
     }
   });
 
+  it('creates the demo provider game session through the persistence owner', async () => {
+    const persistence = {
+      launchMemberSlot: jest.fn().mockResolvedValue({
+        id: 'session-launch',
+        launchUrl: '/games/demo-launch?game=demo-slot-001&session=session-launch&provider=simulator-provider',
+        providerSessionId: 'sim_session-launch',
+        game: { providerGameCode: 'demo-slot-001' },
+        provider: { code: 'simulator-provider' },
+      }),
+    };
+    const transactions = { gameTransaction: jest.fn() };
+    const service = new ProviderSimulatorSlotService(persistence as any, transactions as any);
+
+    const result = await service.launch({
+      userId: 'user-1',
+      ipAddress: '127.0.0.1',
+      userAgent: 'jest',
+    });
+
+    expect(persistence.launchMemberSlot).toHaveBeenCalledWith({
+      userId: 'user-1',
+      ipAddress: '127.0.0.1',
+      userAgent: 'jest',
+    });
+    expect(result.launchUrl).toContain('/games/demo-launch');
+    expect(result.providerSessionId).toBe('sim_session-launch');
+    expect(transactions.gameTransaction).not.toHaveBeenCalled();
+  });
+
   it('debits BET and credits WIN on the same member wallet with deterministic idempotency ids', async () => {
-    const prisma = {
-      gameSession: {
-        findFirst: jest.fn().mockResolvedValue({
-          id: 'session-1',
-          userId: 'user-1',
-          status: 'LAUNCHED',
-          launchUrl: '/games/demo-launch?game=demo-slot-001&session=session-1',
-          game: {
-            providerGameCode: 'demo-slot-001',
-            name: 'Demo Fortune Slot',
-            category: 'slot',
-            status: 'ACTIVE',
-          },
-          provider: {
-            code: 'simulator-provider',
-            name: 'Simulator Provider',
-            currency: 'THB',
-            status: 'ACTIVE',
-          },
-        }),
-        updateMany: jest.fn().mockResolvedValue({ count: 1 }),
-      },
+    const persistence = {
+      findMemberSlotSession: jest.fn().mockResolvedValue({
+        id: 'session-1',
+        userId: 'user-1',
+        status: 'LAUNCHED',
+        launchUrl: '/games/demo-launch?game=demo-slot-001&session=session-1',
+        game: {
+          providerGameCode: 'demo-slot-001',
+          name: 'Demo Fortune Slot',
+          category: 'slot',
+          status: 'ACTIVE',
+        },
+        provider: {
+          code: 'simulator-provider',
+          name: 'Simulator Provider',
+          currency: 'THB',
+          status: 'ACTIVE',
+        },
+      }),
+      markMemberSlotSessionActive: jest.fn().mockResolvedValue({ count: 1 }),
     };
     const transactions = {
       gameTransaction: jest.fn()
@@ -64,7 +91,7 @@ describe('ProviderSimulatorSlotService', () => {
           replayed: false,
         }),
     };
-    const service = new ProviderSimulatorSlotService(prisma as any, transactions as any);
+    const service = new ProviderSimulatorSlotService(persistence as any, transactions as any);
 
     const result = await service.spin({
       userId: 'user-1',
@@ -90,37 +117,33 @@ describe('ProviderSimulatorSlotService', () => {
       transactionId: 'win_b2176507-2df4-4e4b-b2cb-1929959eb683',
       amount: '75.00',
     }));
-    expect(prisma.gameSession.updateMany).toHaveBeenCalledWith(expect.objectContaining({
-      data: { status: 'ACTIVE' },
-    }));
+    expect(persistence.markMemberSlotSessionActive).toHaveBeenCalledWith('user-1', 'session-1');
   });
 
   it('rejects sessions that were not launched by the simulator', async () => {
-    const prisma = {
-      gameSession: {
-        findFirst: jest.fn().mockResolvedValue({
-          id: 'session-2',
-          userId: 'user-1',
-          status: 'LAUNCHED',
-          launchUrl: 'https://external-provider.example/play',
-          game: {
-            providerGameCode: 'demo-slot-001',
-            name: 'Demo Fortune Slot',
-            category: 'slot',
-            status: 'ACTIVE',
-          },
-          provider: {
-            code: 'real-provider',
-            name: 'External Provider',
-            currency: 'THB',
-            status: 'ACTIVE',
-          },
-        }),
-        updateMany: jest.fn(),
-      },
+    const persistence = {
+      findMemberSlotSession: jest.fn().mockResolvedValue({
+        id: 'session-2',
+        userId: 'user-1',
+        status: 'LAUNCHED',
+        launchUrl: 'https://external-provider.example/play',
+        game: {
+          providerGameCode: 'demo-slot-001',
+          name: 'Demo Fortune Slot',
+          category: 'slot',
+          status: 'ACTIVE',
+        },
+        provider: {
+          code: 'real-provider',
+          name: 'External Provider',
+          currency: 'THB',
+          status: 'ACTIVE',
+        },
+      }),
+      markMemberSlotSessionActive: jest.fn(),
     };
     const transactions = { gameTransaction: jest.fn() };
-    const service = new ProviderSimulatorSlotService(prisma as any, transactions as any);
+    const service = new ProviderSimulatorSlotService(persistence as any, transactions as any);
 
     await expect(service.spin({
       userId: 'user-1',
