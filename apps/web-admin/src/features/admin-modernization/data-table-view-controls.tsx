@@ -67,19 +67,29 @@ export function AdminDataTableViewControls({
   const activeView = envelope.views.find((view) => view.id === envelope.activeViewId) ?? null;
 
   useEffect(() => {
-    const parsed = parseAdminDataViewEnvelope(window.localStorage.getItem(storageKey));
-    setEnvelope(parsed);
-    const active = parsed.views.find((view) => view.id === parsed.activeViewId);
-    if (active) applyView(active);
-    setReady(true);
+    try {
+      const parsed = parseAdminDataViewEnvelope(window.localStorage.getItem(storageKey));
+      setEnvelope(parsed);
+      const active = parsed.views.find((view) => view.id === parsed.activeViewId);
+      if (active) applyView(active);
+    } catch {
+      setEnvelope(emptyEnvelope());
+      setStatus(copy.storageUnavailable);
+    } finally {
+      setReady(true);
+    }
     // Loading must happen once per storage scope; callbacks intentionally use the current table contract.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [storageKey]);
 
   useEffect(() => {
     if (!ready) return;
-    window.localStorage.setItem(storageKey, serializeAdminDataViewEnvelope(envelope));
-  }, [envelope, ready, storageKey]);
+    try {
+      window.localStorage.setItem(storageKey, serializeAdminDataViewEnvelope(envelope));
+    } catch {
+      setStatus(copy.storageUnavailable);
+    }
+  }, [copy.storageUnavailable, envelope, ready, storageKey]);
 
   function applyView(view: AdminSavedView) {
     const nextVisible = visibleColumnIds(normalizeColumnPreferences(availableColumnIds, view.columns, requiredColumnIds));
@@ -139,7 +149,13 @@ export function AdminDataTableViewControls({
     const next = checked
       ? [...new Set([...normalizedVisible, columnId])]
       : normalizedVisible.filter((id) => id !== columnId);
-    onVisibleColumnsChange(next.length > 0 ? next : requiredColumnIds.length > 0 ? requiredColumnIds : [availableColumnIds[0]].filter(Boolean));
+    const firstColumn = availableColumnIds[0];
+    const fallback = requiredColumnIds.length > 0
+      ? requiredColumnIds
+      : firstColumn
+        ? [firstColumn]
+        : [];
+    onVisibleColumnsChange(next.length > 0 ? next : fallback);
     setStatus(copy.columnsUpdated);
   }
 
@@ -194,6 +210,7 @@ const TH_COPY = {
   columns: 'คอลัมน์',
   nameRequired: 'ระบุชื่อมุมมองก่อนบันทึก',
   columnsUpdated: 'อัปเดตคอลัมน์แล้ว',
+  storageUnavailable: 'อุปกรณ์นี้ไม่อนุญาตให้บันทึกมุมมอง',
   applied: (name: string) => `ใช้มุมมอง ${name} แล้ว`,
   saved: (name: string) => `บันทึกมุมมอง ${name} แล้ว`,
   deleted: (name: string) => `ลบมุมมอง ${name} แล้ว`,
@@ -210,6 +227,7 @@ const EN_COPY = {
   columns: 'Columns',
   nameRequired: 'Enter a view name before saving.',
   columnsUpdated: 'Columns updated.',
+  storageUnavailable: 'This device does not allow saved views.',
   applied: (name: string) => `Applied ${name}.`,
   saved: (name: string) => `Saved ${name}.`,
   deleted: (name: string) => `Deleted ${name}.`,
