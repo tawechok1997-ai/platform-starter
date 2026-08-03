@@ -95,8 +95,9 @@ const MOBILE_PROVIDER_CARD_PATHS: Readonly<Record<MobileProviderCategory, Readon
 
 export function mobileProviderCardUrl(category: string, providerCode: string) {
   const normalizedCategory = normalizeCategory(category);
+  if (!normalizedCategory) return '';
   const normalizedProvider = normalizeProviderCode(providerCode);
-  const path = MOBILE_PROVIDER_CARD_PATHS[normalizedCategory]?.[normalizedProvider];
+  const path = MOBILE_PROVIDER_CARD_PATHS[normalizedCategory][normalizedProvider];
   return path ? `${SOURCE_CDN}${path}` : '';
 }
 
@@ -105,7 +106,7 @@ export function mobileProviderArtworkCount() {
     .reduce((total, providers) => total + Object.keys(providers).length, 0);
 }
 
-function normalizeCategory(value: string): MobileProviderCategory {
+function normalizeCategory(value: string): MobileProviderCategory | null {
   const category = value.trim().toLowerCase();
   if (category === 'live') return 'casino';
   if (category === 'arcade') return 'slot';
@@ -121,7 +122,7 @@ function normalizeCategory(value: string): MobileProviderCategory {
     || category === 'card'
     || category === 'lottery'
   ) return category;
-  return 'slot';
+  return null;
 }
 
 function normalizeProviderCode(value: string) {
