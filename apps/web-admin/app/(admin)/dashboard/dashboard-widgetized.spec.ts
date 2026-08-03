@@ -5,6 +5,8 @@ import test from 'node:test';
 const source = readFileSync(new URL('./dashboard-widgetized.tsx', import.meta.url), 'utf8');
 const page = readFileSync(new URL('./page.tsx', import.meta.url), 'utf8');
 const css = readFileSync(new URL('./dashboard-widgetized.module.css', import.meta.url), 'utf8');
+const workspace = readFileSync(new URL('../../../src/features/admin-modernization/admin-widget-workspace.tsx', import.meta.url), 'utf8');
+const registry = readFileSync(new URL('../../../src/features/admin-modernization/admin-dashboard-widget-registry.ts', import.meta.url), 'utf8');
 
 test('dashboard route adopts the shared P4 widget owner', () => {
   assert.match(page, /dashboard-widgetized/);
@@ -25,6 +27,15 @@ test('dashboard adapters preserve API, permission, and per-user layout contracts
   assert.match(source, /access\.risk/);
   assert.match(source, /access\.wallet/);
   assert.match(source, /held\.has\('\*'\)/);
+});
+
+test('P4 follows the P3 workspace event without adding another workspace owner', () => {
+  assert.match(workspace, /admin:workspace-change/);
+  assert.match(workspace, /dataset\.adminWorkspace/);
+  assert.match(workspace, /canShowAdminWidgetInWorkspace/);
+  assert.match(workspace, /data-admin-widget-workspace/);
+  assert.match(registry, /workspaceIds/);
+  assert.doesNotMatch(workspace, /admin_workspace_selection_v1/);
 });
 
 test('dashboard widgets expose range, comparison, state, drill-down, and exports', () => {
