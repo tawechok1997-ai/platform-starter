@@ -1,7 +1,83 @@
+'use client';
+
+import { useEffect } from 'react';
+
+const DESKTOP_QUERY = '(min-width: 901px)';
+const FILTER_SELECTOR = 'main[data-source-game-category] [data-source-filter-panel]';
+const STICKY_TOP_PX = 124;
+
 export default function SourceFilterStickyBehavior() {
+  useEffect(() => {
+    const media = window.matchMedia(DESKTOP_QUERY);
+    let scrollPositions = new WeakMap<EventTarget, number>();
+    let frame = 0;
+    let pendingDelta = 0;
+
+    const syncFilterScroll = () => {
+      frame = 0;
+      const delta = pendingDelta;
+      pendingDelta = 0;
+      if (!media.matches || !delta) return;
+
+      document.querySelectorAll<HTMLElement>(FILTER_SELECTOR).forEach((panel) => {
+        const maximum = Math.max(0, panel.scrollHeight - panel.clientHeight);
+        if (!maximum) return;
+
+        const bounds = panel.getBoundingClientRect();
+        if (bounds.top > STICKY_TOP_PX + 2) return;
+
+        const next = Math.min(maximum, Math.max(0, panel.scrollTop + delta));
+        if (Math.abs(next - panel.scrollTop) > 0.5) panel.scrollTop = next;
+      });
+    };
+
+    const handleScroll = (event: Event) => {
+      const target = event.target;
+      if (!target) return;
+      if (target instanceof HTMLElement && target.matches(FILTER_SELECTOR)) return;
+
+      let position: number;
+      if (target === document) {
+        position = window.scrollY;
+      } else if (target instanceof HTMLElement) {
+        const containsFilter = Array.from(document.querySelectorAll<HTMLElement>(FILTER_SELECTOR))
+          .some((panel) => target.contains(panel));
+        if (!containsFilter) return;
+        position = target.scrollTop;
+      } else {
+        return;
+      }
+
+      const previous = scrollPositions.get(target) ?? position;
+      scrollPositions.set(target, position);
+      const delta = position - previous;
+      if (!delta) return;
+
+      pendingDelta += delta;
+      if (!frame) frame = window.requestAnimationFrame(syncFilterScroll);
+    };
+
+    const handleMediaChange = () => {
+      scrollPositions = new WeakMap<EventTarget, number>();
+      pendingDelta = 0;
+      document.querySelectorAll<HTMLElement>(FILTER_SELECTOR).forEach((panel) => {
+        if (!media.matches) panel.scrollTop = 0;
+      });
+    };
+
+    document.addEventListener('scroll', handleScroll, true);
+    media.addEventListener('change', handleMediaChange);
+
+    return () => {
+      document.removeEventListener('scroll', handleScroll, true);
+      media.removeEventListener('change', handleMediaChange);
+      if (frame) window.cancelAnimationFrame(frame);
+    };
+  }, []);
+
   return (
     <style>{`
-      @media (hover: hover) and (pointer: fine) {
+      @media (min-width: 901px) {
         main[data-source-game-category] {
           overflow-x: clip !important;
           overflow-y: visible !important;
@@ -48,27 +124,48 @@ export default function SourceFilterStickyBehavior() {
 
         main[data-source-game-category] [data-source-filter-panel] {
           position: sticky !important;
-          top: 124px !important;
+          top: ${STICKY_TOP_PX}px !important;
           z-index: 20 !important;
           align-self: start !important;
-          max-height: calc(100vh - 140px) !important;
+          height: auto !important;
+          min-height: 0 !important;
+          max-height: calc(100dvh - 144px) !important;
+          overflow-x: hidden !important;
+          overflow-y: auto !important;
+          overscroll-behavior: contain !important;
+          scrollbar-color: rgba(187, 91, 234, 0.72) rgba(24, 21, 35, 0.38) !important;
+          scrollbar-gutter: stable !important;
+          scrollbar-width: thin !important;
+          transform: none !important;
         }
 
-        /* Match the Home Jackpot sidebar behavior: the complete fishing filter
-         * stays sticky inside the game-layout boundary, follows page scrolling,
-         * and never creates its own internal scroll area. */
-        main[data-source-game-category='fishing'] [data-source-filter-panel] {
+        main[data-source-game-category] [data-source-filter-panel]::-webkit-scrollbar {
+          display: block !important;
+          width: 6px !important;
+        }
+
+        main[data-source-game-category] [data-source-filter-panel]::-webkit-scrollbar-track {
+          background: rgba(24, 21, 35, 0.38) !important;
+        }
+
+        main[data-source-game-category] [data-source-filter-panel]::-webkit-scrollbar-thumb {
+          border-radius: 999px !important;
+          background: rgba(187, 91, 234, 0.72) !important;
+        }
+
+        main[data-source-game-category] [data-source-filter-title] {
           position: sticky !important;
-          inset: auto !important;
-          top: 124px !important;
-          z-index: 20 !important;
-          align-self: start !important;
-          width: 345px !important;
-          height: max-content !important;
-          min-height: 0 !important;
-          max-height: none !important;
-          overflow: hidden !important;
-          transform: none !important;
+          top: 0 !important;
+          z-index: 5 !important;
+          background: radial-gradient(35% 90% at 50% 10%, #bb5bea 0%, #181523 90%) !important;
+        }
+
+        main[data-source-game-category] [data-source-filter-panel] > div:last-child {
+          position: sticky !important;
+          bottom: 0 !important;
+          z-index: 5 !important;
+          background: linear-gradient(180deg, rgba(24, 21, 35, 0.92), #181523 18%) !important;
+          box-shadow: 0 -12px 24px rgba(17, 14, 22, 0.38) !important;
         }
 
         main[data-source-game-category] [data-source-provider-grid] {
@@ -108,11 +205,21 @@ export default function SourceFilterStickyBehavior() {
         }
       }
 
-      @media (hover: none) and (pointer: coarse) and (max-width: 900px) {
+      @media (max-width: 900px) {
         main[data-source-game-category] [data-source-filter-panel] {
           position: relative !important;
           top: auto !important;
           z-index: 0 !important;
+          max-height: none !important;
+          overflow: visible !important;
+          scrollbar-gutter: auto !important;
+        }
+
+        main[data-source-game-category] [data-source-filter-title],
+        main[data-source-game-category] [data-source-filter-panel] > div:last-child {
+          position: relative !important;
+          top: auto !important;
+          bottom: auto !important;
         }
       }
     `}</style>
