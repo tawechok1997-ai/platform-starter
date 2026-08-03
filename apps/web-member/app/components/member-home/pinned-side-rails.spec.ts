@@ -15,19 +15,20 @@ const home = readFileSync(
   'utf8',
 );
 
-test('desktop jackpot sidebar stays natively sticky beneath the header', () => {
-  assert.match(desktop, /setProperty\('position', 'sticky'/);
-  assert.match(desktop, /DEFAULT_STICKY_TOP = 124/);
-  assert.match(desktop, /100dvh/);
+test('desktop jackpot sidebar stays fixed and visible for the full page scroll', () => {
+  assert.match(desktop, /setProperty\('position', 'fixed'/);
+  assert.match(desktop, /DEFAULT_FIXED_TOP = 124/);
+  assert.match(desktop, /desktopSidebarPlaceholder/);
   assert.match(desktop, /setProperty\('overflow-y', 'auto'/);
-  assert.doesNotMatch(desktop, /requestAnimationFrame|addEventListener\('scroll'/);
+  assert.doesNotMatch(desktop, /addEventListener\('scroll'/);
 });
 
-test('mobile category rail stays pinned while the content column scrolls', () => {
+test('mobile category rail stays fixed while only the content column scrolls', () => {
   assert.match(mobile, /RAIL_SELECTOR = '\[data-mobile-section-owner="category-menu"\]'/);
-  assert.match(mobile, /setProperty\('position', 'sticky'/);
+  assert.match(mobile, /setProperty\('position', 'fixed'/);
   assert.match(mobile, /setProperty\('top', `\$\{HEADER_HEIGHT\}px`/);
   assert.match(mobile, /setProperty\('overflow-y', 'auto'/);
-  assert.match(mobile, /mobileCategoryFollow = 'pinned'/);
+  assert.match(mobile, /mobileCategoryFollow = 'fixed'/);
+  assert.doesNotMatch(mobile, /addEventListener\('scroll'/);
   assert.match(home, /<MobileCategoryRailPinRuntime \/>/);
 });
