@@ -226,6 +226,7 @@ export default function MemberSourceContentPopup({
             return (
               <button
                 type="button"
+                role="option"
                 key={item.id}
                 className={active ? 'is-active' : ''}
                 aria-selected={active}
