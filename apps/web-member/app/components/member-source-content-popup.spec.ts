@@ -22,6 +22,13 @@ test('promotion popup keeps the five source categories and three-column desktop 
   assert.match(css, /padding-bottom:\s*41\.6%/);
 });
 
+test('promotion cards open their popup detail directly without route navigation', () => {
+  assert.match(popup, /className="member-source-promotion-card"/);
+  assert.match(popup, /setSelectedCampaign\(campaign\)/);
+  assert.match(popup, /onDetailOpenChange\?\.\(true\)/);
+  assert.doesNotMatch(popup, /member-source-promotion-card[\s\S]{0,240}href=/);
+});
+
 test('activity popup owns a selectable list and a separate detail column', () => {
   assert.match(popup, /member-source-activity-list/);
   assert.match(popup, /member-source-activity-divider/);
