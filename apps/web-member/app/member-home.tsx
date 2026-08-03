@@ -16,7 +16,6 @@ import { DesktopHomeScaffold } from './components/member-home/desktop-home-scaff
 import HomeSidebarScrollController from './components/member-home/home-sidebar-scroll-controller';
 import MobileAuthenticatedAvatarRuntime from './components/mobile-home/mobile-authenticated-avatar-runtime';
 import MobileAuthenticatedHomeRuntime from './components/mobile-home/mobile-authenticated-home-runtime';
-import MobileCategoryRailTransformFollower from './components/mobile-home/mobile-category-rail-transform-follower';
 import MobileCategoryTabRuntime from './components/mobile-home/mobile-category-tab-runtime';
 import MobileCouponPopupBridge from './components/mobile-home/mobile-coupon-popup-bridge';
 import MobileHomeGuidePreview from './components/mobile-home/mobile-home-guide-preview';
@@ -73,7 +72,6 @@ export default function MemberHome(props: MemberHomeProps) {
         <MobileMemberMenuSourceBridge />
         <MobileAuthenticatedAvatarRuntime />
         <MobileCategoryTabRuntime />
-        <MobileCategoryRailTransformFollower />
         <MobileHomeGuidePreview />
         <MobileScrollComfortGuard />
         <MobileHomeMotionRuntime contentVersion={mobileHomeMotionVersion(props.cmsContent)} />
