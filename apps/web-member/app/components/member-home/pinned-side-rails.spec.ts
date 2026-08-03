@@ -24,11 +24,11 @@ test('desktop jackpot sidebar stays viewport fixed and visible for the full page
   assert.doesNotMatch(desktop, /addEventListener\('scroll'/);
 });
 
-test('mobile category rail stays viewport fixed while only the content column scrolls', () => {
+test('mobile category rail starts below top content and sticks when its grid reaches the header', () => {
   assert.doesNotMatch(home, /MobileCategoryRailPinRuntime/);
   assert.doesNotMatch(home, /MobileCategoryRailTransformFollower/);
-  assert.match(mobileCss, /data-mobile-section-owner='category-menu'[\s\S]*position:\s*fixed\s*!important/);
-  assert.match(mobileCss, /top:\s*calc\(60px \+ env\(safe-area-inset-top, 0px\)\)\s*!important/);
+  assert.match(mobileCss, /data-mobile-section-owner='category-menu'[\s\S]*position:\s*sticky\s*!important/);
+  assert.match(mobileCss, /top:\s*calc\(64px \+ env\(safe-area-inset-top, 0px\)\)\s*!important/);
   assert.match(mobileCss, /overflow-y:\s*auto\s*!important/);
-  assert.doesNotMatch(mobileCss, /position:\s*sticky\s*!important[\s\S]*data-mobile-section-owner='category-menu'/);
+  assert.doesNotMatch(mobileCss, /data-mobile-section-owner='category-menu'[\s\S]*position:\s*fixed\s*!important/);
 });
