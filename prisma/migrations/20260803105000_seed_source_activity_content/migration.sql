@@ -66,7 +66,7 @@ WITH source_content AS (
             THEN (SELECT "value_json" FROM existing_setting)->'announcements'
           ELSE '[]'::jsonb
         END
-      ) AS entry
+      ) AS entries(entry)
       WHERE entry->>'id' NOT IN (
         'source-activity-predict-lottery',
         'source-activity-turnover-reward'
