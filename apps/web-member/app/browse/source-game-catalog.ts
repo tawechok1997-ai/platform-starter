@@ -91,14 +91,13 @@ export async function loadSourceCategoryCatalog(
   const uniqueItems = Array.from(
     new Map(rawItems.map((item) => [catalogIdentity(item, platform), item] as const)).values(),
   );
-  const localizedProviders = configuredProviders.map((provider) => localizeProvider(provider, platform));
   const games = uniqueItems
-    .map((item) => mapCatalogGame(item, localizedProviders, platform))
+    .map((item) => mapCatalogGame(item, configuredProviders, platform))
     .filter((item): item is SourceGameItem => Boolean(item));
 
   return {
     games,
-    providers: buildCatalogProviders(uniqueItems, games, localizedProviders, platform),
+    providers: buildCatalogProviders(uniqueItems, games, configuredProviders),
     total: games.length,
     incomplete: outcomes.some((outcome) => outcome.incomplete),
   };
@@ -201,9 +200,7 @@ export function mapCatalogGame(
       configuredProvider?.background,
       configuredProvider?.title,
       configuredProvider?.avatar,
-    ]
-      .map((source) => resolveAssetForPlatform(requestedPlatform, source))
-      .filter(Boolean),
+    ].filter((source): source is string => Boolean(source)),
   );
   const image = resolveDistinctGameAsset(
     requestedPlatform,
@@ -218,8 +215,7 @@ export function mapCatalogGame(
   if (!image) return null;
 
   const tags = catalogTags(item);
-  const providerBadge = resolveAssetForPlatform(
-    requestedPlatform,
+  const providerBadge = firstText(
     item.provider?.badgeUrl,
     item.provider?.logoUrl,
     configuredProvider?.badge,
@@ -275,7 +271,6 @@ function buildCatalogProviders(
   items: readonly CatalogGame[],
   games: readonly SourceGameItem[],
   configuredProviders: readonly SourceGameProvider[],
-  platform: SourceCatalogPlatform,
 ) {
   const configured = new Map(
     configuredProviders.map((provider) => [normalizeProviderCode(provider.code), provider] as const),
@@ -291,8 +286,7 @@ function buildCatalogProviders(
     if (!code || providers.has(code)) continue;
     const configuredProvider = configured.get(code);
     const firstGame = firstGameByProvider.get(code);
-    const badge = resolveAssetForPlatform(
-      platform,
+    const badge = firstText(
       item.provider?.badgeUrl,
       item.provider?.logoUrl,
       configuredProvider?.badge,
@@ -303,28 +297,24 @@ function buildCatalogProviders(
       code,
       name: firstText(item.provider?.name, configuredProvider?.name, code.toUpperCase()),
       badge,
-      card: resolveAssetForPlatform(
-        platform,
+      card: firstText(
         item.provider?.cardUrl,
         configuredProvider?.card,
         providerAssetSource('card', code),
         firstGame?.image,
         badge,
       ),
-      background: resolveAssetForPlatform(
-        platform,
+      background: firstText(
         item.provider?.backgroundUrl,
         configuredProvider?.background,
         providerAssetSource('bg', code),
       ),
-      title: resolveAssetForPlatform(
-        platform,
+      title: firstText(
         item.provider?.titleUrl,
         configuredProvider?.title,
         providerAssetSource('title', code),
       ),
-      avatar: resolveAssetForPlatform(
-        platform,
+      avatar: firstText(
         item.provider?.avatarUrl,
         configuredProvider?.avatar,
         providerAssetSource('avatar', code),
@@ -351,20 +341,6 @@ function mediaPlatform(metadata: unknown) {
   return value === 'desktop' ? 'pc' : value;
 }
 
-function localizeProvider(
-  provider: SourceGameProvider,
-  platform: SourceCatalogPlatform,
-): SourceGameProvider {
-  return {
-    ...provider,
-    badge: resolveAssetForPlatform(platform, provider.badge),
-    card: resolveAssetForPlatform(platform, provider.card),
-    background: resolveAssetForPlatform(platform, provider.background),
-    title: resolveAssetForPlatform(platform, provider.title),
-    avatar: resolveAssetForPlatform(platform, provider.avatar),
-  };
-}
-
 function resolveDistinctGameAsset(
   platform: SourceCatalogPlatform,
   excluded: ReadonlySet<string>,
@@ -377,14 +353,6 @@ function resolveDistinctGameAsset(
     if (resolved && !excluded.has(resolved)) return resolved;
   }
   return '';
-}
-
-function resolveAssetForPlatform(
-  platform: SourceCatalogPlatform,
-  ...values: Array<string | null | undefined>
-) {
-  const source = firstText(...values);
-  return source ? resolveLocalAssetOrSource(source, platform) : '';
 }
 
 function providerAssetSource(kind: 'badge' | 'card' | 'bg' | 'title' | 'avatar', code: string) {
