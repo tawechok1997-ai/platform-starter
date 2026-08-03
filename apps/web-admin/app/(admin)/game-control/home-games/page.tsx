@@ -408,13 +408,23 @@ export default function HomeGameSettingsPage() {
 function defaultSettings(): HomeSettings {
   return {
     version: 1,
-    sections: Object.fromEntries(SECTION_KEYS.map((section) => [section, {
-      mode: 'hybrid',
-      pc: [],
-      mobile: [],
-      limitPc: DEFAULT_LIMITS[section].pc,
-      limitMobile: DEFAULT_LIMITS[section].mobile,
-    }])) as HomeSettings['sections'],
+    sections: {
+      featured: defaultSectionSettings('featured'),
+      popular: defaultSectionSettings('popular'),
+      online: defaultSectionSettings('online'),
+      classic: defaultSectionSettings('classic'),
+    },
+  };
+}
+
+function defaultSectionSettings(section: HomeSection): SectionSettings {
+  const limits = DEFAULT_LIMITS[section];
+  return {
+    mode: 'hybrid',
+    pc: [],
+    mobile: [],
+    limitPc: limits.pc,
+    limitMobile: limits.mobile,
   };
 }
 
