@@ -21,8 +21,8 @@ test('confirm dialogs and drawers use responsive entry transitions', () => {
 });
 
 test('overlay drawer styles are isolated from the permanent admin sidebar', () => {
-  assert.match(drawerSource, /className="admin-overlay-drawer-layer"/);
-  assert.match(drawerSource, /admin-overlay-drawer admin-overlay-drawer--/);
+  assert.match(drawerSource, /\$\{styles\.layer\} admin-overlay-drawer-layer/);
+  assert.match(drawerSource, /\$\{styles\.drawer\} \$\{sizeClass\} admin-overlay-drawer/);
   assert.doesNotMatch(drawerSource, /className={`admin-drawer admin-drawer--/);
 });
 
