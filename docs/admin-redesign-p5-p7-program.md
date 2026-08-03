@@ -96,8 +96,8 @@ P5, P6 และ P7 ถูกปิดเป็น Program เดียว โ�
 - [x] P7 มี Canonical Drawer Implementation เดียว
 - [x] ไม่มี Component owner ชื่อซ้อนหรือ Versioned override ใน Scope ที่ตรวจ
 - [x] Admin verify เรียก P5–P7 audit ทุกครั้ง
-- [ ] Sync `main` ล่าสุดบน Final head
+- [x] Sync `main` ล่าสุดบน Final integration head
 - [ ] Required CI ผ่านบน Final head เดียวกัน
 - [ ] Merge PR #492 และยืนยัน Main commit
 
-Implementation ปิดครบแล้ว เหลือเฉพาะ Final integration gates ด้านบนก่อน Merge
+Implementation และ Main integration ปิดครบแล้ว เหลือเฉพาะ Required CI และ Final merge
