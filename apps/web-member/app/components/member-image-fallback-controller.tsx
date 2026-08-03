@@ -6,14 +6,18 @@ import { MEMBER_IMAGE_FALLBACK } from './image-fallback';
 const DECORATIVE_CLASS_PATTERN = /(background|backdrop|blur|glow|shine|wash|fade|mask)/i;
 const SOURCE_PROVIDER_THEME_PATTERN = /\/providers\/set\/1_1_(?:bg|title|avatar)\//i;
 const GAME_ART_OWNER_SELECTOR = [
+  '[data-no-fallback="true"]',
   '[data-game-id]',
   '[data-game-code]',
   '[data-game-name]',
   '[data-game-tags]',
+  '[data-game-card]',
   '.source-highlight-game',
   '.source-popular-card',
   '.source-online-card',
   '.reference-game-tile',
+  '.v47-mobile-game-grid > a',
+  '.member-game-card',
 ].join(',');
 
 export default function MemberImageFallbackController() {
@@ -23,10 +27,9 @@ export default function MemberImageFallbackController() {
       if (!(image instanceof HTMLImageElement)) return;
 
       // Game cards own their image recovery because they know the provider,
-      // game identity, remote source, and which catalog item should replace a
-      // broken one. A generic NOAH placeholder here would run in capture phase
-      // before React's onError and prevent the card from advancing to the next
-      // valid API game.
+      // platform, game identity, remote source, and which catalog item should
+      // replace a broken one. A generic brand placeholder here runs in capture
+      // phase before React's onError and can separate artwork from its link.
       if (image.closest(GAME_ART_OWNER_SELECTOR)) return;
 
       const originalMobileSource = image.dataset.mobileOriginalSource;
