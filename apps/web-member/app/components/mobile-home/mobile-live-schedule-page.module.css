@@ -90,8 +90,8 @@
 .sort {
   display: grid;
   grid-template-columns: repeat(2, auto);
-  border-radius: 5px;
   overflow: hidden;
+  border-radius: 5px;
 }
 
 .sort button {
@@ -105,22 +105,12 @@
   cursor: pointer;
 }
 
-.sort button:first-child {
-  border-radius: 5px 0 0 5px;
-}
+.sort button:first-child { border-radius: 5px 0 0 5px; }
+.sort button:last-child { border-radius: 0 5px 5px 0; }
+.sort .active { color: #fff; border-color: transparent; background: #7100bd; font-weight: 700; }
 
-.sort button:last-child {
-  border-radius: 0 5px 5px 0;
-}
-
-.sort .active {
-  color: #fff;
-  border-color: transparent;
-  background: #7100bd;
-  font-weight: 700;
-}
-
-.leagueList {
+.leagueList,
+.skeleton {
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -150,16 +140,8 @@
   font-weight: 700;
 }
 
-.league > header strong {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.league > header time {
-  flex: 0 0 auto;
-  color: #a44df0;
-}
+.league > header strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.league > header time { flex: 0 0 auto; color: #a44df0; }
 
 .match {
   display: grid;
@@ -174,13 +156,8 @@
   background: #15131a;
 }
 
-.match:nth-child(even) {
-  background: #25212e;
-}
-
-.match:last-child {
-  border-radius: 0 0 7px 7px;
-}
+.match:nth-child(even) { background: #25212e; }
+.match:last-child { border-radius: 0 0 7px 7px; }
 
 .matchTime {
   display: flex;
@@ -190,12 +167,7 @@
   gap: 3px;
 }
 
-.matchTime time {
-  color: #a44df0;
-  font-size: 11px;
-  font-weight: 700;
-}
-
+.matchTime time { color: #a44df0; font-size: 11px; font-weight: 700; }
 .matchTime b {
   display: inline-flex;
   min-width: 30px;
@@ -225,28 +197,10 @@
   gap: 8px;
 }
 
-.team > span:last-child {
-  overflow: hidden;
-  font-size: 12px;
-  font-weight: 400;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.logo {
-  display: grid;
-  width: 26px;
-  height: 26px;
-  place-items: center;
-}
-
+.team > span:last-child { overflow: hidden; font-size: 12px; font-weight: 400; text-overflow: ellipsis; white-space: nowrap; }
+.logo { display: grid; width: 26px; height: 26px; place-items: center; }
 .logo img,
-.logo svg {
-  display: block;
-  width: 26px;
-  height: 26px;
-  object-fit: contain;
-}
+.logo svg { display: block; width: 26px; height: 26px; object-fit: contain; }
 
 .actions {
   display: flex;
@@ -273,22 +227,12 @@
   cursor: pointer;
 }
 
-.actions button:disabled {
-  opacity: .48;
-  cursor: default;
-}
+.actions button:disabled { opacity: .48; cursor: default; }
+.actions .watchLive { border-color: transparent; background: #ff0402; }
+.actions .bet { border-color: transparent; background: linear-gradient(180deg, #9d37dd 0%, #7100bd 100%); }
 
-.actions .watchLive {
-  border-color: transparent;
-  background: #ff0402;
-}
-
-.actions .bet {
-  border-color: transparent;
-  background: linear-gradient(180deg, #9d37dd 0%, #7100bd 100%);
-}
-
-.state {
+.state,
+.maintenancePreview {
   display: flex;
   min-height: 190px;
   padding: 24px;
@@ -303,17 +247,12 @@
   text-align: center;
 }
 
-.state strong {
-  color: #fff;
-  font-size: 14px;
-}
-
-.state span {
-  font-size: 12px;
-  line-height: 18px;
-}
-
-.state button {
+.state strong,
+.maintenancePreview strong { color: #fff; font-size: 14px; }
+.state span,
+.maintenancePreview p { margin: 0; font-size: 12px; line-height: 18px; }
+.state button,
+.maintenancePreview button {
   min-width: 74px;
   height: 28px;
   margin-top: 4px;
@@ -327,10 +266,14 @@
   cursor: pointer;
 }
 
-.skeleton {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+.maintenancePreview > div { display: flex; align-items: center; gap: 9px; }
+.maintenancePulse {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #ffb74d;
+  box-shadow: 0 0 0 6px rgb(255 183 77 / 12%);
+  animation: maintenancePulse 1.6s ease-in-out infinite;
 }
 
 .skeleton section {
@@ -350,51 +293,196 @@
   animation: liveSkeleton 1.2s infinite;
 }
 
-.skeleton div {
-  height: 32px;
-  background: rgb(255 255 255 / 5%);
+.skeleton div { height: 32px; background: rgb(255 255 255 / 5%); }
+.skeleton span { display: block; height: 76px; border-top: 1px solid #504a60; background: rgb(255 255 255 / 2%); }
+
+.maintenanceOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 201;
+  display: grid;
+  padding: 16px;
+  place-items: center;
+  overflow-y: auto;
+  background: rgb(0 0 0 / 80%);
+  backdrop-filter: blur(2px);
 }
 
-.skeleton span {
-  display: block;
-  height: 76px;
-  border-top: 1px solid #504a60;
-  background: rgb(255 255 255 / 2%);
+.maintenanceDialog {
+  position: relative;
+  display: flex;
+  width: min(480px, 100%);
+  max-height: calc(100dvh - 32px);
+  padding: 56px 28px 28px;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  overflow: hidden auto;
+  border-radius: 10px;
+  background: linear-gradient(0deg, #1b1824 -5.86%, #3f3b4b 104.05%);
+  box-shadow: 0 1px 24px 4px rgb(90 90 90 / 20%);
+  text-align: center;
 }
 
-@keyframes liveSkeleton {
-  to { transform: translateX(100%); }
+.maintenanceBorder {
+  position: absolute;
+  inset: 0;
+  border: 1px solid #413e4b;
+  border-radius: 10px;
+  pointer-events: none;
+}
+
+.maintenanceCap {
+  position: absolute;
+  top: -1px;
+  left: 50%;
+  width: 192px;
+  height: 36px;
+  transform: translateX(-50%);
+}
+
+.maintenanceCap svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.maintenanceCap span {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.maintenanceClose {
+  position: absolute;
+  top: 12px;
+  right: 13px;
+  display: grid;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  place-items: center;
+  border: 1px solid rgb(255 255 255 / 12%);
+  border-radius: 50%;
+  color: #fff;
+  background: rgb(20 17 27 / 46%);
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.maintenanceIcon {
+  display: grid;
+  width: 78px;
+  height: 78px;
+  margin-top: 4px;
+  place-items: center;
+  border: 1px solid rgb(210 146 255 / 38%);
+  border-radius: 24px;
+  color: #d99bff;
+  background: linear-gradient(145deg, rgb(148 79 232 / 28%), rgb(36 28 46 / 78%));
+  box-shadow: 0 0 36px rgb(148 79 232 / 24%);
+}
+
+.maintenanceIcon svg { width: 40px; height: 40px; }
+.maintenanceDialog h2 { margin: 0; color: #fff; font-size: 24px; line-height: 1.3; }
+.maintenanceDialog > p { max-width: 390px; margin: 0; color: #d0cad8; font-size: 14px; line-height: 1.7; }
+
+.maintenanceActions {
+  display: flex;
+  width: 100%;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.maintenanceActions button {
+  min-width: 120px;
+  min-height: 38px;
+  padding: 7px 16px;
+  border: 1px solid rgb(255 255 255 / 13%);
+  border-radius: 8px;
+  color: #fff;
+  background: linear-gradient(165deg, #944fe8 -17%, #7600a8 91%);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.maintenanceActions button:last-child { background: rgb(20 17 27 / 58%); }
+
+@keyframes liveSkeleton { to { transform: translateX(100%); } }
+@keyframes maintenancePulse {
+  0%, 100% { opacity: .6; transform: scale(.9); }
+  50% { opacity: 1; transform: scale(1.12); }
+}
+
+@media (min-width: 901px) {
+  .page {
+    width: min(1180px, calc(100vw - 48px));
+    max-width: 1180px;
+    min-height: 70vh;
+    margin: 28px auto 96px;
+    overflow: hidden;
+    border: 1px solid rgb(255 255 255 / 7%);
+    border-radius: 18px;
+    box-shadow: 0 22px 70px rgb(0 0 0 / 30%);
+  }
+
+  .header {
+    position: relative;
+    height: 64px;
+    padding: 0 18px;
+    grid-template-columns: 56px minmax(0, 1fr) 56px;
+    border-bottom: 1px solid rgb(255 255 255 / 6%);
+  }
+
+  .header h1 { font-size: 22px; }
+  .header button { width: 48px; height: 48px; }
+
+  .sportTabs {
+    height: 58px;
+    padding: 0 28px;
+    justify-content: flex-start;
+    border-bottom: 1px solid rgb(255 255 255 / 6%);
+  }
+
+  .sportTabs span { min-width: 90px; height: 34px; padding-inline: 18px; font-size: 14px; }
+  .content { padding: 0 28px 52px; }
+  .toolbar { min-height: 76px; padding-top: 22px; }
+  .toolbar h2 { font-size: 20px; }
+  .sort button { height: 30px; padding-inline: 12px; font-size: 12px; }
+  .leagueList { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; align-items: start; }
+  .league > header { min-height: 40px; padding-inline: 16px; }
+  .league > header strong,
+  .league > header time { font-size: 14px; }
+  .match { min-height: 94px; padding: 13px 16px; grid-template-columns: 58px minmax(0, 1fr) 140px; gap: 16px; }
+  .matchTime time { font-size: 13px; }
+  .team { grid-template-columns: 30px minmax(0, 1fr); gap: 10px; }
+  .team > span:last-child { font-size: 13px; }
+  .logo,
+  .logo img,
+  .logo svg { width: 30px; height: 30px; }
+  .actions { min-width: 140px; }
+  .actions button { min-height: 30px; font-size: 11px; }
+  .maintenancePreview { min-height: 330px; }
+  .maintenancePreview strong { font-size: 20px; }
+  .maintenancePreview p { font-size: 14px; }
+  .maintenancePreview button { height: 34px; padding-inline: 18px; font-size: 13px; }
 }
 
 @media (max-width: 359px) {
-  .content {
-    padding-inline: 8px;
-  }
-
-  .match {
-    padding: 9px 7px;
-    grid-template-columns: 36px minmax(0, 1fr) 72px;
-    gap: 6px;
-  }
-
-  .league > header {
-    padding-inline: 8px;
-  }
-
+  .content { padding-inline: 8px; }
+  .match { padding: 9px 7px; grid-template-columns: 36px minmax(0, 1fr) 72px; gap: 6px; }
+  .league > header { padding-inline: 8px; }
   .league > header strong,
-  .league > header time {
-    font-size: 11px;
-  }
-
-  .team {
-    grid-template-columns: 22px minmax(0, 1fr);
-    gap: 6px;
-  }
-
+  .league > header time { font-size: 11px; }
+  .team { grid-template-columns: 22px minmax(0, 1fr); gap: 6px; }
   .logo,
   .logo img,
-  .logo svg {
-    width: 22px;
-    height: 22px;
-  }
+  .logo svg { width: 22px; height: 22px; }
+  .maintenanceDialog { padding: 52px 18px 22px; gap: 14px; }
+  .maintenanceDialog h2 { font-size: 20px; }
+  .maintenanceActions { flex-direction: column; }
+  .maintenanceActions button { width: 100%; }
 }
