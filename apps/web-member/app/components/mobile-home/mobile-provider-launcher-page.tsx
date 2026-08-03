@@ -7,7 +7,6 @@ import {
 } from '../../browse/source-game-catalog';
 import type { SourceGameProvider } from '../../browse/source-game-category-page';
 import { useMemberLocale } from '../../member-locale-provider';
-import { resolveLocalAssetOrSource } from '../../lib/local-asset-by-basename';
 import styles from './mobile-casino-provider-page.module.css';
 
 export type MobileProviderLauncherCard = {
@@ -83,9 +82,23 @@ export default function MobileProviderLauncherPage({
     return result;
   }, [catalog?.games]);
 
+  const providerCards = useMemo(() => {
+    const apiProviders = new Map(
+      (catalog?.providers ?? []).map((provider) => [normalizeProviderCode(provider.code), provider] as const),
+    );
+    return providers.map((provider) => {
+      const apiProvider = apiProviders.get(normalizeProviderCode(provider.code));
+      return {
+        ...provider,
+        name: apiProvider?.name || provider.name,
+        source: apiProvider?.card || provider.source,
+      };
+    });
+  }, [catalog?.providers, providers]);
+
   const visibleProviders = useMemo(
-    () => filter === 'new' ? providers.filter((provider) => provider.isNew) : providers,
-    [filter, providers],
+    () => filter === 'new' ? providerCards.filter((provider) => provider.isNew) : providerCards,
+    [filter, providerCards],
   );
 
   return (
@@ -139,7 +152,6 @@ export default function MobileProviderLauncherPage({
 
       <div className={`${styles.grid} ${stacked ? styles.stackedGrid : ''}`}>
         {visibleProviders.map((provider) => {
-          const resolvedSource = resolveLocalAssetOrSource(provider.source, 'mobile');
           const className = [
             styles.card,
             provider.layout !== 'half' ? styles.wide : '',
@@ -166,19 +178,12 @@ export default function MobileProviderLauncherPage({
             >
               {provider.isNew ? <NewBadge label="NEW" /> : null}
               <img
-                src={resolvedSource}
+                src={provider.source}
                 alt={provider.name}
                 loading="lazy"
                 data-provider-image-source={provider.source}
-                onError={(event) => {
-                  const image = event.currentTarget;
-                  if (resolvedSource !== provider.source && image.dataset.remoteFallback !== 'true') {
-                    image.dataset.remoteFallback = 'true';
-                    image.src = provider.source;
-                    return;
-                  }
-                  hideProviderCard(image);
-                }}
+                data-provider-image-owner="api"
+                onError={(event) => hideProviderCard(event.currentTarget)}
               />
             </a>
           );
