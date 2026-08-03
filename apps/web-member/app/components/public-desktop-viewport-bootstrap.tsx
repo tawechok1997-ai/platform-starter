@@ -7,7 +7,6 @@ import {
 } from '../lib/member-document-overlay-lock';
 
 const DESKTOP_DESIGN_WIDTH = 1455;
-const MOBILE_LAYOUT_MAX_WIDTH = 900;
 const WIDTH_CONDITION = /\(\s*(min|max)-width\s*:\s*(\d+(?:\.\d+)?)px\s*\)/gi;
 
 type WidthCondition = {
@@ -94,25 +93,13 @@ export default function PublicDesktopViewportBootstrap() {
       document.body.dataset.memberDesktopScaled = 'true';
     };
 
-    const enterMobileViewport = () => {
-      if (mediaRulesVirtualized) restoreMediaRules();
-      restoreCanvas();
-      document.documentElement.dataset.memberViewportMode = 'mobile';
-    };
-
     const syncViewport = () => {
       window.cancelAnimationFrame(frame);
-
-      // Restore the unscaled canvas synchronously on Mobile. Waiting one frame
-      // leaves the previous desktop zoom visible and can shrink the entire app.
-      if (isMobileOnlyDevice()) {
-        enterMobileViewport();
-        return;
-      }
-
       frame = window.requestAnimationFrame(() => {
         if (isMobileOnlyDevice()) {
-          enterMobileViewport();
+          if (mediaRulesVirtualized) restoreMediaRules();
+          restoreCanvas();
+          document.documentElement.dataset.memberViewportMode = 'mobile';
           return;
         }
 
@@ -165,12 +152,7 @@ export default function PublicDesktopViewportBootstrap() {
     window.addEventListener(MEMBER_DESKTOP_VIEWPORT_RESYNC_EVENT, syncViewport);
 
     styleObserver = new MutationObserver((records) => {
-      if (!records.some(hasStylesheetMutation)) return;
-      if (isMobileOnlyDevice()) {
-        enterMobileViewport();
-        return;
-      }
-      scheduleStyleSync();
+      if (records.some(hasStylesheetMutation)) scheduleStyleSync();
     });
     styleObserver.observe(document.head, { childList: true, subtree: true });
 
@@ -231,13 +213,6 @@ function shouldUseDesktopCanvas() {
 
 function isMobileOnlyDevice() {
   if (!nativeMatchMedia) return false;
-
-  const viewportWidth = Math.max(1, window.visualViewport?.width || window.innerWidth);
-  const pathname = window.location.pathname.toLowerCase();
-  if (viewportWidth <= MOBILE_LAYOUT_MAX_WIDTH || pathname === '/mobile' || pathname.startsWith('/mobile/')) {
-    return true;
-  }
-
   const hasDesktopPointer = nativeMatchMedia('(any-hover: hover), (any-pointer: fine)').matches;
   const coarsePrimary = nativeMatchMedia('(hover: none) and (pointer: coarse)').matches;
   return coarsePrimary && !hasDesktopPointer;

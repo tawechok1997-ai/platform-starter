@@ -1,9 +1,9 @@
 /* Final visual boundary between the independently rendered Mobile and Desktop homes.
  *
  * MemberHome already mounts exactly one component tree through matchMedia. These
- * guards prevent stale viewport ownership and Desktop canvas geometry from
- * leaking into the Mobile render during hydration, resize, route changes, or
- * browser back/forward-cache restoration.
+ * guards are deliberately geometry-free: they only prevent a stale tree from
+ * becoming visible during hydration or a viewport-mode transition, so the
+ * current pixel output remains unchanged.
  */
 
 html[data-member-viewport-mode='mobile'] :is(
@@ -38,62 +38,4 @@ html[data-member-viewport-mode='desktop'] :is(
   display: none !important;
   visibility: hidden !important;
   pointer-events: none !important;
-}
-
-/* Desktop uses a 1455px canvas with inline zoom. A stale inline snapshot can
- * survive a resize, route transition, DevTools device-mode switch, or bfcache
- * restoration. Mobile must override that geometry before React hydrates.
- */
-html[data-member-viewport-mode='mobile'],
-html[data-member-viewport-mode='mobile'] body {
-  width: 100% !important;
-  min-width: 0 !important;
-  max-width: none !important;
-  margin: 0 !important;
-  transform: none !important;
-  zoom: 1 !important;
-}
-
-html[data-member-viewport-mode='mobile'] #member-desktop-scale-shell,
-html[data-member-viewport-mode='mobile'] #member-desktop-scale-canvas {
-  display: block !important;
-  width: 100% !important;
-  min-width: 0 !important;
-  max-width: none !important;
-  margin: 0 !important;
-  transform: none !important;
-  transform-origin: initial !important;
-  zoom: 1 !important;
-}
-
-html[data-member-viewport-mode='mobile'] #member-desktop-scale-shell {
-  overflow-x: clip !important;
-}
-
-@media (max-width: 900px) {
-  html,
-  body {
-    width: 100% !important;
-    min-width: 0 !important;
-    max-width: none !important;
-    margin: 0 !important;
-    transform: none !important;
-    zoom: 1 !important;
-  }
-
-  #member-desktop-scale-shell,
-  #member-desktop-scale-canvas {
-    display: block !important;
-    width: 100% !important;
-    min-width: 0 !important;
-    max-width: none !important;
-    margin: 0 !important;
-    transform: none !important;
-    transform-origin: initial !important;
-    zoom: 1 !important;
-  }
-
-  #member-desktop-scale-shell {
-    overflow-x: clip !important;
-  }
 }
