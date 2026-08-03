@@ -8,6 +8,7 @@ export type AdminDateRangePreset = 'today' | '7d' | '30d' | '90d' | 'custom';
 export type AdminComparePeriod = 'none' | 'previous-period' | 'previous-year';
 export type AdminWidgetColumnSpan = 1 | 2 | 3 | 4;
 export type AdminWidgetRowSpan = 1 | 2 | 3;
+export type AdminWidgetWorkspaceId = 'finance' | 'payments' | 'growth' | 'manager' | 'system';
 
 export type AdminDateRange = {
   start: string;
@@ -36,6 +37,7 @@ export type AdminWidgetDefinition = {
   description?: string | undefined;
   chartKind?: AdminChartKind | undefined;
   requiredPermissions?: readonly string[] | undefined;
+  workspaceIds?: readonly AdminWidgetWorkspaceId[] | undefined;
   defaultLayout: Omit<AdminWidgetLayoutItem, 'widgetId' | 'hidden'> & { hidden?: boolean | undefined };
   allowFullscreen?: boolean | undefined;
   allowDrillDown?: boolean | undefined;
@@ -65,6 +67,7 @@ export function createAdminWidgetRegistry(definitions: readonly AdminWidgetDefin
     return Object.freeze({
       ...definition,
       requiredPermissions: Object.freeze([...(definition.requiredPermissions ?? [])]),
+      workspaceIds: Object.freeze([...(definition.workspaceIds ?? [])]),
       exportFormats: Object.freeze([...(definition.exportFormats ?? [])]),
       defaultLayout: Object.freeze({ ...definition.defaultLayout }),
     });
@@ -84,6 +87,15 @@ export function canAccessAdminWidget(definition: AdminWidgetDefinition, permissi
   if (required.length === 0) return true;
   const held = new Set(permissions);
   return held.has('*') || required.some((permission) => held.has(permission));
+}
+
+export function canShowAdminWidgetInWorkspace(
+  definition: AdminWidgetDefinition,
+  workspace: AdminWidgetWorkspaceId | 'all',
+): boolean {
+  if (workspace === 'all') return true;
+  const workspaceIds = definition.workspaceIds ?? [];
+  return workspaceIds.length === 0 || workspaceIds.includes(workspace);
 }
 
 export function restoreDefaultAdminWidgetLayout(registry: AdminWidgetRegistry): AdminWidgetLayoutItem[] {
