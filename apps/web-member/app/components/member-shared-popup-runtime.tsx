@@ -7,9 +7,10 @@ import { useMemberRuntime } from '../member-runtime-provider';
 import type { PromotionView } from '../browse/browse-promotions-cms';
 import { MemberModal } from './member-modal-system';
 import '../member-promotion-detail-popup.css';
+import '../member-source-content-popup.css';
 
-const BrowsePromotionsCms = dynamic(
-  () => import('../browse/browse-promotions-cms').then((module) => module.BrowsePromotionsCms),
+const MemberSourceContentPopup = dynamic(
+  () => import('./member-source-content-popup'),
   { ssr: false, loading: () => <div className="member-shared-popup-loading">กำลังโหลด...</div> },
 );
 
@@ -90,6 +91,9 @@ export default function MemberSharedPopupRuntime({
   const title = popup ? popupTitle(popup, locale) : '';
   const icon = popup ? popupIcon(popup, icons) : icons.promotion;
   const showPromotionBack = promotionDetailOpen && popup !== 'language';
+  const contentKind = popup && popup !== 'language'
+    ? (popup === 'all' ? 'promotion' : popup)
+    : null;
 
   return (
     <MemberModal
@@ -98,7 +102,7 @@ export default function MemberSharedPopupRuntime({
       ariaLabel={title}
       mode="sheet"
       backdropClassName="member-shared-popup-backdrop"
-      panelClassName={`member-shared-popup${showPromotionBack ? ' is-promotion-detail' : ''}`}
+      panelClassName={`member-shared-popup${showPromotionBack ? ' is-promotion-detail' : ''}${contentKind ? ` is-content-${contentKind}` : ''}`}
       contentClassName="member-shared-popup-content"
       header={popup ? (
         <>
@@ -135,15 +139,10 @@ export default function MemberSharedPopupRuntime({
           }}
         />
       ) : popup ? (
-        <BrowsePromotionsCms
-          embedded
-          initialView={popup}
+        <MemberSourceContentPopup
+          view={popup}
           detailBackSignal={detailBackSignal}
           onDetailOpenChange={setPromotionDetailOpen}
-          onViewChange={(view) => {
-            setPromotionDetailOpen(false);
-            setPopup(view);
-          }}
         />
       ) : null}
     </MemberModal>
@@ -191,13 +190,11 @@ function popupTitle(kind: MemberSharedPopupKind, locale: MemberLocale) {
     if (kind === 'language') return 'Change language';
     if (kind === 'activity') return 'Activities';
     if (kind === 'news') return 'News';
-    if (kind === 'all') return 'Promotions, activities and news';
     return 'Promotions';
   }
   if (kind === 'language') return 'เปลี่ยนภาษา';
   if (kind === 'activity') return 'กิจกรรม';
   if (kind === 'news') return 'ข่าวสาร';
-  if (kind === 'all') return 'โปรโมชั่น กิจกรรม และข่าวสาร';
   return 'โปรโมชั่น';
 }
 
