@@ -1,5 +1,27 @@
 import type { AdminChartPoint, AdminChartSeries } from './admin-chart';
 
+const SVG_EXPORT_STYLE_PROPERTIES = [
+  'color',
+  'fill',
+  'fill-opacity',
+  'stroke',
+  'stroke-width',
+  'stroke-opacity',
+  'stroke-linecap',
+  'stroke-linejoin',
+  'stroke-dasharray',
+  'stroke-dashoffset',
+  'opacity',
+  'font-family',
+  'font-size',
+  'font-style',
+  'font-weight',
+  'letter-spacing',
+  'text-anchor',
+  'dominant-baseline',
+  'paint-order',
+] as const;
+
 export function buildAdminChartCsv(
   points: readonly AdminChartPoint[],
   series: readonly AdminChartSeries[],
@@ -32,6 +54,7 @@ export function normalizeAdminExportFileName(value: string, extension: 'csv' | '
 
 export function serializeAdminChartSvg(svg: SVGSVGElement): string {
   const clone = svg.cloneNode(true) as SVGSVGElement;
+  inlineSvgComputedStyles(svg, clone);
   const viewBox = svg.viewBox.baseVal;
   clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
   clone.setAttribute('width', String(Math.max(1, viewBox.width || svg.clientWidth || 720)));
@@ -41,7 +64,7 @@ export function serializeAdminChartSvg(svg: SVGSVGElement): string {
 
 export async function createAdminChartPngBlob(
   svg: SVGSVGElement,
-  options: { scale?: number; background?: string } = {},
+  options: { scale?: number | undefined; background?: string | undefined } = {},
 ): Promise<Blob> {
   const scale = clamp(options.scale ?? 2, 1, 4);
   const viewBox = svg.viewBox.baseVal;
@@ -65,6 +88,22 @@ export async function createAdminChartPngBlob(
     return await canvasToBlob(canvas);
   } finally {
     URL.revokeObjectURL(source);
+  }
+}
+
+function inlineSvgComputedStyles(source: SVGSVGElement, target: SVGSVGElement) {
+  const sourceNodes: Element[] = [source, ...source.querySelectorAll('*')];
+  const targetNodes: Element[] = [target, ...target.querySelectorAll('*')];
+
+  for (let index = 0; index < sourceNodes.length; index += 1) {
+    const sourceNode = sourceNodes[index];
+    const targetNode = targetNodes[index];
+    if (!sourceNode || !(targetNode instanceof SVGElement)) continue;
+    const computed = getComputedStyle(sourceNode);
+    for (const property of SVG_EXPORT_STYLE_PROPERTIES) {
+      const value = computed.getPropertyValue(property);
+      if (value) targetNode.style.setProperty(property, value);
+    }
   }
 }
 
