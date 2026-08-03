@@ -44,7 +44,8 @@ type ViewportMode = 'desktop' | 'mobile';
 type HomePopupKind = 'promotion' | 'activity' | 'news';
 
 const POPUP_CLOSED_VERSION_KEY = 'member_cms_popup_closed_version';
-const MOBILE_HOME_QUERY = '(max-width: 900px)';
+const NARROW_HOME_QUERY = '(max-width: 900px)';
+const MOBILE_INPUT_QUERY = '(hover: none), (pointer: coarse)';
 
 export default function MemberHome(props: MemberHomeProps) {
   // Keep the server and first client render intentionally lightweight. Rendering
@@ -53,12 +54,19 @@ export default function MemberHome(props: MemberHomeProps) {
   const [viewportMode, setViewportMode] = useState<ViewportMode | null>(null);
 
   useLayoutEffect(() => {
-    const media = window.matchMedia(MOBILE_HOME_QUERY);
-    const syncViewport = () => setViewportMode(media.matches ? 'mobile' : 'desktop');
+    const narrow = window.matchMedia(NARROW_HOME_QUERY);
+    const mobileInput = window.matchMedia(MOBILE_INPUT_QUERY);
+    const syncViewport = () => setViewportMode(isMobileHomeViewport(narrow, mobileInput) ? 'mobile' : 'desktop');
 
     syncViewport();
-    media.addEventListener?.('change', syncViewport);
-    return () => media.removeEventListener?.('change', syncViewport);
+    narrow.addEventListener?.('change', syncViewport);
+    mobileInput.addEventListener?.('change', syncViewport);
+    window.addEventListener('orientationchange', syncViewport);
+    return () => {
+      narrow.removeEventListener?.('change', syncViewport);
+      mobileInput.removeEventListener?.('change', syncViewport);
+      window.removeEventListener('orientationchange', syncViewport);
+    };
   }, []);
 
   if (viewportMode === null) {
@@ -130,6 +138,17 @@ function DesktopMemberHome(props: MemberHomeProps) {
       ) : null}
     </>
   );
+}
+
+function isMobileHomeViewport(narrow: MediaQueryList, mobileInput: MediaQueryList) {
+  if (!narrow.matches) return false;
+  if (mobileInput.matches) return true;
+
+  // Browser page zoom changes CSS viewport width on desktop and previously
+  // caused the Mobile tree to render inside a desktop browser. Physical screen
+  // size keeps zoomed desktop sessions on the Desktop owner while real compact
+  // devices continue to use the Mobile owner.
+  return Math.min(window.screen.width, window.screen.height) <= 900;
 }
 
 function mobileHomeMotionVersion(content: CmsContent) {
