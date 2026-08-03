@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react';
 import MemberSearchOverlay from './member-search-overlay';
+import MobileRelatedPopupStackRuntime from './mobile-related-popup-stack-runtime';
 
 const DIALOGS = [
   { id: 'member-search-title', kind: 'search' },
@@ -78,5 +79,10 @@ export default function PublicDialogRuntimeController() {
     };
   }, []);
 
-  return <MemberSearchOverlay />;
+  return (
+    <>
+      <MemberSearchOverlay />
+      <MobileRelatedPopupStackRuntime />
+    </>
+  );
 }

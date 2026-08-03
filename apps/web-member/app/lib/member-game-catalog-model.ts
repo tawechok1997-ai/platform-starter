@@ -1,4 +1,7 @@
-import { resolveLocalAssetOrSource } from './local-asset-by-basename';
+import {
+  resolveGameAssetOrSource,
+  resolveProviderAssetOrSource,
+} from './local-asset-by-basename';
 
 export type MemberGamePlatform = 'pc' | 'mobile';
 export type MemberGameBadge = 'HOT' | 'NEW' | '';
@@ -111,9 +114,19 @@ export function mapMemberCatalogGame(
     name,
     provider,
     providerName: providerName || provider.toUpperCase(),
-    providerIcon: resolveAsset(providerIconSource, requestedPlatform),
+    providerIcon: resolveProviderAssetOrSource(
+      providerIconSource,
+      requestedPlatform,
+      provider,
+      'badge',
+    ),
     providerIconSource,
-    image: resolveAsset(imageSource, requestedPlatform),
+    image: resolveGameAssetOrSource(
+      imageSource,
+      requestedPlatform,
+      provider,
+      id,
+    ),
     imageSource,
     badge: popular ? 'HOT' : fresh ? 'NEW' : '',
     players: readPlayers(item),
@@ -213,23 +226,6 @@ function normalizePlatform(value: unknown, fallback: MemberGamePlatform): Member
   if (platform === 'pc' || platform === 'desktop') return 'pc';
   if (platform === 'both') return 'both';
   return fallback;
-}
-
-function resolveAsset(source: string, platform: MemberGamePlatform) {
-  if (!source) return '';
-
-  const preferred = resolveLocalAssetOrSource(source, platform);
-  if (isLocalAsset(preferred)) return preferred;
-
-  const alternatePlatform: MemberGamePlatform = platform === 'pc' ? 'mobile' : 'pc';
-  const alternate = resolveLocalAssetOrSource(source, alternatePlatform);
-  if (isLocalAsset(alternate)) return alternate;
-
-  return preferred || alternate || source;
-}
-
-function isLocalAsset(value: string) {
-  return value.startsWith('/assets/');
 }
 
 function readPlayers(item: RawCatalogGame) {

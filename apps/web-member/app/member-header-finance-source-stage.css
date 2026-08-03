@@ -6,18 +6,22 @@
   display: none;
 }
 
+.member-header-deposit-columns[data-mobile-stage='method'] .member-header-deposit-amount-panel {
+  display: none;
+}
+
+.member-header-deposit-columns[data-mobile-stage='amount'] .member-header-deposit-method-panel {
+  display: none;
+}
+
+.member-header-deposit-columns[data-mobile-stage='amount'] .member-header-deposit-amount-panel,
+.member-header-deposit-columns[data-mobile-stage='method'] .member-header-deposit-method-panel {
+  display: flex;
+}
+
 @media (max-width: 719px) {
-  .member-header-deposit-columns[data-mobile-stage='method'] .member-header-deposit-amount-panel {
-    display: none;
-  }
-
-  .member-header-deposit-columns[data-mobile-stage='amount'] .member-header-deposit-method-panel {
-    display: none;
-  }
-
-  .member-header-deposit-columns[data-mobile-stage='amount'] .member-header-deposit-amount-panel,
-  .member-header-deposit-columns[data-mobile-stage='method'] .member-header-deposit-method-panel {
-    display: flex;
+  .member-header-deposit-columns[data-mobile-stage] > section {
+    animation: memberDepositStageEnter 220ms cubic-bezier(.22, 1, .36, 1) both;
   }
 }
 
@@ -30,8 +34,59 @@
     display: grid;
   }
 
-  .member-header-deposit-columns .member-header-deposit-method-panel,
-  .member-header-deposit-columns .member-header-deposit-amount-panel {
+  .member-header-deposit-columns[data-desktop-stage='method'] {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .member-header-deposit-columns[data-desktop-stage='method'] .member-header-deposit-method-panel {
     display: flex;
+    padding-right: 0;
+    border-right: 0;
+    animation: memberDepositStageEnter 220ms cubic-bezier(.22, 1, .36, 1) both;
+  }
+
+  .member-header-deposit-columns[data-desktop-stage='method'] .member-header-deposit-amount-panel {
+    display: none;
+  }
+
+  .member-header-deposit-columns[data-desktop-stage='method'] .member-header-deposit-method-list {
+    gap: 12px;
+  }
+
+  .member-header-deposit-columns[data-desktop-stage='method'] .member-header-deposit-method-card {
+    display: grid !important;
+    min-height: 58px;
+  }
+
+  .member-header-deposit-columns[data-desktop-stage='amount'] {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+
+  .member-header-deposit-columns[data-desktop-stage='amount'] .member-header-deposit-method-panel,
+  .member-header-deposit-columns[data-desktop-stage='amount'] .member-header-deposit-amount-panel {
+    display: flex;
+    animation: memberDepositStageEnter 240ms cubic-bezier(.22, 1, .36, 1) both;
+  }
+
+  .member-header-deposit-stage-actions {
+    margin-top: 0;
+  }
+}
+
+@keyframes memberDepositStageEnter {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 8px, 0) scale(.992);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .member-header-deposit-columns[data-mobile-stage] > section,
+  .member-header-deposit-columns[data-desktop-stage] > section {
+    animation: none !important;
   }
 }

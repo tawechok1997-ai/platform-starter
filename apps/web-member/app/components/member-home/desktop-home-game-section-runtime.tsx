@@ -12,6 +12,8 @@ type SectionGames = {
   classic: MemberCatalogGame[];
 };
 
+const artworkCache = new Map<string, Promise<string>>();
+
 export default function DesktopHomeGameSectionRuntime() {
   const { typedSettings } = useSiteSettings();
   const featureSettings = typedSettings.features as Record<string, unknown>;
@@ -21,14 +23,10 @@ export default function DesktopHomeGameSectionRuntime() {
     let observer: MutationObserver | null = null;
     let frame = 0;
 
-    void getMemberGameCatalog('pc').then((catalog) => {
+    void getMemberGameCatalog('pc').then(async (catalog) => {
+      const sections = await buildRenderableSections(catalog, featureSettings);
       if (cancelled) return;
-      const sections: SectionGames = {
-        featured: selectHomeGameSection(catalog, 'featured', 'pc', featureSettings, 8),
-        popular: selectHomeGameSection(catalog, 'popular', 'pc', featureSettings, 10),
-        online: selectHomeGameSection(catalog, 'online', 'pc', featureSettings, 6),
-        classic: selectHomeGameSection(catalog, 'classic', 'pc', featureSettings, 6),
-      };
+
       const apply = () => {
         frame = 0;
         syncHighlight(sections.featured);
@@ -46,7 +44,7 @@ export default function DesktopHomeGameSectionRuntime() {
       observer = new MutationObserver(schedule);
       observer.observe(root, { childList: true, subtree: true });
     }).catch(() => {
-      // Existing section fallbacks remain visible when the catalog is unavailable.
+      // Existing component-owned fallbacks remain visible when the catalog is unavailable.
     });
 
     return () => {
@@ -57,6 +55,91 @@ export default function DesktopHomeGameSectionRuntime() {
   }, [featureSettings]);
 
   return null;
+}
+
+async function buildRenderableSections(
+  catalog: readonly MemberCatalogGame[],
+  featureSettings: Record<string, unknown>,
+): Promise<SectionGames> {
+  const [featured, popular, online, classic] = await Promise.all([
+    renderableSection(catalog, 'featured', featureSettings, 8),
+    renderableSection(catalog, 'popular', featureSettings, 10),
+    renderableSection(catalog, 'online', featureSettings, 6),
+    renderableSection(catalog, 'classic', featureSettings, 6),
+  ]);
+
+  return { featured, popular, online, classic };
+}
+
+async function renderableSection(
+  catalog: readonly MemberCatalogGame[],
+  section: keyof SectionGames,
+  featureSettings: Record<string, unknown>,
+  limit: number,
+) {
+  // Ask for a wider ranked pool so broken demo/CDN artwork can be skipped
+  // without leaving an empty card in the visible strip.
+  const candidates = selectHomeGameSection(catalog, section, 'pc', featureSettings, 30);
+  return keepLoadableArtwork(candidates, limit);
+}
+
+async function keepLoadableArtwork(
+  candidates: readonly MemberCatalogGame[],
+  limit: number,
+): Promise<MemberCatalogGame[]> {
+  const resolved = await Promise.all(candidates.map(async (game) => {
+    const image = await resolveLoadableArtwork(game);
+    return image ? { ...game, image } : null;
+  }));
+
+  return resolved
+    .filter((game): game is MemberCatalogGame => Boolean(game))
+    .slice(0, limit);
+}
+
+function resolveLoadableArtwork(game: MemberCatalogGame) {
+  const key = `${game.provider}:${game.providerGameCode || game.id}`.toLowerCase();
+  const cached = artworkCache.get(key);
+  if (cached) return cached;
+
+  const candidates = [...new Set([game.image, game.imageSource].filter(Boolean))];
+  const request = firstLoadableImage(candidates);
+  artworkCache.set(key, request);
+  return request;
+}
+
+async function firstLoadableImage(candidates: readonly string[]) {
+  for (const candidate of candidates) {
+    if (await imageLoads(candidate)) return candidate;
+  }
+  return '';
+}
+
+function imageLoads(src: string) {
+  return new Promise<boolean>((resolve) => {
+    if (!src) {
+      resolve(false);
+      return;
+    }
+
+    const image = new Image();
+    let settled = false;
+    const finish = (loaded: boolean) => {
+      if (settled) return;
+      settled = true;
+      window.clearTimeout(timeout);
+      image.onload = null;
+      image.onerror = null;
+      resolve(loaded && image.naturalWidth > 1 && image.naturalHeight > 1);
+    };
+    const timeout = window.setTimeout(() => finish(false), 6_000);
+
+    image.onload = () => finish(true);
+    image.onerror = () => finish(false);
+    image.decoding = 'async';
+    image.src = src;
+    if (image.complete) finish(image.naturalWidth > 1 && image.naturalHeight > 1);
+  });
 }
 
 function syncHighlight(games: MemberCatalogGame[]) {
@@ -71,7 +154,7 @@ function syncHighlight(games: MemberCatalogGame[]) {
     setImage(card.querySelector('.source-highlight-game__provider img'), game.providerIcon, game.providerName);
     setText(card.querySelector('.source-highlight-game__name'), game.name);
     setText(card.querySelector('.source-highlight-game__rank'), String(index + 1));
-    card.dataset.homeGameSource = 'configured-catalog';
+    setGameIdentity(card, game);
   });
 }
 
@@ -88,7 +171,7 @@ function syncPopular(games: MemberCatalogGame[]) {
     setImage(card.querySelector('.source-popular-card__provider img'), game.providerIcon, game.providerName);
     setText(card.querySelector('.source-popular-card__name'), game.name);
     setText(card.querySelector('.source-popular-card__rank'), String(index + 1));
-    card.dataset.homeGameSource = 'configured-catalog';
+    setGameIdentity(card, game);
   });
 }
 
@@ -102,7 +185,7 @@ function syncOnline(games: MemberCatalogGame[]) {
     card.dataset.gameTags = game.tags.join(',');
     setImage(card.querySelector('.source-online-card__art img'), game.image, game.name);
     setText(card.querySelector('.source-online-card__counter strong'), game.players.toLocaleString('en-US'));
-    card.dataset.homeGameSource = 'configured-catalog';
+    setGameIdentity(card, game);
   });
 }
 
@@ -118,8 +201,15 @@ function syncClassic(games: MemberCatalogGame[]) {
     setImage(card.querySelector('img'), game.image, game.name);
     setText(card.querySelector('strong'), game.name);
     setText(card.querySelector('small'), game.providerName || game.provider.toUpperCase());
-    card.dataset.homeGameSource = 'configured-catalog';
+    setGameIdentity(card, game);
   });
+}
+
+function setGameIdentity(card: HTMLAnchorElement, game: MemberCatalogGame) {
+  card.dataset.homeGameSource = 'configured-catalog';
+  card.dataset.gameId = game.id;
+  card.dataset.gameCode = game.providerGameCode;
+  card.dataset.gameName = game.name;
 }
 
 function setLink(anchor: HTMLAnchorElement, game: MemberCatalogGame) {

@@ -28,7 +28,7 @@ type MethodOption = {
   serviceOnly?: boolean;
 };
 
-type MobileStage = 'method' | 'amount';
+type SelectionStage = 'method' | 'amount';
 
 const QUICK_AMOUNTS = [100, 300, 500, 1000, 5000, 10000];
 const METHOD_OPTIONS: MethodOption[] = [
@@ -38,6 +38,7 @@ const METHOD_OPTIONS: MethodOption[] = [
   { code: 'wallet', labelTh: 'ทรู มันนี่ วอลเล็ท', labelEn: 'TrueMoney Wallet', icon: 'wallet' },
   { code: 'crypto', labelTh: 'ฝากคริปโต', labelEn: 'Crypto deposit', icon: 'crypto', serviceOnly: true },
 ];
+const SOURCE_METHOD_CODES = new Set<MethodOption['code']>(['bank_transfer', 'promptpay']);
 
 const COPY = {
   th: {
@@ -110,22 +111,46 @@ const COPY = {
 
 export default function MemberHeaderDepositView(props: HeaderDepositViewProps) {
   const copy = COPY[props.locale];
-  const [methodsExpanded, setMethodsExpanded] = useState(false);
-  const [mobileStage, setMobileStage] = useState<MobileStage>('method');
+  const [methodsExpanded, setMethodsExpanded] = useState(true);
+  const [selectionStage, setSelectionStage] = useState<SelectionStage>('method');
+  const [methodChosen, setMethodChosen] = useState(false);
   const limits = useMemo(
     () => resolveLimits(props.accounts, props.method),
     [props.accounts, props.method],
   );
   const methodAvailable = props.availableMethods.includes(props.method);
+  const canAdvanceToAmount = methodChosen && methodAvailable && !props.initialLoading && !props.loading;
   const canContinue = methodAvailable && props.parsedAmount > 0 && !props.loading;
+  const visibleMethodOptions = selectionStage === 'method'
+    ? METHOD_OPTIONS.filter((option) => SOURCE_METHOD_CODES.has(option.code))
+    : METHOD_OPTIONS;
+
+  const openAmountStage = () => {
+    if (!canAdvanceToAmount) return;
+    setMethodsExpanded(false);
+    setSelectionStage('amount');
+  };
+
+  const openMethodStage = () => {
+    setMethodsExpanded(true);
+    setSelectionStage('method');
+  };
 
   return (
     <div className="member-header-deposit-source" data-step={props.step}>
       {props.message ? <div className="member-header-finance-message" role="status">{props.message}</div> : null}
 
       {props.step === 'select' ? (
-        <form className="member-header-deposit-select" onSubmit={props.onNextStep}>
-          <div className="member-header-deposit-columns" data-mobile-stage={mobileStage}>
+        <form
+          className="member-header-deposit-select"
+          data-selection-stage={selectionStage}
+          onSubmit={props.onNextStep}
+        >
+          <div
+            className="member-header-deposit-columns"
+            data-mobile-stage={selectionStage}
+            data-desktop-stage={selectionStage}
+          >
             <section className="member-header-deposit-method-panel">
               <button type="button" className="member-header-deposit-promotion">
                 <span className="member-header-deposit-promotion-icon" aria-hidden="true"><PromotionIcon /></span>
@@ -136,21 +161,19 @@ export default function MemberHeaderDepositView(props: HeaderDepositViewProps) {
 
               <div className="member-header-deposit-method-heading">
                 <strong>{copy.chooseDepositMethod}</strong>
-                <button
-                  type="button"
-                  aria-expanded={methodsExpanded}
-                  onClick={() => setMethodsExpanded((current) => !current)}
-                >
-                  <RefreshIcon />
-                  {copy.changeMethod}
-                </button>
+                {selectionStage === 'amount' ? (
+                  <button type="button" onClick={openMethodStage}>
+                    <RefreshIcon />
+                    {copy.changeMethod}
+                  </button>
+                ) : null}
               </div>
 
-              <div className={`member-header-deposit-method-list${methodsExpanded ? ' is-expanded' : ''}`}>
-                {METHOD_OPTIONS.map((option) => {
+              <div className={`member-header-deposit-method-list${selectionStage === 'method' || methodsExpanded ? ' is-expanded' : ''}`}>
+                {visibleMethodOptions.map((option) => {
                   const realMethod = isDepositMethod(option.code) ? option.code : null;
                   const isAvailable = realMethod !== null && props.availableMethods.includes(realMethod);
-                  const isSelected = realMethod !== null && props.method === realMethod;
+                  const isSelected = methodChosen && realMethod !== null && props.method === realMethod;
                   const disabled = option.serviceOnly || !isAvailable;
                   const label = props.locale === 'th' ? option.labelTh : option.labelEn;
 
@@ -158,12 +181,13 @@ export default function MemberHeaderDepositView(props: HeaderDepositViewProps) {
                     <button
                       type="button"
                       key={option.code}
+                      data-deposit-method={option.code}
                       className={`member-header-deposit-method-card${isSelected ? ' is-selected' : ''}${disabled ? ' is-disabled' : ''}`}
                       disabled={disabled}
                       onClick={() => {
                         if (!realMethod) return;
                         props.onMethodChange(realMethod);
-                        setMethodsExpanded(false);
+                        setMethodChosen(true);
                       }}
                     >
                       <span className={`member-header-deposit-method-icon is-${option.icon}`} aria-hidden="true">
@@ -224,22 +248,31 @@ export default function MemberHeaderDepositView(props: HeaderDepositViewProps) {
             </section>
           </div>
 
+          {selectionStage === 'method' ? (
+            <footer className="member-header-deposit-actions member-header-deposit-desktop-actions member-header-deposit-stage-actions">
+              <button type="button" onClick={props.onCancel}>{copy.cancel}</button>
+              <button type="button" className="is-primary" disabled={!canAdvanceToAmount} onClick={openAmountStage}>
+                {copy.confirm}
+              </button>
+            </footer>
+          ) : null}
+
           <footer className="member-header-deposit-actions member-header-deposit-mobile-actions">
-            {mobileStage === 'method' ? (
+            {selectionStage === 'method' ? (
               <>
                 <button type="button" onClick={props.onCancel}>{copy.cancel}</button>
                 <button
                   type="button"
                   className="is-primary"
-                  disabled={!methodAvailable}
-                  onClick={() => setMobileStage('amount')}
+                  disabled={!canAdvanceToAmount}
+                  onClick={openAmountStage}
                 >
                   {copy.confirm}
                 </button>
               </>
             ) : (
               <>
-                <button type="button" onClick={() => setMobileStage('method')}>{copy.back}</button>
+                <button type="button" onClick={openMethodStage}>{copy.back}</button>
                 <button type="submit" className="is-primary" disabled={!canContinue}>
                   {props.loading ? '…' : copy.confirm}
                 </button>
