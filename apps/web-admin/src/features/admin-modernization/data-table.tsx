@@ -25,12 +25,22 @@ export type AdminDataTableLabels = {
   range: (from: number, to: number, total: number) => string;
 };
 
+const DEFAULT_ADMIN_DATA_TABLE_LABELS: AdminDataTableLabels = {
+  loading: 'Loading data',
+  empty: 'No data',
+  previousPage: 'Previous page',
+  nextPage: 'Next page',
+  page: (page) => `Page ${page}`,
+  rowsPerPage: 'Rows per page',
+  range: (from, to, total) => `${from}–${to} of ${total}`,
+};
+
 export type AdminDataTableProps<T> = {
   ariaLabel: string;
   columns: readonly AdminDataColumn<T>[];
   rows: readonly T[];
   rowKey: (row: T) => Key;
-  labels: AdminDataTableLabels;
+  labels?: AdminDataTableLabels;
   loading?: boolean;
   loadingRows?: number;
   emptyTitle?: string;
@@ -50,7 +60,7 @@ export function AdminDataTable<T>({
   columns,
   rows,
   rowKey,
-  labels,
+  labels = DEFAULT_ADMIN_DATA_TABLE_LABELS,
   loading = false,
   loadingRows = 5,
   emptyTitle,
