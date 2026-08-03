@@ -11,7 +11,7 @@ test('/security keeps a large session dataset paginated and overflow safe', asyn
   await page.waitForLoadState('networkidle', { timeout: 10_000 }).catch(() => undefined);
 
   await expectSecuritySurface(page);
-  await expect(page.getByText(LONG_USER_AGENT).first()).toBeVisible();
+  await expectVisibleText(page, LONG_USER_AGENT);
   await expect(page.getByText('1–10 จาก 137')).toBeVisible();
   await expectNoPageOverflow(page);
 
@@ -162,11 +162,23 @@ function createSessions(total: number): SessionFixture[] {
 async function expectSecuritySurface(page: Page) {
   await expect(page.getByRole('main').first()).toBeVisible();
   await expect(page.getByRole('heading', { name: 'ความปลอดภัยผู้ดูแล' }).first()).toBeVisible();
-  await expect(page.getByRole('link', { name: /เซสชัน/ })).toHaveAttribute('aria-current', 'page');
+  await expect(page.locator('a[href="/security?tab=sessions"]')).toHaveAttribute('aria-current', 'page');
 
   const table = page.getByRole('table', { name: 'เซสชันผู้ดูแล' });
   const list = page.getByRole('list', { name: 'เซสชันผู้ดูแล' });
   await expect.poll(async () => (await table.isVisible()) || (await list.isVisible())).toBe(true);
+}
+
+async function expectVisibleText(page: Page, text: string) {
+  await expect.poll(() => page.getByText(text, { exact: true }).evaluateAll((elements) => elements.some((element) => {
+    const node = element as HTMLElement;
+    const rect = node.getBoundingClientRect();
+    const style = window.getComputedStyle(node);
+    return style.display !== 'none'
+      && style.visibility !== 'hidden'
+      && rect.width > 0
+      && rect.height > 0;
+  }))).toBe(true);
 }
 
 async function expectNoPageOverflow(page: Page) {
