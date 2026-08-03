@@ -39,3 +39,52 @@ html[data-member-viewport-mode='desktop'] :is(
   visibility: hidden !important;
   pointer-events: none !important;
 }
+
+/* Keep every current Mobile popup at its existing geometry, but vertically
+ * center a short content group inside the available body area. Auto margins
+ * collapse to zero when the content is taller than the body, so long forms
+ * still begin at the top and remain fully scrollable instead of losing their
+ * first fields above the viewport.
+ */
+@media (max-width: 900px) {
+  html[data-member-viewport-mode='mobile'] :is(
+    section[data-mobile-popup-owner] > div:last-child,
+    .member-existing-popup-content,
+    .member-source-popup-body,
+    .member-header-deposit-content,
+    .member-header-withdraw-content,
+    .member-bank-account-content,
+    .member-income-safe-content,
+    .member-modal-system__content
+  ) {
+    display: flex !important;
+    min-height: 0 !important;
+    flex-direction: column !important;
+  }
+
+  html[data-member-viewport-mode='mobile'] :is(
+    section[data-mobile-popup-owner] > div:last-child,
+    .member-existing-popup-content,
+    .member-source-popup-body,
+    .member-header-deposit-content,
+    .member-header-withdraw-content,
+    .member-bank-account-content,
+    .member-income-safe-content,
+    .member-modal-system__content
+  ) > :first-child {
+    margin-top: auto !important;
+  }
+
+  html[data-member-viewport-mode='mobile'] :is(
+    section[data-mobile-popup-owner] > div:last-child,
+    .member-existing-popup-content,
+    .member-source-popup-body,
+    .member-header-deposit-content,
+    .member-header-withdraw-content,
+    .member-bank-account-content,
+    .member-income-safe-content,
+    .member-modal-system__content
+  ) > :last-child {
+    margin-bottom: auto !important;
+  }
+}
