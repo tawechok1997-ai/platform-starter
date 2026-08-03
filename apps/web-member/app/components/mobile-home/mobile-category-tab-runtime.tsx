@@ -5,6 +5,13 @@ import { useEffect, useLayoutEffect, useState } from 'react';
 type MobileCategoryId = 'home' | 'casino' | 'slot' | 'fishing' | 'sport' | 'card' | 'lottery';
 
 const MOBILE_CATEGORY_SELECT_EVENT = 'member:mobile-category-select';
+const TOP_CHROME_SELECTOR = [
+  '[data-mobile-section-owner="header"]',
+  '[data-mobile-section-owner="hero"]',
+  '[data-mobile-section-owner="auth-actions"]',
+  '[data-mobile-section-owner="announcement"]',
+  '[data-mobile-section-owner="highlight-tabs"]',
+].join(', ');
 
 export default function MobileCategoryTabRuntime() {
   const [activeCategory, setActiveCategory] = useState<MobileCategoryId>('home');
@@ -21,9 +28,11 @@ export default function MobileCategoryTabRuntime() {
       const category = trigger.dataset.mobileCategoryId;
       if (!isMobileCategoryId(category)) return;
 
-      // Observe the category click without consuming it. MobileHomeRoot owns the
-      // visible active class, so its React onClick must receive the same event.
+      releaseStalePageLock(root);
       setActiveCategory(category);
+      window.dispatchEvent(new CustomEvent(MOBILE_CATEGORY_SELECT_EVENT, {
+        detail: { category },
+      }));
     };
 
     const selectCategory = (event: Event) => {
@@ -54,10 +63,19 @@ export default function MobileCategoryTabRuntime() {
       else item.removeAttribute('aria-current');
     });
 
-    // Only the category content changes. Header, auth actions, announcement,
-    // highlight tabs, shortcut and footer stay mounted to avoid document-height
-    // collapse, scroll jumps and hydration flicker while switching categories.
+    restoreTopChrome(root);
+
+    const frame = activeCategory === 'home'
+      ? 0
+      : window.requestAnimationFrame(() => {
+        window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+        document.scrollingElement?.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+      });
+
+    // Only the category content changes. Header, hero, auth actions,
+    // announcement and highlight tabs remain mounted for every game category.
     return () => {
+      if (frame) window.cancelAnimationFrame(frame);
       if (root.dataset.mobileActiveCategory === activeCategory) {
         delete root.dataset.mobileActiveCategory;
       }
@@ -65,6 +83,28 @@ export default function MobileCategoryTabRuntime() {
   }, [activeCategory]);
 
   return null;
+}
+
+function restoreTopChrome(root: HTMLElement) {
+  root.querySelectorAll<HTMLElement>(TOP_CHROME_SELECTOR).forEach((section) => {
+    section.hidden = false;
+    section.removeAttribute('aria-hidden');
+    section.style.removeProperty('display');
+    section.style.removeProperty('visibility');
+    section.style.removeProperty('opacity');
+  });
+}
+
+function releaseStalePageLock(root: HTMLElement) {
+  const drawerOpen = root.querySelector('[aria-controls="mobile-home-drawer"][aria-expanded="true"]');
+  const modalOpen = document.querySelector('[role="dialog"][aria-modal="true"]');
+  if (drawerOpen || modalOpen) return;
+
+  document.body.style.removeProperty('overflow');
+  document.body.style.removeProperty('overflow-y');
+  document.body.style.removeProperty('touch-action');
+  document.documentElement.style.removeProperty('overflow');
+  document.documentElement.style.removeProperty('overflow-y');
 }
 
 function isMobileCategoryId(value: string | undefined): value is MobileCategoryId {
