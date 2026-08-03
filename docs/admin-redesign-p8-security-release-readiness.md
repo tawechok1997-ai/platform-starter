@@ -1,30 +1,32 @@
 # Admin Redesign P8 — Security, Accessibility และ Release Readiness
 
-PR stack base: `agent/admin-phase-5-7-data-settings-design-system`
+PR: `#497`
 
-Base commit ตอนเปิดงาน: `ca97d069114d25b271c262cb7d00ab7b3d001a03`
+Branch: `agent/admin-phase-8-security-release-readiness`
 
-สถานะ: Planning/Inventory — ทำคู่ขนานได้ แต่ห้าม Merge ก่อน P2, P4 และ P5–P7 ถูก Merge และ Branch ถูก Sync กับ `main` ล่าสุด
+Stack base ชั่วคราว: `agent/admin-phase-5-7-data-settings-design-system`
 
-## เหตุผลที่ต้องปรับ Scope
+สถานะ: Implementation — ทำคู่ขนานได้ แต่ห้าม Merge ก่อน P2, P4 และ P5–P7 ถูก Merge และ Branch ถูก Retarget/Sync กับ `main` ล่าสุด
 
-ลิส P8 เดิมระบุเพียง Security, Accessibility และ Browser Matrix แบบกว้างเกินไป หลัง P3 และงาน P5–P7 มี Route owner, Settings owner, Table/Drawer owner และหน้าใหม่เพิ่มขึ้น จึงต้องใช้ Route inventory จริงแทนการเลือกทดสอบเฉพาะหน้าหลัก
+## เป้าหมาย
 
-แหล่งข้อมูลที่ใช้กำหนดลิสนี้:
+P8 เป็น Release gate ของ Admin ทั้งระบบ โดยไม่สร้าง Owner ซ้ำจาก Phase ก่อนหน้า:
 
-- `app/(admin)/admin-nav.ts`
-- `src/features/admin-modernization/settings-ownership.ts`
-- PR `#492` P5–P7
-- PR `#496` P4 Chart/Widget System
-- `/security` owner ปัจจุบันใน `src/features/auth/admin-security-page.tsx`
+- P2 เป็นเจ้าของ Role, Team, Effective access, Scope, Limit และ DENY
+- P3 เป็นเจ้าของ Workspace selection และ Navigation visibility
+- P4 เป็นเจ้าของ Chart/Widget และ Dashboard interaction
+- P5 เป็นเจ้าของ Table, Form และ Drawer
+- P6 เป็นเจ้าของ `/settings` และ `/system-settings`
+- P7 เป็นเจ้าของ Design-system ownership และ CSS cleanup
+- P8 บังคับ Security, Accessibility, Browser coverage, Resilience และ Release evidence
 
-## Route Inventory ปัจจุบัน
+## Route inventory หลังปิดช่องว่าง
 
 Route ที่ต้องอยู่ใน P8 coverage รวม **83 routes**:
 
-- Route จาก Navigation registry: 56
-- Route รอง/Legacy จาก permission registry: 25
-- Route ที่มีไฟล์จริงหรือ Owner ใหม่แต่ตกจาก Navigation/permission list: 2
+- Navigation registry: **57**
+- Additional, nested และ Legacy permission registry: **26**
+- Unregistered known routes: **0**
 
 ### Overview — 3
 
@@ -99,7 +101,7 @@ Route ที่ต้องอยู่ใน P8 coverage รวม **83 routes*
 
 - `/content-center`
 
-### Administration — 7
+### Administration — 8
 
 - `/admin-accounts`
 - `/admin-roles`
@@ -107,9 +109,10 @@ Route ที่ต้องอยู่ใน P8 coverage รวม **83 routes*
 - `/audit`
 - `/security`
 - `/anti-bot`
+- `/system-settings`
 - `/settings`
 
-### Additional, nested และ Legacy routes — 25
+### Additional, nested และ Legacy — 26
 
 - `/profile`
 - `/access`
@@ -124,6 +127,7 @@ Route ที่ต้องอยู่ใน P8 coverage รวม **83 routes*
 - `/member-detail`
 - `/money-ops`
 - `/risk-operations`
+- `/settings/activities`
 - `/settings/branding/history`
 - `/settings/branding/preview`
 - `/settings/branding`
@@ -137,45 +141,111 @@ Route ที่ต้องอยู่ใน P8 coverage รวม **83 routes*
 - `/settings/features`
 - `/settings/legal`
 
-### หน้าที่ตกจากลิสเดิม — ต้องเพิ่ม 2
+## Batch 0 — Inventory และ Route closure ✅
 
-1. `/system-settings`
-   - เพิ่มใน P6 เป็น Write owner สำหรับ Provider, Credential และ Game configuration
-   - ต้องเพิ่มเข้า Navigation และ Route permission registry
-   - ต้องทดสอบ Permission, Confirm, Reason, Audit และการไม่แสดง Secret โดยไม่จำเป็น
+ทำแล้ว:
 
-2. `/settings/activities`
-   - มีไฟล์ Route จริงและอยู่ใน P6 Settings ownership registry
-   - ต้องเพิ่มเข้า Route permission registry
-   - ต้องกำหนดว่าจะเปิดเป็นหน้ารองใน `/settings` หรือ Redirect เข้า Owner กลาง
+- เพิ่ม `/system-settings` เข้า Administration navigation
+- ใช้ Permission ชุด Provider/Game/Feature ที่มีอยู่ ไม่สร้าง Permission ใหม่สุ่ม
+- เพิ่ม `/settings/activities` เข้า specific permission registry ด้วย `settings.features.view`
+- specific nested route ชนะ parent `/settings` จาก longest-prefix ordering
+- กำหนด `/system-settings` และ nested routes ให้ Workspace `settings`
+- เพิ่ม tests สำหรับ Navigation discovery, permission fail-closed, nested route และ unknown route
+- เพิ่ม tests ล็อก Workspace owner ของ `/settings/activities` และ `/system-settings`
 
-## หน้าที่ไม่ต้องสร้างซ้ำ
+Owner ที่แก้:
 
-### Security
+- `apps/web-admin/app/(admin)/admin-nav.ts`
+- `apps/web-admin/src/features/admin-modernization/workspaces.ts`
 
-ไม่สร้าง `/security/sessions`, `/security/2fa` หรือ `/security/recovery` แยก เพราะ `/security` มี Owner และ Tabs ครบแล้ว:
+Tests:
+
+- `apps/web-admin/app/(admin)/admin-nav-p8-route-closure.spec.ts`
+- `apps/web-admin/src/features/admin-modernization/workspaces.spec.ts`
+
+## Batch 1 — Security policy foundation ✅
+
+เพิ่ม pure API policy กลาง:
+
+- Permission หรือ wildcard authority
+- Step-up evidence ผูกกับ Admin และ Session เดียวกัน
+- Step-up freshness และ clock-skew validation
+- Reason ขั้นต่ำสำหรับ Sensitive action
+- Single/Dual approval
+- Deduplicate approver
+- No requester self-approval
+- No target self-approval
+- Wildcard ไม่ข้าม Step-up, Reason หรือ Approval
+- Fail closed เมื่อ Policy ไม่ผ่าน
+
+Sensitive reveal audit evidence:
+
+- เก็บ Action, Permission, Actor, Session, Requester, Target และ Approver
+- เก็บ Step-up method/time
+- เก็บเฉพาะชื่อ Field ที่เปิดเผย
+- เก็บ Reveal expiry
+- ไม่รับหรือบันทึก Secret value ใน evidence contract
+
+Files:
+
+- `apps/api/src/common/admin-sensitive-action-policy.ts`
+- `apps/api/src/common/admin-sensitive-action-policy.spec.ts`
+
+ข้อจำกัดปัจจุบัน:
+
+- Policy contract พร้อมแล้ว
+- ยังไม่ประกาศว่า Endpoint จริงบังคับใช้ จนกว่า P2/P6 จะถูก Sync และ Service owners เรียก policy นี้
+- ห้ามสร้าง Approval queue, 2FA page หรือ Audit owner ซ้ำ
+
+## หน้าที่ไม่สร้างซ้ำ
+
+`/security` มี Owner และ Tabs อยู่แล้ว:
 
 - Overview
 - Sessions และ Device information
 - 2FA
 - Owner recovery
 
-P8 ต้องเสริม Step-up policy, audit และ Browser/Accessibility coverage ใน Owner เดิม
+P8 จะต่อ Step-up และ evidence เข้ากับ Owner เดิม ไม่สร้าง `/security/sessions`, `/security/2fa` หรือ `/security/recovery` ใหม่
 
-### Approval และ Sensitive reveal
+Owner ที่ใช้ต่อ:
 
-ไม่สร้างหน้า Approval/Audit ชุดใหม่โดยไม่มีเหตุผล ให้ใช้ Owner ที่มีอยู่:
+- `/operations` — Approval queue และ No self-approval
+- `/activity-center` — Activity detail
+- `/audit` — Audit trail
+- `/security` — Session, 2FA และ Recovery
 
-- `/operations` สำหรับ Approval queue และ No self-approval
-- `/activity-center` สำหรับรายละเอียดกิจกรรม
-- `/audit` สำหรับ Audit trail
-- `/security` สำหรับ Session, 2FA และ Recovery
+## Batch 2 — Accessibility 🚧
 
-## Route Priority สำหรับ P8
+ทำแล้วชุดแรก:
+
+- เพิ่ม Browser Matrix smoke สำหรับ `/system-settings`
+- เพิ่ม Browser Matrix smoke สำหรับ `/settings/activities`
+- ตรวจ Main/Heading/Link landmarks
+- ตรวจ Keyboard focus ไม่ตกที่ document body
+- ตรวจ Focus target มองเห็นได้
+- ตรวจ Form control มี Label หรือ ARIA name
+- ตรวจ Reduced motion
+- ตรวจ Horizontal overflow
+- ใช้ Matrix เดิมจึงรัน Desktop, Tablet และ Mobile
+
+File:
+
+- `tests/admin-browser-matrix/admin-p8-route-accessibility.spec.ts`
+
+ยังเหลือ:
+
+- WCAG AA contrast และ focus visibility ทุก Tier 0 owner
+- Keyboard-only สำหรับ Menu, Tabs, Table, Drawer, Modal, Chart และ Form
+- Focus trap/restore และ Escape behavior
+- Screen-reader live region และ error summary
+- Zoom 200%, text spacing และ forced colors
+
+## Route priority
 
 ### Tier 0 — Security และเงิน
 
-ต้องทดสอบครบทุก Role, Multi-role, DENY override และทุก Viewport:
+ต้องทดสอบ Role, Multi-role, DENY override และทุก Viewport:
 
 - `/security`
 - `/admin-accounts`
@@ -195,8 +265,6 @@ P8 ต้องเสริม Step-up policy, audit และ Browser/Accessibi
 
 ### Tier 1 — Operational owners
 
-ต้องทดสอบ Role ที่เกี่ยวข้อง, Desktop/Tablet/Mobile และ failure states:
-
 - Dashboard/Widget routes
 - Members/KYC/Support
 - Provider/Game operations
@@ -204,40 +272,13 @@ P8 ต้องเสริม Step-up policy, audit และ Browser/Accessibi
 - Settings และ `/settings/activities`
 - Export, Report และ Ledger routes
 
-### Tier 2 — Read-only, nested และ Legacy
+### Tier 2 — Nested และ Legacy
 
-ต้องมี Route guard, Redirect/Deprecation contract, no horizontal overflow และ smoke coverage โดยไม่จำเป็นต้องคูณทุก Persona กับทุก Browser
+ต้องมี Route guard, Redirect/Deprecation contract, no horizontal overflow และ smoke coverage โดยไม่คูณทุก Persona กับทุก Browser
 
-## P8 Batch ใหม่
+## Batch 3 — Browser Matrix
 
-### Batch 0 — Inventory และ Route closure
-
-- เพิ่ม `/system-settings` เข้า Navigation และ permission registry
-- เพิ่ม `/settings/activities` เข้า permission registry และกำหนด Owner/Redirect
-- เพิ่ม audit ที่ล้มเมื่อมี `page.tsx` ใหม่แต่ไม่มี Route coverage classification
-- จัด Tier 0–2 ให้ครบทุก Route
-
-### Batch 1 — Security policy
-
-- Approval policy และ No self-approval
-- Step-up 2FA ก่อน Sensitive action
-- Session revocation หลัง Role, Team, Permission, Credential หรือ Sensitive setting เปลี่ยน
-- Device/session fingerprint แสดงเท่าที่จำเป็น
-- Sensitive reveal ต้องมี Permission, Reason และ Audit
-- Fail closed เมื่อ policy/effective access โหลดไม่ได้
-
-### Batch 2 — Accessibility
-
-- WCAG AA contrast และ focus visibility
-- Keyboard-only สำหรับ Menu, Tabs, Table, Drawer, Modal, Chart และ Form
-- Focus trap/restore และ Escape behavior
-- Screen-reader labels, live region และ error summary
-- Zoom 200%, text spacing และ no horizontal overflow
-- Forced colors, High contrast และ Reduced motion
-
-### Batch 3 — Browser Matrix
-
-Persona หลัก:
+Persona:
 
 1. Finance
 2. Deposit & Withdrawal
@@ -259,43 +300,34 @@ Browser:
 - Firefox
 - WebKit
 
-ใช้ Tiered matrix เพื่อไม่รัน 83 routes × 7 personas × 3 viewports × 3 browsers แบบสุ่มเปลือง Runner แต่ Tier 0 ต้องครอบคลุมเต็มกว่า Tier อื่น
+ใช้ Tiered matrix เพื่อควบคุม Runner แต่ Tier 0 ต้องครอบคลุมเต็มกว่า Tier 1–2
 
-### Batch 4 — Visual, Performance และ Resilience
+## Batch 4 — Visual, Performance และ Resilience
 
 - Visual regression ทุก Owner กลาง
-- Loading, Empty, Error, Partial และ Permission-denied state
-- Long text, Long table, Large values และ Thai/English
-- Bundle and route performance budget
-- Memory/interaction leak สำหรับ Drawer, Modal, Chart และ Workspace switch
+- Loading, Empty, Error, Partial และ Permission-denied
+- Long text, Long table, Large values และ TH/EN
+- Bundle/route performance budget
+- Drawer, Modal, Chart และ Workspace interaction leak
 - Network timeout, retry และ stale-session behavior
 
-### Batch 5 — Release gate
+## Batch 5 — Release gate
 
 - Production smoke routes
 - Migration/Seed verification
 - Audit evidence และ workflow artifacts
 - ไม่มี duplicate owner, duplicate writer หรือ Legacy write path
+- Retarget `main` หลัง Dependency Merge
 - Sync latest `main`
 - Build, Typecheck, Unit, Full-system, Security, UI System, Browser Matrix และ Visual Regression ผ่านบน Head เดียวกัน
 
-## Dependency ต่อ Phase อื่น
-
-- P2 เป็นเจ้าของ Role, Team, Effective access, Scope, Limit และ DENY
-- P3 เป็นเจ้าของ Workspace selection และ Navigation visibility
-- P4 เป็นเจ้าของ Chart/Widget behavior และ Dashboard interaction
-- P5 เป็นเจ้าของ Table/Form/Drawer interaction
-- P6 เป็นเจ้าของ `/settings` และ `/system-settings`
-- P7 เป็นเจ้าของ Design-system ownership และ CSS cleanup
-- P8 ตรวจว่าทุก Owner ทำงานร่วมกันโดยไม่ลด Security, Accessibility หรือ Release quality
-
 ## Definition of Done
 
-- Route inventory 83 รายการมี Classification ครบ
-- ไม่มีหน้าใหม่ที่หลุด Route guard หรือ Browser smoke
-- `/system-settings` และ `/settings/activities` ถูกลงทะเบียนถูกต้อง
-- `/security` Owner เดิมรองรับ Sessions, 2FA, Recovery และ Step-up โดยไม่สร้างหน้าซ้ำ
+- Route inventory 83 รายการมี Permission และ Workspace owner ครบ
+- ไม่มีหน้าใหม่หลุด Route audit หรือ Browser smoke
+- Sensitive endpoints เรียก P8 policy จริงหลัง Sync P2/P6
+- `/security` รองรับ Session, 2FA, Recovery และ Step-up โดยไม่สร้างหน้าซ้ำ
 - Tier 0 ผ่าน Security/Accessibility/Browser coverage ตาม Persona และ Viewport
-- Legacy routes ถูก Redirect/Deprecated/Read-only ตาม P6 inventory
+- Legacy routes เป็น Redirect/Deprecated/Read-only ตาม P6 inventory
 - Required CI ผ่านบน Head เดียวกัน
 - Branch ถูก Retarget/Sync เข้า `main` หลัง P2, P4 และ P5–P7 Merge
