@@ -10,7 +10,7 @@ Stack base ชั่วคราว: `agent/admin-phase-5-7-data-settings-design
 
 ## CI snapshot
 
-- Last verified P8 evidence head: `1315c26086e82eb3a4ff89f3db802f9c74ab46c3`
+- Last verified P8 runtime/evidence head: `8642d5860cea3a745417b9702977b5c528fc4f8e`
 - P8-specific workflows: **7/7 ผ่าน**
 - Base workflows ที่แดง: 3 รายการและไม่อยู่ใน P8 diff
 - Documentation-only commit หลัง SHA นี้ต้องผ่าน Required CI บน PR Head ก่อน Merge
@@ -85,11 +85,14 @@ Files:
 
 ## Accessibility และ Browser evidence ✅
 
-Routes หลักที่ใช้เป็น P8 smoke owner:
+Routes หลักที่ใช้เป็น P8 smoke และ Interaction owner:
 
 - `/system-settings`
 - `/settings/activities`
+- `/activity-center`
+- `/admin-invitations`
 - `/security?tab=sessions`
+- `/security?tab=two-factor`
 
 Coverage ที่ยืนยันแล้ว:
 
@@ -104,7 +107,15 @@ Coverage ที่ยืนยันแล้ว:
 - Long admin name/role บน Desktop, Tablet และ Mobile
 - Responsive Drawer อยู่ในขอบ Viewport
 - 200% desktop-equivalent reflow ที่ CSS viewport 720px
-- Drawer Escape และ Focus restore หลังปิด
+- Drawer ใช้ Production activity item เป็น Trigger จริง
+- Drawer มี Focus trap, Escape, Scroll lock และ Focus restore
+- Confirm Modal ใช้ Stable callback/busy refs ไม่ Reset focus ระหว่าง Render
+- Confirm Modal มี Focus trap, Escape, Scroll lock และ Focus restore ไป Trigger
+- Shared Invitation Table แบ่งหน้า 25 แถวด้วย Keyboard และแสดง Desktop table/Mobile card owner ถูกต้อง
+- การยกเลิก Invitation confirm ไม่ยิง Mutation
+- Security Tabs รักษา Query parameter อื่นและอัปเดต `aria-current`
+- Session destructive confirm ยกเลิกได้โดยไม่ยิง Mutation
+- 2FA secret แสดงผ่าน Security owner และล้างจากหน้าจอได้
 - Dataset เซสชัน 137 แถวพร้อมข้อความ User-Agent ยาว
 - Pagination ด้วย Keyboard, เปลี่ยน Page size เป็น 50 และไม่เกิด Page overflow
 - Network disconnect ทำให้ Security data ถูกล้างแบบ fail-closed และแสดง Empty state
@@ -115,7 +126,6 @@ Coverage ที่ยืนยันแล้ว:
 - Firefox Desktop
 - WebKit Desktop
 - Permission-denied title มี Heading semantics
-- Confirm Modal คืน Focus ไป Trigger
 - Dialog semantics, focus containment, Escape และ Scroll lock contracts
 - Data Table keyboard rows, sorting, pagination และ live status contracts
 - Sensitive-display expiry contract
@@ -126,6 +136,8 @@ Files:
 - `tests/admin-browser-matrix/admin-p8-zoom-reflow.spec.ts`
 - `tests/admin-browser-matrix/admin-p8-persona-access.spec.ts`
 - `tests/admin-browser-matrix/admin-p8-data-resilience.spec.ts`
+- `tests/admin-browser-matrix/admin-p8-owner-interactions.spec.ts`
+- `apps/web-admin/src/features/admin-modernization/p8-accessibility-contract.spec.ts`
 
 ## Persona และ Release matrix ✅
 
@@ -194,7 +206,7 @@ Files:
 ## Remaining — 3 กลุ่ม
 
 1. เชื่อม Security policy เข้ากับ P2/P6 sensitive endpoints หลัง Dependency Sync
-2. เพิ่ม Browser interaction สำหรับ Drawer, Modal, Table, Tabs, Security และ Chart หลัง P4/P5 Sync
+2. เพิ่ม Chart/Widget browser interaction หลัง P4 Sync
 3. Retarget `main`, Sync dependencies, รัน Final release gate และ Production smoke
 
 ## Definition of Done
