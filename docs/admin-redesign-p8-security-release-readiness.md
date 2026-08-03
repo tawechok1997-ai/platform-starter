@@ -10,12 +10,12 @@ Stack base ชั่วคราว: `agent/admin-phase-5-7-data-settings-design
 
 ## CI snapshot
 
-- Last verified P8 head: `ea916ae49bd904fa77beeb1bc80fd6ef37ec566c`
+- Last verified P8 evidence head: `d45ecb605241c5e167b4e1af66f0d8c196447bda`
 - P8-specific workflows: **7/7 ผ่าน**
-- Candidate ปัจจุบันหลังเพิ่ม 200% zoom evidence: `d25d169b3b39765d6cf62c3fc1de5da6bcaa68d3`
-- Candidate ปัจจุบันต้องรอ CI ใหม่ก่อนนับว่าผ่าน
+- Base workflows ที่แดง: 3 รายการและไม่อยู่ใน P8 diff
+- Documentation-only commits หลัง SHA นี้ยังต้องผ่าน Required CI บน PR Head ก่อน Merge
 
-Base blockers ที่ไม่อยู่ใน P8 diff:
+Base blockers:
 
 1. `R012 Frontend Architecture` — Member tests บน Base #492
 2. `R-006 Quality Baseline` — Member lint บน Base #492
@@ -102,6 +102,8 @@ Coverage ที่ยืนยันแล้ว:
 - WCAG text-spacing
 - Long admin name/role บน Desktop, Tablet และ Mobile
 - Responsive Drawer อยู่ในขอบ Viewport
+- 200% desktop-equivalent reflow ที่ CSS viewport 720px
+- Drawer Escape และ Focus restore หลังปิด
 - Chromium Desktop/Tablet/Mobile
 - Firefox Desktop
 - WebKit Desktop
@@ -110,12 +112,6 @@ Coverage ที่ยืนยันแล้ว:
 - Dialog semantics, focus containment, Escape และ Scroll lock contracts
 - Data Table keyboard rows, sorting, pagination และ live status contracts
 - Sensitive-display expiry contract
-
-200% zoom candidate:
-
-- Desktop 1440px ถูกทดสอบด้วย CSS viewport 720px ซึ่งเทียบเท่า Reflow ที่ 200%
-- ตรวจ Heading, Link, Menu button, Drawer bounds, Escape, Focus restore และ Horizontal overflow
-- รอ Browser Matrix ของ Candidate ปัจจุบันยืนยันก่อนปิดรายการ
 
 Files:
 
