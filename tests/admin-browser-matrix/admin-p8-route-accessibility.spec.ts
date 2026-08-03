@@ -90,7 +90,9 @@ test('/system-settings recovers from one temporary auth read failure', async ({ 
   await page.waitForLoadState('networkidle', { timeout: 10_000 }).catch(() => undefined);
 
   await expect(page.getByRole('heading', { name: 'การตั้งค่าระบบ' }).first()).toBeVisible();
-  await expect.poll(session.authMeAttempts).toBe(2);
+  await expect.poll(session.firstSuccessfulAuthMeAttempt).toBe(2);
+  expect(session.authMeFailuresServed()).toBe(1);
+  expect(session.authMeAttempts()).toBeGreaterThanOrEqual(2);
   await expect(page).not.toHaveURL(/\/login(?:\?|$)/);
 });
 
@@ -109,6 +111,9 @@ async function assertRouteSurface(page: Page, routeCase: typeof routeCases[numbe
 
 async function installAdminSession(page: Page, options: { authMeFailures?: number } = {}) {
   let authMeAttempts = 0;
+  let authMeFailuresServed = 0;
+  let firstSuccessfulAuthMeAttempt: number | null = null;
+
   await page.addInitScript(() => {
     window.sessionStorage.setItem('admin_access_token', 'p8-accessibility-token');
     window.localStorage.setItem('admin_session_hint', '1');
@@ -121,14 +126,20 @@ async function installAdminSession(page: Page, options: { authMeFailures?: numbe
     if (path === '/admin/auth/me') {
       authMeAttempts += 1;
       if (authMeAttempts <= (options.authMeFailures ?? 0)) {
+        authMeFailuresServed += 1;
         await fulfillJson(route, { message: 'temporary unavailable' }, 503);
         return;
       }
+      if (firstSuccessfulAuthMeAttempt === null) firstSuccessfulAuthMeAttempt = authMeAttempts;
     }
     await fulfillJson(route, fixtureFor(path));
   });
 
-  return { authMeAttempts: () => authMeAttempts };
+  return {
+    authMeAttempts: () => authMeAttempts,
+    authMeFailuresServed: () => authMeFailuresServed,
+    firstSuccessfulAuthMeAttempt: () => firstSuccessfulAuthMeAttempt,
+  };
 }
 
 function fixtureFor(path: string) {
