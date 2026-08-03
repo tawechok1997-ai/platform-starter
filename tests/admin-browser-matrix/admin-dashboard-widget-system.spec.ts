@@ -1,10 +1,11 @@
 import { expect, test, type Page, type Route } from '@playwright/test';
 
-const permissions = ['*'];
+const ownerPermissions = ['*'];
+const financePermissions = ['topups.view', 'deposit.view', 'withdraw.view', 'wallet.view', 'reports.view'];
 
 for (const locale of ['th', 'en'] as const) {
   test(`dashboard widget interactions persist for ${locale}`, async ({ page }, testInfo) => {
-    await installDashboardSession(page, locale);
+    await installDashboardSession(page, locale, ownerPermissions, 'matrix-owner');
     await page.goto('/dashboard', { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('networkidle', { timeout: 10_000 }).catch(() => undefined);
 
@@ -37,8 +38,8 @@ for (const locale of ['th', 'en'] as const) {
     await hideButton.click();
     await expect(page.getByText(locale === 'th' ? 'วิดเจ็ตที่ซ่อน' : 'Hidden widgets')).toBeVisible();
 
-    const savedLayout = await page.evaluate(() => window.localStorage.getItem('admin_widget_layout_v1:matrix-owner'));
-    expect(savedLayout).toContain('"hidden":true');
+    await expect.poll(() => page.evaluate(() => window.localStorage.getItem('admin_widget_layout_v1:matrix-owner')))
+      .toContain('"hidden":true');
 
     await page.getByRole('button', { name: locale === 'th' ? 'คืนค่าเริ่มต้น' : 'Restore default' }).click();
     await expect(page.locator('[data-widget-id]')).toHaveCount(6);
@@ -58,7 +59,25 @@ for (const locale of ['th', 'en'] as const) {
   });
 }
 
-async function installDashboardSession(page: Page, locale: 'th' | 'en') {
+test('dashboard widget data is filtered by effective permission', async ({ page }) => {
+  await installDashboardSession(page, 'th', financePermissions, 'matrix-finance');
+  await page.goto('/dashboard', { waitUntil: 'domcontentloaded' });
+  await page.waitForLoadState('networkidle', { timeout: 10_000 }).catch(() => undefined);
+
+  await expect(page.locator('[data-widget-id="risk.open-severity"]')).toHaveCount(0);
+  await expect(page.getByText('High velocity transaction pattern')).toHaveCount(0);
+  await expect(page.getByText('ความเสี่ยงวิกฤต')).toHaveCount(0);
+  await expect(page.locator('[data-widget-id="finance.pending-queues"]')).toBeVisible();
+  await expect(page.getByText('matrix_member').first()).toBeVisible();
+  await expect(page.getByText('matrix_withdraw').first()).toBeVisible();
+});
+
+async function installDashboardSession(
+  page: Page,
+  locale: 'th' | 'en',
+  permissions: readonly string[],
+  adminUserId: string,
+) {
   await page.addInitScript(({ selectedLocale }) => {
     window.sessionStorage.setItem('admin_access_token', 'dashboard-widget-matrix-token');
     window.localStorage.setItem('admin_session_hint', '1');
@@ -68,17 +87,17 @@ async function installDashboardSession(page: Page, locale: 'th' | 'en') {
   await page.route('**/api/admin/**', async (route) => {
     const url = new URL(route.request().url());
     const path = url.pathname.replace(/^\/api\/admin/, '/admin');
-    await fulfillJson(route, fixtureFor(path));
+    await fulfillJson(route, fixtureFor(path, permissions, adminUserId));
   });
 }
 
-function fixtureFor(path: string) {
+function fixtureFor(path: string, permissions: readonly string[], adminUserId: string) {
   if (path === '/admin/auth/me') {
     return {
-      id: 'matrix-owner',
-      username: 'matrix_owner',
-      displayName: 'Matrix Owner',
-      roles: [{ code: 'owner', name: 'Owner' }],
+      id: adminUserId,
+      username: adminUserId,
+      displayName: adminUserId,
+      roles: [{ code: 'matrix', name: 'Matrix' }],
       permissions,
     };
   }
