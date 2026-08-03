@@ -7,7 +7,7 @@
  * - the document owns vertical scrolling
  * - the category rail is sticky beneath the 60px mobile header
  * - it remains inside the left grid column and stops with that grid
- * - no JavaScript transform or second scrolling owner is involved
+ * - no JavaScript transform, fixed follower, or nested vertical scroller exists
  */
 @media (max-width: 900px) {
   html[data-member-viewport-mode='mobile'],
@@ -54,19 +54,14 @@
     align-self: start !important;
     height: max-content !important;
     min-height: 0 !important;
-    max-height: calc(100dvh - 68px) !important;
-    overflow-x: hidden !important;
-    overflow-y: auto !important;
-    overscroll-behavior: contain !important;
-    scrollbar-width: none !important;
+    max-height: none !important;
+    overflow: visible !important;
+    overscroll-behavior: auto !important;
+    scrollbar-width: auto !important;
     transform: none !important;
     will-change: auto !important;
     touch-action: pan-y !important;
-    -webkit-overflow-scrolling: touch !important;
-  }
-
-  html[data-member-viewport-mode='mobile'] [data-mobile-section-owner='category-menu']::-webkit-scrollbar {
-    display: none !important;
+    -webkit-overflow-scrolling: auto !important;
   }
 
   html[data-member-viewport-mode='mobile'] [data-mobile-content-slot='after-highlight'] {
