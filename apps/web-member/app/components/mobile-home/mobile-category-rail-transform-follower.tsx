@@ -3,16 +3,15 @@
 import { useLayoutEffect } from 'react';
 
 const ROOT_SELECTOR = '[data-mobile-home-root="true"]';
-const CONTAINER_SELECTOR = '[data-mobile-category-container="true"]';
 const RAIL_SELECTOR = '[data-mobile-section-owner="category-menu"]';
 const HEADER_OFFSET = 60;
 
 export default function MobileCategoryRailTransformFollower() {
   useLayoutEffect(() => {
     const root = document.querySelector<HTMLElement>(ROOT_SELECTOR);
-    const container = root?.querySelector<HTMLElement>(CONTAINER_SELECTOR);
     const rail = root?.querySelector<HTMLElement>(RAIL_SELECTOR);
-    if (!root || !container || !rail) return;
+    const container = rail?.parentElement;
+    if (!root || !rail || !(container instanceof HTMLElement)) return;
 
     let frame = 0;
     let lastOffset = -1;
