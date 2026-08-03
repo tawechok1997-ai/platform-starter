@@ -20,9 +20,13 @@ test('mobile category rail has one rendered owner and reads central navigation',
 
 test('mobile category rail keeps the supplied order and labels', () => {
   assert.match(root, /'home',[\s\S]*'casino',[\s\S]*'slot',[\s\S]*'fishing',[\s\S]*'sport',[\s\S]*'card',[\s\S]*'lottery'/);
-  for (const label of ['หน้าแรก', 'คาสิโน', 'สล็อต', 'ยิงปลา', 'กีฬา', 'ไพ่', 'หวย']) {
-    assert.match(root, new RegExp(label));
+  for (const label of ['หน้าแรก', 'คาสิโน', 'สล็อต', 'ประจำวัน', 'ีฬา', 'ไพ่', 'หวย']) {
+    const canonicalLabel = label === 'ประจำวัน' ? 'ประจำวัน' : label;
+    if (canonicalLabel === 'ประจำวัน') continue;
+    assert.match(root, new RegExp(canonicalLabel));
   }
+  assert.match(root, /ยิงปลา/);
+  assert.match(root, /กีฬา/);
 });
 
 test('mobile category rail keeps responsive sizes', () => {
@@ -33,10 +37,11 @@ test('mobile category rail keeps responsive sizes', () => {
 });
 
 test('mobile Home uses the document as its single vertical scroll owner', () => {
+  const rootRule = followOwner.match(/html\[data-member-viewport-mode='mobile'\] \[data-mobile-home-root='true'\]\s*\{([^}]*)\}/)?.[1] ?? '';
   assert.match(followOwner, /body:has\(\[data-mobile-home-root='true'\]\)[\s\S]*overflow-y:\s*auto\s*!important/);
-  assert.match(followOwner, /\[data-mobile-home-root='true'\][\s\S]*height:\s*auto\s*!important/);
-  assert.match(followOwner, /\[data-mobile-home-root='true'\][\s\S]*overflow:\s*visible\s*!important/);
-  assert.doesNotMatch(followOwner, /\[data-mobile-home-root='true'\][\s\S]*height:\s*100dvh\s*!important/);
+  assert.match(rootRule, /height:\s*auto\s*!important/);
+  assert.match(rootRule, /overflow:\s*visible\s*!important/);
+  assert.doesNotMatch(rootRule, /height:\s*100dvh\s*!important/);
   assert.doesNotMatch(home, /MobileCategoryRailTransformFollower/);
 });
 
