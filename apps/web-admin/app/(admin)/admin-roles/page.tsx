@@ -200,9 +200,17 @@ export default function AdminRolesPage() {
       : current.length >= 8 ? current : [...current, roleId]);
   }
 
-  async function previewRoles() {
-    if (!selectedAdmin || selectedRoleIds.length === 0) return setNotice({ tone: 'danger', text: th ? 'เลือกอย่างน้อยหนึ่งบทบาท' : 'Select at least one role.' });
-    if (!primaryRoleId || !selectedRoleIds.includes(primaryRoleId)) return setNotice({ tone: 'danger', text: th ? 'เลือกบทบาทหลักจากรายการที่เลือก' : 'Choose a primary role from the selected roles.' });
+  async function previewRoles(): Promise<RolePreview | null> {
+    if (!selectedAdmin || selectedRoleIds.length === 0) {
+      setRolePreview(null);
+      setNotice({ tone: 'danger', text: th ? 'เลือกอย่างน้อยหนึ่งบทบาท' : 'Select at least one role.' });
+      return null;
+    }
+    if (!primaryRoleId || !selectedRoleIds.includes(primaryRoleId)) {
+      setRolePreview(null);
+      setNotice({ tone: 'danger', text: th ? 'เลือกบทบาทหลักจากรายการที่เลือก' : 'Choose a primary role from the selected roles.' });
+      return null;
+    }
     setBusy('preview');
     try {
       const response = await adminApiFetch('/admin/access/role-preview', {
@@ -218,8 +226,11 @@ export default function AdminRolesPage() {
           ? (th ? 'ตรวจสิทธิ์แล้ว สามารถบันทึกบทบาทชุดนี้ได้' : 'Role selection can be granted.')
           : payload.reason || (th ? 'ไม่สามารถมอบบทบาทชุดนี้ได้' : 'Role selection cannot be granted.'),
       });
+      return payload;
     } catch {
+      setRolePreview(null);
       setNotice({ tone: 'danger', text: th ? 'ตรวจสิทธิ์บทบาทไม่สำเร็จ' : 'Role preview failed.' });
+      return null;
     } finally {
       setBusy('');
     }
@@ -228,7 +239,8 @@ export default function AdminRolesPage() {
   async function saveRoles() {
     if (!selectedAdmin || !canManageRoles || selectedAdmin.protected) return;
     if (roleReason.trim().length < 5) return setNotice({ tone: 'danger', text: th ? 'ระบุเหตุผลอย่างน้อย 5 ตัวอักษร' : 'Provide a reason of at least 5 characters.' });
-    if (!rolePreview?.grantable) await previewRoles();
+    const checkedPreview = rolePreview?.grantable ? rolePreview : await previewRoles();
+    if (!checkedPreview?.grantable) return;
     setBusy('roles');
     try {
       const response = await adminApiFetch(`/admin/access/admin-users/${selectedAdmin.id}/roles`, {
