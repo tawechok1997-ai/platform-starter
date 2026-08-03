@@ -1,16 +1,24 @@
 import { expect, test, type Page, type Route } from '@playwright/test';
 
 const ownerPermissions = ['*'];
-const financePermissions = ['topups.view', 'deposit.view', 'withdraw.view', 'wallet.view', 'reports.view'];
+const paymentsPermissions = ['topups.view', 'deposit.view', 'withdraw.view', 'wallet.view', 'reports.view'];
+const allWorkspaces = ['finance', 'payments', 'growth', 'manager', 'system'] as const;
 
 for (const locale of ['th', 'en'] as const) {
   test(`dashboard widget interactions persist for ${locale}`, async ({ page }, testInfo) => {
-    await installDashboardSession(page, locale, ownerPermissions, 'matrix-owner');
+    await installDashboardSession(page, {
+      locale,
+      permissions: ownerPermissions,
+      adminUserId: 'matrix-owner',
+      workspaces: allWorkspaces,
+      selectedWorkspace: 'all',
+    });
     await page.goto('/dashboard', { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('networkidle', { timeout: 10_000 }).catch(() => undefined);
 
     const dashboard = page.locator('main');
     await expect(dashboard).toBeVisible();
+    await expect(page.locator('[data-admin-widget-workspace="all"]')).toBeVisible();
     await expect(page.locator('[data-widget-id]')).toHaveCount(6);
 
     const rangeSelect = page.getByLabel(locale === 'th' ? 'ช่วงวันที่' : 'Date range');
@@ -64,11 +72,60 @@ for (const locale of ['th', 'en'] as const) {
   });
 }
 
+test('P3 workspace selection filters widgets without deleting the saved layout', async ({ page }) => {
+  await installDashboardSession(page, {
+    locale: 'th',
+    permissions: ownerPermissions,
+    adminUserId: 'matrix-workspaces',
+    workspaces: allWorkspaces,
+    selectedWorkspace: 'all',
+  });
+  await page.goto('/dashboard', { waitUntil: 'domcontentloaded' });
+  await page.waitForLoadState('networkidle', { timeout: 10_000 }).catch(() => undefined);
+  await expect(page.locator('[data-widget-id]')).toHaveCount(6);
+
+  await selectP3Workspace(page, 'finance');
+  await expect(page.locator('[data-admin-widget-workspace="finance"]')).toBeVisible();
+  await expectVisibleWidgetIds(page, [
+    'operations.priority-work',
+    'finance.cash-flow',
+    'wallet.balance-composition',
+    'activity.recent',
+  ]);
+
+  await selectP3Workspace(page, 'payments');
+  await expectVisibleWidgetIds(page, [
+    'operations.priority-work',
+    'finance.cash-flow',
+    'finance.pending-queues',
+    'activity.recent',
+  ]);
+
+  await selectP3Workspace(page, 'system');
+  await expectVisibleWidgetIds(page, [
+    'operations.priority-work',
+    'risk.open-severity',
+    'activity.recent',
+  ]);
+
+  const savedLayout = await page.evaluate(() => window.localStorage.getItem('admin_widget_layout_v1:matrix-workspaces'));
+  expect(savedLayout).toContain('finance.cash-flow');
+  expect(savedLayout).toContain('finance.pending-queues');
+  expect(savedLayout).toContain('risk.open-severity');
+});
+
 test('dashboard widget data is filtered by effective permission', async ({ page }) => {
-  await installDashboardSession(page, 'th', financePermissions, 'matrix-finance');
+  await installDashboardSession(page, {
+    locale: 'th',
+    permissions: paymentsPermissions,
+    adminUserId: 'matrix-payments',
+    workspaces: ['payments'],
+    selectedWorkspace: 'payments',
+  });
   await page.goto('/dashboard', { waitUntil: 'domcontentloaded' });
   await page.waitForLoadState('networkidle', { timeout: 10_000 }).catch(() => undefined);
 
+  await expect(page.locator('[data-admin-widget-workspace="payments"]')).toBeVisible();
   await expect(page.locator('[data-widget-id="risk.open-severity"]')).toHaveCount(0);
   await expect(page.getByText('High velocity transaction pattern')).toHaveCount(0);
   await expect(page.getByText('ความเสี่ยงวิกฤต')).toHaveCount(0);
@@ -77,33 +134,50 @@ test('dashboard widget data is filtered by effective permission', async ({ page 
   await expect(page.getByText('matrix_withdraw').first()).toBeVisible();
 });
 
-async function installDashboardSession(
-  page: Page,
-  locale: 'th' | 'en',
-  permissions: readonly string[],
-  adminUserId: string,
-) {
-  await page.addInitScript(({ selectedLocale }) => {
+async function installDashboardSession(page: Page, options: {
+  locale: 'th' | 'en';
+  permissions: readonly string[];
+  adminUserId: string;
+  workspaces: readonly string[];
+  selectedWorkspace: string;
+}) {
+  await page.addInitScript(({ selectedLocale, workspace }) => {
     window.sessionStorage.setItem('admin_access_token', 'dashboard-widget-matrix-token');
     window.localStorage.setItem('admin_session_hint', '1');
     window.localStorage.setItem('admin_locale', selectedLocale);
-  }, { selectedLocale: locale });
+    window.localStorage.setItem('admin_workspace_selection_v1', workspace);
+  }, { selectedLocale: options.locale, workspace: options.selectedWorkspace });
 
   await page.route('**/api/admin/**', async (route) => {
     const url = new URL(route.request().url());
     const path = url.pathname.replace(/^\/api\/admin/, '/admin');
-    await fulfillJson(route, fixtureFor(path, permissions, adminUserId));
+    await fulfillJson(route, fixtureFor(path, options));
   });
 }
 
-function fixtureFor(path: string, permissions: readonly string[], adminUserId: string) {
+function fixtureFor(path: string, options: {
+  permissions: readonly string[];
+  adminUserId: string;
+  workspaces: readonly string[];
+}) {
   if (path === '/admin/auth/me') {
     return {
-      id: adminUserId,
-      username: adminUserId,
-      displayName: adminUserId,
-      roles: [{ code: 'matrix', name: 'Matrix' }],
-      permissions,
+      id: options.adminUserId,
+      username: options.adminUserId,
+      displayName: options.adminUserId,
+      roles: options.workspaces.map((workspaceId, index) => ({
+        code: `matrix-${workspaceId}`,
+        name: workspaceId,
+        workspaceId,
+        primary: index === 0,
+      })),
+      workspaceAssignments: options.workspaces.map((workspaceId, index) => ({
+        workspaceId,
+        primary: index === 0,
+        enabled: true,
+      })),
+      primaryWorkspaceId: options.workspaces[0],
+      permissions: options.permissions,
     };
   }
 
@@ -178,8 +252,22 @@ function fixtureFor(path: string, permissions: readonly string[], adminUserId: s
   }
 
   if (path.startsWith('/admin/notifications')) return { items: [], unreadCount: 0 };
-  if (path.startsWith('/admin/access/profile')) return { permissions };
+  if (path.startsWith('/admin/access/profile')) return { permissions: options.permissions };
   return {};
+}
+
+async function selectP3Workspace(page: Page, selection: string) {
+  await page.evaluate((workspace) => {
+    document.documentElement.dataset.adminWorkspace = workspace;
+    window.dispatchEvent(new CustomEvent('admin:workspace-change', { detail: { selection: workspace } }));
+  }, selection);
+}
+
+async function expectVisibleWidgetIds(page: Page, expectedIds: readonly string[]) {
+  await expect.poll(async () => page.locator('[data-widget-id]').evaluateAll((nodes) => nodes
+    .map((node) => node.getAttribute('data-widget-id'))
+    .filter((value): value is string => Boolean(value))))
+    .toEqual(expectedIds);
 }
 
 async function fulfillJson(route: Route, body: unknown, status = 200) {
