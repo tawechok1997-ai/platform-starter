@@ -48,7 +48,7 @@ export default function MobileCategoryRailTransformFollower() {
     resizeObserver?.observe(container);
     resizeObserver?.observe(rail);
 
-    window.addEventListener('scroll', schedule, { passive: true });
+    document.addEventListener('scroll', schedule, { capture: true, passive: true });
     window.addEventListener('resize', schedule, { passive: true });
     window.visualViewport?.addEventListener('resize', schedule, { passive: true });
     window.addEventListener('pageshow', schedule);
@@ -57,7 +57,7 @@ export default function MobileCategoryRailTransformFollower() {
     return () => {
       window.cancelAnimationFrame(frame);
       resizeObserver?.disconnect();
-      window.removeEventListener('scroll', schedule);
+      document.removeEventListener('scroll', schedule, true);
       window.removeEventListener('resize', schedule);
       window.visualViewport?.removeEventListener('resize', schedule);
       window.removeEventListener('pageshow', schedule);
