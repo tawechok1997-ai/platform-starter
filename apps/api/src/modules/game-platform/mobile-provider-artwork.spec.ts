@@ -5,7 +5,7 @@ import {
 
 describe('Mobile provider artwork', () => {
   it('keeps the complete provider-only source inventory', () => {
-    expect(mobileProviderArtworkCount()).toBe(76);
+    expect(mobileProviderArtworkCount()).toBe(77);
   });
 
   it('uses the exact source filenames supplied for Mobile provider cards', () => {
