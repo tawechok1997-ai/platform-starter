@@ -94,11 +94,20 @@
 
   [data-mobile-section-owner='header'],
   [data-mobile-section-owner='hero'],
-  [data-mobile-section-owner='auth-actions'],
   [data-mobile-section-owner='announcement'],
   [data-mobile-section-owner='highlight-tabs'] {
     visibility: visible !important;
     opacity: 1 !important;
+  }
+
+  /* The authenticated runtime owns the wallet/header and marks this same root.
+   * Guest actions must stay hidden across later React rerenders. */
+  html[data-member-viewport-mode='mobile'] [data-mobile-home-root='true'][data-mobile-authenticated='true'] [data-mobile-section-owner='auth-actions'],
+  html[data-member-viewport-mode='mobile'] [data-mobile-home-root='true'][data-mobile-authenticated='true'] [data-mobile-auth-layout='drawer'] {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
   }
 
   nav[data-mobile-member-bottom-navigation='true'] {
