@@ -23,9 +23,11 @@ test('highlight content owns category rendering and shared side effects', () => 
   ]) {
     assert.match(contentOwner, new RegExp(`import ${component}`));
   }
-  assert.match(contentOwner, /window\.addEventListener\('click', selectFromClick, true\)/);
   assert.match(contentOwner, /window\.addEventListener\('member:mobile-category-select', selectFromEvent\)/);
+  assert.doesNotMatch(contentOwner, /selectFromClick/);
+  assert.doesNotMatch(contentOwner, /addEventListener\('click', selectFromClick/);
   assert.match(contentOwner, /root\.dataset\.mobileActiveCategory = category/);
+  assert.match(contentOwner, /if \(root\) delete root\.dataset\.mobileActiveCategory/);
   assert.match(contentOwner, /restoreTopChrome\(root\)/);
   assert.match(contentOwner, /document\.scrollingElement/);
   assert.match(contentOwner, /if \(activeCategory === 'casino'\)[\s\S]*return <MobileCasinoProviderPage \/>/);
