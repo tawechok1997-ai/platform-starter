@@ -10,7 +10,7 @@ export type AdminChartTone = 'brand' | 'success' | 'warning' | 'danger' | 'info'
 export type AdminChartSeries = {
   id: string;
   label: string;
-  tone?: AdminChartTone;
+  tone?: AdminChartTone | undefined;
 };
 
 export type AdminChartPoint = {
@@ -32,10 +32,14 @@ export type AdminChartProps = {
   kind: AdminChartKind;
   series: readonly AdminChartSeries[];
   points: readonly AdminChartPoint[];
-  valueFormatter?: (value: number) => string;
-  height?: number;
-  onDatumSelect?: (selection: AdminChartSelection) => void;
+  valueFormatter?: ((value: number) => string) | undefined;
+  height?: number | undefined;
+  totalLabel?: string | undefined;
+  legendAriaLabel?: string | undefined;
+  onDatumSelect?: ((selection: AdminChartSelection) => void) | undefined;
 };
+
+type NormalizedAdminChartSeries = AdminChartSeries & { tone: AdminChartTone };
 
 type ChartModel = {
   width: number;
@@ -52,7 +56,7 @@ type ChartModel = {
   y: (value: number) => number;
 };
 
-const DEFAULT_TONES: AdminChartTone[] = ['brand', 'success', 'warning', 'danger', 'info', 'neutral'];
+const DEFAULT_TONES: readonly AdminChartTone[] = ['brand', 'success', 'warning', 'danger', 'info', 'neutral'];
 
 export function AdminChart({
   ariaLabel,
@@ -61,13 +65,15 @@ export function AdminChart({
   points,
   valueFormatter = defaultValueFormatter,
   height = 280,
+  totalLabel = 'Total',
+  legendAriaLabel = `${ariaLabel} legend`,
   onDatumSelect,
 }: AdminChartProps) {
-  const normalizedSeries = useMemo(() => series.map((item, index) => ({
+  const normalizedSeries = useMemo<NormalizedAdminChartSeries[]>(() => series.map((item, index) => ({
     ...item,
-    tone: item.tone ?? DEFAULT_TONES[index % DEFAULT_TONES.length],
+    tone: item.tone ?? DEFAULT_TONES[index % DEFAULT_TONES.length] ?? 'brand',
   })), [series]);
-  const model = useMemo(() => buildChartModel(points, normalizedSeries, height), [height, normalizedSeries, points]);
+  const model = useMemo(() => buildChartModel(kind, points, normalizedSeries, height), [height, kind, normalizedSeries, points]);
   const hasData = points.length > 0 && normalizedSeries.length > 0;
 
   if (!hasData) return null;
@@ -82,11 +88,11 @@ export function AdminChart({
     >
       <title>{ariaLabel}</title>
       {kind === 'donut'
-        ? <DonutChart model={model} points={points} series={normalizedSeries} valueFormatter={valueFormatter} onDatumSelect={onDatumSelect} />
+        ? <DonutChart model={model} points={points} series={normalizedSeries} valueFormatter={valueFormatter} totalLabel={totalLabel} onDatumSelect={onDatumSelect} />
         : <CartesianChart model={model} kind={kind} points={points} series={normalizedSeries} valueFormatter={valueFormatter} onDatumSelect={onDatumSelect} />}
     </svg>
 
-    <div className={styles.legend} aria-label={`${ariaLabel} legend`}>
+    <div className={styles.legend} aria-label={legendAriaLabel}>
       {normalizedSeries.map((item) => <span key={item.id}><i data-tone={item.tone} />{item.label}</span>)}
     </div>
 
@@ -109,9 +115,9 @@ function CartesianChart({
   model: ChartModel;
   kind: Exclude<AdminChartKind, 'donut'>;
   points: readonly AdminChartPoint[];
-  series: readonly (AdminChartSeries & { tone: AdminChartTone })[];
+  series: readonly NormalizedAdminChartSeries[];
   valueFormatter: (value: number) => string;
-  onDatumSelect?: (selection: AdminChartSelection) => void;
+  onDatumSelect?: ((selection: AdminChartSelection) => void) | undefined;
 }) {
   const ticks = Array.from({ length: 5 }, (_, index) => model.maximum - (model.range * index) / 4);
   const lineLike = kind === 'line' || kind === 'area';
@@ -227,19 +233,22 @@ function DonutChart({
   points,
   series,
   valueFormatter,
+  totalLabel,
   onDatumSelect,
 }: {
   model: ChartModel;
   points: readonly AdminChartPoint[];
-  series: readonly (AdminChartSeries & { tone: AdminChartTone })[];
+  series: readonly NormalizedAdminChartSeries[];
   valueFormatter: (value: number) => string;
-  onDatumSelect?: (selection: AdminChartSelection) => void;
+  totalLabel: string;
+  onDatumSelect?: ((selection: AdminChartSelection) => void) | undefined;
 }) {
   const totals = series.map((item) => ({
     series: item,
     value: points.reduce((sum, point) => sum + Math.max(0, readValue(point, item.id)), 0),
   }));
-  const total = Math.max(1, totals.reduce((sum, item) => sum + item.value, 0));
+  const rawTotal = totals.reduce((sum, item) => sum + item.value, 0);
+  const denominator = Math.max(1, rawTotal);
   const radius = Math.min(model.plotHeight, model.plotWidth) * 0.3;
   const circumference = 2 * Math.PI * radius;
   const centerX = model.left + model.plotWidth / 2;
@@ -249,7 +258,7 @@ function DonutChart({
   return <>
     <circle className={styles.donutTrack} cx={centerX} cy={centerY} r={radius} />
     {totals.map(({ series: item, value }) => {
-      const length = (value / total) * circumference;
+      const length = (value / denominator) * circumference;
       const currentOffset = offset;
       offset += length;
       const point = points[0] ?? { id: item.id, label: item.label, values: {} };
@@ -270,12 +279,13 @@ function DonutChart({
         onKeyDown={onDatumSelect ? (event) => activateDatum(event, () => onDatumSelect(toSelection(point, item, value))) : undefined}
       />;
     })}
-    <text className={styles.donutValue} x={centerX} y={centerY - 2} textAnchor="middle">{compactNumber(total)}</text>
-    <text className={styles.donutLabel} x={centerX} y={centerY + 20} textAnchor="middle">total</text>
+    <text className={styles.donutValue} x={centerX} y={centerY - 2} textAnchor="middle">{compactNumber(rawTotal)}</text>
+    <text className={styles.donutLabel} x={centerX} y={centerY + 20} textAnchor="middle">{totalLabel}</text>
   </>;
 }
 
 function buildChartModel(
+  kind: AdminChartKind,
   points: readonly AdminChartPoint[],
   series: readonly AdminChartSeries[],
   height: number,
@@ -287,8 +297,12 @@ function buildChartModel(
   const top = 20;
   const bottom = 50;
   const values = points.flatMap((point) => series.map((item) => readValue(point, item.id)));
-  const positiveStacks = points.map((point) => series.reduce((sum, item) => sum + Math.max(0, readValue(point, item.id)), 0));
-  const negativeStacks = points.map((point) => series.reduce((sum, item) => sum + Math.min(0, readValue(point, item.id)), 0));
+  const positiveStacks = kind === 'stacked-bar'
+    ? points.map((point) => series.reduce((sum, item) => sum + Math.max(0, readValue(point, item.id)), 0))
+    : [];
+  const negativeStacks = kind === 'stacked-bar'
+    ? points.map((point) => series.reduce((sum, item) => sum + Math.min(0, readValue(point, item.id)), 0))
+    : [];
   const minimum = Math.min(0, ...values, ...negativeStacks);
   const maximum = Math.max(0, ...values, ...positiveStacks, 1);
   const range = Math.max(1, maximum - minimum);
