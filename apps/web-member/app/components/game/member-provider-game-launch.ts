@@ -46,6 +46,13 @@ export async function openMemberProviderGame(
   options: MemberGameLaunchOptions = {},
 ): Promise<void> {
   const normalized = normalizeCandidate(candidate);
+  if (isDemoSlotCandidate(normalized)) {
+    const attempt = await requestLaunch(DEMO_SLOT_GAME_CODE, options.signal, options.locale);
+    if (!attempt.ok) throw new Error(attempt.message);
+    navigateToProvider(attempt.launchUrl, options.locale);
+    return;
+  }
+
   const directIds = uniqueText([
     usableDirectId(normalized.id),
     usableDirectId(normalized.providerGameCode),
@@ -209,6 +216,12 @@ function normalizeCandidate(candidate: MemberGameLaunchCandidate): NormalizedMem
 function usableDirectId(value: string) {
   const id = firstText(value);
   return id && !id.toLowerCase().startsWith('catalog:') ? id : '';
+}
+
+function isDemoSlotCandidate(candidate: NormalizedMemberGameLaunchCandidate) {
+  return isDemoSlotGameId(candidate.providerGameCode)
+    || isDemoSlotGameId(candidate.id)
+    || (candidate.providerCode === 'simulator-provider' && candidate.category === 'slot');
 }
 
 function isDemoSlotGameId(value: string) {
