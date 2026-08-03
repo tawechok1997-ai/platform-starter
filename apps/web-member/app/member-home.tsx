@@ -8,7 +8,6 @@ import {
   defaultFeatureFlags,
   defaultIconSettings,
 } from './site-settings';
-import MemberGameSectionRuntimeController from './components/member-game-section-runtime-controller';
 import MemberHomeRuntimeController from './components/member-home-runtime-controller';
 import { CmsPopup } from './components/member-home-sections';
 import { DesktopHomeScaffold } from './components/member-home/desktop-home-scaffold';
@@ -124,7 +123,6 @@ function DesktopMemberHome(props: MemberHomeProps) {
       </DesktopGameFeedProvider>
       <HomeSidebarScrollController />
       <MemberHomeRuntimeController />
-      <MemberGameSectionRuntimeController />
       {props.cmsContent.popup.enabled && !popupClosed ? (
         <CmsPopup content={props.cmsContent} primaryColor={props.primaryColor} onClose={closePopup} />
       ) : null}
