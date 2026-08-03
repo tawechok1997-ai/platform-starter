@@ -33,13 +33,13 @@ export type AdminSavedWidgetLayout = {
 export type AdminWidgetDefinition = {
   id: string;
   title: string;
-  description?: string;
-  chartKind?: AdminChartKind;
-  requiredPermissions?: readonly string[];
-  defaultLayout: Omit<AdminWidgetLayoutItem, 'widgetId' | 'hidden'> & { hidden?: boolean };
-  allowFullscreen?: boolean;
-  allowDrillDown?: boolean;
-  exportFormats?: readonly AdminWidgetExportFormat[];
+  description?: string | undefined;
+  chartKind?: AdminChartKind | undefined;
+  requiredPermissions?: readonly string[] | undefined;
+  defaultLayout: Omit<AdminWidgetLayoutItem, 'widgetId' | 'hidden'> & { hidden?: boolean | undefined };
+  allowFullscreen?: boolean | undefined;
+  allowDrillDown?: boolean | undefined;
+  exportFormats?: readonly AdminWidgetExportFormat[] | undefined;
 };
 
 export type AdminWidgetRegistry = {
@@ -127,7 +127,9 @@ export function moveAdminWidget(
   const currentIndex = items.findIndex((item) => item.widgetId === widgetId);
   if (currentIndex < 0) return items.map((item) => ({ ...item }));
   const next = items.map((item) => ({ ...item }));
-  const [moving] = next.splice(currentIndex, 1);
+  const moving = next[currentIndex];
+  if (!moving) return next;
+  next.splice(currentIndex, 1);
   const boundedIndex = clampInteger(targetIndex, 0, next.length, next.length);
   next.splice(boundedIndex, 0, moving);
   return next.map((item, index) => ({ ...item, order: index }));
@@ -184,7 +186,7 @@ export function parseAdminWidgetLayout(value: string | null | undefined, adminUs
 
 export function resolveAdminDateRange(
   preset: AdminDateRangePreset,
-  options: { now?: Date; customStart?: string; customEnd?: string } = {},
+  options: { now?: Date | undefined; customStart?: string | undefined; customEnd?: string | undefined } = {},
 ): AdminDateRange {
   const now = options.now ?? new Date();
   const end = startOfUtcDay(now);
