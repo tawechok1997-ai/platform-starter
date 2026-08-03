@@ -13,7 +13,7 @@ test('demo launch is a wallet-backed slot rather than the old transfer screen', 
   assert.match(page, /BET, WIN, REFUND, ROLLBACK/);
   assert.match(page, /\/member\/provider-simulator\/sessions\/\$\{encodeURIComponent\(session\)\}\/spin/);
   assert.match(page, /JSON\.stringify\(\{ spinId, amount: numericAmount \}\)/);
-  assert.match(page, /setWallet\(\(current\) => \(\{ \.\.\.current, balance: nextBalance/);
+  assert.match(page, /const persistedWallet = await loadWallet\(\)/);
   assert.doesNotMatch(page, /transfer-in|transfer-out|โยกเงินเข้าออกเกม/);
 });
 
@@ -48,6 +48,16 @@ test('slot page shows the exact wallet debit returned by the API', () => {
   assert.match(page, /beforeBalance/);
   assert.match(page, /afterBalance/);
   assert.match(page, /หัก BET/);
+});
+
+test('slot page reads the persisted member wallet after every successful spin', () => {
+  assert.match(page, /async function readWallet\(\): Promise<WalletPayload>/);
+  assert.match(page, /memberApiFetch\('\/member\/wallet'\)/);
+  assert.match(page, /const persistedWallet = await loadWallet\(\)/);
+  assert.match(page, /moneyEquals\(persistedWallet\.balance, expectedBalance\)/);
+  assert.match(page, /data-demo-slot-wallet-readback="true"/);
+  assert.match(page, /ยืนยันยอดจาก Wallet DB แล้ว/);
+  assert.doesNotMatch(page, /balance: nextBalance/);
 });
 
 test('ledger history exposes authenticated round refresh and rollback', () => {
