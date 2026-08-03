@@ -21,16 +21,20 @@ test('canonical drawer owns dialog semantics, focus containment, escape, scroll 
   assert.match(drawer, /openerRef\.current\?\.focus\(\)/);
 });
 
-test('canonical confirmation modal is an alert dialog with labelled content and a busy-safe focus trap', () => {
+test('canonical confirmation modal is an alert dialog with stable refs, focus containment, and opener restore', () => {
   const ui = source('app/(admin)/_components/admin-ui.tsx');
 
   assert.match(ui, /role="alertdialog"/);
   assert.match(ui, /aria-modal="true"/);
   assert.match(ui, /aria-labelledby=\{titleId\}/);
   assert.match(ui, /aria-describedby=\{descriptionId\}/);
-  assert.match(ui, /event\.key === 'Escape' && !busy/);
+  assert.match(ui, /onCancelRef\.current = onCancel/);
+  assert.match(ui, /busyRef\.current = busy/);
+  assert.match(ui, /event\.key === 'Escape' && !busyRef\.current/);
   assert.match(ui, /event\.key !== 'Tab'/);
   assert.match(ui, /cancelRef\.current\?\.focus\(\)/);
+  assert.match(ui, /openerRef\.current = document\.activeElement/);
+  assert.match(ui, /openerRef\.current\?\.focus\(\)/);
   assert.match(ui, /document\.body\.style\.overflow = previous\.overflow/);
   assert.match(ui, /@media\(prefers-reduced-motion:reduce\)/);
 });
