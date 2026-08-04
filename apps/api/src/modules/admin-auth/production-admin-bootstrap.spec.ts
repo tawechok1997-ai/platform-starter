@@ -28,7 +28,7 @@ describe('production Admin bootstrap', () => {
     });
   });
 
-  test.each([
+  test.each<[NodeJS.ProcessEnv, string]>([
     [{ BOOTSTRAP_ADMIN_PASSWORD: 'too-short' }, 'at least 12 characters'],
     [{ BOOTSTRAP_ADMIN_PASSWORD: 'set_in_local_env' }, 'placeholder value'],
     [{ BOOTSTRAP_ADMIN_PASSWORD: 'valid-password-2026', BOOTSTRAP_ADMIN_USERNAME: 'x' }, '3-50 characters'],
