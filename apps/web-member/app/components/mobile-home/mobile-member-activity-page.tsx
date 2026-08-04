@@ -17,7 +17,7 @@ export type MobileActivityContentItem = {
 type MobileMemberActivityPageProps = {
   items: MobileActivityContentItem[];
   loading: boolean;
-  error: string;
+  error?: string;
   onBack: () => void;
 };
 
@@ -27,7 +27,7 @@ const FALLBACK_ACTIVITY_IMAGE = '/assets/asset-pc/images/กิจกรรม.p
 export default function MobileMemberActivityPage({
   items,
   loading,
-  error,
+  error = '',
   onBack,
 }: MobileMemberActivityPageProps) {
   const router = useRouter();
