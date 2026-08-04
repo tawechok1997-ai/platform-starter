@@ -52,6 +52,7 @@
     z-index: 100 !important;
     grid-column: 1 !important;
     align-self: start !important;
+    isolation: isolate !important;
     width: var(--mobile-category-rail-width, 53px) !important;
     height: fit-content !important;
     max-height: calc(100dvh - 72px - env(safe-area-inset-top, 0px)) !important;
@@ -60,11 +61,20 @@
     overflow-y: auto !important;
     overscroll-behavior: contain !important;
     scrollbar-width: none !important;
+    pointer-events: auto !important;
     transform: none !important;
     transition: none !important;
     will-change: auto !important;
     touch-action: pan-y !important;
     -webkit-overflow-scrolling: touch;
+  }
+
+  html[data-member-viewport-mode='mobile'] [data-mobile-section-owner='category-menu'] button[data-mobile-category-id] {
+    position: relative !important;
+    z-index: 1 !important;
+    pointer-events: auto !important;
+    touch-action: manipulation !important;
+    cursor: pointer !important;
   }
 
   html[data-member-viewport-mode='mobile'] [data-mobile-section-owner='category-menu']::-webkit-scrollbar {
