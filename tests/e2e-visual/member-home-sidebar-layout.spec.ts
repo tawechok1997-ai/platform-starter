@@ -4,7 +4,7 @@ import path from 'node:path';
 
 const DESKTOP_PROJECTS = new Set(['1024x768', '1440x900']);
 
-test('member home keeps the following sidebar left of the main feed', async ({ page }, testInfo) => {
+test('member home keeps the following jackpot sidebar right of the main feed', async ({ page }, testInfo) => {
   test.skip(
     !DESKTOP_PROJECTS.has(testInfo.project.name),
     'Desktop Home geometry only applies to desktop projects.',
@@ -67,9 +67,9 @@ test('member home keeps the following sidebar left of the main feed', async ({ p
 
   expect(measured.sidebarWidth).toBeGreaterThan(180);
   expect(measured.mainWidth).toBeGreaterThan(measured.sidebarWidth);
-  expect(Math.abs(measured.sidebarLeft - measured.bodyLeft)).toBeLessThanOrEqual(2);
-  expect(measured.sidebarRight).toBeLessThanOrEqual(measured.mainLeft + 2);
-  expect(Math.abs(measured.bodyRight - measured.mainRight)).toBeLessThanOrEqual(2);
+  expect(Math.abs(measured.mainLeft - measured.bodyLeft)).toBeLessThanOrEqual(2);
+  expect(measured.mainRight).toBeLessThanOrEqual(measured.sidebarLeft + 2);
+  expect(Math.abs(measured.bodyRight - measured.sidebarRight)).toBeLessThanOrEqual(2);
   expect(measured.documentWidth - measured.viewportWidth).toBeLessThanOrEqual(2);
 
   const evidenceDir = path.resolve(
