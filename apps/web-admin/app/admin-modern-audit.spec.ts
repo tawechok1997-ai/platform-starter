@@ -29,7 +29,8 @@ test('keeps Audit Logs class based and redacted', () => {
 test('keeps Activity Center responsive and class based', () => {
   assert.equal(activitySource.includes('admin-activity-center'), true);
   assert.equal(activitySource.includes('admin-activity-event__button'), true);
-  assert.equal(activitySource.includes('admin-activity-drawer'), true);
+  assert.equal(activitySource.includes('<AdminDrawer'), true);
+  assert.equal(activitySource.includes('admin-activity-drawer'), false);
   assert.equal(activitySource.includes('const rowStyle'), false);
   assert.equal(activitySource.includes('const detailButtonStyle'), false);
 });

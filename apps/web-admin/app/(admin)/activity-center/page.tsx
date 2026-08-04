@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { adminApiFetch } from '../../admin-api';
+import { AdminDrawer } from '../_components/admin-drawer';
 import { AdminBadge, AdminButton, AdminCard, AdminEmpty, AdminLinkButton, AdminMetric, AdminMetricGrid, AdminNotice, AdminPage, AdminRow, AdminStack } from '../_components/admin-ui';
 import { formatMoney } from '../_components/human-labels';
 import { useAdminLocale } from '../admin-locale';
@@ -9,7 +10,6 @@ import { useAdminLocale } from '../admin-locale';
 type AuditItem = { id: string; action: string; module: string; targetId?: string | null; createdAt: string; adminUser?: { username?: string | null; email?: string | null } | null };
 type RiskItem = { id: string; title: string; severity: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL'; createdAt: string; memberId?: string | null };
 type FinanceSummary = { totals?: { pendingTopUps?: number; pendingWithdrawals?: number }; recentLedgers?: Array<{ id: string; type: string; direction: string; amount: string; createdAt: string; user?: { username?: string | null; shortId?: string | null } | null }> };
-
 type TimelineItem = { id: string; kind: 'audit' | 'risk' | 'ledger'; title: string; detail: string; createdAt: string; tone: 'neutral' | 'warning' | 'danger' | 'success'; severity?: RiskItem['severity']; href?: string };
 
 const copy = {
@@ -71,7 +71,7 @@ export default function ActivityCenterPage() {
 
   return <AdminPage eyebrow={t.eyebrow} title={t.title} description={t.description} actions={<AdminButton disabled={loading} onClick={() => void load()}>{loading ? t.loading : t.refresh}</AdminButton>}>
     <div className="admin-activity-center">
-      {message && <AdminNotice tone="warning">{message}</AdminNotice>}
+      {message ? <AdminNotice tone="warning">{message}</AdminNotice> : null}
       <AdminMetricGrid>
         <AdminMetric title={t.loadedEvents} value={timeline.length.toLocaleString(dateLocale)} helper={t.threeSources} />
         <AdminMetric title={t.criticalRisk} value={criticalCount.toLocaleString(dateLocale)} helper={t.highCritical} tone={criticalCount > 0 ? 'danger' : 'success'} />
@@ -79,13 +79,22 @@ export default function ActivityCenterPage() {
         <AdminMetric title={t.latestAudit} value={audit.length.toLocaleString(dateLocale)} helper={t.latest20} />
       </AdminMetricGrid>
       <AdminCard title={t.criticalEvents} description={t.criticalDescription} action={<AdminLinkButton href="/risk-alerts">{t.openRiskQueue}</AdminLinkButton>}>
-        <AdminStack>{risk.filter((item) => item.severity === 'CRITICAL' || item.severity === 'HIGH').slice(0, 8).map((item) => <article key={item.id} className="admin-activity-critical"><div><AdminBadge tone="danger">{severityLabel(item.severity, locale)}</AdminBadge><strong className="admin-activity-critical__title">{item.title}</strong><small>{new Date(item.createdAt).toLocaleString(dateLocale)}</small></div><AdminLinkButton href={`/risk-alerts/${item.id}`}>{t.open}</AdminLinkButton></article>)}{criticalCount === 0 && <AdminEmpty>{t.noCritical}</AdminEmpty>}</AdminStack>
+        <AdminStack>{risk.filter((item) => item.severity === 'CRITICAL' || item.severity === 'HIGH').slice(0, 8).map((item) => <article key={item.id} className="admin-activity-critical"><div><AdminBadge tone="danger">{severityLabel(item.severity, locale)}</AdminBadge><strong className="admin-activity-critical__title">{item.title}</strong><small>{new Date(item.createdAt).toLocaleString(dateLocale)}</small></div><AdminLinkButton href={`/risk-alerts/${item.id}`}>{t.open}</AdminLinkButton></article>)}{criticalCount === 0 ? <AdminEmpty>{t.noCritical}</AdminEmpty> : null}</AdminStack>
       </AdminCard>
       <AdminCard title={t.timeline} description={t.timelineDescription}>
         <div className="admin-activity-toolbar"><label><span>{t.type}</span><select value={kindFilter} onChange={(event) => setKindFilter(event.target.value as typeof kindFilter)}><option value="all">{t.all}</option><option value="audit">{t.audit}</option><option value="risk">{t.risk}</option><option value="ledger">{t.finance}</option></select></label><label><span>{t.severity}</span><select value={severityFilter} onChange={(event) => setSeverityFilter(event.target.value as typeof severityFilter)}><option value="all">{t.allLevels}</option><option value="HIGH_OR_CRITICAL">{t.highOrCritical}</option></select></label><span>{filteredTimeline.length.toLocaleString(dateLocale)} {t.items}</span></div>
-        <AdminStack>{filteredTimeline.map((item) => <article key={item.id} className="admin-activity-event" data-tone={item.tone}><button type="button" className="admin-activity-event__button" onClick={() => setSelected(item)}><div className="admin-activity-event__badges"><AdminBadge tone={item.tone}>{kindLabel(item.kind, locale)}</AdminBadge>{item.severity && <AdminBadge tone={item.tone}>{severityLabel(item.severity, locale)}</AdminBadge>}<time>{new Date(item.createdAt).toLocaleString(dateLocale)}</time></div><strong className="admin-activity-event__title">{item.title}</strong><small className="admin-activity-event__detail">{item.detail}</small></button>{item.href && <AdminLinkButton href={item.href}>{t.open}</AdminLinkButton>}</article>)}{!loading && filteredTimeline.length === 0 && <AdminEmpty>{t.noResults}</AdminEmpty>}</AdminStack>
+        <AdminStack>{filteredTimeline.map((item) => <article key={item.id} className="admin-activity-event" data-tone={item.tone}><button type="button" className="admin-activity-event__button" onClick={() => setSelected(item)}><div className="admin-activity-event__badges"><AdminBadge tone={item.tone}>{kindLabel(item.kind, locale)}</AdminBadge>{item.severity ? <AdminBadge tone={item.tone}>{severityLabel(item.severity, locale)}</AdminBadge> : null}<time>{new Date(item.createdAt).toLocaleString(dateLocale)}</time></div><strong className="admin-activity-event__title">{item.title}</strong><small className="admin-activity-event__detail">{item.detail}</small></button>{item.href ? <AdminLinkButton href={item.href}>{t.open}</AdminLinkButton> : null}</article>)}{!loading && filteredTimeline.length === 0 ? <AdminEmpty>{t.noResults}</AdminEmpty> : null}</AdminStack>
       </AdminCard>
-      {selected && <div className="admin-activity-drawer-layer" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setSelected(null); }}><aside className="admin-activity-drawer" aria-label={t.eventDetail}><AdminStack><AdminRow><div className="admin-activity-drawer__heading"><p>{t.eventDetail}</p><h2>{selected.title}</h2></div><AdminButton tone="ghost" onClick={() => setSelected(null)}>{t.close}</AdminButton></AdminRow><AdminRow><span>{t.type}</span><AdminBadge tone={selected.tone}>{kindLabel(selected.kind, locale)}</AdminBadge></AdminRow>{selected.severity && <AdminRow><span>{t.severity}</span><AdminBadge tone={selected.tone}>{severityLabel(selected.severity, locale)}</AdminBadge></AdminRow>}<AdminRow><span>{t.source}</span><strong>{selected.kind === 'ledger' ? t.financeSource : selected.kind === 'risk' ? t.riskSource : t.auditSource}</strong></AdminRow><AdminRow><span>{t.time}</span><strong>{new Date(selected.createdAt).toLocaleString(dateLocale)}</strong></AdminRow><AdminRow><span>{t.detail}</span><strong>{selected.detail}</strong></AdminRow>{selected.href && <AdminLinkButton href={selected.href}>{t.related}</AdminLinkButton>}</AdminStack></aside></div>}
+      <AdminDrawer open={Boolean(selected)} title={selected?.title ?? t.eventDetail} description={t.eventDetail} closeLabel={t.close} onClose={() => setSelected(null)}>
+        {selected ? <AdminStack>
+          <AdminRow><span>{t.type}</span><AdminBadge tone={selected.tone}>{kindLabel(selected.kind, locale)}</AdminBadge></AdminRow>
+          {selected.severity ? <AdminRow><span>{t.severity}</span><AdminBadge tone={selected.tone}>{severityLabel(selected.severity, locale)}</AdminBadge></AdminRow> : null}
+          <AdminRow><span>{t.source}</span><strong>{selected.kind === 'ledger' ? t.financeSource : selected.kind === 'risk' ? t.riskSource : t.auditSource}</strong></AdminRow>
+          <AdminRow><span>{t.time}</span><strong>{new Date(selected.createdAt).toLocaleString(dateLocale)}</strong></AdminRow>
+          <AdminRow><span>{t.detail}</span><strong>{selected.detail}</strong></AdminRow>
+          {selected.href ? <AdminLinkButton href={selected.href}>{t.related}</AdminLinkButton> : null}
+        </AdminStack> : null}
+      </AdminDrawer>
     </div>
   </AdminPage>;
 }

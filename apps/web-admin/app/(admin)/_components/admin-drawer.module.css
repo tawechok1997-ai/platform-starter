@@ -1,0 +1,129 @@
+.layer {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  justify-content: flex-end;
+  overflow: hidden;
+  overscroll-behavior: contain;
+  background: color-mix(in srgb, var(--admin-overlay, #020617) 72%, transparent);
+  backdrop-filter: blur(7px);
+}
+
+.drawer {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  width: min(100%, 600px);
+  height: 100dvh;
+  min-height: 0;
+  overflow: hidden;
+  border-left: 1px solid var(--admin-border-subtle, color-mix(in srgb, currentColor 18%, transparent));
+  background: var(--admin-surface-raised, #111823);
+  color: var(--admin-text-primary, #f8fafc);
+  box-shadow: var(--admin-shadow-overlay, -24px 0 70px rgba(0, 0, 0, 0.45));
+}
+
+.compact {
+  width: min(100%, 460px);
+}
+
+.wide {
+  width: min(100%, 760px);
+}
+
+.header {
+  position: sticky;
+  z-index: 2;
+  top: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 14px;
+  padding: max(20px, env(safe-area-inset-top)) max(20px, env(safe-area-inset-right)) 14px 22px;
+  border-bottom: 1px solid var(--admin-border-subtle, color-mix(in srgb, currentColor 14%, transparent));
+  background: inherit;
+}
+
+.copy {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.copy h2 {
+  margin: 0;
+  font-size: clamp(21px, 3vw, 28px);
+  line-height: 1.15;
+}
+
+.copy p {
+  margin: 7px 0 0;
+  color: var(--admin-text-muted, #94a3b8);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.body {
+  min-width: 0;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 18px max(20px, env(safe-area-inset-right)) max(22px, env(safe-area-inset-bottom)) 22px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.footer {
+  position: sticky;
+  z-index: 2;
+  bottom: 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 12px max(20px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) 22px;
+  border-top: 1px solid var(--admin-border-subtle, color-mix(in srgb, currentColor 14%, transparent));
+  background: inherit;
+}
+
+@media (max-width: 720px) {
+  .layer {
+    align-items: stretch;
+  }
+
+  .drawer,
+  .compact,
+  .wide {
+    width: 100%;
+    height: 100dvh;
+    border-left: 0;
+  }
+
+  .header {
+    padding: max(16px, env(safe-area-inset-top)) max(14px, env(safe-area-inset-right)) 12px max(14px, env(safe-area-inset-left));
+  }
+
+  .body {
+    padding: 14px max(14px, env(safe-area-inset-right)) max(18px, env(safe-area-inset-bottom)) max(14px, env(safe-area-inset-left));
+  }
+
+  .footer {
+    padding: 11px max(14px, env(safe-area-inset-right)) max(14px, env(safe-area-inset-bottom)) max(14px, env(safe-area-inset-left));
+  }
+
+  .footer > * {
+    flex: 1 1 140px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .layer {
+    backdrop-filter: none;
+  }
+}
+
+@media (forced-colors: active) {
+  .drawer,
+  .header,
+  .footer {
+    border-color: CanvasText;
+  }
+}

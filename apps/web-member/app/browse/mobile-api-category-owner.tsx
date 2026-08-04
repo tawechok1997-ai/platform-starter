@@ -171,7 +171,7 @@ function MobileApiCategoryPage({ slug }: { slug: MobileCategorySlug }) {
   return (
     <div
       data-mobile-category-api="connected"
-      data-mobile-category-source-platform={catalog.sourcePlatform ?? 'mobile'}
+      data-mobile-category-source-platform={catalog?.sourcePlatform ?? 'mobile'}
     >
       <SourceGameCategoryPage config={config} />
     </div>

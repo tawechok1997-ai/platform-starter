@@ -2,7 +2,8 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { adminApiFetch } from '../../admin-api';
-import { AdminBadge, AdminButton, AdminCard, AdminConfirmDialog, AdminEmpty, AdminGrid, AdminMetric, AdminMetricGrid, AdminNotice, AdminPage, AdminPagination, AdminToolbar } from '../_components/admin-ui';
+import { AdminBadge, AdminButton, AdminCard, AdminConfirmDialog, AdminEmpty, AdminGrid, AdminMetric, AdminMetricGrid, AdminNotice, AdminPage, AdminToolbar } from '../_components/admin-ui';
+import { AdminDataTable, type AdminDataColumn } from '../../../src/features/admin-modernization/data-table';
 
 type ExportStatus = 'COMPLETED' | 'FAILED';
 type ExportJob = { id: string; title: string; path: string; status: ExportStatus; createdAt: string; completedAt: string; error?: string; rows?: number };
@@ -137,16 +138,45 @@ export default function ExportsPage() {
 
   function clearHistory() { setJobs([]); setPage(1); }
 
+  const columns = useMemo<readonly AdminDataColumn<ExportJob>[]>(() => [
+    { id: 'file', header: 'ไฟล์', mobileLabel: 'ไฟล์', priority: 'primary', width: '26%', cell: (job) => job.title },
+    { id: 'status', header: 'สถานะ', mobileLabel: 'สถานะ', priority: 'secondary', width: '14%', cell: (job) => <AdminBadge tone={job.status === 'COMPLETED' ? 'success' : 'danger'}>{job.status}</AdminBadge> },
+    { id: 'rows', header: 'จำนวนแถว', mobileLabel: 'จำนวนแถว', priority: 'secondary', align: 'end', width: '12%', cell: (job) => job.rows?.toLocaleString('th-TH') ?? '-' },
+    { id: 'range', header: 'ช่วงวันที่', mobileLabel: 'ช่วงวันที่', priority: 'secondary', width: '20%', cell: (job) => rangeLabel(job.path) },
+    { id: 'completedAt', header: 'เสร็จเมื่อ', mobileLabel: 'เสร็จเมื่อ', priority: 'secondary', width: '20%', cell: (job) => new Date(job.completedAt).toLocaleString('th-TH') },
+    { id: 'action', header: 'การทำงาน', mobileLabel: 'การทำงาน', priority: 'secondary', align: 'end', width: '8%', cell: (job) => job.status === 'FAILED' ? <AdminButton size="compact" tone="secondary" disabled={locked} onClick={() => retry(job)}>ลองใหม่</AdminButton> : '-' },
+  ], [locked]);
+
   const historyAction = jobs.length ? <AdminButton size="compact" tone="ghost" onClick={clearHistory}>ล้างประวัติ</AdminButton> : null;
   const dialogDetails = prepared ? <div><strong>ชนิดไฟล์:</strong> CSV<br /><strong>ช่วงวันที่:</strong> {rangeLabel(prepared.path)}<br /><strong>จำนวนแถว:</strong> {prepared.rows.toLocaleString('th-TH')}</div> : null;
 
   return <AdminPage eyebrow="Data Governance" title="Export Center" description="เลือกช่วงวันที่ ตรวจจำนวนแถว และยืนยันก่อนดาวน์โหลดข้อมูล">
     <AdminMetricGrid><AdminMetric title="ประวัติทั้งหมด" value={metrics.total.toLocaleString('th-TH')} /><AdminMetric title="สำเร็จ" value={metrics.completed.toLocaleString('th-TH')} tone="success" /><AdminMetric title="ล้มเหลว" value={metrics.failed.toLocaleString('th-TH')} tone={metrics.failed ? 'danger' : 'success'} /></AdminMetricGrid>
-    {message && <AdminNotice tone={message.includes('ไม่สำเร็จ') || message.includes('วันที่') ? 'danger' : 'neutral'}>{message}</AdminNotice>}
+    {message ? <AdminNotice tone={message.includes('ไม่สำเร็จ') || message.includes('วันที่') ? 'danger' : 'neutral'}>{message}</AdminNotice> : null}
     <AdminCard title="ช่วงวันที่" description="ส่ง from/to ไปยัง API ด้วย contract เดียวกันทุกไฟล์"><AdminToolbar><label>ตั้งแต่วันที่ <input type="date" value={range.from} {...(range.to ? { max: range.to } : {})} disabled={locked} onChange={(event) => setRange((current) => ({ ...current, from: event.target.value }))} /></label><label>ถึงวันที่ <input type="date" value={range.to} {...(range.from ? { min: range.from } : {})} disabled={locked} onChange={(event) => setRange((current) => ({ ...current, to: event.target.value }))} /></label><AdminButton tone="secondary" disabled={locked || (!range.from && !range.to)} onClick={() => setRange({ from: '', to: '' })}>ล้างช่วงวันที่</AdminButton></AdminToolbar></AdminCard>
     <AdminGrid>{sources.map((source) => <AdminCard key={source.path} title={source.title} description={`${source.text} · ${source.fileType}`}><AdminButton disabled={locked} onClick={() => void prepareDownload(source)}>{preparingPath === source.path ? 'กำลังตรวจจำนวนแถว...' : 'ตรวจและเตรียมดาวน์โหลด'}</AdminButton></AdminCard>)}</AdminGrid>
     <AdminNotice tone="neutral">ประวัติบนหน้านี้เก็บเฉพาะ metadata ของงาน ไม่เก็บเนื้อหาไฟล์หรือ token</AdminNotice>
-    <AdminCard title="ประวัติการส่งออก" description={`แสดง ${MAX_HISTORY} งานล่าสุดบนอุปกรณ์นี้`} action={historyAction}>{jobs.length === 0 ? <AdminEmpty>ยังไม่มีประวัติการส่งออก</AdminEmpty> : <><div className="admin-data-table-wrap"><table className="admin-data-table"><thead><tr><th>ไฟล์</th><th>สถานะ</th><th>จำนวนแถว</th><th>ช่วงวันที่</th><th>เสร็จเมื่อ</th><th>การทำงาน</th></tr></thead><tbody>{visibleJobs.map((job) => <tr key={job.id}><td>{job.title}</td><td><AdminBadge tone={job.status === 'COMPLETED' ? 'success' : 'danger'}>{job.status}</AdminBadge></td><td>{job.rows?.toLocaleString('th-TH') ?? '-'}</td><td>{rangeLabel(job.path)}</td><td>{new Date(job.completedAt).toLocaleString('th-TH')}</td><td>{job.status === 'FAILED' ? <AdminButton size="compact" tone="secondary" disabled={locked} onClick={() => retry(job)}>ลองใหม่</AdminButton> : '-'}</td></tr>)}</tbody></table></div>{jobs.length > PAGE_SIZE && <AdminToolbar><AdminPagination page={page} totalPages={totalPages} onPrevious={() => setPage((value) => Math.max(1, value - 1))} onNext={() => setPage((value) => Math.min(totalPages, value + 1))} disabled={locked} /></AdminToolbar>}</>}</AdminCard>
+    <AdminCard title="ประวัติการส่งออก" description={`แสดง ${MAX_HISTORY} งานล่าสุดบนอุปกรณ์นี้`} action={historyAction}>
+      {jobs.length === 0 ? <AdminEmpty>ยังไม่มีประวัติการส่งออก</AdminEmpty> : <AdminDataTable
+        ariaLabel="ประวัติการส่งออก"
+        columns={columns}
+        rows={visibleJobs}
+        rowKey={(job) => job.id}
+        page={page}
+        pageSize={PAGE_SIZE}
+        totalItems={jobs.length}
+        onPageChange={setPage}
+        labels={{
+          loading: 'กำลังโหลดประวัติ',
+          empty: 'ยังไม่มีประวัติการส่งออก',
+          previousPage: 'หน้าก่อนหน้า',
+          nextPage: 'หน้าถัดไป',
+          page: (value) => `หน้า ${value.toLocaleString('th-TH')}`,
+          rowsPerPage: 'รายการต่อหน้า',
+          range: (from, to, total) => `${from.toLocaleString('th-TH')}–${to.toLocaleString('th-TH')} จาก ${total.toLocaleString('th-TH')}`,
+        }}
+      />}
+    </AdminCard>
     <AdminConfirmDialog open={Boolean(prepared)} title="ยืนยันดาวน์โหลดไฟล์" description={prepared ? `${prepared.source.title} มี ${prepared.rows.toLocaleString('th-TH')} แถว` : ''} confirmLabel="ดาวน์โหลด" tone="primary" onCancel={() => setPrepared(null)} onConfirm={confirmDownload} details={dialogDetails} />
   </AdminPage>;
 }

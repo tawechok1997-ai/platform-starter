@@ -9,15 +9,14 @@ import {
   AdminButton,
   AdminCard,
   AdminConfirmDialog,
-  AdminEmpty,
   AdminLinkButton,
   AdminNotice,
   AdminPage,
-  AdminSectionRow,
   AdminSkeleton,
-  AdminStack,
 } from '../_components/admin-ui';
 import InviteAdminPanel from '../access/invite-admin-panel';
+import { AdminDataTable, type AdminDataColumn } from '../../../src/features/admin-modernization/data-table';
+import styles from './admin-invitations.module.css';
 
 type Role = { id: string; code: string; name: string; level: number; hasWildcard: boolean };
 type InvitationRole = { id: string; code: string; name: string; level: number };
@@ -38,6 +37,7 @@ type NoticeState = { text: string; tone: 'neutral' | 'success' | 'warning' | 'da
 type LoadResult = { rolesOk: boolean; invitationsOk: boolean };
 
 const INVITATION_LINK_TTL_MS = 60_000;
+const PAGE_SIZE = 20;
 
 export default function AdminInvitationsPage() {
   const loadRequestRef = useRef(0);
@@ -51,6 +51,7 @@ export default function AdminInvitationsPage() {
   const [latestLink, setLatestLink] = useState('');
   const [pendingAction, setPendingAction] = useState<PendingAction>(null);
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
   const pageBusy = loading || Boolean(busyKey);
 
   const updateNotice = useCallback((next: NoticeState | null) => {
@@ -101,7 +102,7 @@ export default function AdminInvitationsPage() {
   }, [load]);
 
   useEffect(() => {
-    if (!latestLink) return;
+    if (!latestLink) return undefined;
     const timer = window.setTimeout(() => {
       setLatestLink('');
       updateNotice({ text: 'ลิงก์คำเชิญถูกล้างจากหน้าจอแล้วเพื่อความปลอดภัย', tone: 'neutral' });
@@ -113,6 +114,12 @@ export default function AdminInvitationsPage() {
     () => items.map((item) => ({ ...item, invitationStatus: normalizeInvitationStatus(item) })),
     [items],
   );
+  const totalPages = Math.max(1, Math.ceil(normalizedItems.length / PAGE_SIZE));
+  const visibleItems = normalizedItems.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
+  useEffect(() => {
+    if (page > totalPages) setPage(totalPages);
+  }, [page, totalPages]);
 
   async function executeAction() {
     if (!pendingAction || pageBusy) return;
@@ -180,6 +187,59 @@ export default function AdminInvitationsPage() {
     return loadResult.rolesOk && loadResult.invitationsOk;
   }
 
+  const columns = useMemo<readonly AdminDataColumn<Invitation>[]>(() => [
+    {
+      id: 'status',
+      header: 'สถานะ',
+      mobileLabel: 'สถานะ',
+      priority: 'secondary',
+      width: '18%',
+      cell: (item) => <span className={styles.badges}>
+        <AdminBadge tone={statusTone(item.invitationStatus)}>{statusLabel(item.invitationStatus)}</AdminBadge>
+        <AdminBadge tone={item.accountStatus === 'ACTIVE' ? 'success' : 'neutral'}>{accountStatusLabel(item.accountStatus)}</AdminBadge>
+        {item.protected ? <AdminBadge tone="danger">ป้องกัน</AdminBadge> : null}
+      </span>,
+    },
+    {
+      id: 'identity',
+      header: 'ผู้รับคำเชิญ',
+      mobileLabel: 'ผู้รับคำเชิญ',
+      priority: 'primary',
+      width: '26%',
+      cell: (item) => <span className={styles.identity}><strong>{item.email}</strong><small>{item.username || item.adminUserId}</small></span>,
+    },
+    {
+      id: 'roles',
+      header: 'บทบาท',
+      mobileLabel: 'บทบาท',
+      priority: 'secondary',
+      width: '22%',
+      cell: (item) => <span className={styles.roles}><strong>{item.roles.map((role) => role.code).join(', ') || 'ไม่มีบทบาท'}</strong><small>{item.roles.map((role) => role.name).join(', ') || '-'}</small></span>,
+    },
+    {
+      id: 'dates',
+      header: 'ระยะเวลา',
+      mobileLabel: 'ระยะเวลา',
+      priority: 'secondary',
+      width: '22%',
+      cell: (item) => <span className={styles.dates}><strong>หมดอายุ {formatDate(item.expiresAt)}</strong><small>สร้าง {formatDate(item.createdAt)}</small></span>,
+    },
+    {
+      id: 'actions',
+      header: 'การทำงาน',
+      mobileLabel: 'การทำงาน',
+      priority: 'secondary',
+      align: 'end',
+      width: '12%',
+      cell: (item) => !item.protected && item.accountStatus === 'LOCKED' ? <AdminPermissionGate anyOf={ADMIN_ACTION_PERMISSIONS.adminInvitationManage}>
+        <span className={styles.rowActions}>
+          <AdminButton size="compact" disabled={pageBusy} onClick={() => setPendingAction({ type: 'reissue', item })}>ออกลิงก์ใหม่</AdminButton>
+          <AdminButton size="compact" tone="danger" disabled={pageBusy} onClick={() => setPendingAction({ type: 'revoke', item })}>ยกเลิก</AdminButton>
+        </span>
+      </AdminPermissionGate> : '-',
+    },
+  ], [pageBusy]);
+
   const initialLoading = loading && items.length === 0 && roles.length === 0 && !notice;
 
   return <AdminPage
@@ -188,49 +248,49 @@ export default function AdminInvitationsPage() {
     description="สร้าง ยกเลิก และออกลิงก์เชิญใหม่ พร้อมตรวจบทบาทก่อนส่ง"
     actions={<AdminButton tone="secondary" disabled={pageBusy} onClick={() => void load()}>{loading ? 'กำลังโหลด...' : 'รีเฟรช'}</AdminButton>}
   >
-    {notice && <AdminNotice tone={notice.tone}>
-      <div style={noticeStyle}>
+    {notice ? <AdminNotice tone={notice.tone}>
+      <div className={styles.notice}>
         <span>{notice.text}</span>
-        <div style={noticeActionStyle}>
-          {(!rolesAvailable || !invitationsAvailable) && <AdminButton size="compact" tone="secondary" disabled={pageBusy} onClick={() => void load()}>ลองใหม่</AdminButton>}
-          {!rolesAvailable && <AdminLinkButton href="/admin-roles" size="compact" tone="ghost">จัดการบทบาท</AdminLinkButton>}
+        <div className={styles.noticeActions}>
+          {!rolesAvailable || !invitationsAvailable ? <AdminButton size="compact" tone="secondary" disabled={pageBusy} onClick={() => void load()}>ลองใหม่</AdminButton> : null}
+          {!rolesAvailable ? <AdminLinkButton href="/admin-roles" size="compact" tone="ghost">จัดการบทบาท</AdminLinkButton> : null}
         </div>
       </div>
-    </AdminNotice>}
+    </AdminNotice> : null}
 
     {initialLoading ? <AdminCard title="กำลังโหลดคำเชิญ" description="กำลังตรวจบทบาทและรายการล่าสุด"><AdminSkeleton lines={7} /></AdminCard> : <>
       <InviteAdminPanel roles={roles} onCreated={handleCreated} />
 
-      {latestLink && <AdminCard title="ลิงก์ล่าสุด" description="แสดงชั่วคราว 60 วินาที กรุณาคัดลอกและส่งผ่านช่องทางที่ปลอดภัย">
-        <textarea readOnly value={latestLink} rows={3} style={linkStyle} aria-label="ลิงก์คำเชิญล่าสุด" />
-        <div style={linkActionStyle}>
+      {latestLink ? <AdminCard title="ลิงก์ล่าสุด" description="แสดงชั่วคราว 60 วินาที กรุณาคัดลอกและส่งผ่านช่องทางที่ปลอดภัย">
+        <textarea readOnly value={latestLink} rows={3} className={styles.latestLink} aria-label="ลิงก์คำเชิญล่าสุด" />
+        <div className={styles.linkActions}>
           <AdminButton onClick={() => void copyLatestLink()} disabled={pageBusy}>คัดลอกลิงก์</AdminButton>
           <AdminButton tone="secondary" onClick={clearLatestLink} disabled={pageBusy}>ล้างจากหน้าจอ</AdminButton>
         </div>
-      </AdminCard>}
+      </AdminCard> : null}
 
       <AdminCard title="รายการคำเชิญ" description={`${normalizedItems.length} รายการล่าสุด`}>
-        <AdminStack>
-          {normalizedItems.map((item) => <AdminSectionRow key={item.adminUserId}>
-            <div style={itemStyle}>
-              <div style={badgeStyle}>
-                <AdminBadge tone={statusTone(item.invitationStatus)}>{statusLabel(item.invitationStatus)}</AdminBadge>
-                <AdminBadge tone={item.accountStatus === 'ACTIVE' ? 'success' : 'neutral'}>{accountStatusLabel(item.accountStatus)}</AdminBadge>
-                {item.protected && <AdminBadge tone="danger">ป้องกัน</AdminBadge>}
-              </div>
-              <strong>{item.email}</strong>
-              <span>{item.roles.map((role) => role.code).join(', ') || 'ไม่มีบทบาท'}</span>
-              <small>สร้างเมื่อ: {formatDate(item.createdAt)} · หมดอายุ: {formatDate(item.expiresAt)}</small>
-            </div>
-            {!item.protected && item.accountStatus === 'LOCKED' && <AdminPermissionGate anyOf={ADMIN_ACTION_PERMISSIONS.adminInvitationManage}>
-              <div style={actionStyle}>
-                <AdminButton disabled={pageBusy} onClick={() => setPendingAction({ type: 'reissue', item })}>ออกลิงก์ใหม่</AdminButton>
-                <AdminButton tone="danger" disabled={pageBusy} onClick={() => setPendingAction({ type: 'revoke', item })}>ยกเลิก</AdminButton>
-              </div>
-            </AdminPermissionGate>}
-          </AdminSectionRow>)}
-          {!loading && normalizedItems.length === 0 && <AdminEmpty>{invitationsAvailable ? 'ยังไม่มีคำเชิญ' : 'โหลดรายการคำเชิญไม่สำเร็จ'}</AdminEmpty>}
-        </AdminStack>
+        <AdminDataTable
+          ariaLabel="รายการคำเชิญผู้ดูแล"
+          columns={columns}
+          rows={visibleItems}
+          rowKey={(item) => item.adminUserId}
+          loading={loading}
+          emptyTitle={invitationsAvailable ? 'ยังไม่มีคำเชิญ' : 'โหลดรายการคำเชิญไม่สำเร็จ'}
+          page={page}
+          pageSize={PAGE_SIZE}
+          totalItems={normalizedItems.length}
+          onPageChange={setPage}
+          labels={{
+            loading: 'กำลังโหลดคำเชิญ',
+            empty: 'ยังไม่มีคำเชิญ',
+            previousPage: 'หน้าก่อนหน้า',
+            nextPage: 'หน้าถัดไป',
+            page: (value) => `หน้า ${value.toLocaleString('th-TH')}`,
+            rowsPerPage: 'รายการต่อหน้า',
+            range: (from, to, total) => `${from.toLocaleString('th-TH')}–${to.toLocaleString('th-TH')} จาก ${total.toLocaleString('th-TH')}`,
+          }}
+        />
       </AdminCard>
     </>}
 
@@ -243,7 +303,7 @@ export default function AdminInvitationsPage() {
       busy={Boolean(busyKey)}
       onCancel={() => { if (!busyKey) setPendingAction(null); }}
       onConfirm={() => void executeAction()}
-      details={pendingAction ? <div style={confirmDetailsStyle}><strong>บทบาท</strong><p>{pendingAction.item.roles.map((role) => role.code).join(', ') || 'ไม่มีบทบาท'}</p><strong>หมดอายุเดิม</strong><p>{formatDate(pendingAction.item.expiresAt)}</p></div> : null}
+      details={pendingAction ? <div className={styles.confirmDetails}><strong>บทบาท</strong><p>{pendingAction.item.roles.map((role) => role.code).join(', ') || 'ไม่มีบทบาท'}</p><strong>หมดอายุเดิม</strong><p>{formatDate(pendingAction.item.expiresAt)}</p></div> : null}
     />
   </AdminPage>;
 }
@@ -334,12 +394,3 @@ function formatDate(value: string | null | undefined) {
   const date = new Date(value);
   return Number.isNaN(date.getTime()) ? '-' : date.toLocaleString('th-TH');
 }
-
-const itemStyle = { display: 'grid', gap: 8, minWidth: 0 } as const;
-const badgeStyle = { display: 'flex', gap: 8, flexWrap: 'wrap' as const };
-const actionStyle = { display: 'flex', gap: 8, flexWrap: 'wrap' as const, alignItems: 'start' };
-const linkActionStyle = { marginTop: 10, display: 'flex', gap: 8, flexWrap: 'wrap' as const };
-const linkStyle = { width: '100%', resize: 'vertical' as const, borderRadius: 12, border: '1px solid rgba(148,163,184,.26)', background: '#070d18', color: '#f8fafc', padding: 12, boxSizing: 'border-box' as const, fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace' };
-const confirmDetailsStyle = { display: 'grid', gap: 6, overflowWrap: 'anywhere' as const };
-const noticeStyle = { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, width: '100%', flexWrap: 'wrap' as const };
-const noticeActionStyle = { display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' as const };

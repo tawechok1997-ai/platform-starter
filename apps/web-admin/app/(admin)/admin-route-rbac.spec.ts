@@ -22,9 +22,9 @@ test('unregistered routes fail closed for non-wildcard Admin sessions', () => {
   assert.equal(canAccessPath('/internal-page-without-rbac-registration', ['users.view']), false);
 });
 
-test('wildcard authority remains an explicit super-admin override', () => {
+test('wildcard authority bypasses registered permissions but not route registration', () => {
   assert.equal(canAccessPath('/members', ['*']), true);
-  assert.equal(canAccessPath('/internal-page-without-rbac-registration', ['*']), true);
+  assert.equal(canAccessPath('/internal-page-without-rbac-registration', ['*']), false);
 });
 
 test('navigation exposes only entries allowed by the Admin permission set', () => {
