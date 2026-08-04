@@ -102,8 +102,8 @@ export function restoreDefaultAdminWidgetLayout(registry: AdminWidgetRegistry): 
   return registry.definitions
     .map((definition) => normalizeLayoutItem({
       widgetId: definition.id,
-      hidden: definition.defaultLayout.hidden ?? false,
       ...definition.defaultLayout,
+      hidden: definition.defaultLayout.hidden ?? false,
     }))
     .sort(compareLayoutItems);
 }
