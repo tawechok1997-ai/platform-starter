@@ -24,7 +24,7 @@ on:
 jobs:
   visual-regression:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 24
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -42,6 +42,16 @@ jobs:
         run: pnpm exec playwright test tests/e2e-visual/r013-auth-surfaces.spec.ts -c playwright.visual.config.ts --update-snapshots
       - name: Compare against generated baselines
         run: pnpm exec playwright test tests/e2e-visual/r013-auth-surfaces.spec.ts -c playwright.visual.config.ts
+      - name: Smoke test Mobile Home
+        env:
+          MEMBER_HOME_URL: ${{ github.event_name == 'pull_request' && 'http://127.0.0.1:3101/' || 'https://platformweb-member-production.up.railway.app/' }}
+        run: >-
+          pnpm exec playwright test
+          tests/e2e-visual/r013-mobile-home-production-smoke.spec.ts
+          -c playwright.visual.config.ts
+          --project=360x800
+          --project=390x844
+          --project=430x932
       - name: Upload screenshots traces console network and report
         if: always()
         uses: actions/upload-artifact@v4
