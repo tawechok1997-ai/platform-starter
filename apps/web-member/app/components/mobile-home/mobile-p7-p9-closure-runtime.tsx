@@ -5,8 +5,8 @@ import { useLayoutEffect } from 'react';
 type MobileClosurePhase = 'p7' | 'p8' | 'p9';
 
 type MobileP7P9ClosureRuntimeProps = {
-  phase: MobileClosurePhase;
-  route: string;
+  phase?: MobileClosurePhase;
+  route?: string;
 };
 
 const AUTH_OVERLAY_SELECTOR = '.member-auth-overlay[data-state="open"]';
@@ -30,14 +30,39 @@ const FOCUSABLE_SELECTOR = [
   'iframe',
   '[tabindex]:not([tabindex="-1"])',
 ].join(',');
+const P7_ROUTES = new Set(['/', '/home', '/member/home', '/mobile/member/home']);
+const P8_ROUTES = new Set([
+  '/guide',
+  '/promotions',
+  '/news',
+  '/activity',
+  '/mobile/member/promotions',
+  '/mobile/member/news',
+  '/mobile/member/activity',
+  '/mobile/member/guide',
+]);
+const P9_ROUTES = new Set([
+  '/deposit',
+  '/withdraw',
+  '/bank-accounts',
+  '/transactions',
+  '/mobile/member/deposit',
+  '/mobile/member/withdraw',
+  '/mobile/member/bank-accounts',
+  '/mobile/member/history',
+]);
 
 export default function MobileP7P9ClosureRuntime({
   phase,
   route,
-}: MobileP7P9ClosureRuntimeProps) {
+}: MobileP7P9ClosureRuntimeProps = {}) {
   useLayoutEffect(() => {
     const html = document.documentElement;
     const body = document.body;
+    const normalizedRoute = normalizePath(route ?? window.location.pathname);
+    const resolvedPhase = phase ?? phaseForRoute(normalizedRoute);
+    if (!resolvedPhase) return;
+
     let activeOverlay: HTMLElement | null = null;
     let returnFocus: HTMLElement | null = null;
     let authOverlayWasOpen = false;
@@ -46,8 +71,9 @@ export default function MobileP7P9ClosureRuntime({
     let previousHtmlOverflow = '';
     let scheduled = false;
 
-    html.dataset.mobileP7P9Phase = phase;
-    html.dataset.mobileP7P9Route = route;
+    html.dataset.mobileP7P9Phase = resolvedPhase;
+    html.dataset.mobileP7P9Route = normalizedRoute;
+    html.dataset.mobileP7P9Ready = 'true';
 
     const scheduleSync = () => {
       if (scheduled) return;
@@ -165,6 +191,7 @@ export default function MobileP7P9ClosureRuntime({
       html.style.overflow = previousHtmlOverflow;
       delete html.dataset.mobileP7P9Phase;
       delete html.dataset.mobileP7P9Route;
+      delete html.dataset.mobileP7P9Ready;
       delete html.dataset.mobileOverlayOpen;
       delete html.dataset.mobileOverlayOwner;
     };
@@ -275,6 +302,17 @@ export default function MobileP7P9ClosureRuntime({
       }
     `}</style>
   );
+}
+
+function phaseForRoute(route: string): MobileClosurePhase | null {
+  if (P9_ROUTES.has(route)) return 'p9';
+  if (P8_ROUTES.has(route)) return 'p8';
+  if (P7_ROUTES.has(route)) return 'p7';
+  return null;
+}
+
+function normalizePath(pathname: string) {
+  return pathname.replace(/\/+$/, '') || '/';
 }
 
 function cleanupAuthQuery() {
