@@ -100,7 +100,7 @@ export default function MemberImageFallbackController() {
         window.setTimeout(() => {
           if (!image.isConnected || image.dataset.fallbackApplied === 'true') return;
           const currentSource = image.currentSrc || image.src;
-          if (currentSource !== failedSource && image.naturalWidth > 0) return;
+          if (currentSource !== failedSource) return;
           applyFallbackToImage(image);
         }, 0);
         return;
