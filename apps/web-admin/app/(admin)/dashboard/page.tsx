@@ -1,3 +1,3 @@
 import './dashboard-single-panel-full-width.css';
 
-export { default } from './dashboard-professional';
+export { default } from './dashboard-widgetized';
