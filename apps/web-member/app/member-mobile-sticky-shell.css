@@ -3,16 +3,29 @@
  * at the root boundary. The category rail stays inside its two-column content
  * grid, follows below the header, and stops before the footer begins. */
 @media (max-width: 900px) {
-  html[data-member-viewport-mode='mobile'] body:has([data-mobile-home-root='true']) > main[data-animation-level],
-  html[data-member-viewport-mode='mobile'] [data-mobile-home-root='true'] {
+  /* page.tsx places overflow-x:hidden on this outer main through inline style.
+   * In production the outer main is wrapped by persistent shells, so the old
+   * body > main selector never matched. That hidden overflow then became the
+   * nearest sticky scroll container even though the document performed the
+   * actual scroll, allowing the header to disappear above the viewport. */
+  html[data-member-viewport-mode='mobile'] main[data-animation-level]:has([data-mobile-home-root='true']) {
     box-sizing: border-box !important;
+    width: 100% !important;
     min-width: 0 !important;
     max-width: 100% !important;
     overflow-x: clip !important;
+    overflow-y: visible !important;
+    contain: none !important;
+    transform: none !important;
   }
 
   html[data-member-viewport-mode='mobile'] [data-mobile-home-root='true'] {
+    box-sizing: border-box !important;
     width: min(100%, 640px) !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    overflow-x: clip !important;
+    overflow-y: visible !important;
   }
 
   html[data-member-viewport-mode='mobile'] [data-mobile-section-owner='header'] {
