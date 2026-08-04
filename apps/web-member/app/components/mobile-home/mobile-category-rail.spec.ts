@@ -9,6 +9,7 @@ const home = readFileSync(new URL('../../member-home.tsx', import.meta.url), 'ut
 const layout = readFileSync(new URL('../../layout.tsx', import.meta.url), 'utf8');
 const layoutOwner = readFileSync(new URL('../../member-mobile-home-bottom-owner.css', import.meta.url), 'utf8');
 const followOwner = readFileSync(new URL('../../member-mobile-category-follow.css', import.meta.url), 'utf8');
+const foundationOwner = readFileSync(new URL('../../member-mobile-p1-p3-foundation.css', import.meta.url), 'utf8');
 const duplicateRuntime = new URL('./mobile-category-tab-runtime.tsx', import.meta.url);
 
 test('mobile category rail has one rendered owner and reads central navigation', () => {
@@ -32,29 +33,39 @@ test('mobile category rail keeps responsive sizes', () => {
   assert.match(css, /@media \(min-width: 430px\)[\s\S]*width:\s*60px[\s\S]*height:\s*60px/);
 });
 
-test('mobile Home uses the document as its single vertical scroll owner', () => {
-  const rootRule = followOwner.match(/html\[data-member-viewport-mode='mobile'\] \[data-mobile-home-root='true'\]\s*\{([^}]*)\}/)?.[1] ?? '';
-  assert.match(followOwner, /body:has\(\[data-mobile-home-root='true'\]\)[\s\S]*overflow-y:\s*auto\s*!important/);
-  assert.match(rootRule, /height:\s*auto\s*!important/);
-  assert.match(rootRule, /overflow:\s*visible\s*!important/);
-  assert.doesNotMatch(rootRule, /height:\s*100dvh\s*!important/);
+test('P2 gives Mobile Home one document vertical scroll owner', () => {
+  assert.match(foundationOwner, /html\[data-member-viewport-mode='mobile'\][\s\S]*overflow-y:\s*auto\s*!important/);
+  assert.match(foundationOwner, /html\[data-member-viewport-mode='mobile'\] body[\s\S]*overflow-y:\s*visible\s*!important/);
+  assert.match(foundationOwner, /html\[data-member-viewport-mode='mobile'\][\s\S]*overflow-x:\s*clip\s*!important/);
+  assert.match(foundationOwner, /\[data-mobile-home-root='true'\][\s\S]*overflow:\s*visible\s*!important/);
+  assert.doesNotMatch(foundationOwner, /html\[data-member-viewport-mode='mobile'\] body[\s\S]*overflow-y:\s*auto\s*!important/);
   assert.doesNotMatch(home, /MobileCategoryRailTransformFollower/);
 });
 
-test('category menu follows the viewport with bounded sticky positioning', () => {
-  assert.match(followOwner, /data-mobile-section-owner='category-menu'[\s\S]*position:\s*sticky\s*!important/);
-  assert.match(followOwner, /data-mobile-section-owner='category-menu'[\s\S]*top:\s*calc\(64px \+ env\(safe-area-inset-top, 0px\)\)\s*!important/);
-  assert.match(followOwner, /data-mobile-section-owner='category-menu'[\s\S]*height:\s*fit-content\s*!important/);
-  assert.match(followOwner, /data-mobile-section-owner='category-menu'[\s\S]*max-height:\s*calc\(100dvh - 72px - env\(safe-area-inset-top, 0px\)\)\s*!important/);
-  assert.match(followOwner, /data-mobile-section-owner='category-menu'[\s\S]*overflow-y:\s*auto\s*!important/);
-  assert.doesNotMatch(followOwner, /data-mobile-section-owner='category-menu'[\s\S]*position:\s*fixed\s*!important/);
+test('P2 keeps the source header sticky and safe-area aware', () => {
+  assert.match(foundationOwner, /--member-mobile-header-height:\s*60px/);
+  assert.match(foundationOwner, /--member-mobile-header-offset:[\s\S]*env\(safe-area-inset-top, 0px\)/);
+  assert.match(foundationOwner, /header\[data-mobile-section-owner='header'\][\s\S]*position:\s*sticky\s*!important/);
+  assert.match(foundationOwner, /header\[data-mobile-section-owner='header'\][\s\S]*top:\s*0\s*!important/);
+  assert.match(foundationOwner, /header\[data-mobile-section-owner='header'\][\s\S]*z-index:\s*160\s*!important/);
+  assert.match(foundationOwner, /padding-top:\s*env\(safe-area-inset-top, 0px\)\s*!important/);
+});
+
+test('P3 category menu follows the viewport and stops at its content boundary', () => {
+  assert.match(foundationOwner, /data-mobile-section-owner='category-menu'[\s\S]*top:\s*var\(--member-mobile-category-offset\)\s*!important/);
+  assert.match(foundationOwner, /data-mobile-section-owner='category-menu'[\s\S]*max-height:\s*calc\([\s\S]*100dvh - var\(--member-mobile-category-offset\) - 8px[\s\S]*\)\s*!important/);
+  assert.match(foundationOwner, /data-mobile-category-follow='start'[\s\S]*position:\s*relative\s*!important/);
+  assert.match(foundationOwner, /data-mobile-category-follow='fixed'[\s\S]*position:\s*fixed\s*!important/);
+  assert.match(foundationOwner, /data-mobile-category-follow='end'[\s\S]*position:\s*absolute\s*!important/);
+  assert.match(foundationOwner, /data-mobile-category-follow='end'[\s\S]*bottom:\s*0\s*!important/);
+  assert.match(foundationOwner, /data-mobile-section-owner='category-menu'[\s\S]*overflow-y:\s*auto\s*!important/);
 });
 
 test('category and content retain one grid without artificial page padding', () => {
   assert.match(css, /\.categoryContent\s*\{[\s\S]*grid-template-columns:\s*var\(--mobile-category-rail-width\) minmax\(0, 1fr\)/);
-  assert.match(followOwner, /\*:has\(> \[data-mobile-section-owner='category-menu'\]\)[\s\S]*overflow:\s*visible\s*!important/);
-  assert.match(followOwner, /data-mobile-content-slot='after-highlight'[\s\S]*overflow-y:\s*visible\s*!important/);
-  assert.doesNotMatch(followOwner, /padding-left:\s*var\(--mobile-app-rail-width\)/);
+  assert.match(foundationOwner, /\*:has\(> \[data-mobile-section-owner='category-menu'\]\)[\s\S]*overflow:\s*visible\s*!important/);
+  assert.match(foundationOwner, /data-mobile-content-slot='after-highlight'[\s\S]*overflow-y:\s*visible\s*!important/);
+  assert.doesNotMatch(foundationOwner, /padding-left:\s*var\(--mobile-app-rail-width\)/);
 });
 
 test('standalone Mobile member pages keep their header and scroll inside the page shell', () => {
@@ -92,11 +103,12 @@ test('active and inactive category cards keep the supplied surfaces', () => {
   assert.match(css, /linear-gradient\(#710090 0%, #38324e 100%\)/);
 });
 
-test('final category owner loads after the legacy Mobile layout stylesheet', () => {
+test('P1-P3 foundation loads through the final category owner after legacy Mobile CSS', () => {
   const legacyIndex = layout.indexOf("import './member-mobile-home-bottom-owner.css'");
   const finalIndex = layout.indexOf("import './member-mobile-category-follow.css'");
   assert.ok(legacyIndex >= 0);
   assert.ok(finalIndex > legacyIndex);
+  assert.match(followOwner, /@import '\.\/member-mobile-p1-p3-foundation\.css';/);
 });
 
 test('mobile category artwork uses the exact Desktop Navigation size', () => {
