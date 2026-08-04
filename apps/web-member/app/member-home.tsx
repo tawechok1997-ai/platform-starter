@@ -21,6 +21,7 @@ import MobileHomeImageRecoveryRuntime from './components/mobile-home/mobile-home
 import MobileHomeMotionRuntime from './components/mobile-home/mobile-home-motion-runtime';
 import MobileHomeRoot from './components/mobile-home/mobile-home-root';
 import MobileMemberMenuSourceBridge from './components/mobile-home/mobile-member-menu-source-bridge';
+import MobileP4P6ClosureRuntime from './components/mobile-home/mobile-p4-p6-closure-runtime';
 import MobileScrollComfortGuard from './components/mobile-home/mobile-scroll-comfort-guard';
 import { openMemberSharedPopup } from './components/member-shared-popup-runtime';
 import { useMemberHomeData } from './hooks/use-member-home-data';
@@ -78,6 +79,7 @@ export default function MemberHome(props: MemberHomeProps) {
     return (
       <>
         <MobileHomeRoot content={props.cmsContent} showPromotion={props.showPromotion} />
+        <MobileP4P6ClosureRuntime />
         <MobileAuthenticatedHomeRuntime />
         <MobileCouponPopupBridge />
         <MobileMemberMenuSourceBridge />
