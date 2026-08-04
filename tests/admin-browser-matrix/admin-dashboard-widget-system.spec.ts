@@ -23,24 +23,23 @@ for (const locale of ['th', 'en'] as const) {
 
     const rangeSelect = page.getByLabel(locale === 'th' ? 'ช่วงวันที่' : 'Date range');
     await rangeSelect.selectOption('7d');
-    await expect(page.getByText(locale === 'th'
-      ? /API ปัจจุบันส่งข้อมูล Snapshot ล่าสุด/
-      : /current API returns the latest snapshot/).first()).toBeVisible();
 
     const cashFlow = page.locator('[data-widget-id="finance.cash-flow"]');
     await expect(cashFlow).toBeVisible();
+    await expect(cashFlow.getByRole('heading', { name: locale === 'th' ? 'กระแสเงินย้อนหลัง' : 'Historical cash flow' })).toBeVisible();
+    await expect(cashFlow.getByText(locale === 'th' ? 'เทียบช่วงก่อนหน้า' : 'Compared with previous period')).toBeVisible();
 
     const csvDownload = page.waitForEvent('download');
     await cashFlow.getByRole('button', { name: locale === 'th' ? 'ส่งออก CSV' : 'Export CSV' }).click();
     const downloadedCsv = await csvDownload;
-    expect(downloadedCsv.suggestedFilename()).toBe('finance.cash-flow.csv');
+    expect(downloadedCsv.suggestedFilename()).toMatch(/^finance-trends-\d{4}-\d{2}-\d{2}-\d{4}-\d{2}-\d{2}\.csv$/);
 
     const pngDownload = page.waitForEvent('download');
     await cashFlow.getByRole('button', { name: locale === 'th' ? 'ส่งออก PNG' : 'Export PNG' }).click();
     const downloadedPng = await pngDownload;
-    expect(downloadedPng.suggestedFilename()).toBe('finance.cash-flow.png');
+    expect(downloadedPng.suggestedFilename()).toMatch(/^finance-trends-\d{4}-\d{2}-\d{2}-\d{4}-\d{2}-\d{2}\.png$/);
 
-    await cashFlow.getByRole('button', { name: locale === 'th' ? 'เต็มหน้าจอ' : 'Fullscreen' }).click();
+    await cashFlow.getByRole('button', { name: locale === 'th' ? 'เต็มจอ' : 'Fullscreen' }).click();
     await expect(cashFlow).toHaveAttribute('data-fullscreen', 'true');
     await page.keyboard.press('Escape');
     await expect(cashFlow).not.toHaveAttribute('data-fullscreen', 'true');
@@ -72,8 +71,8 @@ for (const locale of ['th', 'en'] as const) {
   });
 }
 
-test('P3 workspace selection filters widgets without deleting the saved layout', async ({ page }) => {
-  await installDashboardSession(page, {
+test('P3 workspace selection filters widgets without mutating the seeded layout', async ({ page }) => {
+  const session = await installDashboardSession(page, {
     locale: 'th',
     permissions: ownerPermissions,
     adminUserId: 'matrix-workspaces',
@@ -83,6 +82,13 @@ test('P3 workspace selection filters widgets without deleting the saved layout',
   await page.goto('/dashboard', { waitUntil: 'domcontentloaded' });
   await page.waitForLoadState('networkidle', { timeout: 10_000 }).catch(() => undefined);
   await expect(page.locator('[data-widget-id]')).toHaveCount(6);
+
+  await expect.poll(session.getPreferencePatchCount).toBeGreaterThan(0);
+  const seedPatchCount = session.getPreferencePatchCount();
+  const seededPreference = JSON.stringify(session.getSavedPreferenceValue());
+  expect(seededPreference).toContain('finance.cash-flow');
+  expect(seededPreference).toContain('finance.pending-queues');
+  expect(seededPreference).toContain('risk.open-severity');
 
   await selectP3Workspace(page, 'finance');
   await expect(page.locator('[data-admin-widget-workspace="finance"]')).toBeVisible();
@@ -108,10 +114,18 @@ test('P3 workspace selection filters widgets without deleting the saved layout',
     'activity.recent',
   ]);
 
-  const savedLayout = await page.evaluate(() => window.localStorage.getItem('admin_widget_layout_v1:matrix-workspaces'));
-  expect(savedLayout).toContain('finance.cash-flow');
-  expect(savedLayout).toContain('finance.pending-queues');
-  expect(savedLayout).toContain('risk.open-severity');
+  await page.waitForTimeout(700);
+  expect(session.getPreferencePatchCount()).toBe(seedPatchCount);
+  expect(JSON.stringify(session.getSavedPreferenceValue())).toBe(seededPreference);
+
+  await selectP3Workspace(page, 'all');
+  await expect(page.locator('[data-admin-widget-workspace="all"]')).toBeVisible();
+  await expect(page.locator('[data-widget-id="finance.cash-flow"]')).toBeVisible();
+  await expect(page.locator('[data-widget-id="finance.pending-queues"]')).toBeVisible();
+  await expect(page.locator('[data-widget-id="risk.open-severity"]')).toBeVisible();
+  await page.waitForTimeout(700);
+  expect(session.getPreferencePatchCount()).toBe(seedPatchCount);
+  expect(JSON.stringify(session.getSavedPreferenceValue())).toBe(seededPreference);
 });
 
 test('dashboard widget data is filtered by effective permission', async ({ page }) => {
@@ -129,9 +143,28 @@ test('dashboard widget data is filtered by effective permission', async ({ page 
   await expect(page.locator('[data-widget-id="risk.open-severity"]')).toHaveCount(0);
   await expect(page.getByText('High velocity transaction pattern')).toHaveCount(0);
   await expect(page.getByText('ความเสี่ยงวิกฤต')).toHaveCount(0);
+  await expect(page.locator('[data-widget-id="finance.cash-flow"]')).toBeVisible();
   await expect(page.locator('[data-widget-id="finance.pending-queues"]')).toBeVisible();
   await expect(page.getByText('matrix_member').first()).toBeVisible();
   await expect(page.getByText('matrix_withdraw').first()).toBeVisible();
+});
+
+test('malformed historical payload is isolated to the cash-flow widget', async ({ page }) => {
+  await installDashboardSession(page, {
+    locale: 'th',
+    permissions: ownerPermissions,
+    adminUserId: 'matrix-malformed',
+    workspaces: allWorkspaces,
+    selectedWorkspace: 'all',
+  });
+  await page.route('**/api/admin/dashboard/finance-trends**', async (route) => fulfillJson(route, {}));
+
+  await page.goto('/dashboard', { waitUntil: 'domcontentloaded' });
+  await expect(page.locator('main.admin-shell')).toBeVisible();
+  await expect(page.locator('[data-widget-id]')).toHaveCount(6);
+  const cashFlow = page.locator('[data-widget-id="finance.cash-flow"]');
+  await expect(cashFlow.getByText('Finance trend response is incomplete')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'โหลดหน้านี้ไม่สำเร็จ' })).toHaveCount(0);
 });
 
 async function installDashboardSession(page: Page, options: {
@@ -141,6 +174,9 @@ async function installDashboardSession(page: Page, options: {
   workspaces: readonly string[];
   selectedWorkspace: string;
 }) {
+  let savedPreferenceValue: unknown = null;
+  let preferencePatchCount = 0;
+
   await page.addInitScript(({ selectedLocale, workspace }) => {
     window.sessionStorage.setItem('admin_access_token', 'dashboard-widget-matrix-token');
     window.localStorage.setItem('admin_session_hint', '1');
@@ -151,8 +187,29 @@ async function installDashboardSession(page: Page, options: {
   await page.route('**/api/admin/**', async (route) => {
     const url = new URL(route.request().url());
     const path = url.pathname.replace(/^\/api\/admin/, '/admin');
+
+    if (path.startsWith('/admin/preferences/dashboard-widget-layout-v1')) {
+      if (route.request().method() === 'PATCH') {
+        const body = route.request().postDataJSON() as { value?: unknown } | null;
+        savedPreferenceValue = body?.value ?? null;
+        preferencePatchCount += 1;
+      }
+      await fulfillJson(route, {
+        key: 'dashboard-widget-layout-v1',
+        value: savedPreferenceValue,
+        version: savedPreferenceValue ? preferencePatchCount : 0,
+        updatedAt: savedPreferenceValue ? new Date().toISOString() : null,
+      });
+      return;
+    }
+
     await fulfillJson(route, fixtureFor(path, options));
   });
+
+  return {
+    getPreferencePatchCount: () => preferencePatchCount,
+    getSavedPreferenceValue: () => savedPreferenceValue,
+  };
 }
 
 function fixtureFor(path: string, options: {
@@ -180,6 +237,8 @@ function fixtureFor(path: string, options: {
       permissions: options.permissions,
     };
   }
+
+  if (path.startsWith('/admin/dashboard/finance-trends')) return trendFixture();
 
   if (path.startsWith('/admin/finance/summary')) {
     return {
@@ -254,6 +313,29 @@ function fixtureFor(path: string, options: {
   if (path.startsWith('/admin/notifications')) return { items: [], unreadCount: 0 };
   if (path.startsWith('/admin/access/profile')) return { permissions: options.permissions };
   return {};
+}
+
+function trendFixture() {
+  const daily = Array.from({ length: 7 }, (_, index) => ({
+    date: `2026-07-${String(21 + index).padStart(2, '0')}`,
+    topUpAmount: String(3000 + (index * 400)),
+    topUpCount: 2 + index,
+    withdrawalAmount: String(1200 + (index * 150)),
+    withdrawalCount: 1 + (index % 3),
+    netFlow: String(1800 + (index * 250)),
+  }));
+  return {
+    range: { days: 7, from: '2026-07-21T00:00:00.000Z', to: '2026-07-27T23:59:59.999Z' },
+    totals: {
+      topUpAmount: '29400',
+      topUpCount: 35,
+      withdrawalAmount: '11550',
+      withdrawalCount: 13,
+      netFlow: '17850',
+    },
+    daily,
+    generatedAt: '2026-07-27T23:59:59.999Z',
+  };
 }
 
 async function selectP3Workspace(page: Page, selection: string) {

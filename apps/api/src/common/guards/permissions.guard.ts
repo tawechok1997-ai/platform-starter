@@ -4,6 +4,7 @@ import {
   enforceAdminSensitiveAction,
   requestSensitiveActionPolicy,
 } from '../admin-sensitive-action-enforcement';
+import { REQUIRED_ANY_PERMISSIONS_KEY } from '../decorators/require-any-permission.decorator';
 import { REQUIRED_PERMISSIONS_KEY } from '../decorators/require-permission.decorator';
 
 const SUPER_PERMISSION = '*';
@@ -24,26 +25,37 @@ export class PermissionsGuard implements CanActivate {
     const required = this.reflector.getAllAndOverride<string[]>(REQUIRED_PERMISSIONS_KEY, [
       context.getHandler(),
       context.getClass(),
-    ]);
+    ]) ?? [];
+    const requiredAny = this.reflector.getAllAndOverride<string[]>(REQUIRED_ANY_PERMISSIONS_KEY, [
+      context.getHandler(),
+      context.getClass(),
+    ]) ?? [];
 
-    if (!required || required.length === 0) {
+    if (required.length === 0 && requiredAny.length === 0) {
       return true;
     }
 
     const request = context.switchToHttp().getRequest();
     const permissions: string[] = request.user?.permissions ?? [];
     const deniedPermissions: string[] = request.user?.deniedPermissions ?? [];
-    const hasWildcardDeny = deniedPermissions.includes(SUPER_PERMISSION);
-    const hasRequiredDeny = required.some((permission) => deniedPermissions.includes(permission));
+    const held = new Set(permissions);
+    const denied = new Set(deniedPermissions);
+    const hasWildcardDeny = denied.has(SUPER_PERMISSION);
 
-    if (hasWildcardDeny || hasRequiredDeny) {
+    if (hasWildcardDeny || required.some((permission) => denied.has(permission))) {
       throw new ForbiddenException('Permission denied');
     }
 
-    const hasSuperAccess = permissions.includes(SUPER_PERMISSION);
-    const allowed = hasSuperAccess || required.every((permission) => permissions.includes(permission));
+    const hasSuperAccess = held.has(SUPER_PERMISSION);
+    const allAllowed = required.length === 0
+      || hasSuperAccess
+      || required.every((permission) => held.has(permission));
+    const anyAllowed = requiredAny.length === 0
+      || requiredAny.some((permission) =>
+        !denied.has(permission) && (hasSuperAccess || held.has(permission)),
+      );
 
-    if (!allowed) {
+    if (!allAllowed || !anyAllowed) {
       throw new ForbiddenException('Permission denied');
     }
 

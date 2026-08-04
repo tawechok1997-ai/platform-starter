@@ -2,13 +2,16 @@
 
 import { PrismaClient } from '@prisma/client';
 import { spawnSync } from 'node:child_process';
-import { readdir } from 'node:fs/promises';
+import { readdir, readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const repositoryRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const schemaPath = path.join(repositoryRoot, 'prisma', 'schema.prisma');
 const migrationsDirectory = path.join(repositoryRoot, 'prisma', 'migrations');
+const BOOTSTRAP_SAFE_MIGRATIONS = [
+  '20260805040000_add_admin_ui_preferences',
+];
 
 function runPnpm(args, description = `pnpm ${args.join(' ')}`) {
   const result = spawnSync('pnpm', args, {
@@ -126,6 +129,20 @@ async function baselineMigrationHistory(history = []) {
   }
 }
 
+async function applyBootstrapSafeMigrations() {
+  await withPrisma(async (prisma) => {
+    for (const migrationName of BOOTSTRAP_SAFE_MIGRATIONS) {
+      const migrationPath = path.join(migrationsDirectory, migrationName, 'migration.sql');
+      const sql = await readFile(migrationPath, 'utf8');
+      const statements = sql
+        .split(/;\s*(?:\r?\n|$)/)
+        .map((statement) => statement.trim())
+        .filter(Boolean);
+      for (const statement of statements) await prisma.$executeRawUnsafe(statement);
+    }
+  });
+}
+
 async function baselineEmptyDatabase(state) {
   if (state.nonEmptyTables.length > 0) {
     throw new Error(
@@ -141,6 +158,7 @@ async function baselineEmptyDatabase(state) {
   }
 
   runPrisma(['db', 'push', '--accept-data-loss', '--skip-generate']);
+  await applyBootstrapSafeMigrations();
 
   const refreshedHistory = await withPrisma((prisma) => readMigrationHistory(prisma));
   await baselineMigrationHistory(refreshedHistory);
@@ -183,7 +201,8 @@ async function prepareSchema() {
   }
 
   if (state.migrationHistory.length === 0) {
-    console.warn('[database-bootstrap] Existing schema has no Prisma migration history; recording the current migrations as the baseline.');
+    console.warn('[database-bootstrap] Existing schema has no Prisma migration history; applying bootstrap-safe SQL migrations before recording the baseline.');
+    await applyBootstrapSafeMigrations();
     await baselineMigrationHistory();
   }
 

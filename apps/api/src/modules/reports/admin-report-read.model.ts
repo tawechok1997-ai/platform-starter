@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
 import { addReportDecimal, mapQueueAgingItem, subtractReportDecimal, type ReportQuery } from './report.mapper';
 import { QUEUE_AGING_PROJECTION, RECONCILIATION_LEDGER_PROJECTION, RECONCILIATION_WALLET_PROJECTION, TREND_PROJECTION } from './report-read.projections';
+import { resolveAdminTrendRange } from './report-range';
 
 const QUEUE_AGING_LIMIT = 20;
 const RECONCILIATION_DEFAULT_LIMIT = 100;
@@ -12,14 +13,7 @@ export class AdminReportReadModel {
   constructor(private readonly prisma: PrismaService) {}
 
   async loadTrends(query: ReportQuery = {}) {
-    const days = Math.min(Math.max(Number(query.days ?? 7) || 7, 1), 31);
-    const now = new Date();
-    const todayStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 0, 0, 0, 0));
-    const from = new Date(todayStart);
-    from.setUTCDate(from.getUTCDate() - (days - 1));
-    const to = new Date(todayStart);
-    to.setUTCDate(to.getUTCDate() + 1);
-    to.setUTCMilliseconds(-1);
+    const { days, from, to } = resolveAdminTrendRange(query);
     const [topUps, withdrawals] = await Promise.all([
       this.prisma.topUpRequest.findMany({ where: { status: 'APPROVED', reviewedAt: { gte: from, lte: to } }, select: TREND_PROJECTION, orderBy: { reviewedAt: 'asc' } }),
       this.prisma.withdrawalRequest.findMany({ where: { status: 'COMPLETED', reviewedAt: { gte: from, lte: to } }, select: TREND_PROJECTION, orderBy: { reviewedAt: 'asc' } }),

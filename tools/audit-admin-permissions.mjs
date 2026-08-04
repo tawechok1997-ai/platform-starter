@@ -6,7 +6,11 @@ const PUBLIC_ADMIN_CONTROLLERS = new Set([
   'modules/admin-auth/admin-auth.controller.ts',
   'modules/admin-access/admin-invitation.controller.ts',
 ]);
+const AUTHENTICATED_SELF_SERVICE_CONTROLLERS = new Set([
+  'modules/admin-access/admin-ui-preference.controller.ts',
+]);
 const MUTATION_DECORATOR = /@(Post|Put|Patch|Delete)\s*\(/g;
+const PERMISSION_DECORATOR = /@Require(?:Any)?Permission\(/;
 
 async function walk(directory) {
   const entries = await readdir(directory, { withFileTypes: true });
@@ -32,7 +36,7 @@ function hasAdminGuard(source) {
 }
 
 function hasPermissionMetadata(source) {
-  return /@RequirePermission\(/.test(source);
+  return PERMISSION_DECORATOR.test(source);
 }
 
 function lineNumber(source, index) {
@@ -73,7 +77,7 @@ function adminControllerClassBlocks(source) {
 function classHasPermission(classSource) {
   const classIndex = classSource.search(/export\s+class\s+/);
   if (classIndex < 0) return false;
-  return /@RequirePermission\(/.test(classSource.slice(0, classIndex));
+  return PERMISSION_DECORATOR.test(classSource.slice(0, classIndex));
 }
 
 function mutationHandlersMissingPermission(source) {
@@ -90,7 +94,7 @@ function mutationHandlersMissingPermission(source) {
       let start = index;
       while (start > 0 && /^\s*@/.test(lines[start - 1])) start -= 1;
       const decoratorBlock = lines.slice(start, index + 1).join('\n');
-      if (!/@RequirePermission\(/.test(decoratorBlock)) {
+      if (!PERMISSION_DECORATOR.test(decoratorBlock)) {
         const localOffset = lines.slice(0, index).join('\n').length + (index > 0 ? 1 : 0);
         missing.push({
           method: mutation[1].toUpperCase(),
@@ -112,21 +116,26 @@ for (const file of files) {
 
   const path = normalize(file);
   const intentionallyPublic = PUBLIC_ADMIN_CONTROLLERS.has(path);
+  const authenticatedSelfService = AUTHENTICATED_SELF_SERVICE_CONTROLLERS.has(path);
   const guarded = hasAdminGuard(source);
   const permissioned = hasPermissionMetadata(source);
-  const missingMutationPermissions = intentionallyPublic ? [] : mutationHandlersMissingPermission(source);
+  const missingMutationPermissions = intentionallyPublic || authenticatedSelfService
+    ? []
+    : mutationHandlersMissingPermission(source);
 
-  results.push({ path, intentionallyPublic, guarded, permissioned, missingMutationPermissions });
+  results.push({ path, intentionallyPublic, authenticatedSelfService, guarded, permissioned, missingMutationPermissions });
 }
 
 const unguarded = results.filter((item) => !item.intentionallyPublic && !item.guarded);
-const authOnly = results.filter((item) => !item.intentionallyPublic && item.guarded && !item.permissioned);
+const authOnly = results.filter((item) => !item.intentionallyPublic && !item.authenticatedSelfService && item.guarded && !item.permissioned);
+const selfService = results.filter((item) => item.authenticatedSelfService && item.guarded);
 const publicControllers = results.filter((item) => item.intentionallyPublic);
 const protectedControllers = results.filter((item) => item.guarded && item.permissioned);
 const unsafeMutations = results.flatMap((item) => item.missingMutationPermissions.map((handler) => ({ path: item.path, ...handler })));
 
 console.log(`Admin controller audit: ${results.length} total`);
 console.log(`  protected with permission metadata: ${protectedControllers.length}`);
+console.log(`  authenticated self-service: ${selfService.length}`);
 console.log(`  auth-only, manual review required: ${authOnly.length}`);
 console.log(`  intentionally public: ${publicControllers.length}`);
 console.log(`  unguarded and not allowlisted: ${unguarded.length}`);
@@ -143,7 +152,7 @@ if (unguarded.length > 0) {
 }
 
 if (unsafeMutations.length > 0) {
-  console.error('\nAdmin mutation handlers missing @RequirePermission metadata:');
+  console.error('\nAdmin mutation handlers missing permission metadata:');
   for (const item of unsafeMutations) console.error(`  - ${item.path}:${item.line} (${item.method})`);
 }
 

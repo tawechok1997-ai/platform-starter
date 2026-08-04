@@ -13,6 +13,8 @@ import { AdminInvitationController } from './admin-invitation.controller';
 import { AdminInvitationService } from './admin-invitation.service';
 import { AdminOwnershipCommandService } from './admin-ownership-command.service';
 import { AdminRoleAssignmentService } from './admin-role-assignment.service';
+import { AdminUiPreferenceController } from './admin-ui-preference.controller';
+import { AdminUiPreferenceService } from './admin-ui-preference.service';
 
 @Module({
   imports: [DatabaseModule, JwtModule.register({}), AdminAuthModule],
@@ -20,6 +22,7 @@ import { AdminRoleAssignmentService } from './admin-role-assignment.service';
     AdminAccessController,
     AdminInvitationController,
     AdminInvitationAdminController,
+    AdminUiPreferenceController,
   ],
   providers: [
     AdminAccessService,
@@ -30,6 +33,7 @@ import { AdminRoleAssignmentService } from './admin-role-assignment.service';
     AdminInvitationService,
     AdminInvitationAdminService,
     AdminRoleAssignmentService,
+    AdminUiPreferenceService,
   ],
 })
 export class AdminAccessModule {}
