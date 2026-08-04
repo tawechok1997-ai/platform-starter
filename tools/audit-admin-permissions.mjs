@@ -6,6 +6,9 @@ const PUBLIC_ADMIN_CONTROLLERS = new Set([
   'modules/admin-auth/admin-auth.controller.ts',
   'modules/admin-access/admin-invitation.controller.ts',
 ]);
+const AUTHENTICATED_SELF_SERVICE_CONTROLLERS = new Set([
+  'modules/admin-access/admin-ui-preference.controller.ts',
+]);
 const MUTATION_DECORATOR = /@(Post|Put|Patch|Delete)\s*\(/g;
 const PERMISSION_DECORATOR = /@Require(?:Any)?Permission\(/;
 
@@ -113,21 +116,26 @@ for (const file of files) {
 
   const path = normalize(file);
   const intentionallyPublic = PUBLIC_ADMIN_CONTROLLERS.has(path);
+  const authenticatedSelfService = AUTHENTICATED_SELF_SERVICE_CONTROLLERS.has(path);
   const guarded = hasAdminGuard(source);
   const permissioned = hasPermissionMetadata(source);
-  const missingMutationPermissions = intentionallyPublic ? [] : mutationHandlersMissingPermission(source);
+  const missingMutationPermissions = intentionallyPublic || authenticatedSelfService
+    ? []
+    : mutationHandlersMissingPermission(source);
 
-  results.push({ path, intentionallyPublic, guarded, permissioned, missingMutationPermissions });
+  results.push({ path, intentionallyPublic, authenticatedSelfService, guarded, permissioned, missingMutationPermissions });
 }
 
 const unguarded = results.filter((item) => !item.intentionallyPublic && !item.guarded);
-const authOnly = results.filter((item) => !item.intentionallyPublic && item.guarded && !item.permissioned);
+const authOnly = results.filter((item) => !item.intentionallyPublic && !item.authenticatedSelfService && item.guarded && !item.permissioned);
+const selfService = results.filter((item) => item.authenticatedSelfService && item.guarded);
 const publicControllers = results.filter((item) => item.intentionallyPublic);
 const protectedControllers = results.filter((item) => item.guarded && item.permissioned);
 const unsafeMutations = results.flatMap((item) => item.missingMutationPermissions.map((handler) => ({ path: item.path, ...handler })));
 
 console.log(`Admin controller audit: ${results.length} total`);
 console.log(`  protected with permission metadata: ${protectedControllers.length}`);
+console.log(`  authenticated self-service: ${selfService.length}`);
 console.log(`  auth-only, manual review required: ${authOnly.length}`);
 console.log(`  intentionally public: ${publicControllers.length}`);
 console.log(`  unguarded and not allowlisted: ${unguarded.length}`);
