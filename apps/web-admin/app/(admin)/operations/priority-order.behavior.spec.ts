@@ -5,7 +5,11 @@ import test from 'node:test';
 const operationsEntrySource = readFileSync(new URL('./page.tsx', import.meta.url), 'utf8');
 const operationsSource = readFileSync(new URL('./operations-redesigned.tsx', import.meta.url), 'utf8');
 const dashboardEntrySource = readFileSync(new URL('../dashboard/page.tsx', import.meta.url), 'utf8');
-const dashboardSource = readFileSync(new URL('../dashboard/dashboard-professional.tsx', import.meta.url), 'utf8');
+const dashboardSource = readFileSync(new URL('../dashboard/dashboard-widgetized.tsx', import.meta.url), 'utf8');
+const dashboardRegistrySource = readFileSync(
+  new URL('../../../src/features/admin-modernization/admin-dashboard-widget-registry.ts', import.meta.url),
+  'utf8',
+);
 
 function sourceIndex(source: string, marker: string) {
   const index = source.indexOf(marker);
@@ -24,25 +28,28 @@ test('operations uses the redesigned task-first boundary', () => {
   assert.doesNotMatch(operationsSource, /RecentCard|recentTransfers|recentAlerts|recentLedger/);
 });
 
-test('dashboard puts analytical charts before KPIs queues and recent activity', () => {
-  assert.match(dashboardEntrySource, /export \{ default \} from '\.\/dashboard-professional'/);
+test('dashboard puts priority work and analytical widgets before recent activity', () => {
+  assert.match(dashboardEntrySource, /export \{ default \} from '\.\/dashboard-widgetized'/);
+  assert.match(dashboardSource, /AdminWidgetWorkspace/);
+  assert.match(dashboardSource, /AdminChart/);
+  assert.match(dashboardSource, /ADMIN_DASHBOARD_WIDGET_DEFINITIONS/);
 
-  const system = sourceIndex(dashboardSource, 'className={styles.statusBar}');
-  const priorities = sourceIndex(dashboardSource, 'priorityItems.length > 0');
-  const insights = sourceIndex(dashboardSource, 'title={t.insights}');
-  const overview = sourceIndex(dashboardSource, 'title={t.overview}');
-  const queues = sourceIndex(dashboardSource, 'title={t.queues}');
-  const recent = sourceIndex(dashboardSource, 'title={t.recentActivity}');
+  const priorities = sourceIndex(dashboardRegistrySource, "id: 'operations.priority-work'");
+  const cashFlow = sourceIndex(dashboardRegistrySource, "id: 'finance.cash-flow'");
+  const wallet = sourceIndex(dashboardRegistrySource, "id: 'wallet.balance-composition'");
+  const risk = sourceIndex(dashboardRegistrySource, "id: 'risk.open-severity'");
+  const queues = sourceIndex(dashboardRegistrySource, "id: 'finance.pending-queues'");
+  const recent = sourceIndex(dashboardRegistrySource, "id: 'activity.recent'");
 
-  assert.ok(system < priorities && priorities < insights && insights < overview && overview < queues && queues < recent);
-  assert.match(dashboardSource, /FinanceInsight/);
-  assert.match(dashboardSource, /WalletInsight/);
-  assert.match(dashboardSource, /RiskInsight/);
-  assert.match(dashboardSource, /Deposits vs withdrawals today/);
-  assert.match(dashboardSource, /Wallet balance composition/);
-  assert.match(dashboardSource, /Open risk severity/);
-  assert.match(dashboardSource, /conic-gradient/);
-  assert.match(dashboardSource, /canViewFinance && <FinanceInsight/);
-  assert.match(dashboardSource, /canViewWallet && <WalletInsight/);
-  assert.match(dashboardSource, /canViewRisk && <RiskInsight/);
+  assert.ok(
+    priorities < cashFlow &&
+      cashFlow < wallet &&
+      wallet < risk &&
+      risk < queues &&
+      queues < recent,
+  );
+  assert.match(dashboardRegistrySource, /chartKind: 'bar'/);
+  assert.match(dashboardRegistrySource, /chartKind: 'donut'/);
+  assert.match(dashboardRegistrySource, /requiredPermissions/);
+  assert.match(dashboardRegistrySource, /workspaceIds/);
 });
