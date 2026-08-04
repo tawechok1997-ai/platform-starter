@@ -16,11 +16,13 @@ async function readRepository(relativePath: string) {
   return readFile(path.join(repositoryRoot, relativePath), 'utf8');
 }
 
-test('Desktop P0 runtimes are mounted by the root layout', async () => {
+test('Desktop P0 runtimes have one explicit owner', async () => {
   const layout = await readApp('layout.tsx');
+  const home = await readApp('member-home.tsx');
 
-  assert.match(layout, /import HomeSidebarScrollController from ['"]\.\/components\/member-home\/home-sidebar-scroll-controller['"]/);
-  assert.match(layout, /<HomeSidebarScrollController\s*\/>/);
+  assert.doesNotMatch(layout, /HomeSidebarScrollController/);
+  assert.match(home, /import HomeSidebarScrollController from ['"]\.\/components\/member-home\/home-sidebar-scroll-controller['"]/);
+  assert.equal((home.match(/<HomeSidebarScrollController\s*\/>/g) ?? []).length, 1);
   assert.match(layout, /import MemberActivityPredictionRuntime from ['"]\.\/components\/member-activity-prediction-runtime['"]/);
   assert.match(layout, /<MemberActivityPredictionRuntime\s*\/>/);
 });
