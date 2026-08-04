@@ -7,6 +7,14 @@ on:
         description: Deployed Admin web URL
         required: false
         type: string
+      api_url:
+        description: Deployed API URL used for health and commit identity
+        required: false
+        type: string
+      expected_commit:
+        description: Expected deployed Git commit (defaults to the dispatched commit)
+        required: false
+        type: string
 
 permissions:
   contents: read
@@ -22,6 +30,8 @@ jobs:
     timeout-minutes: 45
     env:
       ADMIN_WEB_URL: ${{ inputs.admin_url || vars.P6_ADMIN_URL || secrets.SEED_ADMIN_WEB_URL || 'https://platformweb-admin-production.up.railway.app' }}
+      API_PUBLIC_URL: ${{ inputs.api_url || vars.P6_API_URL || secrets.SEED_API_URL || 'https://platformapi-production-3c91.up.railway.app' }}
+      EXPECTED_DEPLOY_COMMIT: ${{ inputs.expected_commit || github.sha }}
       SEED_ADMIN_USERNAME: ${{ secrets.SEED_ADMIN_USERNAME || secrets.P6_ADMIN_USERNAME }}
       SEED_ADMIN_EMAIL: ${{ secrets.SEED_ADMIN_EMAIL || secrets.P6_ADMIN_EMAIL }}
       SEED_ADMIN_PASSWORD: ${{ secrets.SEED_ADMIN_PASSWORD || secrets.P6_ADMIN_PASSWORD }}
@@ -37,31 +47,66 @@ jobs:
         run: |
           set -euo pipefail
           node <<'NODE'
-          const raw = String(process.env.ADMIN_WEB_URL ?? '').trim();
-          if (!raw) throw new Error('ADMIN_WEB_URL is required');
-          const url = new URL(raw);
-          const local = ['localhost', '127.0.0.1', '::1'].includes(url.hostname);
-          if (url.protocol !== 'https:' && !(local && url.protocol === 'http:')) {
-            throw new Error('ADMIN_WEB_URL must use HTTPS except for localhost');
-          }
-          if (url.username || url.password) throw new Error('ADMIN_WEB_URL must not embed credentials');
-          if (url.hash) throw new Error('ADMIN_WEB_URL must not contain a fragment');
-
+          const targets = [
+            ['ADMIN_WEB_URL', process.env.ADMIN_WEB_URL],
+            ['API_PUBLIC_URL', process.env.API_PUBLIC_URL],
+          ];
           const allowList = new Set(
             String(process.env.PROD_SMOKE_ALLOWED_HOSTS ?? '')
               .split(',')
               .map((value) => value.trim().toLowerCase())
               .filter(Boolean),
           );
-          if (allowList.size > 0 && !allowList.has(url.hostname.toLowerCase())) {
-            throw new Error('ADMIN_WEB_URL host is not allow-listed');
+
+          for (const [name, rawValue] of targets) {
+            const raw = String(rawValue ?? '').trim();
+            if (!raw) throw new Error(`${name} is required`);
+            const url = new URL(raw);
+            const local = ['localhost', '127.0.0.1', '::1'].includes(url.hostname);
+            if (url.protocol !== 'https:' && !(local && url.protocol === 'http:')) {
+              throw new Error(`${name} must use HTTPS except for localhost`);
+            }
+            if (url.username || url.password) throw new Error(`${name} must not embed credentials`);
+            if (url.hash) throw new Error(`${name} must not contain a fragment`);
+            if (allowList.size > 0 && !allowList.has(url.hostname.toLowerCase())) {
+              throw new Error(`${name} host is not allow-listed`);
+            }
           }
 
+          const expectedCommit = String(process.env.EXPECTED_DEPLOY_COMMIT ?? '').trim();
+          if (expectedCommit.length < 7 || !/^[a-f0-9]+$/i.test(expectedCommit)) {
+            throw new Error('EXPECTED_DEPLOY_COMMIT is missing or malformed');
+          }
           const identity = String(process.env.SEED_ADMIN_USERNAME || process.env.SEED_ADMIN_EMAIL || '').trim();
           const password = String(process.env.SEED_ADMIN_PASSWORD || '');
           if (!identity) throw new Error('Seeded Admin identity is required');
           if (password.length < 8) throw new Error('Seeded Admin password is missing or malformed');
-          console.log(`Validated authenticated Admin UI target: ${url.hostname}`);
+          console.log('Validated authenticated Admin UI and API smoke targets');
+          NODE
+
+      - name: Verify Production health and commit identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          node <<'NODE'
+          const base = new URL(String(process.env.API_PUBLIC_URL));
+          const expected = String(process.env.EXPECTED_DEPLOY_COMMIT).trim().toLowerCase();
+          async function read(path) {
+            const response = await fetch(new URL(path, base), {
+              headers: { accept: 'application/json' },
+              signal: AbortSignal.timeout(15_000),
+            });
+            if (!response.ok) throw new Error(`${path} returned ${response.status}`);
+            return response.json();
+          }
+          const [health, version] = await Promise.all([read('/health'), read('/version')]);
+          if (health?.status !== 'ok') throw new Error(`Production health reported ${health?.status ?? 'unknown'}`);
+          const deployed = String(version?.commit ?? '').trim().toLowerCase();
+          if (deployed.length < 7) throw new Error('Production /version did not return a usable commit');
+          if (!(deployed === expected || deployed.startsWith(expected) || expected.startsWith(deployed))) {
+            throw new Error(`Production commit ${deployed} does not match expected ${expected}`);
+          }
+          console.log(`Verified Production commit ${deployed}`);
           NODE
 
       - name: Setup pnpm
@@ -103,6 +148,8 @@ jobs:
         run: |
           {
             echo '## Admin responsive workspace audit'
+            echo
+            echo 'Verifies API health and deployed commit identity before authenticated browser checks.'
             echo
             echo 'Checks every accessible Admin workspace route at desktop and mobile viewports.'
             echo
