@@ -71,7 +71,7 @@ for (const locale of ['th', 'en'] as const) {
   });
 }
 
-test('P3 workspace selection filters widgets without mutating the saved layout', async ({ page }) => {
+test('P3 workspace selection filters widgets without mutating the seeded layout', async ({ page }) => {
   const session = await installDashboardSession(page, {
     locale: 'th',
     permissions: ownerPermissions,
@@ -82,6 +82,13 @@ test('P3 workspace selection filters widgets without mutating the saved layout',
   await page.goto('/dashboard', { waitUntil: 'domcontentloaded' });
   await page.waitForLoadState('networkidle', { timeout: 10_000 }).catch(() => undefined);
   await expect(page.locator('[data-widget-id]')).toHaveCount(6);
+
+  await expect.poll(session.getPreferencePatchCount).toBeGreaterThan(0);
+  const seedPatchCount = session.getPreferencePatchCount();
+  const seededPreference = JSON.stringify(session.getSavedPreferenceValue());
+  expect(seededPreference).toContain('finance.cash-flow');
+  expect(seededPreference).toContain('finance.pending-queues');
+  expect(seededPreference).toContain('risk.open-severity');
 
   await selectP3Workspace(page, 'finance');
   await expect(page.locator('[data-admin-widget-workspace="finance"]')).toBeVisible();
@@ -107,14 +114,18 @@ test('P3 workspace selection filters widgets without mutating the saved layout',
     'activity.recent',
   ]);
 
-  expect(session.getPreferencePatchCount()).toBe(0);
+  await page.waitForTimeout(700);
+  expect(session.getPreferencePatchCount()).toBe(seedPatchCount);
+  expect(JSON.stringify(session.getSavedPreferenceValue())).toBe(seededPreference);
 
   await selectP3Workspace(page, 'all');
   await expect(page.locator('[data-admin-widget-workspace="all"]')).toBeVisible();
   await expect(page.locator('[data-widget-id="finance.cash-flow"]')).toBeVisible();
   await expect(page.locator('[data-widget-id="finance.pending-queues"]')).toBeVisible();
   await expect(page.locator('[data-widget-id="risk.open-severity"]')).toBeVisible();
-  expect(session.getPreferencePatchCount()).toBe(0);
+  await page.waitForTimeout(700);
+  expect(session.getPreferencePatchCount()).toBe(seedPatchCount);
+  expect(JSON.stringify(session.getSavedPreferenceValue())).toBe(seededPreference);
 });
 
 test('dashboard widget data is filtered by effective permission', async ({ page }) => {
@@ -197,6 +208,7 @@ async function installDashboardSession(page: Page, options: {
 
   return {
     getPreferencePatchCount: () => preferencePatchCount,
+    getSavedPreferenceValue: () => savedPreferenceValue,
   };
 }
 
