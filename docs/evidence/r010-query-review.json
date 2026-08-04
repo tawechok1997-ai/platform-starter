@@ -40,6 +40,16 @@
       "status": "read-model",
       "owner": "money-ops",
       "reason": "The MoneyOps control-center preview and paginated ledger listing intentionally share the same recent-ledger projection while serving different response contracts and limits."
+    },
+    "duplicate:4f3424fc9bac5f12f929318f": {
+      "status": "documented-exception",
+      "owner": "admin-access",
+      "reason": "Invitation administration lists recent invite tokens for operational review, while invitation acceptance scans the bounded token history to verify a single submitted token hash and expiry state."
+    },
+    "duplicate:be0227bbf71f1ac04b49f8dc": {
+      "status": "read-model",
+      "owner": "admin-access",
+      "reason": "Invitation creation and role synchronization intentionally hydrate the same ordered role-permission projection, but they serve separate transactional commands and audit contracts."
     }
   }
 }
