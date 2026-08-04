@@ -119,6 +119,81 @@ test.describe('production Mobile Home smoke', () => {
     expect(pageErrors, `Page errors: ${JSON.stringify(pageErrors)}`).toEqual([]);
     expect(relevantConsoleErrors, `Console errors: ${JSON.stringify(relevantConsoleErrors)}`).toEqual([]);
   });
+
+  test('P4-P6 home owner, canonical launch, drawer and bottom navigation work together', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== '390x844', 'Run the complete interaction contract once');
+
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.goto(MEMBER_HOME_URL, { waitUntil: 'domcontentloaded', timeout: 45_000 });
+
+    const root = page.locator('[data-mobile-home-root="true"]');
+    const html = page.locator('html');
+    const menuTrigger = page.locator('button[aria-controls="mobile-home-drawer"]');
+    const drawer = page.locator('#mobile-home-drawer');
+    const bottomNavigation = page.locator('[data-mobile-member-bottom-navigation="true"]');
+
+    await expect(root).toBeVisible({ timeout: 30_000 });
+    await expect(root).toHaveAttribute('data-mobile-p4-p6-ready', 'true', { timeout: 15_000 });
+    await expect(bottomNavigation).toBeVisible({ timeout: 15_000 });
+
+    await menuTrigger.click();
+    await expect(menuTrigger).toHaveAttribute('aria-expanded', 'true');
+    await expect(drawer).toHaveAttribute('role', 'dialog');
+    await expect(drawer).toHaveAttribute('aria-modal', 'true');
+    await expect(html).toHaveAttribute('data-mobile-drawer-open', 'true');
+    await expect(bottomNavigation).toBeHidden();
+
+    await page.keyboard.press('Escape');
+    await expect(menuTrigger).toHaveAttribute('aria-expanded', 'false');
+    await expect(html).toHaveAttribute('data-mobile-drawer-open', 'false');
+    await expect(bottomNavigation).toBeVisible();
+    await expect(menuTrigger).toBeFocused();
+
+    const casinoButton = page.locator('button[data-mobile-category-id="casino"]');
+    const homeButton = page.locator('button[data-mobile-category-id="home"]');
+    await casinoButton.click();
+    await expect(root).toHaveAttribute('data-mobile-active-category', 'casino');
+    await expect(html).toHaveAttribute('data-mobile-member-home-surface', 'false');
+    await expect(bottomNavigation).toBeHidden();
+
+    await homeButton.click();
+    await expect(root).toHaveAttribute('data-mobile-active-category', 'home');
+    await expect(html).toHaveAttribute('data-mobile-member-home-surface', 'true');
+    await expect(bottomNavigation).toBeVisible();
+
+    const gameAction = page.locator('[data-mobile-game-launch="canonical"]').first();
+    await expect(gameAction).toBeVisible({ timeout: 30_000 });
+    const launchData = await gameAction.evaluate((element) => ({
+      category: element.getAttribute('data-game-category') ?? '',
+      game: element.getAttribute('data-game-id') ?? element.getAttribute('data-game-code') ?? '',
+      provider: element.getAttribute('data-provider-code') ?? '',
+    }));
+    expect(launchData.game).not.toBe('');
+    expect(launchData.provider).not.toBe('');
+
+    const launchRequestPromise = page.waitForRequest((request) => {
+      if (!request.isNavigationRequest()) return false;
+      try {
+        return new URL(request.url()).pathname === '/games';
+      } catch {
+        return false;
+      }
+    }, { timeout: 30_000 });
+
+    await gameAction.click();
+    const launchRequest = await launchRequestPromise;
+    const launchUrl = new URL(launchRequest.url());
+    expect(launchUrl.searchParams.get('platform')).toBe('mobile');
+    expect(launchUrl.searchParams.get('provider')).toBeTruthy();
+    expect(launchUrl.searchParams.get('game')).toBeTruthy();
+    expect(launchUrl.searchParams.get('category')).toBeTruthy();
+
+    const evidenceDir = await prepareEvidenceDirectory(testInfo);
+    await fs.writeFile(path.join(evidenceDir, 'p4-p6-interactions.json'), JSON.stringify({
+      launchData,
+      launchUrl: launchUrl.toString(),
+    }, null, 2));
+  });
 });
 
 async function prepareEvidenceDirectory(testInfo: TestInfo) {
