@@ -10,8 +10,8 @@ const repositoryRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url))
 const schemaPath = path.join(repositoryRoot, 'prisma', 'schema.prisma');
 const migrationsDirectory = path.join(repositoryRoot, 'prisma', 'migrations');
 
-function runPrisma(args) {
-  const result = spawnSync('pnpm', ['exec', 'prisma', ...args, '--schema', schemaPath], {
+function runPnpm(args, description = `pnpm ${args.join(' ')}`) {
+  const result = spawnSync('pnpm', args, {
     cwd: repositoryRoot,
     env: process.env,
     stdio: 'inherit',
@@ -19,8 +19,19 @@ function runPrisma(args) {
 
   if (result.error) throw result.error;
   if (result.status !== 0) {
-    throw new Error(`Prisma command failed with exit code ${result.status}: prisma ${args.join(' ')}`);
+    throw new Error(`${description} failed with exit code ${result.status}`);
   }
+}
+
+function runPrisma(args) {
+  runPnpm(
+    ['exec', 'prisma', ...args, '--schema', schemaPath],
+    `Prisma command prisma ${args.join(' ')}`,
+  );
+}
+
+function runTypeScriptSeed(relativePath) {
+  runPnpm(['exec', 'tsx', relativePath], `Database seed ${relativePath}`);
 }
 
 function quoteIdentifier(value) {
@@ -136,11 +147,27 @@ async function baselineEmptyDatabase(state) {
   runPrisma(['migrate', 'deploy']);
 }
 
-async function main() {
-  if (!process.env.DATABASE_URL) {
-    throw new Error('DATABASE_URL is required before preparing the production database.');
+async function ensureCoreSeedData() {
+  const seedRequired = await withPrisma(async (prisma) => {
+    const [superAdminRole, permissionCount, siteSettingCount] = await Promise.all([
+      prisma.role.findUnique({ where: { code: 'super_admin' }, select: { id: true } }),
+      prisma.permission.count(),
+      prisma.siteSetting.count(),
+    ]);
+    return !superAdminRole || permissionCount === 0 || siteSettingCount === 0;
+  });
+
+  if (!seedRequired) {
+    console.log('[database-bootstrap] Core roles, permissions, and site settings already exist.');
+    return;
   }
 
+  console.warn('[database-bootstrap] Core roles, permissions, or site settings are missing; applying idempotent seeds.');
+  runTypeScriptSeed('prisma/seed.ts');
+  runTypeScriptSeed('prisma/seed-access.ts');
+}
+
+async function prepareSchema() {
   const state = await inspectDatabase();
 
   if (!state.usersExists) {
@@ -161,6 +188,16 @@ async function main() {
   }
 
   runPrisma(['migrate', 'deploy']);
+}
+
+async function main() {
+  if (!process.env.DATABASE_URL) {
+    throw new Error('DATABASE_URL is required before preparing the production database.');
+  }
+
+  await prepareSchema();
+  await ensureCoreSeedData();
+  runTypeScriptSeed('prisma/seed-production-admin.ts');
 }
 
 main().catch((error) => {
