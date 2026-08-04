@@ -61,7 +61,9 @@ test('member home keeps the fixed sidebar left of the main feed', async ({ page 
     };
   });
 
-  expect(geometry.placeholderWidth).toBeGreaterThan(250);
+  // The 1455px source canvas is scaled on compact desktop windows. A 310px
+  // source sidebar is approximately 218px at a physical 1024px viewport.
+  expect(geometry.placeholderWidth).toBeGreaterThan(180);
   expect(Math.abs(geometry.sidebarLeft - geometry.placeholderLeft)).toBeLessThanOrEqual(2);
   expect(Math.abs(geometry.sidebarWidth - geometry.placeholderWidth)).toBeLessThanOrEqual(2);
   expect(geometry.sidebarRight).toBeLessThanOrEqual(geometry.mainLeft + 2);
