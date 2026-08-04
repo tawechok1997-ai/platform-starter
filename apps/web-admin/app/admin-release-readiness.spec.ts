@@ -14,7 +14,11 @@ const dataPageCss = readFileSync(path.join(appDir, 'admin-data-page-layout.css')
 const universalFullWidthCss = readFileSync(path.join(appDir, 'admin-universal-full-width.css'), 'utf8');
 const protectedLayout = readFileSync(path.join(appDir, '(admin)', 'layout.tsx'), 'utf8');
 const dashboardPage = readFileSync(path.join(appDir, '(admin)', 'dashboard', 'page.tsx'), 'utf8');
-const dashboardProfessional = readFileSync(path.join(appDir, '(admin)', 'dashboard', 'dashboard-professional.tsx'), 'utf8');
+const dashboardWidgetized = readFileSync(path.join(appDir, '(admin)', 'dashboard', 'dashboard-widgetized.tsx'), 'utf8');
+const dashboardRegistry = readFileSync(
+  path.join(appDir, '..', 'src', 'features', 'admin-modernization', 'admin-dashboard-widget-registry.ts'),
+  'utf8',
+);
 
 const controlsImport = "import './admin-release-controls.css'";
 const shellImport = "import './admin-shell-layout.css'";
@@ -131,8 +135,12 @@ test('enforces full-width behavior across every Admin route', () => {
   assert.match(universalFullWidthCss, /@media \(max-width: 720px\)[\s\S]*grid-template-columns: minmax\(0, 1fr\) !important/);
 });
 
-test('puts finance wallet and risk charts before recent dashboard activity', () => {
-  assert.match(dashboardPage, /dashboard-professional/);
-  assert.match(dashboardProfessional, /Deposits vs withdrawals today/);
-  assert.match(dashboardProfessional, /Wallet balance composition/);
+test('uses the widgetized dashboard for finance wallet risk and recent activity', () => {
+  assert.match(dashboardPage, /dashboard-widgetized/);
+  assert.match(dashboardWidgetized, /AdminWidgetWorkspace/);
+  assert.match(dashboardWidgetized, /AdminChart/);
+  assert.match(dashboardRegistry, /id: 'finance\.cash-flow'/);
+  assert.match(dashboardRegistry, /id: 'wallet\.balance-composition'/);
+  assert.match(dashboardRegistry, /id: 'risk\.open-severity'/);
+  assert.match(dashboardRegistry, /id: 'activity\.recent'/);
 });
