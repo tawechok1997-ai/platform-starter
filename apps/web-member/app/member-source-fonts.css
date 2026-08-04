@@ -3,6 +3,7 @@
 @import './member-mobile-popup-icon-geometry.css';
 @import './member-mobile-drawer-bottom-nav.css';
 @import './member-mobile-category-empty-state.css';
+@import './member-mobile-sticky-shell.css';
 
 :root {
   --member-font-sans: 'Noto Sans Thai', 'Noto Sans', sans-serif;
