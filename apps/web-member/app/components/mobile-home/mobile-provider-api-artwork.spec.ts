@@ -15,14 +15,15 @@ const launcher = readFileSync(
   'utf8',
 );
 
-test('catalog keeps provider artwork from the API instead of remapping it through local assets', () => {
-  assert.match(catalog, /card:\s*firstText\([\s\S]*item\.provider\?\.cardUrl/);
-  assert.match(catalog, /badge:\s*firstText\([\s\S]*item\.provider\?\.badgeUrl/);
+test('catalog preserves API provider identity and badge artwork before configured fallbacks', () => {
+  assert.match(catalog, /const providerObject = item\.provider && typeof item\.provider === 'object'/);
+  assert.match(catalog, /providerObject\?\.badgeUrl/);
+  assert.match(catalog, /providerObject\?\.logoUrl/);
+  assert.match(catalog, /resolveProviderArtwork\(/);
   assert.doesNotMatch(catalog, /function localizeProvider/);
-  assert.doesNotMatch(catalog, /card:\s*resolveAssetForPlatform/);
 });
 
-test('slot fishing and card replace configured provider art with API cardUrl', () => {
+test('slot fishing and card replace configured provider art with catalog card artwork', () => {
   assert.match(providerGames, /source:\s*provider\.card \|\| existing\.source/);
   assert.match(providerGames, /iconSource:\s*provider\.badge \|\| existing\.iconSource/);
   assert.match(providerGames, /src=\{provider\.source\}/);
@@ -33,7 +34,7 @@ test('slot fishing and card replace configured provider art with API cardUrl', (
   );
 });
 
-test('casino sport and lottery replace source cards with API cardUrl', () => {
+test('casino sport and lottery replace source cards with catalog card artwork', () => {
   assert.match(launcher, /source:\s*apiProvider\?\.card \|\| provider\.source/);
   assert.match(launcher, /src=\{provider\.source\}/);
   assert.match(launcher, /data-provider-image-owner="api"/);
