@@ -44,10 +44,10 @@ describe('production Admin bootstrap', () => {
         create: jest.fn(),
       },
       role: { findUnique: jest.fn() },
-    } as never;
+    };
     const hashPassword = jest.fn();
 
-    await expect(ensureProductionAdmin(prisma, {}, hashPassword)).resolves.toEqual({
+    await expect(ensureProductionAdmin(prisma as never, {}, hashPassword)).resolves.toEqual({
       status: 'existing',
       adminCount: 1,
     });
@@ -68,10 +68,10 @@ describe('production Admin bootstrap', () => {
       role: {
         findUnique: jest.fn().mockResolvedValue({ id: 'role-id' }),
       },
-    } as never;
+    };
     const hashPassword = jest.fn().mockResolvedValue('argon2-hash');
 
-    await expect(ensureProductionAdmin(prisma, {
+    await expect(ensureProductionAdmin(prisma as never, {
       DEFAULT_ADMIN_SECRET: 'secure-default-admin-2026',
     }, hashPassword)).resolves.toEqual({
       status: 'created',
@@ -99,9 +99,9 @@ describe('production Admin bootstrap', () => {
         create: jest.fn(),
       },
       role: { findUnique: jest.fn() },
-    } as never;
+    };
 
-    await expect(ensureProductionAdmin(prisma, {})).resolves.toEqual({
+    await expect(ensureProductionAdmin(prisma as never, {})).resolves.toEqual({
       status: 'missing-config',
       acceptedPasswordVariables: [
         'BOOTSTRAP_ADMIN_PASSWORD',
