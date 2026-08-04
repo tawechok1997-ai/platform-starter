@@ -56,5 +56,6 @@ test('the last layout stylesheet is a geometry-free viewport isolation guard', (
   assert.match(isolationCss, /html\[data-member-viewport-mode='mobile'\]/);
   assert.match(isolationCss, /html\[data-member-viewport-mode='desktop'\]/);
   assert.match(isolationCss, /\[data-ui-owner='mobile-popup'\]/);
-  assert.doesNotMatch(isolationCss, /(?:width|height|margin|padding|font-size|background)\s*:/);
+  const rules = isolationCss.replace(/\/\*[\s\S]*?\*\//g, '');
+  assert.doesNotMatch(rules, /(?:width|height|margin|padding|font-size|background)\s*:/);
 });
