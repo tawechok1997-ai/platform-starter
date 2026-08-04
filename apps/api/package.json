@@ -12,7 +12,7 @@
     "start:prod": "node dist/main.js",
     "test": "pnpm check:generated-catalogs && jest",
     "test:db:finance": "pnpm check:generated-catalogs && jest src/modules/finance/finance-concurrency.db.spec.ts src/modules/finance/finance-lifecycle.db.spec.ts --runInBand",
-    "test:db:admin-access": "pnpm check:generated-catalogs && jest src/modules/admin-access/admin-delegation.db.spec.ts --runInBand",
+    "test:db:admin-access": "pnpm check:generated-catalogs && jest src/modules/admin-access/admin-delegation.db.spec.ts src/modules/admin-access/admin-access-governance.db.spec.ts --runInBand",
     "test:db:promotions": "pnpm check:generated-catalogs && jest src/modules/promotions/promotion-settlement.db.spec.ts --runInBand",
     "test:db:phone-otp": "pnpm check:generated-catalogs && jest src/modules/auth/phone-otp.db.spec.ts --runInBand",
     "test:db:risk-watchlist": "pnpm check:generated-catalogs && jest src/modules/risk-alerts/risk-watchlist-concurrency.db.spec.ts --runInBand",
