@@ -17,8 +17,9 @@ test('Admin UI smoke remains manually dispatched and browser mutations stay read
 });
 
 test('validates HTTPS, host allow-list, credentials and expected deployment commit', () => {
-  assert.match(workflow, /ADMIN_WEB_URL must use HTTPS except for localhost/);
-  assert.match(workflow, /API_PUBLIC_URL must use HTTPS except for localhost/);
+  assert.match(workflow, /\$\{name\} must use HTTPS except for localhost/);
+  assert.match(workflow, /\['ADMIN_WEB_URL', process\.env\.ADMIN_WEB_URL\]/);
+  assert.match(workflow, /\['API_PUBLIC_URL', process\.env\.API_PUBLIC_URL\]/);
   assert.match(workflow, /PROD_SMOKE_ALLOWED_HOSTS/);
   assert.match(workflow, /EXPECTED_DEPLOY_COMMIT is missing or malformed/);
   assert.match(workflow, /Seeded Admin identity is required/);
