@@ -1,4 +1,5 @@
-import { PrismaClient } from '@prisma/client';
+import { Prisma } from '@prisma/client';
+import type { PrismaClient } from '@prisma/client';
 import * as argon2 from 'argon2';
 
 const PASSWORD_ENVIRONMENT_NAMES = [
@@ -102,31 +103,42 @@ export async function ensureProductionAdmin(
   }
 
   const passwordHash = await hashPassword(config.password);
-  const admin = await prisma.adminUser.create({
-    data: {
-      username: config.username,
-      email: config.email,
-      passwordHash,
-      status: 'ACTIVE',
-      twoFactorEnabled: false,
-      roles: {
-        create: {
-          roleId: superAdminRole.id,
+
+  try {
+    const admin = await prisma.adminUser.create({
+      data: {
+        username: config.username,
+        email: config.email,
+        passwordHash,
+        status: 'ACTIVE',
+        twoFactorEnabled: false,
+        roles: {
+          create: {
+            roleId: superAdminRole.id,
+          },
         },
       },
-    },
-    select: {
-      id: true,
-      username: true,
-      email: true,
-    },
-  });
+      select: {
+        id: true,
+        username: true,
+        email: true,
+      },
+    });
 
-  return {
-    status: 'created',
-    ...admin,
-    passwordSource: config.passwordSource,
-  };
+    return {
+      status: 'created',
+      ...admin,
+      passwordSource: config.passwordSource,
+    };
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+      const concurrentAdminCount = await prisma.adminUser.count();
+      if (concurrentAdminCount > 0) {
+        return { status: 'existing', adminCount: concurrentAdminCount };
+      }
+    }
+    throw error;
+  }
 }
 
 function firstEnvironmentValue(
