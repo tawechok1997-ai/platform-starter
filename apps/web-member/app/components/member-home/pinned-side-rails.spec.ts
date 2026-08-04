@@ -15,13 +15,14 @@ const home = readFileSync(
   'utf8',
 );
 
-test('desktop jackpot sidebar stays viewport fixed and visible for the full page scroll', () => {
-  assert.match(desktop, /setProperty\('position', 'fixed'/);
-  assert.match(desktop, /DEFAULT_FIXED_TOP = 124/);
-  assert.match(desktop, /desktopSidebarPlaceholder/);
-  assert.match(desktop, /setProperty\('overflow-y', 'auto'/);
-  assert.match(desktop, /scrollState = 'fixed'/);
-  assert.doesNotMatch(desktop, /addEventListener\('scroll'/);
+test('desktop jackpot sidebar stays in its original grid rail and sticks below the header', () => {
+  assert.match(desktop, /setProperty\('position', 'sticky'/);
+  assert.match(desktop, /DEFAULT_STICKY_TOP = 124/);
+  assert.match(desktop, /setProperty\('left', 'auto'/);
+  assert.match(desktop, /setProperty\('z-index', '20'/);
+  assert.match(desktop, /scrollState = 'pinned'/);
+  assert.doesNotMatch(desktop, /desktopSidebarPlaceholder/);
+  assert.doesNotMatch(desktop, /setProperty\('position', 'fixed'/);
 });
 
 test('mobile category rail starts below top content and sticks when its grid reaches the header', () => {
