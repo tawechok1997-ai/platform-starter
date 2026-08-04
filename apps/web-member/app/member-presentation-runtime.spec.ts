@@ -44,14 +44,14 @@ test('tournament leaderboard and mini games show configured data before presenta
   assert.match(homeData, /presentationDemoEnabled\(features\)/);
 });
 
-test('catalog clients consume API-selected platform assets before legacy fallbacks', () => {
+test('catalog clients consume platform-selected media before legacy fallbacks', () => {
   assert.match(catalogModel, /item\.imageUrl,[\s\S]*selectedMedia\?\.cachedUrl/);
   assert.match(catalogModel, /providerObject\?\.badgeUrl,[\s\S]*providerObject\?\.logoUrl/);
   assert.match(catalogModel, /mediaPlatform\(item\.metadata\) === platform/);
-  assert.match(sourceCatalog, /item\.provider\?\.cardUrl/);
-  assert.match(sourceCatalog, /item\.provider\?\.backgroundUrl/);
-  assert.match(sourceCatalog, /item\.provider\?\.titleUrl/);
-  assert.match(sourceCatalog, /item\.provider\?\.avatarUrl/);
+  assert.match(sourceCatalog, /selectMedia\(item\.media, requestedPlatform\)/);
+  assert.match(sourceCatalog, /resolveDistinctGameArtwork\(/);
+  assert.match(sourceCatalog, /resolveProviderArtwork\(/);
+  assert.match(sourceCatalog, /providerAssetSource\('card', code\)/);
 });
 
 test('mobile home fills the live section while keeping configured records first', () => {
