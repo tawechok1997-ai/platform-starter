@@ -6,6 +6,11 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { buildAdminAuditData } from '../../common/audit/admin-audit.builder';
+import {
+  ADMIN_OWNERSHIP_TRANSFER_POLICY,
+  enforceAdminSensitiveAction,
+} from '../../common/admin-sensitive-action-enforcement';
+import type { AdminStepUpMethod } from '../../common/admin-sensitive-action-policy';
 import { DomainError } from '../../common/domain/domain-error';
 import { lockAdminUserForUpdate } from '../../common/infrastructure/prisma-row-locks';
 import { PrismaService } from '../../database/prisma.service';
@@ -24,6 +29,7 @@ export class AdminOwnershipCommandService {
 
   async transferOwnership(
     actorAdminId: string,
+    actorSessionId: string,
     targetAdminId: string,
     twoFactorCode: string,
     reasonInput: string,
@@ -33,8 +39,13 @@ export class AdminOwnershipCommandService {
     if (reason.length < 5) {
       throw new BadRequestException('A reason of at least 5 characters is required');
     }
+    if (!String(actorSessionId ?? '').trim()) {
+      throw new ForbiddenException('Active admin session is required for ownership transfer');
+    }
 
     await this.adminAuth.assertStepUp(actorAdminId, twoFactorCode, meta);
+    const stepUpVerifiedAt = new Date();
+    const stepUpMethod = this.stepUpMethod(twoFactorCode);
 
     return this.prisma.$transaction(async (tx) => {
       const lockOrder = [actorAdminId, targetAdminId].sort();
@@ -88,6 +99,32 @@ export class AdminOwnershipCommandService {
           assignment.role.permissions.some(
             (permission) => permission.permission.code === SUPER_PERMISSION,
           ),
+      );
+      const actorPermissions = Array.from(
+        new Set([
+          ...(actorIsOwner ? [SUPER_PERMISSION] : []),
+          ...actor.roles.flatMap((assignment) =>
+            assignment.role.permissions.map((permission) => permission.permission.code),
+          ),
+        ]),
+      );
+      const sensitiveAction = enforceAdminSensitiveAction(
+        ADMIN_OWNERSHIP_TRANSFER_POLICY,
+        {
+          actorAdminUserId: actorAdminId,
+          actorSessionId,
+          actorPermissions,
+          requesterAdminUserId: actorAdminId,
+          targetAdminUserId: targetAdminId,
+          reason,
+          stepUp: {
+            adminUserId: actorAdminId,
+            sessionId: actorSessionId,
+            method: stepUpMethod,
+            verifiedAt: stepUpVerifiedAt,
+          },
+          now: stepUpVerifiedAt,
+        },
       );
 
       try {
@@ -162,6 +199,7 @@ export class AdminOwnershipCommandService {
             newOwnerId: targetAdminId,
             stepUpVerified: true,
             reason,
+            sensitiveActionPolicy: sensitiveAction.auditEvidence,
           },
           ipAddress: meta.ipAddress,
           userAgent: meta.userAgent,
@@ -178,5 +216,10 @@ export class AdminOwnershipCommandService {
         },
       };
     });
+  }
+
+  private stepUpMethod(code: string): AdminStepUpMethod {
+    const normalized = String(code ?? '').replace(/[^a-z0-9]/gi, '').toUpperCase();
+    return /^[A-Z0-9]{12}$/.test(normalized) ? 'recovery-code' : 'totp';
   }
 }
