@@ -6,7 +6,7 @@ const workflow = readFileSync(new URL('../.github/workflows/admin-authenticated-
 const config = readFileSync(new URL('../playwright.authenticated-visual.config.ts', import.meta.url), 'utf8');
 const spec = readFileSync(new URL('../tests/authenticated-visual/admin-authenticated-workspace.spec.ts', import.meta.url), 'utf8');
 
-test('Admin UI smoke remains manually dispatched and read-only', () => {
+test('Admin UI smoke remains manually dispatched and browser mutations stay read-only', () => {
   assert.match(workflow, /workflow_dispatch:/);
   assert.equal(workflow.includes('push:'), false);
   assert.equal(workflow.includes('pull_request:'), false);
@@ -16,12 +16,22 @@ test('Admin UI smoke remains manually dispatched and read-only', () => {
   assert.match(spec, /\['GET', 'HEAD', 'OPTIONS'\]/);
 });
 
-test('validates HTTPS, host allow-list and real credentials', () => {
-  assert.match(workflow, /must use HTTPS except for localhost/);
+test('validates HTTPS, host allow-list, credentials and expected deployment commit', () => {
+  assert.match(workflow, /ADMIN_WEB_URL must use HTTPS except for localhost/);
+  assert.match(workflow, /API_PUBLIC_URL must use HTTPS except for localhost/);
   assert.match(workflow, /PROD_SMOKE_ALLOWED_HOSTS/);
+  assert.match(workflow, /EXPECTED_DEPLOY_COMMIT is missing or malformed/);
   assert.match(workflow, /Seeded Admin identity is required/);
   assert.match(workflow, /Seeded Admin password is missing or malformed/);
   assert.match(workflow, /REQUIRE_ADMIN_AUTHENTICATED_SMOKE: 'true'/);
+});
+
+test('verifies Production health and commit identity before browser smoke', () => {
+  assert.match(workflow, /Verify Production health and commit identity/);
+  assert.match(workflow, /read\('\/health'\)/);
+  assert.match(workflow, /read\('\/version'\)/);
+  assert.match(workflow, /Production commit \$\{deployed\} does not match expected \$\{expected\}/);
+  assert.match(workflow, /inputs\.expected_commit \|\| github\.sha/);
 });
 
 test('runs the dedicated Admin workspace test at explicit desktop and mobile viewports', () => {
