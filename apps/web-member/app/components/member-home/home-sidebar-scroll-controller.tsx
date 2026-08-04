@@ -82,27 +82,27 @@ export default function HomeSidebarScrollController() {
       frame = window.requestAnimationFrame(syncGeometry);
     };
 
-    // Own the complete two-column geometry at runtime. An absolutely positioned
-    // grid child otherwise keeps its static grid area, so left: 0 can still mean
-    // "the left edge of the right column". Explicit placement removes that trap.
+    // Own the complete two-column geometry at runtime. The original Desktop
+    // layout keeps the main feed on the left and the Jackpot rail on the right.
+    // Explicit grid placement prevents later CSS patches from swapping them.
     body.style.setProperty('position', 'relative', 'important');
     body.style.setProperty('display', 'grid', 'important');
-    body.style.setProperty('grid-template-columns', '360px minmax(0, 1080px)', 'important');
+    body.style.setProperty('grid-template-columns', 'minmax(0, 1080px) 360px', 'important');
     body.style.setProperty('align-items', 'start', 'important');
     body.style.setProperty('gap', '15px', 'important');
     body.style.setProperty('overflow', 'visible', 'important');
 
-    main.style.setProperty('grid-column', '2', 'important');
+    main.style.setProperty('grid-column', '1', 'important');
     main.style.setProperty('grid-row', '1', 'important');
     main.style.setProperty('min-width', '0', 'important');
 
-    sidebar.style.setProperty('grid-column', '1', 'important');
+    sidebar.style.setProperty('grid-column', '2', 'important');
     sidebar.style.setProperty('grid-row', '1', 'important');
     sidebar.style.setProperty('position', 'absolute', 'important');
     sidebar.style.setProperty('top', '0px', 'important');
-    sidebar.style.setProperty('right', 'auto', 'important');
+    sidebar.style.setProperty('right', '0px', 'important');
     sidebar.style.setProperty('bottom', 'auto', 'important');
-    sidebar.style.setProperty('left', '0px', 'important');
+    sidebar.style.setProperty('left', 'auto', 'important');
     if (railWidth > 0) sidebar.style.setProperty('width', `${railWidth}px`, 'important');
     sidebar.style.setProperty('margin', '0', 'important');
     sidebar.style.setProperty('transform', 'none', 'important');
