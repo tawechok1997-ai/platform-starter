@@ -20,7 +20,12 @@ test('every Mobile category click reaches the rendered content owner', () => {
   assert.match(mobileInteractions, /MOBILE_CATEGORY_IDS\.has\(category\)/);
   assert.match(mobileInteractions, /new CustomEvent\('member:mobile-category-select'/);
   assert.match(mobileInteractions, /detail:\s*\{ category \}/);
-  assert.doesNotMatch(mobileInteractions, /routeCategorySelectionToContentOwner[\s\S]*preventDefault\(/);
+
+  const categoryHandler = mobileInteractions.slice(
+    mobileInteractions.indexOf('const routeCategorySelectionToContentOwner'),
+    mobileInteractions.indexOf("document.addEventListener('click', routeCategorySelectionToContentOwner)"),
+  );
+  assert.doesNotMatch(categoryHandler, /preventDefault\(|stopPropagation\(|stopImmediatePropagation\(/);
 });
 
 test('Mobile category controls remain above the content hit layer', () => {

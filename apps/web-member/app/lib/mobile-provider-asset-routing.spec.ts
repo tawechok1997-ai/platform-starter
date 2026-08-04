@@ -11,7 +11,8 @@ const resolverSource = readFileSync(new URL('./local-asset-by-basename.ts', impo
 const catalogModelSource = readFileSync(new URL('./member-game-catalog-model.ts', import.meta.url), 'utf8');
 
 test('indexes PC and Mobile inventories instead of dropping Mobile provider logos', () => {
-  assert.match(generatorSource, /platformCounts\[assetPlatform\(relative\)\] \+= 1/);
+  assert.match(generatorSource, /const platform = assetPlatform\(relative\)/);
+  assert.match(generatorSource, /platformCounts\[platform\] \+= 1/);
   assert.match(generatorSource, /asset-mobile\//);
   assert.doesNotMatch(generatorSource, /isLegacyMobileAssetPath/);
   assert.doesNotMatch(generatorSource, /if \(isLegacyMobileAssetPath\(relative\)\) continue/);
@@ -28,8 +29,8 @@ test('serves canonical Mobile assets directly and only repairs the historical ty
 });
 
 test('provider icons keep the requested platform through catalog mapping and basename resolution', () => {
-  assert.match(catalogModelSource, /providerIcon: resolveAsset\(providerIconSource, requestedPlatform\)/);
+  assert.match(catalogModelSource, /providerIcon:\s*resolveProviderAssetOrSource\([\s\S]*providerIconSource,[\s\S]*requestedPlatform/);
   assert.match(resolverSource, /preference === 'mobile'/);
-  assert.match(resolverSource, /if \(isMobileAsset\) score -= 70/);
-  assert.match(resolverSource, /if \(isPcAsset\) score \+= 90/);
+  assert.match(resolverSource, /if \(platform === 'mobile'\) score -= 70/);
+  assert.match(resolverSource, /if \(platform === 'pc'\) score \+= 90/);
 });

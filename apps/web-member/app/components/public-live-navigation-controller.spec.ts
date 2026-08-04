@@ -7,20 +7,22 @@ const desktopHome = readFileSync(new URL('./member-home/desktop-home-scaffold.ts
 const mobileLive = readFileSync(new URL('./mobile-home/mobile-live-schedule-page.tsx', import.meta.url), 'utf8');
 const mobileLiveCss = readFileSync(new URL('./mobile-home/mobile-live-schedule-page.module.css', import.meta.url), 'utf8');
 const livePage = readFileSync(new URL('../live/page.tsx', import.meta.url), 'utf8');
+const desktopLive = readFileSync(new URL('../live/desktop-live-schedule-page.tsx', import.meta.url), 'utf8');
 const liveStatus = readFileSync(new URL('../lib/live-service-status.ts', import.meta.url), 'utf8');
 
-test('desktop and mobile live surfaces share one maintenance status owner', () => {
+test('mobile live and home actions share one service status owner', () => {
   assert.equal(liveStatus.includes("export const LIVE_ROUTE = '/live'"), true);
-  assert.equal(liveStatus.includes("mode: 'maintenance'"), true);
+  assert.equal(liveStatus.includes('LIVE_SERVICE_STATUS: { mode: LiveServiceMode }'), true);
   assert.equal(liveStatus.includes("tableStatus: 'ปิดปรับปรุง'"), true);
-  assert.equal(livePage.includes('LIVE_SERVICE_COPY'), true);
+  assert.equal(mobileLive.includes('LIVE_SERVICE_STATUS'), true);
   assert.equal(mobileLive.includes('LIVE_SERVICE_COPY'), true);
   assert.equal(controller.includes('LIVE_SERVICE_COPY'), true);
 });
 
-test('desktop live page reuses the responsive schedule owner', () => {
-  assert.equal(livePage.includes('MobileLiveSchedulePage'), true);
-  assert.equal(livePage.includes('data-desktop-live-page="true"'), true);
+test('desktop live page uses its dedicated responsive schedule owner', () => {
+  assert.equal(livePage.includes('DesktopLiveSchedulePage'), true);
+  assert.equal(desktopLive.includes('data-desktop-live-page="true"'), true);
+  assert.equal(desktopLive.includes('loadCentralLiveMatches'), true);
   assert.equal(mobileLive.includes('data-live-responsive-page="true"'), true);
   assert.equal(mobileLive.includes("window.matchMedia(DESKTOP_MEDIA)"), true);
   assert.equal(mobileLive.includes('router.replace(LIVE_ROUTE)'), true);
@@ -28,7 +30,7 @@ test('desktop live page reuses the responsive schedule owner', () => {
   assert.equal(mobileLiveCss.includes('max-width: 1180px'), true);
 });
 
-test('maintenance keeps the schedule mounted and opens the source popup', () => {
+test('maintenance keeps the mobile schedule mounted and opens the source popup', () => {
   assert.equal(mobileLive.includes('MaintenanceSchedulePreview'), true);
   assert.equal(mobileLive.includes('data-live-maintenance-popup="true"'), true);
   assert.equal(mobileLive.includes('role="dialog"'), true);
@@ -55,7 +57,7 @@ test('home football cards visibly expose the maintenance state', () => {
   assert.equal(controller.includes('.source-live-card__status b'), true);
   assert.equal(controller.includes('.source-live-card__status time'), true);
   assert.equal(controller.includes('.source-live-card__watch span'), true);
-  assert.equal(controller.includes("data-live-service-status"), true);
+  assert.equal(controller.includes('data-live-service-status'), true);
   assert.equal(controller.includes('copy.tableStatus'), true);
   assert.equal(controller.includes('copy.tableDescription'), true);
   assert.match(desktopHome, /<SourceLiveSection onAction=\{openLiveAction\} \/>/);
