@@ -187,7 +187,7 @@ test.describe('production Mobile Home smoke', () => {
       }
     }, { timeout: 30_000 });
 
-    await gameAction.evaluate((element) => (element as HTMLButtonElement).click());
+    await gameAction.click();
     const launchRequest = await launchRequestPromise;
     const launchUrl = new URL(launchRequest.url());
     expect(launchUrl.searchParams.get('platform')).toBe('mobile');
@@ -223,9 +223,10 @@ async function installDeterministicGameAction(page: Page) {
       display: 'block',
       width: '160px',
       minHeight: '44px',
-      margin: '16px',
-      position: 'relative',
-      zIndex: '1',
+      position: 'fixed',
+      top: '120px',
+      left: '16px',
+      zIndex: '2147483500',
     });
     root.append(action);
   });
