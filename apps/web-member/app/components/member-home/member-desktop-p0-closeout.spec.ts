@@ -45,9 +45,10 @@ test('Game launch fallback uses the active platform and rejects duplicate launch
   assert.doesNotMatch(source, /params\.set\(['"]platform['"], ['"]mobile['"]\)/);
 });
 
-test('Broken images close on the branded placeholder instead of issuing a blind local retry', async () => {
+test('Broken images close on the branded placeholder before guaranteed local 404 requests', async () => {
   const fallback = await readApp('components/image-fallback.ts');
   const controller = await readApp('components/member-image-fallback-controller.tsx');
+  const resolver = await readApp('lib/local-asset-by-basename.ts');
 
   assert.doesNotMatch(fallback, /LOCAL_GAME_ROOT/);
   assert.doesNotMatch(fallback, /localGameRetry/);
@@ -55,6 +56,9 @@ test('Broken images close on the branded placeholder instead of issuing a blind 
   assert.match(controller, /isUsableImageSource/);
   assert.match(controller, /dataset\.invalidOriginalSource/);
   assert.match(controller, /MutationObserver/);
+  assert.match(resolver, /function unresolvedSourceOrFallback/);
+  assert.match(resolver, /if \(\/\^\\\/assets\\\//);
+  assert.match(resolver, /return MEMBER_IMAGE_FALLBACK/);
 });
 
 test('Desktop Activity submission is connected to the existing protected lottery API', async () => {
