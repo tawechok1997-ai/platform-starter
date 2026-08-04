@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState, type CSSProperties, type DragEvent, type ReactNode } from 'react';
 
+import { AdminDashboardFinanceTrends } from './admin-dashboard-finance-trends';
 import {
   canShowAdminWidgetInWorkspace,
   resolveAdminCompareRange,
@@ -187,6 +188,14 @@ export function AdminWidgetWorkspace({
           '--admin-widget-columns': item.columns,
           '--admin-widget-rows': item.rows,
         } as CSSProperties;
+        const renderContext: AdminWidgetRenderContext = {
+          definition,
+          layout: item,
+          dateRange: dateRangeResult.range,
+          compareRange,
+          comparePeriod,
+          setPinned: (pinned) => layout.update(item.widgetId, { pinned }),
+        };
         return <article
           key={item.widgetId}
           className={styles.gridItem}
@@ -207,14 +216,9 @@ export function AdminWidgetWorkspace({
             onMove={(offset) => moveWithinVisibleItems(item.widgetId, visibleIndex, offset)}
             onUpdate={(patch) => layout.update(item.widgetId, patch)}
           /> : null}
-          {renderWidget({
-            definition,
-            layout: item,
-            dateRange: dateRangeResult.range,
-            compareRange,
-            comparePeriod,
-            setPinned: (pinned) => layout.update(item.widgetId, { pinned }),
-          })}
+          {definition.id === 'finance.cash-flow'
+            ? <AdminDashboardFinanceTrends {...renderContext} />
+            : renderWidget(renderContext)}
         </article>;
       })}
     </div> : null}
