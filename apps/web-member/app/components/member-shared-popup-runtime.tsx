@@ -48,6 +48,7 @@ export default function MemberSharedPopupRuntime({
       const detail = (event as CustomEvent<OpenPopupDetail>).detail;
       if (!detail || !isPopupKind(detail.kind)) return;
       setPromotionDetailOpen(false);
+      setDetailBackSignal((current) => current + 1);
       setPopup(detail.kind);
     };
     window.addEventListener(OPEN_MEMBER_SHARED_POPUP_EVENT, openPopup);
@@ -82,6 +83,7 @@ export default function MemberSharedPopupRuntime({
       event.preventDefault();
       event.stopPropagation();
       setPromotionDetailOpen(false);
+      setDetailBackSignal((current) => current + 1);
       setPopup(kind);
     };
 
@@ -114,7 +116,10 @@ export default function MemberSharedPopupRuntime({
                   type="button"
                   className="member-shared-popup-back"
                   aria-label={locale === 'th' ? 'ย้อนกลับ' : 'Back'}
-                  onClick={() => setDetailBackSignal((current) => current + 1)}
+                  onClick={() => {
+                    setPromotionDetailOpen(false);
+                    setDetailBackSignal((current) => current + 1);
+                  }}
                 >
                   <svg viewBox="0 0 32 32" aria-hidden="true"><path d="m10.4 17.3 7.5 7.5-1.9 1.9L5.3 16 16 5.3l1.9 1.9-7.5 7.5h16.3v2.6H10.4Z" /></svg>
                 </button>
@@ -144,8 +149,8 @@ export default function MemberSharedPopupRuntime({
         />
       ) : popup ? (
         <MemberSourceContentPopup
+          key={`${popup}:${detailBackSignal}`}
           view={popup}
-          detailBackSignal={detailBackSignal}
           onDetailOpenChange={setPromotionDetailOpen}
         />
       ) : null}
