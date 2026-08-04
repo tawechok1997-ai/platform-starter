@@ -42,6 +42,8 @@ jobs:
         run: pnpm exec playwright test tests/e2e-visual/r013-auth-surfaces.spec.ts -c playwright.visual.config.ts --update-snapshots
       - name: Compare against generated baselines
         run: pnpm exec playwright test tests/e2e-visual/r013-auth-surfaces.spec.ts -c playwright.visual.config.ts
+      - name: Verify Member Home sidebar geometry
+        run: pnpm exec playwright test tests/e2e-visual/member-home-sidebar-layout.spec.ts -c playwright.visual.config.ts --project=1024x768 --project=1440x900
       - name: Smoke test Mobile Home
         env:
           MEMBER_HOME_URL: ${{ github.event_name == 'pull_request' && 'http://127.0.0.1:3101/' || 'https://platformweb-member-production.up.railway.app/' }}

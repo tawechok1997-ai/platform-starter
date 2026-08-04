@@ -2,6 +2,10 @@
  * The sidebar grew taller after Leaderboard and Mini Game were restored. A sticky
  * element taller than the available viewport cannot follow the page reliably, so
  * keep the rail inside the visible area and let its own content scroll when needed.
+ *
+ * The runtime follower is positioned absolutely and therefore leaves grid flow.
+ * Reserve the left rail explicitly and pin the main feed to the right column so
+ * the sidebar cannot cover the announcement, promotions, tournament, or games.
  */
 
 @media (min-width: 1024px) {
@@ -23,11 +27,23 @@
 
   html[data-member-viewport-mode='desktop'] .desktop-reference-home > .desktop-home__body {
     position: relative !important;
+    display: grid !important;
+    grid-template-columns: 360px minmax(0, 1080px) !important;
     align-items: start !important;
+    gap: 15px !important;
     min-height: 100% !important;
   }
 
+  html[data-member-viewport-mode='desktop'] .desktop-reference-home .reference-main-column {
+    grid-column: 2 !important;
+    grid-row: 1 !important;
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
   html[data-member-viewport-mode='desktop'] .desktop-reference-home .reference-sidebar {
+    grid-column: 1 !important;
+    grid-row: 1 !important;
     position: sticky !important;
     inset: auto !important;
     top: 124px !important;

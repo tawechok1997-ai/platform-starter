@@ -3,6 +3,7 @@
 import { useLayoutEffect } from 'react';
 
 const BODY_SELECTOR = '.desktop-reference-home > .desktop-home__body';
+const MAIN_SELECTOR = ':scope > .reference-main-column';
 const SIDEBAR_SELECTOR = ':scope > .reference-sidebar';
 const DEFAULT_PIN_TOP = 124;
 const VIEWPORT_GAP = 12;
@@ -24,19 +25,32 @@ const MANAGED_PROPERTIES = [
   'overflow-y',
   'overscroll-behavior',
   'scrollbar-gutter',
+  'grid-column',
+  'grid-row',
 ] as const;
-const BODY_MANAGED_PROPERTIES = ['position', 'overflow'] as const;
+const BODY_MANAGED_PROPERTIES = [
+  'position',
+  'display',
+  'grid-template-columns',
+  'align-items',
+  'gap',
+  'overflow',
+] as const;
+const MAIN_MANAGED_PROPERTIES = ['grid-column', 'grid-row', 'min-width'] as const;
 
 type InlineSnapshot = Record<(typeof MANAGED_PROPERTIES)[number], { value: string; priority: string }>;
 type BodyInlineSnapshot = Record<(typeof BODY_MANAGED_PROPERTIES)[number], { value: string; priority: string }>;
+type MainInlineSnapshot = Record<(typeof MAIN_MANAGED_PROPERTIES)[number], { value: string; priority: string }>;
 
 export default function HomeSidebarScrollController() {
   useLayoutEffect(() => {
     const body = document.querySelector<HTMLElement>(BODY_SELECTOR);
+    const main = body?.querySelector<HTMLElement>(MAIN_SELECTOR) ?? null;
     const sidebar = body?.querySelector<HTMLElement>(SIDEBAR_SELECTOR) ?? null;
-    if (!body || !sidebar) return;
+    if (!body || !main || !sidebar) return;
 
     const bodySnapshot = snapshotBodyInlineStyles(body);
+    const mainSnapshot = snapshotMainInlineStyles(main);
     const sidebarSnapshot = snapshotInlineStyles(sidebar);
     const pinTop = readPinTop(sidebar);
     const railWidth = sidebar.offsetWidth;
@@ -44,7 +58,7 @@ export default function HomeSidebarScrollController() {
 
     const syncGeometry = () => {
       frame = 0;
-      if (!body.isConnected || !sidebar.isConnected) return;
+      if (!body.isConnected || !main.isConnected || !sidebar.isConnected) return;
 
       const bodyRect = body.getBoundingClientRect();
       const scale = resolveElementScale(body, bodyRect.width);
@@ -68,17 +82,27 @@ export default function HomeSidebarScrollController() {
       frame = window.requestAnimationFrame(syncGeometry);
     };
 
+    // Own the complete two-column geometry at runtime. An absolutely positioned
+    // grid child otherwise keeps its static grid area, so left: 0 can still mean
+    // "the left edge of the right column". Explicit placement removes that trap.
     body.style.setProperty('position', 'relative', 'important');
+    body.style.setProperty('display', 'grid', 'important');
+    body.style.setProperty('grid-template-columns', '360px minmax(0, 1080px)', 'important');
+    body.style.setProperty('align-items', 'start', 'important');
+    body.style.setProperty('gap', '15px', 'important');
     body.style.setProperty('overflow', 'visible', 'important');
 
-    // Keep the sidebar in the original right rail. Its local top is updated from
-    // the page scroll position, which reproduces sticky/follow behaviour even when
-    // transformed or overflow-owning ancestors prevent native position: sticky.
+    main.style.setProperty('grid-column', '2', 'important');
+    main.style.setProperty('grid-row', '1', 'important');
+    main.style.setProperty('min-width', '0', 'important');
+
+    sidebar.style.setProperty('grid-column', '1', 'important');
+    sidebar.style.setProperty('grid-row', '1', 'important');
     sidebar.style.setProperty('position', 'absolute', 'important');
     sidebar.style.setProperty('top', '0px', 'important');
-    sidebar.style.setProperty('right', '0px', 'important');
+    sidebar.style.setProperty('right', 'auto', 'important');
     sidebar.style.setProperty('bottom', 'auto', 'important');
-    sidebar.style.setProperty('left', 'auto', 'important');
+    sidebar.style.setProperty('left', '0px', 'important');
     if (railWidth > 0) sidebar.style.setProperty('width', `${railWidth}px`, 'important');
     sidebar.style.setProperty('margin', '0', 'important');
     sidebar.style.setProperty('transform', 'none', 'important');
@@ -108,6 +132,7 @@ export default function HomeSidebarScrollController() {
       if (frame) window.cancelAnimationFrame(frame);
       delete sidebar.dataset.scrollState;
       restoreInlineStyles(sidebar, sidebarSnapshot);
+      restoreMainInlineStyles(main, mainSnapshot);
       restoreBodyInlineStyles(body, bodySnapshot);
     };
   }, []);
@@ -146,12 +171,26 @@ function snapshotBodyInlineStyles(element: HTMLElement): BodyInlineSnapshot {
   ])) as BodyInlineSnapshot;
 }
 
+function snapshotMainInlineStyles(element: HTMLElement): MainInlineSnapshot {
+  return Object.fromEntries(MAIN_MANAGED_PROPERTIES.map((property) => [
+    property,
+    {
+      value: element.style.getPropertyValue(property),
+      priority: element.style.getPropertyPriority(property),
+    },
+  ])) as MainInlineSnapshot;
+}
+
 function restoreInlineStyles(element: HTMLElement, snapshot: InlineSnapshot) {
   MANAGED_PROPERTIES.forEach((property) => restoreInlineProperty(element, property, snapshot[property]));
 }
 
 function restoreBodyInlineStyles(element: HTMLElement, snapshot: BodyInlineSnapshot) {
   BODY_MANAGED_PROPERTIES.forEach((property) => restoreInlineProperty(element, property, snapshot[property]));
+}
+
+function restoreMainInlineStyles(element: HTMLElement, snapshot: MainInlineSnapshot) {
+  MAIN_MANAGED_PROPERTIES.forEach((property) => restoreInlineProperty(element, property, snapshot[property]));
 }
 
 function restoreInlineProperty(
