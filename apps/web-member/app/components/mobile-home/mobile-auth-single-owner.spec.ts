@@ -5,6 +5,7 @@ import test from 'node:test';
 const mobileRoot = readFileSync(new URL('./mobile-home-root.tsx', import.meta.url), 'utf8');
 const memberChrome = readFileSync(new URL('../../member-chrome.tsx', import.meta.url), 'utf8');
 const authOverlay = readFileSync(new URL('../auth/member-auth-overlay.tsx', import.meta.url), 'utf8');
+const authPolish = readFileSync(new URL('../auth/auth-popup-polish.css', import.meta.url), 'utf8');
 const loginPage = readFileSync(new URL('../../(auth)/login/page.tsx', import.meta.url), 'utf8');
 const registerView = readFileSync(new URL('../../../src/features/auth/register-view.tsx', import.meta.url), 'utf8');
 
@@ -25,21 +26,26 @@ test('member chrome owns exactly one query-driven authentication popup', () => {
   assert.doesNotMatch(memberChrome, /member:auth-open/);
 });
 
-test('the shared popup owns one stable iframe and lets embedded auth pages navigate inside it', () => {
+test('the shared popup owns one stable iframe and switches its inner document explicitly', () => {
   assert.equal((authOverlay.match(/<iframe\b/g) ?? []).length, 1);
   assert.match(authOverlay, /initialPathRef = useRef\(mode === 'register' \? '\/register\?embed=1' : '\/login\?embed=1'\)/);
+  assert.match(authOverlay, /frameRef = useRef<HTMLIFrameElement \| null>\(null\)/);
+  assert.match(authOverlay, /ref=\{frameRef\}/);
   assert.match(authOverlay, /src=\{initialPathRef\.current\}/);
+  assert.match(authOverlay, /contentWindow\.location\.replace\(nextPath\)/);
+  assert.match(authOverlay, /navigateEmbeddedMode\(payload\.mode\)/);
   assert.doesNotMatch(authOverlay, /const path = activeMode/);
-  assert.match(authOverlay, /member-auth-switch/);
   assert.match(authOverlay, /member-auth-close/);
   assert.match(authOverlay, /member-auth-success/);
-  assert.match(authOverlay, /switchMode\(nextMode\)/);
 
   const embeddedClickHandler = authOverlay.slice(
     authOverlay.indexOf("embeddedDocument.addEventListener('click'"),
     authOverlay.indexOf('}, true);', authOverlay.indexOf("embeddedDocument.addEventListener('click'")),
   );
-  assert.doesNotMatch(embeddedClickHandler, /preventDefault\(|stopPropagation\(|stopImmediatePropagation\(/);
+  assert.match(embeddedClickHandler, /preventDefault\(\)/);
+  assert.match(embeddedClickHandler, /stopPropagation\(\)/);
+  assert.match(embeddedClickHandler, /stopImmediatePropagation\(\)/);
+  assert.match(embeddedClickHandler, /navigateEmbeddedMode\(nextMode\)/);
 });
 
 test('register and login tabs navigate between real embedded auth pages', () => {
@@ -49,4 +55,11 @@ test('register and login tabs navigate between real embedded auth pages', () => 
   assert.match(registerView, /registerHref = embedded \? '\/register\?embed=1' : '\/register'/);
   assert.match(registerView, /loginHref = embedded \? '\/login\?embed=1' : '\/login'/);
   assert.match(registerView, /<nav className="public-auth-tabs source-login-tabs source-register-tabs"/);
+});
+
+test('popup auth tabs expose a comfortable touch target above surrounding layers', () => {
+  assert.match(authPolish, /\.public-auth-tabs\s*\{[\s\S]*z-index:\s*12\s*!important/);
+  assert.match(authPolish, /\.public-auth-tabs > a\s*\{[\s\S]*min-height:\s*44px\s*!important/);
+  assert.match(authPolish, /\.public-auth-tabs > a\s*\{[\s\S]*touch-action:\s*manipulation\s*!important/);
+  assert.match(authPolish, /@media \(max-width: 900px\)[\s\S]*\.public-auth-tabs > a\s*\{[\s\S]*min-height:\s*48px\s*!important/);
 });

@@ -29,6 +29,7 @@ export default function MemberAuthOverlay({ mode, onModeChange, onClose, onSucce
   const authCompletionRef = useRef(false);
   const activeModeRef = useRef<MemberAuthMode>(mode);
   const initialPathRef = useRef(mode === 'register' ? '/register?embed=1' : '/login?embed=1');
+  const frameRef = useRef<HTMLIFrameElement | null>(null);
   const releaseDocumentLockRef = useRef<(() => void) | null>(null);
   const onModeChangeRef = useRef(onModeChange);
 
@@ -47,6 +48,38 @@ export default function MemberAuthOverlay({ mode, onModeChange, onClose, onSucce
     setActiveMode(nextMode);
     onModeChangeRef.current?.(nextMode);
   }, []);
+
+  const navigateEmbeddedMode = useCallback((nextMode: MemberAuthMode) => {
+    if (closingRef.current) return;
+
+    const nextPath = nextMode === 'register' ? '/register?embed=1' : '/login?embed=1';
+    const expectedPathname = nextMode === 'register' ? '/register' : '/login';
+    const frame = frameRef.current;
+
+    switchMode(nextMode);
+    if (!frame) return;
+
+    try {
+      const contentWindow = frame.contentWindow;
+      if (!contentWindow) {
+        frame.src = nextPath;
+        return;
+      }
+
+      const currentLocation = contentWindow.location;
+      const alreadyAtTarget = currentLocation.pathname === expectedPathname
+        && new URLSearchParams(currentLocation.search).get('embed') === '1';
+      if (alreadyAtTarget) return;
+
+      // Navigate the document inside the existing iframe. The popup shell and
+      // backdrop stay mounted, but the requested auth page is guaranteed to load.
+      contentWindow.location.replace(nextPath);
+    } catch {
+      // Same-origin access can briefly fail while the frame is replacing its
+      // document. Assigning src still reuses this exact iframe DOM node.
+      frame.src = nextPath;
+    }
+  }, [switchMode]);
 
   const clearExitTimer = useCallback(() => {
     if (exitTimerRef.current !== null) {
@@ -140,7 +173,7 @@ export default function MemberAuthOverlay({ mode, onModeChange, onClose, onSucce
       if (payload.type === 'member-auth-success') void completeAuth();
       if (payload.type === 'member-auth-ready') setFrameReady(true);
       if (payload.type === 'member-auth-switch' && (payload.mode === 'login' || payload.mode === 'register')) {
-        switchMode(payload.mode);
+        navigateEmbeddedMode(payload.mode);
       }
     };
 
@@ -155,7 +188,7 @@ export default function MemberAuthOverlay({ mode, onModeChange, onClose, onSucce
       }
       releaseDocumentLock();
     };
-  }, [clearExitTimer, completeAuth, requestClose, switchMode]);
+  }, [clearExitTimer, completeAuth, navigateEmbeddedMode, requestClose]);
 
   function revealFrameWhenEmbedded(event: SyntheticEvent<HTMLIFrameElement>) {
     const frame = event.currentTarget;
@@ -164,6 +197,18 @@ export default function MemberAuthOverlay({ mode, onModeChange, onClose, onSucce
 
     if (embeddedDocument) {
       embeddedDocument.documentElement.dataset.memberAuthStableShell = 'true';
+    }
+
+    try {
+      const loadedPathname = frame.contentWindow?.location.pathname;
+      const loadedMode = loadedPathname === '/register'
+        ? 'register'
+        : loadedPathname === '/login'
+          ? 'login'
+          : null;
+      if (loadedMode && loadedMode !== activeModeRef.current) switchMode(loadedMode);
+    } catch {
+      // The frame is expected to be same-origin; ignore a transient navigation gap.
     }
 
     if (
@@ -188,10 +233,12 @@ export default function MemberAuthOverlay({ mode, onModeChange, onClose, onSucce
         const nextMode = embeddedAuthMode(control, activeModeRef.current);
         if (!nextMode || nextMode === activeModeRef.current) return;
 
-        // Let the embedded Next.js Link complete its own client-side navigation.
-        // The iframe stays mounted, so Login and Register remain one popup shell
-        // instead of replacing the whole frame and replaying the opening state.
-        switchMode(nextMode);
+        // Own the switch at the iframe boundary. Relying on a nested Link event
+        // proved flaky on touch devices, especially when hydration was still busy.
+        clickEvent.preventDefault();
+        clickEvent.stopPropagation();
+        clickEvent.stopImmediatePropagation();
+        navigateEmbeddedMode(nextMode);
       }, true);
     }
 
@@ -224,6 +271,7 @@ export default function MemberAuthOverlay({ mode, onModeChange, onClose, onSucce
     >
       <span className="member-auth-overlay__backdrop" aria-hidden="true" />
       <iframe
+        ref={frameRef}
         className="member-auth-overlay__frame"
         src={initialPathRef.current}
         title={activeMode === 'register' ? 'สมัครสมาชิก' : 'เข้าสู่ระบบ'}
