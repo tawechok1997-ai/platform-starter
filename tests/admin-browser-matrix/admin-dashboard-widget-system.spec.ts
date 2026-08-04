@@ -39,7 +39,7 @@ for (const locale of ['th', 'en'] as const) {
     const downloadedPng = await pngDownload;
     expect(downloadedPng.suggestedFilename()).toMatch(/^finance-trends-\d{4}-\d{2}-\d{2}-\d{4}-\d{2}-\d{2}\.png$/);
 
-    await cashFlow.getByRole('button', { name: locale === 'th' ? 'เต็มหน้าจอ' : 'Fullscreen' }).click();
+    await cashFlow.getByRole('button', { name: locale === 'th' ? 'เต็มจอ' : 'Fullscreen' }).click();
     await expect(cashFlow).toHaveAttribute('data-fullscreen', 'true');
     await page.keyboard.press('Escape');
     await expect(cashFlow).not.toHaveAttribute('data-fullscreen', 'true');
@@ -71,8 +71,8 @@ for (const locale of ['th', 'en'] as const) {
   });
 }
 
-test('P3 workspace selection filters widgets without deleting the saved layout', async ({ page }) => {
-  await installDashboardSession(page, {
+test('P3 workspace selection filters widgets without mutating the saved layout', async ({ page }) => {
+  const session = await installDashboardSession(page, {
     locale: 'th',
     permissions: ownerPermissions,
     adminUserId: 'matrix-workspaces',
@@ -107,10 +107,14 @@ test('P3 workspace selection filters widgets without deleting the saved layout',
     'activity.recent',
   ]);
 
-  const savedLayout = await page.evaluate(() => window.localStorage.getItem('admin_widget_layout_v1:matrix-workspaces'));
-  expect(savedLayout).toContain('finance.cash-flow');
-  expect(savedLayout).toContain('finance.pending-queues');
-  expect(savedLayout).toContain('risk.open-severity');
+  expect(session.getPreferencePatchCount()).toBe(0);
+
+  await selectP3Workspace(page, 'all');
+  await expect(page.locator('[data-admin-widget-workspace="all"]')).toBeVisible();
+  await expect(page.locator('[data-widget-id="finance.cash-flow"]')).toBeVisible();
+  await expect(page.locator('[data-widget-id="finance.pending-queues"]')).toBeVisible();
+  await expect(page.locator('[data-widget-id="risk.open-severity"]')).toBeVisible();
+  expect(session.getPreferencePatchCount()).toBe(0);
 });
 
 test('dashboard widget data is filtered by effective permission', async ({ page }) => {
@@ -159,6 +163,9 @@ async function installDashboardSession(page: Page, options: {
   workspaces: readonly string[];
   selectedWorkspace: string;
 }) {
+  let savedPreferenceValue: unknown = null;
+  let preferencePatchCount = 0;
+
   await page.addInitScript(({ selectedLocale, workspace }) => {
     window.sessionStorage.setItem('admin_access_token', 'dashboard-widget-matrix-token');
     window.localStorage.setItem('admin_session_hint', '1');
@@ -169,8 +176,28 @@ async function installDashboardSession(page: Page, options: {
   await page.route('**/api/admin/**', async (route) => {
     const url = new URL(route.request().url());
     const path = url.pathname.replace(/^\/api\/admin/, '/admin');
+
+    if (path.startsWith('/admin/preferences/dashboard-widget-layout-v1')) {
+      if (route.request().method() === 'PATCH') {
+        const body = route.request().postDataJSON() as { value?: unknown } | null;
+        savedPreferenceValue = body?.value ?? null;
+        preferencePatchCount += 1;
+      }
+      await fulfillJson(route, {
+        key: 'dashboard-widget-layout-v1',
+        value: savedPreferenceValue,
+        version: savedPreferenceValue ? preferencePatchCount : 0,
+        updatedAt: savedPreferenceValue ? new Date().toISOString() : null,
+      });
+      return;
+    }
+
     await fulfillJson(route, fixtureFor(path, options));
   });
+
+  return {
+    getPreferencePatchCount: () => preferencePatchCount,
+  };
 }
 
 function fixtureFor(path: string, options: {
@@ -200,9 +227,6 @@ function fixtureFor(path: string, options: {
   }
 
   if (path.startsWith('/admin/dashboard/finance-trends')) return trendFixture();
-  if (path.startsWith('/admin/preferences/dashboard-widget-layout-v1')) {
-    return { key: 'dashboard-widget-layout-v1', value: null, version: 0, updatedAt: null };
-  }
 
   if (path.startsWith('/admin/finance/summary')) {
     return {
