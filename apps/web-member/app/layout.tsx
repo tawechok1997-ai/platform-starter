@@ -120,6 +120,7 @@ import './member-motion-contract.css';
 import './member-game-interaction-final.css';
 import './member-desktop-motion-final.css';
 import MemberChrome from './member-chrome';
+import MemberActivityPredictionRuntime from './components/member-activity-prediction-runtime';
 import MemberClientNavigationController from './components/member-client-navigation-controller';
 import MemberDesktopMotionRuntime from './components/member-desktop-motion-runtime';
 import MemberDragScrollController from './components/member-drag-scroll-controller';
@@ -222,6 +223,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 <PublicDialogRuntimeController />
                 <PublicGameLoginController />
                 <HomeSidebarScrollController />
+                <MemberActivityPredictionRuntime />
                 <UsageGuideController />
                 <PublicMobileSourceHeaderOwner />
                 <div id="member-desktop-scale-shell">
