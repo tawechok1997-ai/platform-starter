@@ -19,7 +19,7 @@ test('member home keeps the following sidebar left of the main feed', async ({ p
   await expect(main).toBeVisible();
   await expect(sidebar).toBeVisible();
 
-  const geometry = await expect.poll(async () => page.evaluate(() => {
+  await expect.poll(async () => page.evaluate(() => {
     const bodyElement = document.querySelector<HTMLElement>('.desktop-reference-home > .desktop-home__body');
     const mainElement = document.querySelector<HTMLElement>('.desktop-reference-home .reference-main-column');
     const sidebarElement = document.querySelector<HTMLElement>('.desktop-reference-home .reference-sidebar');
