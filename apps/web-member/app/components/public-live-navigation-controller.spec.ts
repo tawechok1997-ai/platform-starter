@@ -10,10 +10,11 @@ const livePage = readFileSync(new URL('../live/page.tsx', import.meta.url), 'utf
 const desktopLive = readFileSync(new URL('../live/desktop-live-schedule-page.tsx', import.meta.url), 'utf8');
 const liveStatus = readFileSync(new URL('../lib/live-service-status.ts', import.meta.url), 'utf8');
 
-test('mobile live and home actions share one maintenance status owner', () => {
+test('mobile live and home actions share one service status owner', () => {
   assert.equal(liveStatus.includes("export const LIVE_ROUTE = '/live'"), true);
-  assert.equal(liveStatus.includes("mode: 'maintenance'"), true);
+  assert.equal(liveStatus.includes('LIVE_SERVICE_STATUS: { mode: LiveServiceMode }'), true);
   assert.equal(liveStatus.includes("tableStatus: 'ปิดปรับปรุง'"), true);
+  assert.equal(mobileLive.includes('LIVE_SERVICE_STATUS'), true);
   assert.equal(mobileLive.includes('LIVE_SERVICE_COPY'), true);
   assert.equal(controller.includes('LIVE_SERVICE_COPY'), true);
 });
@@ -56,7 +57,7 @@ test('home football cards visibly expose the maintenance state', () => {
   assert.equal(controller.includes('.source-live-card__status b'), true);
   assert.equal(controller.includes('.source-live-card__status time'), true);
   assert.equal(controller.includes('.source-live-card__watch span'), true);
-  assert.equal(controller.includes("data-live-service-status"), true);
+  assert.equal(controller.includes('data-live-service-status'), true);
   assert.equal(controller.includes('copy.tableStatus'), true);
   assert.equal(controller.includes('copy.tableDescription'), true);
   assert.match(desktopHome, /<SourceLiveSection onAction=\{openLiveAction\} \/>/);
