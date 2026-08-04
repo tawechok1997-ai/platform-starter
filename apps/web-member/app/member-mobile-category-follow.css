@@ -2,74 +2,14 @@
 @import './member-mobile-withdraw-source-contract.css';
 @import './member-home-section-icons.css';
 @import './member-desktop-quick-card-copy-lock.css';
+@import './member-mobile-p1-p3-foundation.css';
 
-/* Mobile Home uses the document as its single vertical scroll owner. The
- * category rail begins in normal document flow beside the content and becomes
- * sticky only after its own section reaches the header. This prevents the rail
- * from covering the hero, auth actions, announcement and highlight tabs. */
+/* P3 interaction details stay beside the category component while the shared
+ * scroll/header/follower geometry is owned by member-mobile-p1-p3-foundation. */
 @media (max-width: 900px) {
-  html[data-member-viewport-mode='mobile']:has([data-mobile-home-root='true']),
-  html[data-member-viewport-mode='mobile'] body:has([data-mobile-home-root='true']) {
-    height: auto !important;
-    min-height: 100% !important;
-    max-height: none !important;
-    overflow-x: hidden !important;
-    overflow-y: auto !important;
-    overscroll-behavior-y: auto !important;
-  }
-
-  html[data-member-viewport-mode='mobile'] body:has([data-mobile-home-root='true']) #member-desktop-scale-shell,
-  html[data-member-viewport-mode='mobile'] body:has([data-mobile-home-root='true']) #member-desktop-scale-canvas,
-  html[data-member-viewport-mode='mobile'] body:has([data-mobile-home-root='true']) .public-game-shell,
-  html[data-member-viewport-mode='mobile'] body:has([data-mobile-home-root='true']) .public-game-shell__content,
-  html[data-member-viewport-mode='mobile'] body:has([data-mobile-home-root='true']) .member-persistent-shell,
-  html[data-member-viewport-mode='mobile'] body:has([data-mobile-home-root='true']) .member-persistent-shell__body,
-  html[data-member-viewport-mode='mobile'] [data-mobile-home-root='true'] {
-    height: auto !important;
-    min-height: 0 !important;
-    max-height: none !important;
-    overflow: visible !important;
-    contain: none !important;
-    transform: none !important;
-  }
-
-  html[data-member-viewport-mode='mobile'] [data-mobile-home-root='true'] *:has(> [data-mobile-section-owner='category-menu']) {
-    position: relative !important;
-    min-width: 0 !important;
-    min-height: 0 !important;
-    align-items: start !important;
-    overflow: visible !important;
-    contain: none !important;
-  }
-
-  html[data-member-viewport-mode='mobile'] [data-mobile-section-owner='category-menu'],
-  html[data-member-viewport-mode='mobile'] body:has(.public-game-shell[data-route='/']) [data-mobile-section-owner='category-menu'] {
-    position: sticky !important;
-    top: calc(64px + env(safe-area-inset-top, 0px)) !important;
-    right: auto !important;
-    bottom: auto !important;
-    left: auto !important;
-    z-index: 100 !important;
-    grid-column: 1 !important;
-    align-self: start !important;
-    isolation: isolate !important;
-    width: var(--mobile-category-rail-width, 53px) !important;
-    height: fit-content !important;
-    max-height: calc(100dvh - 72px - env(safe-area-inset-top, 0px)) !important;
-    padding: 12px 0 28px 8px !important;
-    overflow-x: hidden !important;
-    overflow-y: auto !important;
-    overscroll-behavior: contain !important;
-    scrollbar-width: none !important;
-    pointer-events: auto !important;
-    transform: none !important;
-    transition: none !important;
-    will-change: auto !important;
-    touch-action: pan-y !important;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  html[data-member-viewport-mode='mobile'] [data-mobile-section-owner='category-menu'] button[data-mobile-category-id] {
+  html[data-member-viewport-mode='mobile']
+    [data-mobile-section-owner='category-menu']
+    button[data-mobile-category-id] {
     position: relative !important;
     z-index: 1 !important;
     pointer-events: auto !important;
@@ -77,27 +17,8 @@
     cursor: pointer !important;
   }
 
-  html[data-member-viewport-mode='mobile'] [data-mobile-section-owner='category-menu']::-webkit-scrollbar {
-    display: none !important;
-  }
-
-  [data-mobile-content-slot='after-highlight'],
-  body:has(.public-game-shell[data-route='/']) [data-mobile-content-slot='after-highlight'],
-  [data-provider-games-stage],
-  body:has(.public-game-shell[data-route='/']) [data-provider-games-stage] {
-    width: 100% !important;
-    height: auto !important;
-    min-width: 0 !important;
-    min-height: 1px !important;
-    max-height: none !important;
-    overflow-x: hidden !important;
-    overflow-y: visible !important;
-    overscroll-behavior-y: auto !important;
-    touch-action: pan-y !important;
-  }
-
-  html[data-member-viewport-mode='mobile'] [data-mobile-content-slot='after-highlight'],
-  html[data-member-viewport-mode='mobile'] body:has(.public-game-shell[data-route='/']) [data-mobile-content-slot='after-highlight'] {
+  html[data-member-viewport-mode='mobile']
+    [data-mobile-content-slot='after-highlight'] {
     grid-column: 2 / -1 !important;
     grid-row: 1 !important;
   }
@@ -112,8 +33,12 @@
 
   /* The authenticated runtime owns the wallet/header and marks this same root.
    * Guest actions must stay hidden across later React rerenders. */
-  html[data-member-viewport-mode='mobile'] [data-mobile-home-root='true'][data-mobile-authenticated='true'] [data-mobile-section-owner='auth-actions'],
-  html[data-member-viewport-mode='mobile'] [data-mobile-home-root='true'][data-mobile-authenticated='true'] [data-mobile-auth-layout='drawer'] {
+  html[data-member-viewport-mode='mobile']
+    [data-mobile-home-root='true'][data-mobile-authenticated='true']
+    [data-mobile-section-owner='auth-actions'],
+  html[data-member-viewport-mode='mobile']
+    [data-mobile-home-root='true'][data-mobile-authenticated='true']
+    [data-mobile-auth-layout='drawer'] {
     display: none !important;
     visibility: hidden !important;
     opacity: 0 !important;
@@ -124,8 +49,8 @@
     z-index: 150 !important;
   }
 
-  /* Standalone /mobile/member/* pages keep their own page shell as the only
-   * scroll owner and retain a sticky page header. */
+  /* Standalone /mobile/member/* pages keep their page shell as the only scroll
+   * owner. Home intentionally uses the document owner defined in P2. */
   main[data-mobile-member-page] {
     display: block !important;
     width: min(100%, 640px) !important;
@@ -133,7 +58,7 @@
     min-height: 0 !important;
     max-height: 100dvh !important;
     margin: 0 auto !important;
-    overflow-x: hidden !important;
+    overflow-x: clip !important;
     overflow-y: auto !important;
     overscroll-behavior-y: contain !important;
     scrollbar-width: none !important;
@@ -158,14 +83,24 @@
   }
 }
 
+@supports not (overflow: clip) {
+  @media (max-width: 900px) {
+    main[data-mobile-member-page] {
+      overflow-x: hidden !important;
+    }
+  }
+}
+
 @media (min-width: 640px) and (max-width: 900px) {
-  html[data-member-viewport-mode='mobile'] [data-mobile-section-owner='category-menu'] {
+  html[data-member-viewport-mode='mobile']
+    [data-mobile-section-owner='category-menu'] {
     padding-left: 12px !important;
   }
 }
 
 @media (max-height: 560px) and (max-width: 900px) {
-  html[data-member-viewport-mode='mobile'] [data-mobile-section-owner='category-menu'] {
+  html[data-member-viewport-mode='mobile']
+    [data-mobile-section-owner='category-menu'] {
     gap: 3px !important;
     padding-block: 4px !important;
   }
