@@ -22,11 +22,13 @@ export default function MemberAuthOverlay({ mode, onModeChange, onClose, onSucce
   const [frameReady, setFrameReady] = useState(false);
   const [visible, setVisible] = useState(false);
   const [closing, setClosing] = useState(false);
+  const [dismissed, setDismissed] = useState(false);
   const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null);
   const exitTimerRef = useRef<number | null>(null);
   const closingRef = useRef(false);
   const authCompletionRef = useRef(false);
   const activeModeRef = useRef<MemberAuthMode>(mode);
+  const releaseDocumentLockRef = useRef<(() => void) | null>(null);
   const onModeChangeRef = useRef(onModeChange);
 
   useEffect(() => {
@@ -36,6 +38,7 @@ export default function MemberAuthOverlay({ mode, onModeChange, onClose, onSucce
   useEffect(() => {
     activeModeRef.current = mode;
     setActiveMode(mode);
+    setDismissed(false);
   }, [mode]);
 
   const switchMode = useCallback((nextMode: MemberAuthMode) => {
@@ -51,17 +54,36 @@ export default function MemberAuthOverlay({ mode, onModeChange, onClose, onSucce
     }
   }, []);
 
+  const releaseDocumentLockNow = useCallback(() => {
+    const release = releaseDocumentLockRef.current;
+    releaseDocumentLockRef.current = null;
+    release?.();
+  }, []);
+
   const beginClose = useCallback((afterClose: () => void | Promise<void>) => {
     if (closingRef.current) return;
     closingRef.current = true;
     clearExitTimer();
     setClosing(true);
     setVisible(false);
+
     exitTimerRef.current = window.setTimeout(() => {
       exitTimerRef.current = null;
-      void afterClose();
+
+      // Remove the full-screen portal and restore the document before the URL
+      // transition. Mobile Safari can delay router updates, and leaving an
+      // invisible iframe mounted during that delay blocks every control below.
+      setDismissed(true);
+      releaseDocumentLockNow();
+      document.documentElement.removeAttribute('data-member-overlay-open');
+      document.querySelectorAll<HTMLElement>('[data-member-active-overlay="true"]')
+        .forEach((element) => element.removeAttribute('data-member-active-overlay'));
+
+      window.requestAnimationFrame(() => {
+        void afterClose();
+      });
     }, EXIT_DURATION_MS);
-  }, [clearExitTimer]);
+  }, [clearExitTimer, releaseDocumentLockNow]);
 
   const requestClose = useCallback(() => {
     beginClose(onClose);
@@ -87,6 +109,7 @@ export default function MemberAuthOverlay({ mode, onModeChange, onClose, onSucce
     authCompletionRef.current = false;
     setClosing(false);
     setVisible(false);
+    setDismissed(false);
 
     let secondAnimationFrame = 0;
     const firstAnimationFrame = window.requestAnimationFrame(() => {
@@ -107,6 +130,7 @@ export default function MemberAuthOverlay({ mode, onModeChange, onClose, onSucce
 
   useEffect(() => {
     const releaseDocumentLock = acquireMemberDocumentOverlayLock();
+    releaseDocumentLockRef.current = releaseDocumentLock;
 
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') requestClose();
@@ -129,6 +153,9 @@ export default function MemberAuthOverlay({ mode, onModeChange, onClose, onSucce
       clearExitTimer();
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('message', handleMessage);
+      if (releaseDocumentLockRef.current === releaseDocumentLock) {
+        releaseDocumentLockRef.current = null;
+      }
       releaseDocumentLock();
     };
   }, [clearExitTimer, completeAuth, requestClose, switchMode]);
@@ -182,6 +209,8 @@ export default function MemberAuthOverlay({ mode, onModeChange, onClose, onSucce
 
     window.requestAnimationFrame(checkEmbeddedMode);
   }
+
+  if (dismissed) return null;
 
   const motionState = closing ? 'closing' : visible ? 'open' : 'opening';
   const overlay = (
