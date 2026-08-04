@@ -1,0 +1,168 @@
+/* P1-P3 Mobile foundation owner.
+ *
+ * Loaded through the final Mobile category stylesheet. It owns only the shared
+ * Mobile document scroll model, the Home header, and the bounded category rail.
+ * Page-specific appearance remains with the source-theme and CSS-module owners.
+ */
+
+@media (max-width: 900px) {
+  html[data-member-viewport-mode='mobile'] {
+    --member-mobile-header-height: 60px;
+    --member-mobile-header-offset: calc(
+      var(--member-mobile-header-height) + env(safe-area-inset-top, 0px)
+    );
+    --member-mobile-category-offset: calc(
+      64px + env(safe-area-inset-top, 0px)
+    );
+
+    width: 100% !important;
+    height: auto !important;
+    min-height: 100% !important;
+    max-height: none !important;
+    overflow-x: clip !important;
+    overflow-y: auto !important;
+    overscroll-behavior-y: auto !important;
+    scroll-padding-top: var(--member-mobile-header-offset) !important;
+  }
+
+  html[data-member-viewport-mode='mobile'] body {
+    width: 100% !important;
+    height: auto !important;
+    min-height: 100% !important;
+    max-height: none !important;
+    margin: 0 !important;
+    overflow-x: clip !important;
+    overflow-y: visible !important;
+    overscroll-behavior-y: auto !important;
+  }
+
+  html[data-member-viewport-mode='mobile'] body,
+  html[data-member-viewport-mode='mobile'] #member-desktop-scale-shell,
+  html[data-member-viewport-mode='mobile'] #member-desktop-scale-canvas,
+  html[data-member-viewport-mode='mobile'] .public-game-shell,
+  html[data-member-viewport-mode='mobile'] .public-game-shell__content,
+  html[data-member-viewport-mode='mobile'] .member-persistent-shell,
+  html[data-member-viewport-mode='mobile'] .member-persistent-shell__body,
+  html[data-member-viewport-mode='mobile'] [data-mobile-home-root='true'] {
+    max-width: 100% !important;
+    transform: none !important;
+    contain: none !important;
+  }
+
+  html[data-member-viewport-mode='mobile'] #member-desktop-scale-shell,
+  html[data-member-viewport-mode='mobile'] #member-desktop-scale-canvas,
+  html[data-member-viewport-mode='mobile'] .public-game-shell,
+  html[data-member-viewport-mode='mobile'] .public-game-shell__content,
+  html[data-member-viewport-mode='mobile'] .member-persistent-shell,
+  html[data-member-viewport-mode='mobile'] .member-persistent-shell__body,
+  html[data-member-viewport-mode='mobile'] [data-mobile-home-root='true'] {
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+
+  html[data-member-viewport-mode='mobile'] [data-mobile-home-root='true'] {
+    position: relative !important;
+    width: min(100%, 640px) !important;
+    min-width: 0 !important;
+    margin-inline: auto !important;
+  }
+
+  html[data-member-viewport-mode='mobile']
+    [data-mobile-home-root='true']
+    > header[data-mobile-section-owner='header'] {
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 160 !important;
+    box-sizing: border-box !important;
+    width: 100% !important;
+    height: var(--member-mobile-header-offset) !important;
+    min-height: var(--member-mobile-header-offset) !important;
+    padding: 0 !important;
+    flex: 0 0 var(--member-mobile-header-offset) !important;
+    overflow: visible !important;
+    transform: none !important;
+    contain: none !important;
+    isolation: isolate !important;
+  }
+
+  html[data-member-viewport-mode='mobile']
+    [data-mobile-home-root='true']
+    > header[data-mobile-section-owner='header']
+    > div {
+    position: relative !important;
+    inset: auto !important;
+    z-index: 1 !important;
+    box-sizing: border-box !important;
+    width: 100% !important;
+    height: var(--member-mobile-header-offset) !important;
+    min-height: var(--member-mobile-header-offset) !important;
+    padding-top: env(safe-area-inset-top, 0px) !important;
+    transform: none !important;
+  }
+
+  html[data-member-viewport-mode='mobile']
+    [data-mobile-home-root='true']
+    *:has(> [data-mobile-section-owner='category-menu']) {
+    position: relative !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    align-items: start !important;
+    overflow: visible !important;
+    contain: none !important;
+    transform: none !important;
+  }
+
+  /* Native sticky is bounded by the category/content grid automatically. It
+   * follows below the Header and stops before the next page section/Footer,
+   * without a duplicate fixed-position JavaScript state machine. */
+  html[data-member-viewport-mode='mobile']
+    [data-mobile-section-owner='category-menu'] {
+    position: sticky !important;
+    top: calc(64px + env(safe-area-inset-top, 0px)) !important;
+    right: auto !important;
+    bottom: auto !important;
+    left: auto !important;
+    z-index: 100 !important;
+    grid-column: 1 !important;
+    align-self: start !important;
+    max-height: calc(
+      100dvh - var(--member-mobile-category-offset) - 8px
+    ) !important;
+    overflow-x: clip !important;
+    overflow-y: auto !important;
+    overscroll-behavior: contain !important;
+    touch-action: pan-y !important;
+    scrollbar-width: none !important;
+    transform: none !important;
+    contain: none !important;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  html[data-member-viewport-mode='mobile']
+    [data-mobile-section-owner='category-menu']::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  html[data-member-viewport-mode='mobile']
+    [data-mobile-content-slot='after-highlight'],
+  html[data-member-viewport-mode='mobile'] [data-provider-games-stage] {
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: 1px !important;
+    max-height: none !important;
+    overflow-x: clip !important;
+    overflow-y: visible !important;
+    touch-action: pan-y !important;
+  }
+}
+
+@supports not (overflow: clip) {
+  @media (max-width: 900px) {
+    html[data-member-viewport-mode='mobile'],
+    html[data-member-viewport-mode='mobile'] body {
+      overflow-x: hidden !important;
+    }
+  }
+}
