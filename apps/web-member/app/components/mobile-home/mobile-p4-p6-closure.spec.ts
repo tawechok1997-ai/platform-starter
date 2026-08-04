@@ -45,10 +45,10 @@ test('P5 resolves Home game launches from the central Mobile catalog', () => {
   assert.match(runtime, /getMemberGameCatalog\('mobile'\)/);
   assert.match(runtime, /indexCatalog\(items, catalogIndex\)/);
   assert.match(runtime, /findCatalogGame\(catalogIndex, gameId, gameCode\)/);
-  assert.match(runtime, /provider:\s*provider/);
-  assert.match(runtime, /game:\s*game/);
-  assert.match(runtime, /category:\s*category/);
-  assert.match(runtime, /platform:\s*'mobile'/);
+  assert.match(
+    runtime,
+    /const query = new URLSearchParams\(\{[\s\S]*category,[\s\S]*provider,[\s\S]*game,[\s\S]*platform:\s*'mobile'[\s\S]*\}\)/,
+  );
   assert.match(runtime, /window\.location\.assign\(`\/games\?\$\{query\.toString\(\)\}`\)/);
   assert.match(sourceContent, /data-game-id/);
   assert.match(sourceContent, /data-game-code/);
