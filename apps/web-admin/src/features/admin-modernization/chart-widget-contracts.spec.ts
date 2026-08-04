@@ -85,6 +85,7 @@ test('default layout pins widgets first and preserves deterministic order', () =
 
 test('saved layout ignores unknown duplicates and clamps unsafe spans', () => {
   const layout = normalizeAdminWidgetLayout(registry, [
+    // @ts-expect-error Persisted browser input is intentionally outside the safe runtime span union.
     { widgetId: 'finance.cash-flow', order: 9, columns: 99, rows: -4, pinned: false, hidden: true },
     { widgetId: 'finance.cash-flow', order: 0, columns: 1, rows: 1, pinned: true },
     { widgetId: 'unknown.widget', order: 0, columns: 4, rows: 3 },
