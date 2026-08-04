@@ -37,9 +37,13 @@ test('admin invitations load independent resources and keep action refresh outco
   assert.match(invitationSource, /AdminSkeleton/);
 });
 
-test('admin invitation form owns creation feedback without breaking existing callers', () => {
-  assert.match(invitationPanelSource, />บทบาท\s*</);
+test('admin invitation form owns multi-role creation feedback without breaking existing callers', () => {
+  assert.match(invitationPanelSource, /บทบาทหลัก/);
+  assert.match(invitationPanelSource, /บทบาทเสริม/);
   assert.match(invitationPanelSource, /เลือกบทบาท/);
+  assert.match(invitationPanelSource, /selectedRoleIds/);
+  assert.match(invitationPanelSource, /primaryRoleId/);
+  assert.match(invitationPanelSource, /\/admin\/access\/role-preview/);
   assert.match(invitationPanelSource, /onCreated: \(\) => unknown \| Promise<unknown>/);
   assert.match(invitationPanelSource, /refreshResult !== false/);
   assert.match(invitationPanelSource, /ลิงก์และรหัสเชิญจะแสดงเพียง 60 วินาที/);

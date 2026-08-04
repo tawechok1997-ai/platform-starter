@@ -71,6 +71,8 @@ jobs:
         run: node tools/audit-r009-withdrawal-completion-transaction.mjs
       - name: R-009 withdrawal completion rollback
         run: node tools/audit-r009-withdrawal-completion-rollback.mjs
+      - name: R-009 admin invitation transaction
+        run: node tools/audit-r009-admin-invitation-transaction.mjs
       - name: R-009 boundary closure structure
         run: pnpm audit:r9-boundary-closure
       - name: R-009 transaction escape inventory
@@ -131,7 +133,7 @@ jobs:
             echo "- Member scope: ${{ steps.scope.outputs.member || 'unknown' }}"
             echo "- Packages scope: ${{ steps.scope.outputs.packages || 'unknown' }}"
             echo '- R-001 architecture inventory, R-002 boundaries, R-003 regression safety and R-006 quality closure gates execute unconditionally'
-            echo '- R-009 controller, repository type, critical port, withdrawal transaction and lock-order boundaries execute in this owner'
+            echo '- R-009 controller, repository type, critical port, withdrawal transaction, invitation transaction and lock-order boundaries execute in this owner'
             echo '- R-009 transaction-escape and schema inventories remain review-only'
           } >> "$GITHUB_STEP_SUMMARY"
       - name: Upload quality failure evidence

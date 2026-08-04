@@ -1,0 +1,390 @@
+.page {
+  display: grid;
+  gap: 16px;
+  min-width: 0;
+}
+
+.selectorBar {
+  display: grid;
+  grid-template-columns: minmax(240px, 0.8fr) minmax(0, 1.2fr);
+  gap: 12px;
+  align-items: end;
+  min-width: 0;
+}
+
+.selectorBar label,
+.searchField,
+.formStack label,
+.formGrid label,
+.reportingBox label {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.selectorBar label > span,
+.searchField > span,
+.formStack label > span,
+.formGrid label > span,
+.reportingBox label > span {
+  color: color-mix(in srgb, currentColor 68%, transparent);
+}
+
+.selectorBar input,
+.selectorBar select,
+.searchField input,
+.formStack input,
+.formStack select,
+.formStack textarea,
+.formGrid input,
+.formGrid select,
+.reportingBox select {
+  width: 100%;
+  min-height: 44px;
+  box-sizing: border-box;
+  border: 1px solid color-mix(in srgb, currentColor 16%, transparent);
+  border-radius: 11px;
+  background: var(--admin-surface-input, transparent);
+  color: inherit;
+  padding: 10px 12px;
+  font: inherit;
+}
+
+.formStack textarea {
+  min-height: 96px;
+  resize: vertical;
+}
+
+.workspaceSwitch {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+  min-width: 0;
+  padding: 5px;
+  border: 1px solid color-mix(in srgb, currentColor 12%, transparent);
+  border-radius: 14px;
+  background: color-mix(in srgb, currentColor 4%, transparent);
+}
+
+.workspaceSwitch button {
+  min-height: 42px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: color-mix(in srgb, currentColor 70%, transparent);
+  padding: 8px 10px;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 160ms ease, color 160ms ease, box-shadow 160ms ease;
+}
+
+.workspaceSwitch button:hover {
+  background: color-mix(in srgb, currentColor 7%, transparent);
+  color: inherit;
+}
+
+.workspaceSwitch .workspaceActive {
+  background: var(--admin-surface-raised, color-mix(in srgb, currentColor 10%, transparent));
+  color: inherit;
+  box-shadow: 0 8px 22px color-mix(in srgb, #000 12%, transparent);
+}
+
+.twoColumn {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  align-items: start;
+  min-width: 0;
+}
+
+.searchField {
+  margin-bottom: 12px;
+}
+
+.roleGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  min-width: 0;
+  max-height: 540px;
+  overflow: auto;
+  padding-right: 2px;
+}
+
+.roleCard,
+.roleSelected {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: start;
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid color-mix(in srgb, currentColor 14%, transparent);
+  border-radius: 13px;
+  background: color-mix(in srgb, currentColor 3%, transparent);
+  cursor: pointer;
+  transition: border-color 160ms ease, background 160ms ease, transform 160ms ease;
+}
+
+.roleCard:hover,
+.roleSelected:hover {
+  transform: translateY(-1px);
+  border-color: color-mix(in srgb, currentColor 28%, transparent);
+}
+
+.roleSelected {
+  border-color: color-mix(in srgb, var(--admin-accent, currentColor) 58%, transparent);
+  background: color-mix(in srgb, var(--admin-accent, currentColor) 10%, transparent);
+}
+
+.roleCard input,
+.roleSelected input {
+  width: 18px;
+  height: 18px;
+  margin: 2px 0 0;
+}
+
+.roleCard > span,
+.roleSelected > span {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.roleCard strong,
+.roleSelected strong,
+.teamButton strong,
+.teamActive strong,
+.memberList strong,
+.overrideList strong {
+  overflow-wrap: anywhere;
+}
+
+.roleCard small,
+.roleSelected small,
+.teamButton small,
+.teamActive small,
+.memberList small,
+.overrideList small {
+  color: color-mix(in srgb, currentColor 62%, transparent);
+  overflow-wrap: anywhere;
+}
+
+.formStack {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+  min-width: 0;
+}
+
+.formGrid > button {
+  align-self: end;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.teamList,
+.memberList,
+.overrideList {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.teamButton,
+.teamActive {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  min-width: 0;
+  padding: 11px 12px;
+  border: 1px solid color-mix(in srgb, currentColor 13%, transparent);
+  border-radius: 12px;
+  background: color-mix(in srgb, currentColor 3%, transparent);
+  color: inherit;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+}
+
+.teamButton > span,
+.teamActive > span {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.teamActive {
+  border-color: color-mix(in srgb, var(--admin-accent, currentColor) 58%, transparent);
+  background: color-mix(in srgb, var(--admin-accent, currentColor) 10%, transparent);
+}
+
+.memberList > div,
+.overrideList > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-width: 0;
+  padding: 10px 11px;
+  border-radius: 11px;
+  background: color-mix(in srgb, currentColor 5%, transparent);
+}
+
+.memberList > div > span,
+.overrideList > div > span {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+  flex: 1;
+}
+
+.inlineCheck {
+  display: flex !important;
+  grid-template-columns: none;
+  align-items: center;
+  gap: 8px !important;
+}
+
+.inlineCheck input {
+  width: 18px;
+  height: 18px;
+  min-height: 0;
+}
+
+.reportingBox {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: end;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid color-mix(in srgb, currentColor 12%, transparent);
+}
+
+.permissionCloud {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  flex-wrap: wrap;
+  max-height: 420px;
+  overflow: auto;
+  min-width: 0;
+}
+
+.definitionGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin: 16px 0 0;
+}
+
+.definitionGrid > div {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  padding: 10px 11px;
+  border-radius: 11px;
+  background: color-mix(in srgb, currentColor 5%, transparent);
+}
+
+.definitionGrid dt {
+  color: color-mix(in srgb, currentColor 62%, transparent);
+  font-size: 0.74rem;
+  font-weight: 700;
+}
+
+.definitionGrid dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.codeArea {
+  min-height: 190px !important;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace !important;
+  font-size: 0.78rem !important;
+  line-height: 1.55;
+  tab-size: 2;
+}
+
+@media (max-width: 1100px) {
+  .selectorBar {
+    grid-template-columns: 1fr;
+  }
+
+  .workspaceSwitch {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 900px) {
+  .twoColumn,
+  .roleGrid,
+  .formGrid,
+  .definitionGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .reportingBox {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .page {
+    gap: 12px;
+  }
+
+  .workspaceSwitch {
+    grid-template-columns: 1fr;
+  }
+
+  .workspaceSwitch button {
+    text-align: left;
+  }
+
+  .actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .roleCard,
+  .roleSelected {
+    padding: 10px;
+  }
+
+  .memberList > div,
+  .overrideList > div {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page *,
+  .workspaceSwitch button,
+  .roleCard,
+  .roleSelected {
+    scroll-behavior: auto !important;
+    transition: none !important;
+    animation: none !important;
+  }
+}

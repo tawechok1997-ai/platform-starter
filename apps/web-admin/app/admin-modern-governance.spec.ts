@@ -8,6 +8,10 @@ const layoutSource = readFileSync(path.join(appRoot, 'layout.tsx'), 'utf8');
 const cssSource = readFileSync(path.join(appRoot, 'admin-modern-governance.css'), 'utf8');
 const adoptionSource = readFileSync(path.join(appRoot, 'admin-modernization-adoption.css'), 'utf8');
 const rolesSource = readFileSync(path.join(appRoot, '(admin)/admin-roles/page.tsx'), 'utf8');
+const rolesCssSource = readFileSync(
+  path.join(appRoot, '(admin)/admin-roles/admin-role-governance.module.css'),
+  'utf8',
+);
 const settingsSource = readFileSync(path.join(appRoot, '(admin)/settings/page.tsx'), 'utf8');
 const settingsCssSource = readFileSync(path.join(appRoot, '(admin)/settings/settings-workspace.module.css'), 'utf8');
 const antiBotSource = readFileSync(path.join(appRoot, '(admin)/anti-bot/page.tsx'), 'utf8');
@@ -23,26 +27,30 @@ test('loads governance and final adoption styles in the intended order', () => {
   assert.equal(adoptionIndex > governanceIndex, true);
 });
 
-test('keeps the modernized roles catalog compact, localized and read-only', () => {
+test('keeps the modernized roles workspace localized permission-gated and responsive', () => {
   assert.equal(rolesSource.includes('AdminWorkspaceTabs'), true);
-  assert.equal(rolesSource.includes('AdminDataTable'), true);
-  assert.equal(rolesSource.includes('pageSizeOptions={[20, 50, 100]}'), true);
-  assert.equal(rolesSource.includes('admin-role-modern-card'), true);
-  assert.equal(rolesSource.includes('admin-role-permission-groups'), true);
-  assert.equal(rolesSource.includes('const COPY: Record<AdminLocale, Copy>'), true);
-  assert.equal(rolesSource.includes("th: {"), true);
-  assert.equal(rolesSource.includes("en: {"), true);
-  assert.equal(rolesSource.includes('read-only'), true);
+  assert.equal(rolesSource.includes('WORKSPACES'), true);
+  assert.equal(rolesSource.includes("type Workspace = 'roles' | 'teams' | 'effective' | 'overrides'"), true);
+  assert.equal(rolesSource.includes('selectedRoleIds'), true);
+  assert.equal(rolesSource.includes('primaryRoleId'), true);
+  assert.equal(rolesSource.includes("adminApiFetch('/admin/access/role-preview'"), true);
+  assert.equal(rolesSource.includes('permission-overrides'), true);
+  assert.equal(rolesSource.includes('access-profile'), true);
+  assert.equal(rolesSource.includes('canManageRoles'), true);
+  assert.equal(rolesSource.includes('canManageTeams'), true);
+  assert.equal(rolesSource.includes('canOverride'), true);
   assert.equal(rolesSource.includes("adminApiFetch('/admin/auth/me')"), true);
-  assert.equal(rolesSource.includes('canAccessPath(tab.href, currentPermissions)'), true);
-  assert.equal(rolesSource.includes('admin-role-row'), false);
-  assert.equal(rolesSource.includes('admin-permission-chip'), false);
+  assert.equal(rolesSource.includes('canAccessPath(tab.href, heldPermissions)'), true);
+  assert.equal(rolesSource.includes('AdminDataTable'), false);
+  assert.equal(rolesSource.includes('read-only'), false);
   assert.equal(rolesSource.includes('const roleStyle'), false);
   assert.equal(rolesSource.includes('const permissionButtonStyle'), false);
 
-  assert.equal(adoptionSource.includes('.admin-role-modern-list'), true);
-  assert.equal(adoptionSource.includes('.admin-role-permission-groups'), true);
-  assert.equal(adoptionSource.includes('max-height: 300px'), true);
+  assert.equal(rolesCssSource.includes('.workspaceSwitch'), true);
+  assert.equal(rolesCssSource.includes('.roleGrid'), true);
+  assert.equal(rolesCssSource.includes('@media (max-width: 900px)'), true);
+  assert.equal(rolesCssSource.includes('@media (max-width: 640px)'), true);
+  assert.equal(rolesCssSource.includes('@media (prefers-reduced-motion: reduce)'), true);
 });
 
 test('keeps anti-bot workflows class based', () => {
