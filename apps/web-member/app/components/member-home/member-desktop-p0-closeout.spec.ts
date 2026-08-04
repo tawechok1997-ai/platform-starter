@@ -57,7 +57,7 @@ test('Broken images close on the branded placeholder before guaranteed local 404
   assert.match(controller, /dataset\.invalidOriginalSource/);
   assert.match(controller, /MutationObserver/);
   assert.match(resolver, /function unresolvedSourceOrFallback/);
-  assert.match(resolver, /if \(\/\^\\\/assets\\\//);
+  assert.ok(resolver.includes("if (/^\\/assets\\//i.test(sourcePath)) return MEMBER_IMAGE_FALLBACK;"));
   assert.match(resolver, /return MEMBER_IMAGE_FALLBACK/);
 });
 
