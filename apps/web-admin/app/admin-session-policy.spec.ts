@@ -1,11 +1,21 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { adminNextPath, sessionDecision } from './admin-session-policy';
+import { adminNextPath, isAdminPublicPath, sessionDecision } from './admin-session-policy';
 
 test('public and skip-auth requests never enter the refresh or login flow', () => {
   assert.equal(sessionDecision({ status: 401, skipAuth: true, pathname: '/login' }), 'continue');
+  assert.equal(sessionDecision({ status: 401, pathname: '/login' }), 'continue');
+  assert.equal(sessionDecision({ status: 401, pathname: '/login/', hasRetried: true }), 'continue');
   assert.equal(sessionDecision({ status: 403, skipAuth: true, pathname: '/accept-invitation' }), 'continue');
+});
+
+test('public auth routes are recognized without query or trailing-slash ambiguity', () => {
+  assert.equal(isAdminPublicPath('/login'), true);
+  assert.equal(isAdminPublicPath('/login/'), true);
+  assert.equal(isAdminPublicPath('/login?next=%2Fdashboard'), true);
+  assert.equal(isAdminPublicPath('/accept-invitation'), true);
+  assert.equal(isAdminPublicPath('/dashboard'), false);
 });
 
 test('an expired authenticated session refreshes once and then fails closed to login', () => {
@@ -31,9 +41,11 @@ test('2FA-required responses enter setup once without creating a redirect loop',
   }), 'continue');
 });
 
-test('next paths preserve query state and remain safely encoded', () => {
+test('next paths preserve protected query state and never recursively target login', () => {
   assert.equal(
     adminNextPath('/settings/activities', '?tab=daily&return=/dashboard'),
     encodeURIComponent('/settings/activities?tab=daily&return=/dashboard'),
   );
+  assert.equal(adminNextPath('/login', '?next=%2Flogin%3Fnext%3D%252Fdashboard'), encodeURIComponent('/dashboard'));
+  assert.equal(adminNextPath('/accept-invitation', '?token=secret'), encodeURIComponent('/dashboard'));
 });
