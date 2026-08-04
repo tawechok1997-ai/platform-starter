@@ -20,6 +20,15 @@ test('shared runtime remounts content when changing view or returning from detai
   assert.doesNotMatch(popup, /detailBackSignal/);
 });
 
+test('source popup preserves live Promotion API and CMS data owners', () => {
+  assert.match(popup, /loadLivePromotionCampaigns/);
+  assert.match(popup, /cmsContentSetting\(settings\)/);
+  assert.match(popup, /data-content-source="api"/);
+  assert.match(popup, /data-content-source="cms"/);
+  assert.match(popup, /promotionEmptyLabel\(campaignLoadState\)/);
+  assert.doesNotMatch(popup, /PROMOTION_ASSET_CAMPAIGNS|SOURCE_ACTIVITY_FALLBACK/);
+});
+
 test('promotion popup keeps the five source categories and three-column desktop grid', () => {
   for (const label of ['ทั้งหมด', 'สมาชิกใหม่', 'ประจำวัน', 'สิทธิพิเศษ', 'คืนยอดเสีย']) {
     assert.match(popup, new RegExp(label));
