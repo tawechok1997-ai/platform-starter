@@ -52,6 +52,7 @@ export default function HomeSidebarScrollController() {
     let sidebarSnapshot: InlineSnapshot | null = null;
     let resizeObserver: ResizeObserver | null = null;
     let mutationObserver: MutationObserver | null = null;
+    let pinTop = DEFAULT_PIN_TOP;
     let frame = 0;
     let disposed = false;
 
@@ -66,7 +67,6 @@ export default function HomeSidebarScrollController() {
 
       const bodyRect = body.getBoundingClientRect();
       const scale = resolveElementScale(body, bodyRect.width);
-      const pinTop = readPinTop(sidebar);
       const viewportHeight = window.visualViewport?.height ?? window.innerHeight;
       const visibleHeight = Math.max(
         MIN_VISIBLE_HEIGHT,
@@ -117,6 +117,7 @@ export default function HomeSidebarScrollController() {
       bodySnapshot = snapshotBodyInlineStyles(body);
       mainSnapshot = snapshotMainInlineStyles(main);
       sidebarSnapshot = snapshotInlineStyles(sidebar);
+      pinTop = readPinTop(sidebar);
 
       body.style.setProperty('position', 'relative', 'important');
       body.style.setProperty('display', 'grid', 'important');
