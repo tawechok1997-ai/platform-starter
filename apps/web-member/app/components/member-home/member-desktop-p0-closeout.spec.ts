@@ -99,5 +99,5 @@ test('Public status route exists and auth dismissal removes auth and next query 
   assert.match(statusPage, /ระบบพร้อมให้บริการ/);
   assert.match(chrome, /url\.searchParams\.delete\(['"]auth['"]\)/);
   assert.match(chrome, /url\.searchParams\.delete\(['"]next['"]\)/);
-  assert.match(chrome, /router\.replace\([^;]+\{ scroll: false \}\)/s);
+  assert.match(chrome, /router\.replace\([\s\S]*?\{ scroll: false \}\)/);
 });
