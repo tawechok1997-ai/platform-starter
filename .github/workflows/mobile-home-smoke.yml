@@ -11,7 +11,7 @@ on:
 jobs:
   mobile-home-smoke:
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    timeout-minutes: 14
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -30,7 +30,9 @@ jobs:
           pnpm exec playwright test
           tests/e2e-visual/r013-mobile-home-production-smoke.spec.ts
           -c playwright.visual.config.ts
+          --project=360x800
           --project=390x844
+          --project=430x932
           --retries=0
       - name: Upload Mobile Home evidence
         if: always()
