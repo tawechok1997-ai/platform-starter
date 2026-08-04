@@ -6,6 +6,10 @@ const runtime = readFileSync(
   new URL('./mobile-p4-p6-closure-runtime.tsx', import.meta.url),
   'utf8',
 );
+const guestNavigation = readFileSync(
+  new URL('./mobile-p6-guest-bottom-navigation.tsx', import.meta.url),
+  'utf8',
+);
 const home = readFileSync(
   new URL('../../member-home.tsx', import.meta.url),
   'utf8',
@@ -72,7 +76,13 @@ test('P6 drawer owns dialog semantics, keyboard trap and focus restoration', () 
   assert.match(runtime, /data-mobile-drawer-owner='p6'/);
 });
 
-test('P6 bottom navigation is Home-only and hidden while the drawer is open', () => {
+test('P6 bottom navigation is Home-only for both guest and authenticated owners', () => {
+  assert.match(home, /import MobileP6GuestBottomNavigation from '.\/components\/mobile-home\/mobile-p6-guest-bottom-navigation'/);
+  assert.equal((home.match(/<MobileP6GuestBottomNavigation\s*\/>/g) ?? []).length, 1);
+  assert.match(guestNavigation, /if \(summary\.isLoggedIn\) return null/);
+  assert.match(guestNavigation, /data-mobile-bottom-navigation-mode="guest"/);
+  assert.match(guestNavigation, /data-mobile-member-bottom-navigation="true"/);
+  assert.match(guestNavigation, /window\.location\.assign\('\/\?auth=login'\)/);
   assert.match(popupRuntime, /data-mobile-member-bottom-navigation="true"/);
   assert.match(runtime, /mobileMemberHomeSurface/);
   assert.match(runtime, /mobileDrawerOpen/);
