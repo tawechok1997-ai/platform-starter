@@ -21,6 +21,19 @@
   will-change: opacity, translate, scale !important;
 }
 
+/* The parent overlay owns the opening transition. Once its iframe has mounted,
+ * Login/Register route changes must reuse the same visual shell rather than
+ * replaying the dialog entrance and looking like a second popup. */
+html[data-member-auth-stable-shell='true']
+  .auth-reference-scope .public-auth-page[data-embedded='true']
+  .source-login-modal[data-auth-mode],
+html[data-member-auth-stable-shell='true']
+  .auth-reference-scope .public-auth-page[data-embedded='true']
+  .source-register-modal[data-auth-mode] {
+  animation: none !important;
+  will-change: auto !important;
+}
+
 .auth-reference-scope .source-login-card .public-auth-forgot,
 .auth-reference-scope .source-login-card .public-auth-forgot:hover,
 .auth-reference-scope .source-login-card .public-auth-forgot:focus,
