@@ -4,8 +4,7 @@ on:
   pull_request:
     paths:
       - 'apps/web-member/**'
-      - 'tests/e2e-visual/r013-member-mobile-full-audit.spec.ts'
-      - 'tests/e2e-visual/r013-member-mobile-protected-route-audit.spec.ts'
+      - 'tests/e2e-visual/r013-member-mobile-*-audit.spec.ts'
       - 'playwright.member-mobile-audit.config.ts'
       - '.github/workflows/member-mobile-full-audit.yml'
   workflow_dispatch:
@@ -13,7 +12,7 @@ on:
 jobs:
   member-mobile-full-audit:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 35
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -25,11 +24,38 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile=false
       - run: pnpm exec playwright install --with-deps chromium
-      - name: Audit Production Member Mobile
+      - name: Audit Production Mobile Home and Guest Routes
         env:
           MEMBER_HOME_URL: https://platformweb-member-production.up.railway.app/
         run: >-
           pnpm exec playwright test
+          tests/e2e-visual/r013-member-mobile-full-audit.spec.ts
+          -c playwright.member-mobile-audit.config.ts
+          --grep "home geometry|guest route matrix"
+          --retries=0
+      - name: Audit Read-only Authenticated Mobile
+        env:
+          MEMBER_HOME_URL: https://platformweb-member-production.up.railway.app/
+        run: >-
+          pnpm exec playwright test
+          tests/e2e-visual/r013-member-mobile-authenticated-audit.spec.ts
+          -c playwright.member-mobile-audit.config.ts
+          --retries=0
+      - name: Audit Guest Protected Routes
+        env:
+          MEMBER_HOME_URL: https://platformweb-member-production.up.railway.app/
+        run: >-
+          pnpm exec playwright test
+          tests/e2e-visual/r013-member-mobile-protected-route-audit.spec.ts
+          -c playwright.member-mobile-audit.config.ts
+          --grep "guest cannot"
+          --retries=0
+      - name: Audit Read-only Protected Routes
+        env:
+          MEMBER_HOME_URL: https://platformweb-member-production.up.railway.app/
+        run: >-
+          pnpm exec playwright test
+          tests/e2e-visual/r013-member-mobile-protected-authenticated-audit.spec.ts
           -c playwright.member-mobile-audit.config.ts
           --retries=0
       - name: Upload Member Mobile audit evidence
