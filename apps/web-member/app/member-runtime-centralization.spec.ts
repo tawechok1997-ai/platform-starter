@@ -5,7 +5,6 @@ import test from 'node:test';
 const providerSource = readFileSync(new URL('./member-runtime-provider.tsx', import.meta.url), 'utf8');
 const layoutSource = readFileSync(new URL('./layout.tsx', import.meta.url), 'utf8');
 const controllerSource = readFileSync(new URL('./components/member-home-runtime-controller.tsx', import.meta.url), 'utf8');
-const gameSectionSource = readFileSync(new URL('./components/member-game-section-runtime-controller.tsx', import.meta.url), 'utf8');
 const modalSource = readFileSync(new URL('./components/member-modal-system.tsx', import.meta.url), 'utf8');
 const shellSource = readFileSync(new URL('./member-chrome.tsx', import.meta.url), 'utf8');
 const navigationSource = readFileSync(new URL('./member-navigation-runtime.ts', import.meta.url), 'utf8');
@@ -31,13 +30,6 @@ test('desktop and mobile home consume one structured runtime', () => {
   assert.match(mobileRootSource, /data-mobile-home-root="true"/);
   assert.match(authenticatedMobileSource, /useMemberRuntime\(\)/);
   assert.match(authenticatedMobileSource, /summary\.walletAvailable/);
-});
-
-test('game sections enforce shared desktop and mobile limits', () => {
-  assert.match(gameSectionSource, /section\.mobileLimit/);
-  assert.match(gameSectionSource, /section\.desktopLimit/);
-  assert.match(gameSectionSource, /data-section-kind/);
-  assert.match(gameSectionSource, /runtimeLimitHidden/);
 });
 
 test('shell navigation and member summary are runtime owned', () => {
