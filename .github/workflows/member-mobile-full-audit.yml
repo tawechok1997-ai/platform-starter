@@ -5,6 +5,7 @@ on:
     paths:
       - 'apps/web-member/**'
       - 'tests/e2e-visual/r013-member-mobile-full-audit.spec.ts'
+      - 'tests/e2e-visual/r013-member-mobile-protected-route-audit.spec.ts'
       - 'playwright.member-mobile-audit.config.ts'
       - '.github/workflows/member-mobile-full-audit.yml'
   workflow_dispatch:
@@ -29,7 +30,6 @@ jobs:
           MEMBER_HOME_URL: https://platformweb-member-production.up.railway.app/
         run: >-
           pnpm exec playwright test
-          tests/e2e-visual/r013-member-mobile-full-audit.spec.ts
           -c playwright.member-mobile-audit.config.ts
           --retries=0
       - name: Upload Member Mobile audit evidence
