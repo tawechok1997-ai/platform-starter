@@ -7,33 +7,42 @@ import {
 } from './promotion-asset-campaigns';
 
 const PROMOTION_SETTINGS_KEY = 'features.promotion_campaigns';
+const SITE_SETTINGS_TABLE = 'public.site_settings';
 
 export async function loadPromotionCampaignSettings(prisma: PrismaService): Promise<PromotionCampaign[]> {
-  const setting = await prisma.siteSetting.findUnique({ where: { key: PROMOTION_SETTINGS_KEY } });
-  const merged = mergePromotionCampaignSettings(setting?.valueJson);
+  try {
+    const setting = await prisma.siteSetting.findUnique({ where: { key: PROMOTION_SETTINGS_KEY } });
+    const merged = mergePromotionCampaignSettings(setting?.valueJson);
 
-  if (!setting || hasMissingAssetCampaigns(setting.valueJson)) {
-    await prisma.siteSetting.upsert({
-      where: { key: PROMOTION_SETTINGS_KEY },
-      update: {
-        valueJson: merged as unknown as Prisma.InputJsonValue,
-        group: 'FEATURES',
-        type: 'JSON',
-        isPublic: true,
-        isSensitive: false,
-      },
-      create: {
-        key: PROMOTION_SETTINGS_KEY,
-        valueJson: merged as unknown as Prisma.InputJsonValue,
-        group: 'FEATURES',
-        type: 'JSON',
-        isPublic: true,
-        isSensitive: false,
-      },
-    });
+    if (!setting || hasMissingAssetCampaigns(setting.valueJson)) {
+      await prisma.siteSetting.upsert({
+        where: { key: PROMOTION_SETTINGS_KEY },
+        update: {
+          valueJson: merged as unknown as Prisma.InputJsonValue,
+          group: 'FEATURES',
+          type: 'JSON',
+          isPublic: true,
+          isSensitive: false,
+        },
+        create: {
+          key: PROMOTION_SETTINGS_KEY,
+          valueJson: merged as unknown as Prisma.InputJsonValue,
+          group: 'FEATURES',
+          type: 'JSON',
+          isPublic: true,
+          isSensitive: false,
+        },
+      });
+    }
+
+    return merged;
+  } catch (error) {
+    if (isMissingSiteSettingsTableError(error)) {
+      return mergePromotionCampaignSettings(undefined);
+    }
+
+    throw error;
   }
-
-  return merged;
 }
 
 export function mergePromotionCampaignSettings(value: unknown): PromotionCampaign[] {
@@ -62,6 +71,15 @@ export function canonicalizePromotionCampaignMedia<T extends PromotionCampaign>(
     desktopImageUrl: canonicalImage,
     mobileImageUrl: canonicalImage,
   };
+}
+
+function isMissingSiteSettingsTableError(error: unknown) {
+  if (!(error instanceof Prisma.PrismaClientKnownRequestError) || error.code !== 'P2021') {
+    return false;
+  }
+
+  const table = typeof error.meta?.table === 'string' ? error.meta.table : '';
+  return table === SITE_SETTINGS_TABLE || table.endsWith('.site_settings') || table === 'site_settings';
 }
 
 function hasMissingAssetCampaigns(value: unknown) {
