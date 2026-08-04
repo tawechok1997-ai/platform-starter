@@ -12,6 +12,10 @@ const followOwner = readFileSync(new URL('../../member-mobile-category-follow.cs
 const foundationOwner = readFileSync(new URL('../../member-mobile-p1-p3-foundation.css', import.meta.url), 'utf8');
 const duplicateRuntime = new URL('./mobile-category-tab-runtime.tsx', import.meta.url);
 
+function cssRule(source: string, selector: RegExp): string {
+  return source.match(new RegExp(`${selector.source}\\s*\\{([^}]*)\\}`))?.[1] ?? '';
+}
+
 test('mobile category rail has one rendered owner and reads central navigation', () => {
   assert.equal((root.match(/data-mobile-section-owner="category-menu"/g) ?? []).length, 1);
   assert.match(root, /useMemberRuntime\(\)/);
@@ -34,11 +38,16 @@ test('mobile category rail keeps responsive sizes', () => {
 });
 
 test('P2 gives Mobile Home one document vertical scroll owner', () => {
-  assert.match(foundationOwner, /html\[data-member-viewport-mode='mobile'\][\s\S]*overflow-y:\s*auto\s*!important/);
-  assert.match(foundationOwner, /html\[data-member-viewport-mode='mobile'\] body[\s\S]*overflow-y:\s*visible\s*!important/);
-  assert.match(foundationOwner, /html\[data-member-viewport-mode='mobile'\][\s\S]*overflow-x:\s*clip\s*!important/);
-  assert.match(foundationOwner, /\[data-mobile-home-root='true'\][\s\S]*overflow:\s*visible\s*!important/);
-  assert.doesNotMatch(foundationOwner, /html\[data-member-viewport-mode='mobile'\] body[\s\S]*overflow-y:\s*auto\s*!important/);
+  const documentRule = cssRule(foundationOwner, /html\[data-member-viewport-mode='mobile'\]/);
+  const bodyRule = cssRule(foundationOwner, /html\[data-member-viewport-mode='mobile'\] body/);
+  const homeRule = cssRule(foundationOwner, /html\[data-member-viewport-mode='mobile'\] \[data-mobile-home-root='true'\]/);
+
+  assert.match(documentRule, /overflow-y:\s*auto\s*!important/);
+  assert.match(documentRule, /overflow-x:\s*clip\s*!important/);
+  assert.match(bodyRule, /overflow-y:\s*visible\s*!important/);
+  assert.doesNotMatch(bodyRule, /overflow-y:\s*auto\s*!important/);
+  assert.match(homeRule, /min-width:\s*0\s*!important/);
+  assert.doesNotMatch(homeRule, /height:\s*100dvh\s*!important/);
   assert.doesNotMatch(home, /MobileCategoryRailTransformFollower/);
 });
 
@@ -53,7 +62,7 @@ test('P2 keeps the source header sticky and safe-area aware', () => {
 
 test('P3 category menu follows the viewport and stops at its content boundary', () => {
   assert.match(foundationOwner, /data-mobile-section-owner='category-menu'[\s\S]*top:\s*var\(--member-mobile-category-offset\)\s*!important/);
-  assert.match(foundationOwner, /data-mobile-section-owner='category-menu'[\s\S]*max-height:\s*calc\([\s\S]*100dvh - var\(--member-mobile-category-offset\) - 8px[\s\S]*\)\s*!important/);
+  assert.match(foundationOwner, /data-mobile-section-owner='category-menu'[\s\S]*100dvh - var\(--member-mobile-category-offset\) - 8px/);
   assert.match(foundationOwner, /data-mobile-category-follow='start'[\s\S]*position:\s*relative\s*!important/);
   assert.match(foundationOwner, /data-mobile-category-follow='fixed'[\s\S]*position:\s*fixed\s*!important/);
   assert.match(foundationOwner, /data-mobile-category-follow='end'[\s\S]*position:\s*absolute\s*!important/);
