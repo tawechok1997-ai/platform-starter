@@ -1,4 +1,4 @@
-import { expect, test, type BrowserContext, type Page, type TestInfo } from '@playwright/test';
+import { test, type BrowserContext, type Page, type Route, type TestInfo } from '@playwright/test';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 
@@ -70,7 +70,7 @@ test.describe('Member mobile protected route audit', () => {
         };
         results.push(result);
         if (!blocked || leakedStandaloneContent || pageErrors.length || metrics.horizontalOverflow) {
-          const routeDir = path.join(evidenceDir, routePath.replace(/[^a-z0-9]+/gi, '-'));
+          const routeDir = path.join(evidenceDir, sanitizeRoutePath(routePath));
           await fs.mkdir(routeDir, { recursive: true });
           await page.screenshot({ path: path.join(routeDir, 'failure.png'), fullPage: false, animations: 'disabled' });
           await fs.writeFile(path.join(routeDir, 'result.json'), JSON.stringify(result, null, 2));
@@ -119,7 +119,8 @@ test.describe('Member mobile protected route audit', () => {
         const loginLoop = authPrompt.visible
           || finalUrl.pathname === '/login'
           || (finalUrl.pathname === '/' && finalUrl.searchParams.get('auth') === 'login');
-        const notFound = response?.status() === 404 || /404|not found|ไม่พบหน้านี้/i.test((await page.locator('body').innerText()).slice(0, 1200));
+        const bodyText = (await page.locator('body').innerText().catch(() => '')).slice(0, 1200);
+        const notFound = response?.status() === 404 || /404|not found|ไม่พบหน้านี้/i.test(bodyText);
 
         const result = {
           route: routePath,
@@ -134,7 +135,7 @@ test.describe('Member mobile protected route audit', () => {
         };
         results.push(result);
         if (loginLoop || notFound || metrics.horizontalOverflow || pageErrors.length) {
-          const routeDir = path.join(evidenceDir, routePath.replace(/[^a-z0-9]+/gi, '-'));
+          const routeDir = path.join(evidenceDir, sanitizeRoutePath(routePath));
           await fs.mkdir(routeDir, { recursive: true });
           await page.screenshot({ path: path.join(routeDir, 'failure.png'), fullPage: false, animations: 'disabled' });
           await fs.writeFile(path.join(routeDir, 'result.json'), JSON.stringify(result, null, 2));
@@ -163,16 +164,15 @@ async function detectAuthPrompt(page: Page) {
     'iframe[title*="เข้าสู่ระบบ"]',
   ];
   for (const selector of selectors) {
-    const locator = page.locator(selector).filter({ visible: true });
-    if (await locator.count().catch(() => 0)) {
-      return { visible: true, selector };
+    const locator = page.locator(selector);
+    const count = await locator.count().catch(() => 0);
+    for (let index = 0; index < count; index += 1) {
+      if (await locator.nth(index).isVisible().catch(() => false)) {
+        return { visible: true, selector };
+      }
     }
   }
-  const bodyText = (await page.locator('body').innerText().catch(() => '')).replace(/\s+/g, ' ');
-  return {
-    visible: /เข้าสู่ระบบ|log in|login/i.test(bodyText) && /สมัครสมาชิก|register|รหัสผ่าน|password/i.test(bodyText),
-    selector: 'body-text',
-  };
+  return { visible: false, selector: '' };
 }
 
 async function readMetrics(page: Page) {
@@ -225,9 +225,10 @@ async function installMockMemberSession(context: BrowserContext) {
       avatarUrl: '/images/avatar/7.webp',
     }),
   }));
-  const emptyGet = (route: Parameters<BrowserContext['route']>[1] extends (route: infer R) => unknown ? R : never) => {
+
+  const emptyGet = async (route: Route) => {
     const method = route.request().method();
-    return route.fulfill({
+    await route.fulfill({
       status: method === 'GET' ? 200 : 422,
       contentType: 'application/json',
       body: JSON.stringify(method === 'GET'
@@ -235,6 +236,7 @@ async function installMockMemberSession(context: BrowserContext) {
         : { message: 'Blocked by read-only mobile audit' }),
     });
   };
+
   await context.route('**/member/notifications**', emptyGet);
   await context.route('**/member/auth/security**', emptyGet);
   await context.route('**/member/auth/sessions**', emptyGet);
@@ -253,4 +255,8 @@ async function prepareEvidenceDirectory(testInfo: TestInfo, section: string) {
   const directory = path.resolve('artifacts/member-mobile-audit', testInfo.project.name, section);
   await fs.mkdir(directory, { recursive: true });
   return directory;
+}
+
+function sanitizeRoutePath(routePath: string) {
+  return routePath.replace(/[^a-z0-9]+/gi, '-').replace(/^-+|-+$/g, '') || 'root';
 }
