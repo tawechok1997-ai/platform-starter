@@ -189,7 +189,7 @@ html[data-member-viewport-mode='desktop'] #member-desktop-scale-canvas .public-h
   }
 
   html[data-member-viewport-mode='desktop'] #member-desktop-scale-canvas .desktop-reference-home > .desktop-home__body {
-    grid-template-columns: 310px minmax(0, 1fr) !important;
+    grid-template-columns: minmax(0, 1fr) 310px !important;
     gap: 12px !important;
     width: min(1388px, calc(100% - 2px)) !important;
   }
@@ -293,7 +293,7 @@ html[data-member-viewport-mode='desktop'] #member-desktop-scale-canvas .public-h
   }
 
   html[data-member-viewport-mode='desktop'] #member-desktop-scale-canvas .desktop-reference-home > .desktop-home__body {
-    grid-template-columns: 330px minmax(0, 1fr) !important;
+    grid-template-columns: minmax(0, 1fr) 330px !important;
     gap: 14px !important;
     width: min(1418px, calc(100% - 2px)) !important;
   }
