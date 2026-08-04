@@ -15,12 +15,15 @@ import { DesktopGameFeedProvider } from './components/member-home/member-source-
 import HomeSidebarScrollController from './components/member-home/home-sidebar-scroll-controller';
 import MobileAuthenticatedAvatarRuntime from './components/mobile-home/mobile-authenticated-avatar-runtime';
 import MobileAuthenticatedHomeRuntime from './components/mobile-home/mobile-authenticated-home-runtime';
+import MobileCanonicalGameLaunchCapture from './components/mobile-home/mobile-canonical-game-launch-capture';
 import MobileCouponPopupBridge from './components/mobile-home/mobile-coupon-popup-bridge';
 import MobileHomeGuidePreview from './components/mobile-home/mobile-home-guide-preview';
 import MobileHomeImageRecoveryRuntime from './components/mobile-home/mobile-home-image-recovery-runtime';
 import MobileHomeMotionRuntime from './components/mobile-home/mobile-home-motion-runtime';
 import MobileHomeRoot from './components/mobile-home/mobile-home-root';
 import MobileMemberMenuSourceBridge from './components/mobile-home/mobile-member-menu-source-bridge';
+import MobileP4P6ClosureRuntime from './components/mobile-home/mobile-p4-p6-closure-runtime';
+import MobileP6GuestBottomNavigation from './components/mobile-home/mobile-p6-guest-bottom-navigation';
 import MobileScrollComfortGuard from './components/mobile-home/mobile-scroll-comfort-guard';
 import { openMemberSharedPopup } from './components/member-shared-popup-runtime';
 import { useMemberHomeData } from './hooks/use-member-home-data';
@@ -78,6 +81,9 @@ export default function MemberHome(props: MemberHomeProps) {
     return (
       <>
         <MobileHomeRoot content={props.cmsContent} showPromotion={props.showPromotion} />
+        <MobileCanonicalGameLaunchCapture />
+        <MobileP4P6ClosureRuntime />
+        <MobileP6GuestBottomNavigation />
         <MobileAuthenticatedHomeRuntime />
         <MobileCouponPopupBridge />
         <MobileMemberMenuSourceBridge />

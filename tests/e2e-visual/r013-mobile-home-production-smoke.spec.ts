@@ -119,7 +119,118 @@ test.describe('production Mobile Home smoke', () => {
     expect(pageErrors, `Page errors: ${JSON.stringify(pageErrors)}`).toEqual([]);
     expect(relevantConsoleErrors, `Console errors: ${JSON.stringify(relevantConsoleErrors)}`).toEqual([]);
   });
+
+  test('P4-P6 home owner, canonical launch, drawer and bottom navigation work together', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== '390x844', 'Run the complete interaction contract once');
+
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.goto(MEMBER_HOME_URL, { waitUntil: 'domcontentloaded', timeout: 45_000 });
+
+    const root = page.locator('[data-mobile-home-root="true"]');
+    const html = page.locator('html');
+    const menuTrigger = page.locator('button[aria-controls="mobile-home-drawer"]');
+    const drawer = page.locator('#mobile-home-drawer');
+    const bottomNavigation = page.locator('[data-mobile-member-bottom-navigation="true"]');
+
+    await expect(root).toBeVisible({ timeout: 30_000 });
+    await expect(root).toHaveAttribute('data-mobile-p4-p6-ready', 'true', { timeout: 15_000 });
+    await expect(bottomNavigation).toBeVisible({ timeout: 15_000 });
+
+    await menuTrigger.click();
+    await expect(menuTrigger).toHaveAttribute('aria-expanded', 'true');
+    await expect(drawer).toHaveAttribute('role', 'dialog');
+    await expect(drawer).toHaveAttribute('aria-modal', 'true');
+    await expect(html).toHaveAttribute('data-mobile-drawer-open', 'true');
+    await expect(bottomNavigation).toBeHidden();
+
+    await page.keyboard.press('Escape');
+    await expect(menuTrigger).toHaveAttribute('aria-expanded', 'false');
+    await expect(html).toHaveAttribute('data-mobile-drawer-open', 'false');
+    await expect(bottomNavigation).toBeVisible();
+    await expect(menuTrigger).toBeFocused();
+
+    const casinoButton = page.locator('button[data-mobile-category-id="casino"]');
+    const homeButton = page.locator('button[data-mobile-category-id="home"]');
+    await casinoButton.click();
+    await expect(root).toHaveAttribute('data-mobile-active-category', 'casino');
+    await expect(html).toHaveAttribute('data-mobile-member-home-surface', 'false');
+    await expect(bottomNavigation).toBeHidden();
+
+    await homeButton.click();
+    await expect(root).toHaveAttribute('data-mobile-active-category', 'home');
+    await expect(html).toHaveAttribute('data-mobile-member-home-surface', 'true');
+    await expect(bottomNavigation).toBeVisible();
+
+    await installDeterministicGameAction(page);
+    const gameAction = page.locator('[data-p5-smoke-game="true"]');
+    await expect(gameAction).toHaveAttribute('data-mobile-game-launch', 'canonical', { timeout: 15_000 });
+    await expect(gameAction).toHaveAttribute('data-game-platform', 'mobile');
+    await expect(gameAction).toBeVisible();
+
+    const launchData = await gameAction.evaluate((element) => ({
+      category: element.getAttribute('data-game-category') ?? '',
+      game: element.getAttribute('data-game-id') ?? element.getAttribute('data-game-code') ?? '',
+      provider: element.getAttribute('data-provider-code') ?? '',
+    }));
+    expect(launchData).toEqual({
+      category: 'slot',
+      game: 'p5-smoke-game',
+      provider: 'p5-smoke-provider',
+    });
+
+    const launchRequestPromise = page.waitForRequest((request) => {
+      if (!request.isNavigationRequest()) return false;
+      try {
+        return new URL(request.url()).pathname === '/games';
+      } catch {
+        return false;
+      }
+    }, { timeout: 30_000 });
+
+    await gameAction.click();
+    const launchRequest = await launchRequestPromise;
+    const launchUrl = new URL(launchRequest.url());
+    expect(launchUrl.searchParams.get('platform')).toBe('mobile');
+    expect(launchUrl.searchParams.get('provider')).toBe('p5-smoke-provider');
+    expect(launchUrl.searchParams.get('game')).toBe('p5-smoke-game');
+    expect(launchUrl.searchParams.get('category')).toBe('slot');
+
+    const evidenceDir = await prepareEvidenceDirectory(testInfo);
+    await fs.writeFile(path.join(evidenceDir, 'p4-p6-interactions.json'), JSON.stringify({
+      launchData,
+      launchUrl: launchUrl.toString(),
+    }, null, 2));
+  });
 });
+
+async function installDeterministicGameAction(page: Page) {
+  await page.evaluate(() => {
+    const root = document.querySelector<HTMLElement>('[data-mobile-home-root="true"]');
+    if (!root) throw new Error('Mobile Home root is unavailable');
+
+    root.querySelector('[data-p5-smoke-game="true"]')?.remove();
+
+    const action = document.createElement('button');
+    action.type = 'button';
+    action.textContent = 'P5 smoke game';
+    action.dataset.p5SmokeGame = 'true';
+    action.dataset.gameId = 'p5-smoke-game';
+    action.dataset.gameCode = 'p5-smoke-code';
+    action.dataset.gameName = 'P5 smoke game';
+    action.dataset.providerCode = 'p5-smoke-provider';
+    action.dataset.gameCategory = 'slot';
+    Object.assign(action.style, {
+      display: 'block',
+      width: '160px',
+      minHeight: '44px',
+      position: 'fixed',
+      top: '120px',
+      left: '16px',
+      zIndex: '2147483500',
+    });
+    root.append(action);
+  });
+}
 
 async function prepareEvidenceDirectory(testInfo: TestInfo) {
   const evidenceDir = path.resolve('artifacts/r013-visual/mobile-home-production', testInfo.project.name);
