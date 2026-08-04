@@ -9,6 +9,10 @@ on:
       - '.github/workflows/member-mobile-full-audit.yml'
   workflow_dispatch:
 
+concurrency:
+  group: member-mobile-full-audit-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   member-mobile-full-audit:
     runs-on: ubuntu-latest
