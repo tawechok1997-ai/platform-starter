@@ -23,11 +23,34 @@
 
   html[data-member-viewport-mode='desktop'] .desktop-reference-home > .desktop-home__body {
     position: relative !important;
+    display: grid !important;
+    grid-template-columns: 360px minmax(0, 1080px) !important;
     align-items: start !important;
+    gap: 15px !important;
     min-height: 100% !important;
   }
 
+  /* The fixed sidebar is removed from grid flow by the runtime controller.
+   * Reserve its source column explicitly so the main feed cannot collapse under
+   * the rail or leave the right side of the 1455px canvas empty. */
+  html[data-member-viewport-mode='desktop'] .desktop-reference-home .reference-main-column {
+    grid-column: 2 !important;
+    grid-row: 1 !important;
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  html[data-member-viewport-mode='desktop'] .desktop-reference-home [data-desktop-sidebar-placeholder='true'] {
+    grid-column: 1 !important;
+    grid-row: 1 !important;
+    align-self: start !important;
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
   html[data-member-viewport-mode='desktop'] .desktop-reference-home .reference-sidebar {
+    grid-column: 1 !important;
+    grid-row: 1 !important;
     position: sticky !important;
     inset: auto !important;
     top: 124px !important;
