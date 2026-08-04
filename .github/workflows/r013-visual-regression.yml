@@ -42,9 +42,9 @@ jobs:
         run: pnpm exec playwright test tests/e2e-visual/r013-auth-surfaces.spec.ts -c playwright.visual.config.ts --update-snapshots
       - name: Compare against generated baselines
         run: pnpm exec playwright test tests/e2e-visual/r013-auth-surfaces.spec.ts -c playwright.visual.config.ts
-      - name: Smoke test Production Mobile Home
+      - name: Smoke test Mobile Home
         env:
-          MEMBER_HOME_URL: https://platformweb-member-production.up.railway.app/
+          MEMBER_HOME_URL: ${{ github.event_name == 'pull_request' && 'http://127.0.0.1:3101/' || 'https://platformweb-member-production.up.railway.app/' }}
         run: >-
           pnpm exec playwright test
           tests/e2e-visual/r013-mobile-home-production-smoke.spec.ts
