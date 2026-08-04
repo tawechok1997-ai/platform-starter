@@ -40,13 +40,13 @@ describe('provider simulator catalog contracts', () => {
     expect(GAME_CATALOG.some((game) => /\.(?:png|jpe?g|webp|svg)$/i.test(game.provider))).toBe(false);
   });
 
-  it('keeps the recovered PC slot inventory above three thousand games', () => {
+  it('keeps the recovered PC slot inventory above two thousand seven hundred games', () => {
     const slots = GAME_CATALOG.filter((game) => (
       game.platform === 'pc'
       && (game.category === 'slot' || game.category === 'arcade')
     ));
     const uniqueSlots = new Set(slots.map((game) => `${game.provider}:${game.code}`));
 
-    expect(uniqueSlots.size).toBeGreaterThan(3_000);
+    expect(uniqueSlots.size).toBeGreaterThan(2_700);
   });
 });

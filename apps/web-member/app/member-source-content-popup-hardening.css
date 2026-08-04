@@ -1,0 +1,140 @@
+.member-shared-popup:is(.is-content-promotion, .is-content-activity, .is-content-news) .member-shared-popup-content {
+  overflow: hidden;
+  background: transparent;
+}
+
+.member-shared-popup:is(.is-content-activity, .is-content-news) .member-shared-popup-content {
+  padding: 0 20px 32px;
+}
+
+.member-shared-popup.is-promotion-detail .member-shared-popup-content {
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.member-source-content-popup[data-source-popup-view] {
+  animation: memberSourcePopupContentEnter 220ms cubic-bezier(.22, 1, .36, 1) both;
+}
+
+.member-source-image-placeholder {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  flex: 0 0 auto;
+  background:
+    radial-gradient(circle at 32% 24%, rgb(187 91 234 / 20%), transparent 44%),
+    linear-gradient(135deg, #211d31, #15131a 72%);
+}
+
+.member-source-image-placeholder::after {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(105deg, transparent 30%, rgb(255 255 255 / 8%) 48%, transparent 66%);
+  content: '';
+  transform: translateX(-110%);
+  animation: memberSourcePlaceholderSweep 1.8s ease-in-out infinite;
+}
+
+.member-source-responsive-placeholder {
+  width: 100%;
+  min-height: 160px;
+}
+
+.member-source-promotion-card > .member-source-responsive-placeholder {
+  aspect-ratio: 2.4038 / 1;
+  min-height: 0;
+}
+
+.member-source-promotion-detail > .member-source-responsive-placeholder {
+  aspect-ratio: 2.4 / 1;
+  min-height: 220px;
+  border-radius: 10px;
+}
+
+.member-source-activity-list button > .member-source-image-placeholder {
+  width: 126px;
+  height: 127px;
+  border-radius: 6px 0 0 6px;
+}
+
+.member-source-activity-detail > .member-source-image-placeholder {
+  width: 100%;
+  aspect-ratio: 3.35 / 1.42;
+  border-radius: 10px;
+}
+
+.member-source-news-list article > .member-source-image-placeholder {
+  width: 140px;
+  height: 90px;
+  border-radius: 6px;
+}
+
+.member-source-news-list {
+  max-height: min(560px, calc(100dvh - 180px));
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: #8c00bf transparent;
+}
+
+.member-source-promotion-grid,
+.member-source-activity-list,
+.member-source-activity-detail,
+.member-source-news-list {
+  scroll-behavior: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+@keyframes memberSourcePopupContentEnter {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 8px, 0) scale(.995);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@keyframes memberSourcePlaceholderSweep {
+  0%, 30% {
+    transform: translateX(-110%);
+  }
+  70%, 100% {
+    transform: translateX(110%);
+  }
+}
+
+@media (max-width: 900px) {
+  .member-shared-popup:is(.is-content-promotion, .is-content-activity, .is-content-news) .member-shared-popup-content {
+    padding: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+
+  .member-source-promotion-card > .member-source-responsive-placeholder {
+    min-height: 118px;
+  }
+
+  .member-source-promotion-detail > .member-source-responsive-placeholder {
+    min-height: 150px;
+  }
+
+  .member-source-activity-list button > .member-source-image-placeholder {
+    width: 96px;
+    height: 96px;
+  }
+
+  .member-source-news-list {
+    max-height: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .member-source-content-popup[data-source-popup-view],
+  .member-source-image-placeholder::after {
+    animation: none !important;
+  }
+}

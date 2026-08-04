@@ -113,6 +113,26 @@ main[data-source-game-category] img[src*='noah345-placeholder.svg'] {
   visibility: hidden !important;
 }
 
+/* Desktop category hero backgrounds keep their source proportions. The image
+ * is never enlarged past its natural size; unused hero space stays black. */
+@media (min-width: 901px) {
+  html[data-member-viewport-mode='desktop'] main[data-source-game-category] > div[aria-hidden='true'] {
+    min-height: 600px !important;
+    background: #000 !important;
+    background-color: #000 !important;
+  }
+
+  html[data-member-viewport-mode='desktop'] main[data-source-game-category] > div[aria-hidden='true'] > img {
+    width: 100% !important;
+    height: 600px !important;
+    min-height: 0 !important;
+    object-fit: scale-down !important;
+    object-position: top center !important;
+    background: #000 !important;
+    background-color: #000 !important;
+  }
+}
+
 @media (max-width: 900px) {
   main[data-source-game-category] > section,
   main[data-source-game-category] [data-source-game-layout],

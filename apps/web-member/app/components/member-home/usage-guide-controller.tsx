@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
+import { useMemberSession } from '../../member-session-provider';
 import MobileVideoGuidePopup from './mobile-video-guide-popup';
 import UsageGuideModal from './usage-guide-modal';
 
@@ -36,19 +37,21 @@ function isVideoGuideTrigger(target: Element) {
 }
 
 export default function UsageGuideController() {
+  const { isLoggedIn } = useMemberSession();
   const [open, setOpen] = useState(false);
   const [videoOpen, setVideoOpen] = useState(false);
   const closeVideo = useCallback(() => setVideoOpen(false), []);
 
   useEffect(() => {
-    const showVideo = () => {
+    const showGuestVideo = () => {
       setOpen(false);
       setVideoOpen(true);
     };
 
     const handleVideoClick = (event: MouseEvent) => {
       if (
-        event.defaultPrevented
+        isLoggedIn
+        || event.defaultPrevented
         || event.button !== 0
         || event.metaKey
         || event.ctrlKey
@@ -59,19 +62,24 @@ export default function UsageGuideController() {
         || !isVideoGuideTrigger(event.target)
       ) return;
 
-      // Capture on window before the authenticated popup runtime reaches the
-      // event. Guest and member drawers therefore reuse this exact popup owner.
+      // Guests have no authenticated MobileMemberPopupRuntime. This controller
+      // owns their video popup only; logged-in clicks continue to the member
+      // popup owner without stopImmediatePropagation.
       event.preventDefault();
       event.stopPropagation();
       event.stopImmediatePropagation();
-      showVideo();
+      showGuestVideo();
     };
 
     const handlePopupOpen = (event: Event) => {
       const detail = (event as CustomEvent<MobilePopupOpenDetail>).detail;
-      if (detail?.kind !== 'video' || !window.matchMedia(MOBILE_QUERY).matches) return;
+      if (
+        isLoggedIn
+        || detail?.kind !== 'video'
+        || !window.matchMedia(MOBILE_QUERY).matches
+      ) return;
       event.stopImmediatePropagation();
-      showVideo();
+      showGuestVideo();
     };
 
     window.addEventListener('click', handleVideoClick, true);
@@ -80,7 +88,7 @@ export default function UsageGuideController() {
       window.removeEventListener('click', handleVideoClick, true);
       window.removeEventListener(MOBILE_MEMBER_POPUP_EVENT, handlePopupOpen);
     };
-  }, []);
+  }, [isLoggedIn]);
 
   useEffect(() => {
     const handleGuideClick = (event: MouseEvent) => {

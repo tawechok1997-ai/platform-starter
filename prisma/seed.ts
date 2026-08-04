@@ -112,6 +112,58 @@ const MEMBER_HOME_LEADERBOARD = [
   },
 ];
 
+const MEMBER_SOURCE_CMS_CONTENT = {
+  assets: [],
+  banners: [],
+  popup: {
+    enabled: false,
+    lifecycle: 'draft',
+  },
+  announcements: [
+    {
+      id: 'source-activity-predict-lottery',
+      kind: 'event',
+      title: 'ทายผลหวย',
+      message: 'กิจกรรมทายผลหวย',
+      href: '',
+      enabled: true,
+      lifecycle: 'published',
+      imageUrl: 'https://cdn.zabbet.com/event/predict/1784904726144-c10c3ca6-cf70-41d3-a763-aa33c8917b2d.jpeg',
+      desktopImageUrl: 'https://cdn.zabbet.com/event/predict/1784904726144-c10c3ca6-cf70-41d3-a763-aa33c8917b2d.jpeg',
+      mobileImageUrl: 'https://cdn.zabbet.com/event/predict/1784904726144-c10c3ca6-cf70-41d3-a763-aa33c8917b2d.jpeg',
+      thumbnailImageUrl: 'https://cdn.zabbet.com/event/predict/1784904726144-c10c3ca6-cf70-41d3-a763-aa33c8917b2d.jpeg',
+      bannerImageUrl: 'https://cdn.zabbet.com/event/predict/1784904660399-a6cb7821-1abb-4422-bbc2-27606ba0e7b4.jpeg',
+      endsAt: '2026-08-01',
+      statusLabel: 'หมดเวลาทายผล',
+      activityType: 'lottery',
+      numberPrediction: true,
+      terms: [
+        'กรุณาทายผลให้ครบทั้ง 3 ตัวบน และ 2 ตัวล่าง',
+        'ตรวจสอบเวลาปิดรับคำทายก่อนส่งข้อมูล',
+      ],
+    },
+    {
+      id: 'source-activity-turnover-reward',
+      kind: 'event',
+      title: 'ทำยอด Turn รับรางวัลจุใจ',
+      message: 'ทำยอดตามเงื่อนไขเพื่อรับรางวัล',
+      href: '',
+      enabled: true,
+      lifecycle: 'published',
+      imageUrl: 'https://cdn.zabbet.com/event/predict/1719130004352-5323a6c4-0ad4-4cda-8475-dd0f5701b61b.png',
+      desktopImageUrl: 'https://cdn.zabbet.com/event/predict/1719130004352-5323a6c4-0ad4-4cda-8475-dd0f5701b61b.png',
+      mobileImageUrl: 'https://cdn.zabbet.com/event/predict/1719130004352-5323a6c4-0ad4-4cda-8475-dd0f5701b61b.png',
+      thumbnailImageUrl: 'https://cdn.zabbet.com/event/predict/1719130004352-5323a6c4-0ad4-4cda-8475-dd0f5701b61b.png',
+      bannerImageUrl: 'https://cdn.zabbet.com/event/predict/1719130004352-5323a6c4-0ad4-4cda-8475-dd0f5701b61b.png',
+      statusLabel: '',
+      activityType: 'turnover',
+      numberPrediction: false,
+      terms: ['ยอด Turn และรางวัลเป็นไปตามประกาศของกิจกรรม'],
+    },
+  ],
+  faqs: [],
+};
+
 const defaultSettings = [
   ['website.site_name', 'Platform Starter', 'WEBSITE', 'STRING', true, false],
   ['website.site_description', 'Member platform starter', 'WEBSITE', 'STRING', true, false],
@@ -198,6 +250,19 @@ async function main() {
     create: {
       key: 'features.promotion_campaigns',
       valueJson: JSON.parse(JSON.stringify(PROMOTION_ASSET_CAMPAIGNS)),
+      group: 'FEATURES',
+      type: 'JSON',
+      isPublic: true,
+      isSensitive: false,
+    },
+  });
+
+  await prisma.siteSetting.upsert({
+    where: { key: 'features.cms_content' },
+    update: {},
+    create: {
+      key: 'features.cms_content',
+      valueJson: JSON.parse(JSON.stringify(MEMBER_SOURCE_CMS_CONTENT)),
       group: 'FEATURES',
       type: 'JSON',
       isPublic: true,

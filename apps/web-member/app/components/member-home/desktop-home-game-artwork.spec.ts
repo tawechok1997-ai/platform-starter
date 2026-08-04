@@ -6,9 +6,10 @@ const home = readFileSync(new URL('../../member-home.tsx', import.meta.url), 'ut
 const runtime = readFileSync(new URL('./desktop-home-game-section-runtime.tsx', import.meta.url), 'utf8');
 const catalogModel = readFileSync(new URL('../../lib/member-game-catalog-model.ts', import.meta.url), 'utf8');
 
-test('desktop home no longer mounts the unrelated random reference image recovery owner', () => {
+test('desktop home leaves game artwork and links to the shared React data owners', () => {
   assert.doesNotMatch(home, /DesktopHomeGameImageRecoveryRuntime/);
-  assert.match(home, /<DesktopHomeGameSectionRuntime\s*\/>/);
+  assert.doesNotMatch(home, /DesktopHomeGameSectionRuntime/);
+  assert.match(home, /<DesktopGameFeedProvider popular=\{data\.popular\} online=\{data\.onlineGames\}>/);
 });
 
 test('catalog artwork resolves by provider and game identity', () => {
@@ -18,7 +19,7 @@ test('catalog artwork resolves by provider and game identity', () => {
   assert.match(catalogModel, /requestedPlatform,\s*provider,\s*'badge'/);
 });
 
-test('desktop strips preload artwork and skip broken games before syncing cards', () => {
+test('legacy desktop artwork runtime stays unmounted and documents its loadable-image guard', () => {
   assert.match(runtime, /keepLoadableArtwork/);
   assert.match(runtime, /firstLoadableImage/);
   assert.match(runtime, /game\.imageSource/);

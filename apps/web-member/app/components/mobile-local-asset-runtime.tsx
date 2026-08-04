@@ -23,6 +23,8 @@ const CARD_OWNED_MEDIA_SELECTOR = [
   '.source-popular-card',
   '.source-online-card',
   '.reference-game-tile',
+  '.v47-mobile-game-grid > a',
+  '.member-game-card',
 ].join(',');
 
 export default function MobileLocalAssetRuntime() {
@@ -42,8 +44,8 @@ export default function MobileLocalAssetRuntime() {
       if (!isRemoteMedia(currentSource)) return;
       if (image.dataset.mobileLocalFailedSource === currentSource) return;
 
-      // asset-pc is the checked-in shared library for both viewports. Explicit
-      // Mobile Admin URLs reach the element before this basename fallback runs.
+      // This basename fallback is retained only for generic Mobile media.
+      // Game artwork must use its provider/platform/game identity resolver.
       const localSource = resolveLocalAssetByBasename(currentSource, 'pc')
         || resolveLocalAssetByBasename(currentSource, 'mobile');
       if (!localSource || localSource === currentSource) return;

@@ -33,10 +33,11 @@ test('mobile category rail keeps responsive sizes', () => {
 });
 
 test('mobile Home uses the document as its single vertical scroll owner', () => {
+  const rootRule = followOwner.match(/html\[data-member-viewport-mode='mobile'\] \[data-mobile-home-root='true'\]\s*\{([^}]*)\}/)?.[1] ?? '';
   assert.match(followOwner, /body:has\(\[data-mobile-home-root='true'\]\)[\s\S]*overflow-y:\s*auto\s*!important/);
-  assert.match(followOwner, /\[data-mobile-home-root='true'\][\s\S]*height:\s*auto\s*!important/);
-  assert.match(followOwner, /\[data-mobile-home-root='true'\][\s\S]*overflow:\s*visible\s*!important/);
-  assert.doesNotMatch(followOwner, /\[data-mobile-home-root='true'\][\s\S]*height:\s*100dvh\s*!important/);
+  assert.match(rootRule, /height:\s*auto\s*!important/);
+  assert.match(rootRule, /overflow:\s*visible\s*!important/);
+  assert.doesNotMatch(rootRule, /height:\s*100dvh\s*!important/);
   assert.doesNotMatch(home, /MobileCategoryRailTransformFollower/);
 });
 
@@ -75,9 +76,11 @@ test('category content preserves top chrome and resets the document scroller', (
   assert.doesNotMatch(contentOwner, /root\.scrollTo\(/);
 });
 
-test('category content accepts every canonical category without a second runtime', () => {
-  assert.match(contentOwner, /window\.addEventListener\('click', selectFromClick, true\)/);
+test('category content accepts every canonical category through one event path', () => {
+  assert.match(root, /new CustomEvent\('member:mobile-category-select'/);
   assert.match(contentOwner, /window\.addEventListener\('member:mobile-category-select', selectFromEvent\)/);
+  assert.doesNotMatch(contentOwner, /selectFromClick/);
+  assert.match(contentOwner, /if \(root\) delete root\.dataset\.mobileActiveCategory/);
   assert.match(contentOwner, /'card'/);
   assert.doesNotMatch(home, /MobileCategoryTabRuntime/);
   assert.equal(existsSync(duplicateRuntime), false);

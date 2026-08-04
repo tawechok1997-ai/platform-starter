@@ -184,6 +184,11 @@ function internalDestinationFor(link: HTMLAnchorElement | null): InternalDestina
   }
 
   if (url.origin !== window.location.origin) return null;
+
+  // /guide is an in-place UsageGuideModal entry, not a route transition.
+  // Returning null lets UsageGuideController receive the original bubble click.
+  if (url.pathname.replace(/\/+$/, '') === '/guide') return null;
+
   return {
     href: `${url.pathname}${url.search}${url.hash}`,
     url,

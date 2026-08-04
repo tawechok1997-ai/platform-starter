@@ -9,24 +9,9 @@ const DIALOGS = [
   { id: 'daily-mission-title', kind: 'mission' },
 ] as const;
 
-function forceOverlayAboveChrome(overlay: HTMLElement, kind: string) {
-  if (overlay.dataset.publicDialogOverlay === kind) return;
-
+function markOverlay(overlay: HTMLElement, kind: string) {
   overlay.dataset.publicDialogOverlay = kind;
   overlay.classList.add('public-dialog-runtime-overlay');
-  overlay.style.setProperty('position', 'fixed', 'important');
-  overlay.style.setProperty('inset', '0', 'important');
-  overlay.style.setProperty('z-index', '2147483647', 'important');
-  overlay.style.setProperty('isolation', 'isolate', 'important');
-  overlay.style.setProperty('width', '100vw', 'important');
-  overlay.style.setProperty('height', '100dvh', 'important');
-  overlay.style.setProperty('margin', '0', 'important');
-  overlay.style.setProperty('overflow', 'hidden', 'important');
-  overlay.style.setProperty('opacity', '1', 'important');
-  overlay.style.setProperty('visibility', 'visible', 'important');
-  overlay.style.setProperty('pointer-events', 'auto', 'important');
-  overlay.style.setProperty('transform', 'none', 'important');
-  overlay.style.setProperty('filter', 'none', 'important');
 }
 
 function normalizeDialog(id: string, kind: string) {
@@ -34,11 +19,9 @@ function normalizeDialog(id: string, kind: string) {
   if (!dialog) return;
 
   dialog.classList.add('public-dialog-runtime', `public-dialog-runtime--${kind}`);
-  dialog.style.setProperty('position', 'relative', 'important');
-  dialog.style.setProperty('z-index', '1', 'important');
 
   const overlay = dialog.parentElement;
-  if (overlay instanceof HTMLElement) forceOverlayAboveChrome(overlay, kind);
+  if (overlay instanceof HTMLElement) markOverlay(overlay, kind);
 
   dialog.querySelector<HTMLElement>(':scope > header')
     ?.classList.add('public-dialog-runtime-header');
