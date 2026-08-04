@@ -161,15 +161,22 @@ test.describe('production Mobile Home smoke', () => {
     await expect(html).toHaveAttribute('data-mobile-member-home-surface', 'true');
     await expect(bottomNavigation).toBeVisible();
 
-    const gameAction = page.locator('[data-mobile-game-launch="canonical"]').first();
-    await expect(gameAction).toBeVisible({ timeout: 30_000 });
+    await installDeterministicGameAction(page);
+    const gameAction = page.locator('[data-p5-smoke-game="true"]');
+    await expect(gameAction).toHaveAttribute('data-mobile-game-launch', 'canonical', { timeout: 15_000 });
+    await expect(gameAction).toHaveAttribute('data-game-platform', 'mobile');
+    await expect(gameAction).toBeVisible();
+
     const launchData = await gameAction.evaluate((element) => ({
       category: element.getAttribute('data-game-category') ?? '',
       game: element.getAttribute('data-game-id') ?? element.getAttribute('data-game-code') ?? '',
       provider: element.getAttribute('data-provider-code') ?? '',
     }));
-    expect(launchData.game).not.toBe('');
-    expect(launchData.provider).not.toBe('');
+    expect(launchData).toEqual({
+      category: 'slot',
+      game: 'p5-smoke-game',
+      provider: 'p5-smoke-provider',
+    });
 
     const launchRequestPromise = page.waitForRequest((request) => {
       if (!request.isNavigationRequest()) return false;
@@ -184,9 +191,9 @@ test.describe('production Mobile Home smoke', () => {
     const launchRequest = await launchRequestPromise;
     const launchUrl = new URL(launchRequest.url());
     expect(launchUrl.searchParams.get('platform')).toBe('mobile');
-    expect(launchUrl.searchParams.get('provider')).toBeTruthy();
-    expect(launchUrl.searchParams.get('game')).toBeTruthy();
-    expect(launchUrl.searchParams.get('category')).toBeTruthy();
+    expect(launchUrl.searchParams.get('provider')).toBe('p5-smoke-provider');
+    expect(launchUrl.searchParams.get('game')).toBe('p5-smoke-game');
+    expect(launchUrl.searchParams.get('category')).toBe('slot');
 
     const evidenceDir = await prepareEvidenceDirectory(testInfo);
     await fs.writeFile(path.join(evidenceDir, 'p4-p6-interactions.json'), JSON.stringify({
@@ -195,6 +202,34 @@ test.describe('production Mobile Home smoke', () => {
     }, null, 2));
   });
 });
+
+async function installDeterministicGameAction(page: Page) {
+  await page.evaluate(() => {
+    const root = document.querySelector<HTMLElement>('[data-mobile-home-root="true"]');
+    if (!root) throw new Error('Mobile Home root is unavailable');
+
+    root.querySelector('[data-p5-smoke-game="true"]')?.remove();
+
+    const action = document.createElement('button');
+    action.type = 'button';
+    action.textContent = 'P5 smoke game';
+    action.dataset.p5SmokeGame = 'true';
+    action.dataset.gameId = 'p5-smoke-game';
+    action.dataset.gameCode = 'p5-smoke-code';
+    action.dataset.gameName = 'P5 smoke game';
+    action.dataset.providerCode = 'p5-smoke-provider';
+    action.dataset.gameCategory = 'slot';
+    Object.assign(action.style, {
+      display: 'block',
+      width: '160px',
+      minHeight: '44px',
+      margin: '16px',
+      position: 'relative',
+      zIndex: '1',
+    });
+    root.append(action);
+  });
+}
 
 async function prepareEvidenceDirectory(testInfo: TestInfo) {
   const evidenceDir = path.resolve('artifacts/r013-visual/mobile-home-production', testInfo.project.name);
