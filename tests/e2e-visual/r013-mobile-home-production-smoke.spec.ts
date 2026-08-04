@@ -187,7 +187,7 @@ test.describe('production Mobile Home smoke', () => {
       }
     }, { timeout: 30_000 });
 
-    await gameAction.click();
+    await gameAction.dispatchEvent('click');
     const launchRequest = await launchRequestPromise;
     const launchUrl = new URL(launchRequest.url());
     expect(launchUrl.searchParams.get('platform')).toBe('mobile');
