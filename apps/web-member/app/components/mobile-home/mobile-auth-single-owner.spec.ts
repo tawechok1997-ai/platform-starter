@@ -25,14 +25,21 @@ test('member chrome owns exactly one query-driven authentication popup', () => {
   assert.doesNotMatch(memberChrome, /member:auth-open/);
 });
 
-test('the shared popup owns one iframe and lets embedded auth pages navigate inside it', () => {
+test('the shared popup owns one stable iframe and lets embedded auth pages navigate inside it', () => {
   assert.equal((authOverlay.match(/<iframe\b/g) ?? []).length, 1);
-  assert.match(authOverlay, /activeMode === 'register' \? '\/register\?embed=1' : '\/login\?embed=1'/);
-  assert.match(authOverlay, /src=\{path\}/);
+  assert.match(authOverlay, /initialPathRef = useRef\(mode === 'register' \? '\/register\?embed=1' : '\/login\?embed=1'\)/);
+  assert.match(authOverlay, /src=\{initialPathRef\.current\}/);
+  assert.doesNotMatch(authOverlay, /const path = activeMode/);
   assert.match(authOverlay, /member-auth-switch/);
   assert.match(authOverlay, /member-auth-close/);
   assert.match(authOverlay, /member-auth-success/);
   assert.match(authOverlay, /switchMode\(nextMode\)/);
+
+  const embeddedClickHandler = authOverlay.slice(
+    authOverlay.indexOf("embeddedDocument.addEventListener('click'"),
+    authOverlay.indexOf('}, true);', authOverlay.indexOf("embeddedDocument.addEventListener('click'")),
+  );
+  assert.doesNotMatch(embeddedClickHandler, /preventDefault\(|stopPropagation\(|stopImmediatePropagation\(/);
 });
 
 test('register and login tabs navigate between real embedded auth pages', () => {
