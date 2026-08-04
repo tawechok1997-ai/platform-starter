@@ -71,14 +71,14 @@ export default function HomeSidebarScrollController() {
     body.style.setProperty('position', 'relative', 'important');
     body.style.setProperty('overflow', 'visible', 'important');
 
-    // Keep the sidebar in the original right rail. Its local top is updated from
+    // Keep the sidebar in the reserved left rail. Its local top is updated from
     // the page scroll position, which reproduces sticky/follow behaviour even when
     // transformed or overflow-owning ancestors prevent native position: sticky.
     sidebar.style.setProperty('position', 'absolute', 'important');
     sidebar.style.setProperty('top', '0px', 'important');
-    sidebar.style.setProperty('right', '0px', 'important');
+    sidebar.style.setProperty('right', 'auto', 'important');
     sidebar.style.setProperty('bottom', 'auto', 'important');
-    sidebar.style.setProperty('left', 'auto', 'important');
+    sidebar.style.setProperty('left', '0px', 'important');
     if (railWidth > 0) sidebar.style.setProperty('width', `${railWidth}px`, 'important');
     sidebar.style.setProperty('margin', '0', 'important');
     sidebar.style.setProperty('transform', 'none', 'important');
