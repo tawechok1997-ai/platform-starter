@@ -5,6 +5,17 @@ import path from 'node:path';
 const MEMBER_HOME_URL = process.env.MEMBER_HOME_URL
   ?? 'https://platformweb-member-production.up.railway.app/';
 
+type AncestorMetric = {
+  node: string;
+  overflowX: string;
+  overflowY: string;
+  position: string;
+  transform: string;
+  contain: string;
+  clientHeight: number;
+  scrollHeight: number;
+};
+
 type LayoutMetrics = {
   bodyClientWidth: number;
   bodyScrollWidth: number;
@@ -18,6 +29,9 @@ type LayoutMetrics = {
   rootRight: number | null;
   rootWidth: number | null;
   viewportWidth: number;
+  windowScrollY: number;
+  scrollingElement: string;
+  headerAncestors: AncestorMetric[];
 };
 
 test.describe('production Mobile Home smoke', () => {
@@ -60,9 +74,15 @@ test.describe('production Mobile Home smoke', () => {
     await page.waitForTimeout(250);
 
     const stickyMetrics = await readLayoutMetrics(page);
+    await fs.writeFile(path.join(evidenceDir, 'sticky-diagnostics.json'), JSON.stringify(stickyMetrics, null, 2));
+    console.log(`MOBILE_STICKY_DIAGNOSTICS ${JSON.stringify(stickyMetrics)}`);
+
     expectHorizontalFit(stickyMetrics);
     expect(stickyMetrics.headerPosition).toBe('sticky');
-    expect(stickyMetrics.headerTop ?? 999).toBeGreaterThanOrEqual(-1);
+    expect(
+      stickyMetrics.headerTop ?? 999,
+      `Sticky diagnostics: ${JSON.stringify(stickyMetrics, null, 2)}`,
+    ).toBeGreaterThanOrEqual(-1);
     expect(stickyMetrics.headerTop ?? 999).toBeLessThanOrEqual(2);
     expect(stickyMetrics.railPosition).toBe('sticky');
     expect(stickyMetrics.railTop ?? -999).toBeGreaterThanOrEqual(55);
@@ -112,6 +132,23 @@ async function readLayoutMetrics(page: Page): Promise<LayoutMetrics> {
     const rootRect = root?.getBoundingClientRect();
     const headerRect = header?.getBoundingClientRect();
     const railRect = rail?.getBoundingClientRect();
+    const headerAncestors: AncestorMetric[] = [];
+
+    let owner = header?.parentElement ?? null;
+    while (owner) {
+      const style = getComputedStyle(owner);
+      headerAncestors.push({
+        node: describeNode(owner),
+        overflowX: style.overflowX,
+        overflowY: style.overflowY,
+        position: style.position,
+        transform: style.transform,
+        contain: style.contain,
+        clientHeight: owner.clientHeight,
+        scrollHeight: owner.scrollHeight,
+      });
+      owner = owner.parentElement;
+    }
 
     return {
       bodyClientWidth: document.body.clientWidth,
@@ -126,7 +163,24 @@ async function readLayoutMetrics(page: Page): Promise<LayoutMetrics> {
       rootRight: rootRect?.right ?? null,
       rootWidth: rootRect?.width ?? null,
       viewportWidth: window.innerWidth,
+      windowScrollY: window.scrollY,
+      scrollingElement: document.scrollingElement ? describeNode(document.scrollingElement) : '',
+      headerAncestors,
     };
+
+    function describeNode(element: Element) {
+      const id = element.id ? `#${element.id}` : '';
+      const classes = element instanceof HTMLElement && element.classList.length > 0
+        ? `.${Array.from(element.classList).join('.')}`
+        : '';
+      const mobileOwner = element instanceof HTMLElement && element.dataset.mobileHomeRoot === 'true'
+        ? '[data-mobile-home-root=true]'
+        : '';
+      const animationOwner = element instanceof HTMLElement && element.dataset.animationLevel
+        ? `[data-animation-level=${element.dataset.animationLevel}]`
+        : '';
+      return `${element.tagName.toLowerCase()}${id}${classes}${mobileOwner}${animationOwner}`;
+    }
   });
 }
 
