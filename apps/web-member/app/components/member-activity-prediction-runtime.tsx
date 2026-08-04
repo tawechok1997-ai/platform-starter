@@ -67,7 +67,10 @@ export default function MemberActivityPredictionRuntime() {
 
       const requireLogin = () => {
         const current = new URL(window.location.href);
-        const destination = `${current.pathname}${current.search}${current.hash}`;
+        const destinationUrl = new URL(current.toString());
+        destinationUrl.searchParams.delete('auth');
+        destinationUrl.searchParams.delete('next');
+        const destination = `${destinationUrl.pathname}${destinationUrl.search}${destinationUrl.hash}`;
         current.searchParams.set('auth', 'login');
         current.searchParams.set('next', destination);
         window.location.assign(`${current.pathname}${current.search}${current.hash}`);
@@ -154,7 +157,7 @@ export default function MemberActivityPredictionRuntime() {
 
     const scan = (root: ParentNode = document) => {
       if (root instanceof HTMLElement && root.matches(INPUT_OWNER_SELECTOR)) bindOwner(root);
-      root.querySelectorAll?.<HTMLElement>(INPUT_OWNER_SELECTOR).forEach(bindOwner);
+      root.querySelectorAll<HTMLElement>(INPUT_OWNER_SELECTOR).forEach(bindOwner);
     };
 
     scan();
