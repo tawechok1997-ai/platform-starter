@@ -55,6 +55,32 @@
   outline: 0 !important;
 }
 
+@media (min-width: 901px) {
+  .auth-reference-scope .source-register-card > .source-register-progress,
+  .auth-reference-scope .source-register-card > .source-register-step {
+    box-sizing: border-box !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    align-self: stretch !important;
+  }
+
+  .auth-reference-scope .source-register-card > .source-register-step {
+    display: flex !important;
+    flex: 0 0 auto !important;
+    flex-direction: column !important;
+    gap: 16px !important;
+  }
+
+  .auth-reference-scope .source-register-card > .source-register-step .source-login-field,
+  .auth-reference-scope .source-register-card > .source-register-step [class*='anti-bot'] {
+    box-sizing: border-box !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+  }
+}
+
 @media (max-width: 900px) {
   .auth-reference-scope .source-login-card .public-auth-forgot,
   .auth-reference-scope .source-login-card .public-auth-forgot:hover,
