@@ -28,11 +28,14 @@ test('drag scroll resolves one interacted rail without scanning the desktop canv
   assert.doesNotMatch(dragScroll, /new MutationObserver/);
 });
 
-test('jackpot follower stays scoped to its left home rail and throttles scroll work', () => {
-  assert.match(sidebar, /setProperty\('position', 'absolute'/);
-  assert.match(sidebar, /setProperty\('left', '0px'/);
-  assert.match(sidebar, /setProperty\('right', 'auto'/);
-  assert.match(sidebar, /setProperty\('z-index', '20'/);
+test('jackpot follower owns the left grid rail and throttles scroll work', () => {
+  assert.match(sidebar, /setProperty\('grid-template-columns', '360px minmax\(0, 1080px\)'/);
+  assert.match(sidebar, /main\.style\.setProperty\('grid-column', '2'/);
+  assert.match(sidebar, /sidebar\.style\.setProperty\('grid-column', '1'/);
+  assert.match(sidebar, /sidebar\.style\.setProperty\('position', 'absolute'/);
+  assert.match(sidebar, /sidebar\.style\.setProperty\('left', '0px'/);
+  assert.match(sidebar, /sidebar\.style\.setProperty\('right', 'auto'/);
+  assert.match(sidebar, /sidebar\.style\.setProperty\('z-index', '20'/);
   assert.match(sidebar, /window\.requestAnimationFrame\(syncGeometry\)/);
   assert.match(sidebar, /resizeObserver\.observe\(body\)/);
   assert.match(sidebar, /window\.addEventListener\('scroll', scheduleGeometry/);
