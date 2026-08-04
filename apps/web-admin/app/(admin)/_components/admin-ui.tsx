@@ -7,7 +7,7 @@ export { AdminDrawer } from './admin-drawer';
 
 type PageProps = { eyebrow?: string; title: string; description?: string; actions?: ReactNode; children: ReactNode };
 type CardProps = { title?: string; description?: string; action?: ReactNode; children: ReactNode; tone?: SurfaceTone; compact?: boolean };
-type MetricProps = { title: string; value: string; helper?: string; tone?: SurfaceTone; trend?: string };
+type MetricProps = { title: string; value: string | number; helper?: string; tone?: SurfaceTone; trend?: string };
 type SurfaceTone = 'neutral' | 'success' | 'warning' | 'danger' | 'brand';
 type ButtonTone = 'primary' | 'secondary' | 'danger' | 'success' | 'ghost';
 type ButtonSize = 'compact' | 'regular';
