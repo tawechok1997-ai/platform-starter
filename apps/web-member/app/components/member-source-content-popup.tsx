@@ -2,12 +2,10 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { PromotionView } from '../browse/browse-promotions-cms';
-import { memberApiFetch } from '../member-api';
 import { resolveLocalAssetOrSource } from '../lib/local-asset-by-basename';
 import type { MemberPromotionCampaign, PromotionMemberCategory } from '../promotion-campaign-runtime';
 import { cmsContentSetting, cmsResponsiveMediaUrls, type CmsContent } from '../site-settings';
 import { useSiteSettings } from '../site-settings-provider';
-import { useMemberSession } from '../member-session-provider';
 import { loadLivePromotionCampaigns } from './member-source-content-runtime';
 
 const CATEGORY_OPTIONS: Array<{ value: 'all' | PromotionMemberCategory; label: string }> = [
@@ -20,7 +18,6 @@ const CATEGORY_OPTIONS: Array<{ value: 'all' | PromotionMemberCategory; label: s
 
 type Props = {
   view: PromotionView;
-  detailBackSignal?: number;
   onDetailOpenChange?: (open: boolean) => void;
 };
 
@@ -53,12 +50,7 @@ type ResponsiveSourceProps = {
   className?: string;
 };
 
-export default function MemberSourceContentPopup({
-  view,
-  detailBackSignal = 0,
-  onDetailOpenChange,
-}: Props) {
-  const { ready, isLoggedIn } = useMemberSession();
+export default function MemberSourceContentPopup({ view, onDetailOpenChange }: Props) {
   const { settings, reload } = useSiteSettings();
   const content = useMemo(() => cmsContentSetting(settings), [settings]);
   const popupRootRef = useRef<HTMLElement | null>(null);
@@ -67,8 +59,6 @@ export default function MemberSourceContentPopup({
   const [category, setCategory] = useState<'all' | PromotionMemberCategory>('all');
   const [selectedCampaign, setSelectedCampaign] = useState<MemberPromotionCampaign | null>(null);
   const [selectedActivityId, setSelectedActivityId] = useState('');
-  const [claiming, setClaiming] = useState(false);
-  const [claimMessage, setClaimMessage] = useState('');
 
   const resetPopupScroll = useCallback(() => {
     const root = popupRootRef.current;
@@ -110,24 +100,9 @@ export default function MemberSourceContentPopup({
   }, []);
 
   useEffect(() => {
-    setCategory('all');
-    setSelectedActivityId('');
-    setSelectedCampaign(null);
-    setClaimMessage('');
-    onDetailOpenChange?.(false);
-  }, [onDetailOpenChange, view]);
-
-  useEffect(() => {
-    if (detailBackSignal <= 0) return;
-    setSelectedCampaign(null);
-    setClaimMessage('');
-    onDetailOpenChange?.(false);
-  }, [detailBackSignal, onDetailOpenChange]);
-
-  useEffect(() => {
     const frame = requestAnimationFrame(resetPopupScroll);
     return () => cancelAnimationFrame(frame);
-  }, [category, detailBackSignal, resetPopupScroll, selectedCampaign, view]);
+  }, [category, resetPopupScroll, selectedActivityId, selectedCampaign, view]);
 
   const visibleCampaigns = useMemo(() => campaigns
     .filter((item) => item.enabled && item.lifecycle === 'published')
@@ -139,44 +114,6 @@ export default function MemberSourceContentPopup({
   const selectedActivity = activities.find((item) => item.id === selectedActivityId)
     ?? activities[0]
     ?? null;
-
-  useEffect(() => {
-    if (activities.length === 0) return;
-    if (!activities.some((item) => item.id === selectedActivityId)) {
-      setSelectedActivityId(activities[0]?.id ?? '');
-    }
-  }, [activities, selectedActivityId]);
-
-  async function claimCampaign(campaign: MemberPromotionCampaign) {
-    if (claiming) return;
-    if (!ready || !isLoggedIn) {
-      const next = `${location.pathname}${location.search}`;
-      dispatchEvent(new CustomEvent('member:auth-open', {
-        detail: { mode: 'login', next },
-      }));
-      return;
-    }
-
-    setClaiming(true);
-    setClaimMessage('กำลังส่งคำขอรับโปรโมชั่น...');
-    try {
-      const response = await memberApiFetch('/member/promotion-claims', {
-        method: 'POST',
-        body: JSON.stringify({
-          campaignId: campaign.id,
-          note: `ขอรับโปรโมชั่น ${campaign.title}`,
-        }),
-      });
-      const payload: unknown = await response.json().catch(() => null);
-      setClaimMessage(response.ok
-        ? campaign.claimSuccessMessage
-        : text(asRecord(payload).message, 'รับโปรโมชั่นไม่สำเร็จ กรุณาตรวจสอบเงื่อนไข'));
-    } catch {
-      setClaimMessage('เชื่อมต่อระบบโปรโมชั่นไม่สำเร็จ กรุณาลองอีกครั้ง');
-    } finally {
-      setClaiming(false);
-    }
-  }
 
   if (selectedCampaign) {
     return (
@@ -203,15 +140,6 @@ export default function MemberSourceContentPopup({
           {plainText(selectedCampaign.detailHtml) ? <p>{plainText(selectedCampaign.detailHtml)}</p> : null}
           {plainText(selectedCampaign.termsHtml) ? <p>{plainText(selectedCampaign.termsHtml)}</p> : null}
         </div>
-        {claimMessage ? <p className="member-source-claim-message" role="status">{claimMessage}</p> : null}
-        <button
-          type="button"
-          className="member-source-claim-button"
-          disabled={claiming}
-          onClick={() => void claimCampaign(selectedCampaign)}
-        >
-          {claiming ? 'กำลังส่งคำขอ...' : selectedCampaign.claimButtonLabel}
-        </button>
       </section>
     );
   }
@@ -248,7 +176,7 @@ export default function MemberSourceContentPopup({
         </div>
         <span className="member-source-activity-divider" aria-hidden="true" />
         {selectedActivity
-          ? <ActivityDetail item={selectedActivity} />
+          ? <ActivityDetail key={selectedActivity.id} item={selectedActivity} />
           : <EmptyState label="ยังไม่มีกิจกรรม" />}
       </section>
     );
@@ -303,7 +231,6 @@ export default function MemberSourceContentPopup({
             className="member-source-promotion-card"
             onClick={() => {
               setSelectedCampaign(campaign);
-              setClaimMessage('');
               onDetailOpenChange?.(true);
             }}
           >
@@ -360,29 +287,31 @@ function SourceImage({
   alt: string;
   className?: string;
 }) {
+  const primarySource = sourceAsset(src || fallback);
   const fallbackSource = sourceAsset(fallback);
-  const [current, setCurrent] = useState(() => sourceAsset(src || fallback));
-  const [failed, setFailed] = useState(false);
+  const identity = `${primarySource}|${fallbackSource}`;
+  const [failedIdentity, setFailedIdentity] = useState('');
 
-  useEffect(() => {
-    setCurrent(sourceAsset(src || fallback));
-    setFailed(false);
-  }, [fallback, src]);
-
-  if (!current || failed) {
+  if (!primarySource || failedIdentity === identity) {
     return <span className={`member-source-image-placeholder ${className}`.trim()} aria-hidden="true" />;
   }
 
   return (
     <img
-      src={current}
+      key={identity}
+      src={primarySource}
       alt={alt}
       className={className || undefined}
       loading="lazy"
       decoding="async"
-      onError={() => {
-        if (fallbackSource && current !== fallbackSource) setCurrent(fallbackSource);
-        else setFailed(true);
+      onError={(event) => {
+        const image = event.currentTarget;
+        if (fallbackSource && image.dataset.fallback !== 'true') {
+          image.dataset.fallback = 'true';
+          image.src = fallbackSource;
+          return;
+        }
+        setFailedIdentity(identity);
       }}
     />
   );
@@ -395,31 +324,38 @@ function ResponsiveSourceImage({
   alt,
   className = '',
 }: ResponsiveSourceProps) {
+  const desktopSource = sourceAsset(desktop || fallback);
+  const mobileSource = sourceAsset(mobile || desktop || fallback);
   const fallbackSource = sourceAsset(fallback);
-  const [sources, setSources] = useState(() => createResponsiveSources(desktop, mobile, fallback));
+  const identity = `${desktopSource}|${mobileSource}|${fallbackSource}`;
+  const [failedIdentity, setFailedIdentity] = useState('');
 
-  useEffect(() => {
-    setSources(createResponsiveSources(desktop, mobile, fallback));
-  }, [desktop, fallback, mobile]);
-
-  if (!sources.desktop || sources.failed) {
-    return <span className={`member-source-image-placeholder member-source-responsive-placeholder ${className}`.trim()} aria-hidden="true" />;
+  if (!desktopSource || failedIdentity === identity) {
+    return (
+      <span
+        className={`member-source-image-placeholder member-source-responsive-placeholder ${className}`.trim()}
+        aria-hidden="true"
+      />
+    );
   }
 
   return (
-    <picture className={className || undefined}>
-      <source media="(max-width: 640px)" srcSet={sources.mobile || sources.desktop} />
+    <picture key={identity} className={className || undefined}>
+      <source media="(max-width: 640px)" srcSet={mobileSource || desktopSource} />
       <img
-        src={sources.desktop}
+        src={desktopSource}
         alt={alt}
         loading="lazy"
         decoding="async"
-        onError={() => {
-          if (fallbackSource && sources.desktop !== fallbackSource) {
-            setSources({ desktop: fallbackSource, mobile: fallbackSource, failed: false });
-          } else {
-            setSources((current) => ({ ...current, failed: true }));
+        onError={(event) => {
+          const image = event.currentTarget;
+          if (fallbackSource && image.dataset.fallback !== 'true') {
+            image.dataset.fallback = 'true';
+            image.parentElement?.querySelector('source')?.remove();
+            image.src = fallbackSource;
+            return;
           }
+          setFailedIdentity(identity);
         }}
       />
     </picture>
@@ -430,9 +366,11 @@ function EmptyState({ label }: { label: string }) {
   return (
     <div className="member-source-empty-state" role="status">
       <svg xmlns="http://www.w3.org/2000/svg" width="116" height="81" viewBox="0 0 116 81" fill="none" aria-hidden="true">
-        <path d="M23 18h64v55H23z" fill="#E0B1F1" />
-        <path d="M9 17 67 2l8 24-58 15z" fill="#A800CB" />
-        <rect x="48" y="47" width="15" height="5" rx="2.5" fill="#A800CB" />
+        <path d="M87.4313 36.6079H23.2148V72.7297C23.2148 74.8586 24.0605 76.9003 25.5659 78.4057C27.0713 79.911 29.113 80.7567 31.2419 80.7567H79.4043C81.5332 80.7567 83.5749 79.911 85.0803 78.4057C86.5856 76.9003 87.4313 74.8586 87.4313 72.7297V36.6079Z" fill="#e0b1f1" />
+        <rect x="47.8984" y="46.6665" width="14.7373" height="4.91244" rx="2.45622" fill="#a800cb" />
+        <path fillRule="evenodd" clipRule="evenodd" d="M7.75354 17.3131C5.69718 17.8641 3.94392 19.2094 2.87946 21.0531C1.81501 22.8968 1.52655 25.0878 2.07756 27.1442L4.15511 34.8977C4.70611 36.9541 6.05144 38.7073 7.89513 39.7718C9.73881 40.8362 11.9298 41.1247 13.9862 40.5737L70.8455 25.3383C72.9019 24.7873 74.6552 23.442 75.7196 21.5983C76.7841 19.7546 77.0725 17.5636 76.5215 15.5072L74.444 7.75365C73.893 5.69728 72.5476 3.94402 70.7039 2.87957C68.8603 1.81511 66.6692 1.52666 64.6129 2.07766L7.75354 17.3131Z" fill="#a800cb" />
+        <path d="M68.7734 34.9999C68.7734 34.9999 88.4232 29.4736 85.3529 23.3325C83.6882 20.0027 78.9134 20.2331 76.1421 22.7188C72.9487 25.5831 73.0805 33.1571 77.3702 33.1571C80.4405 33.1571 87.8092 33.7712 93.3356 30.7009C101.991 25.8924 103.775 22.1041 106.231 16.5776" stroke="#e0b1f1" strokeWidth="1.22811" strokeLinecap="round" strokeDasharray="2.46 2.46" />
+        <path fillRule="evenodd" clipRule="evenodd" d="M112.255 7.82712C112.565 6.82343 111.295 6.09573 110.586 6.87357L110.558 6.90437L110.503 6.9649C110.112 7.39089 109.603 7.69103 109.04 7.82732C108.478 7.96361 107.888 7.9299 107.344 7.73046C106.326 7.3579 105.558 8.68737 106.391 9.38219C106.837 9.75445 107.162 10.2512 107.324 10.8089C107.487 11.3667 107.479 11.9602 107.303 12.5137L107.27 12.6186C106.95 13.6205 108.214 14.3572 108.929 13.5858L109.017 13.492C109.411 13.067 109.922 12.768 110.486 12.6326C111.05 12.4972 111.642 12.5314 112.186 12.7309C113.207 13.1047 113.976 11.7731 113.141 11.076C112.686 10.6957 112.355 10.1864 112.194 9.61509C112.033 9.04372 112.049 8.43699 112.239 7.87458L112.255 7.82712Z" fill="#e0b1f1" />
       </svg>
       <span>{label}</span>
     </div>
@@ -509,26 +447,8 @@ function promotionEmptyLabel(state: CampaignLoadState) {
   return 'ยังไม่มีโปรโมชั่น';
 }
 
-function createResponsiveSources(desktop: string, mobile: string, fallback: string) {
-  return {
-    desktop: sourceAsset(desktop || fallback),
-    mobile: sourceAsset(mobile || desktop || fallback),
-    failed: false,
-  };
-}
-
 function sourceAsset(url: string) {
   return resolveLocalAssetOrSource(url, 'pc');
-}
-
-function asRecord(value: unknown): Record<string, unknown> {
-  return value && typeof value === 'object' && !Array.isArray(value)
-    ? value as Record<string, unknown>
-    : {};
-}
-
-function text(value: unknown, fallback: string) {
-  return typeof value === 'string' && value.trim() ? value.trim() : fallback;
 }
 
 function firstText(...values: unknown[]) {
