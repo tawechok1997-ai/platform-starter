@@ -6,7 +6,7 @@
     "write:reference-assets": "node tools/sync-reference-assets.mjs --write",
     "check:reference-assets": "node tools/sync-reference-assets.mjs",
     "dev": "pnpm write:reference-assets && next dev -p 3001",
-    "analyze": "pnpm sync:reference-assets && ANALYZE=true next build",
+    "analyze": "pnpm sync:reference-assets && ANALYZE=true next build && node tools/check-performance-budget.mjs",
     "build": "pnpm sync:reference-assets && next build",
     "lint": "eslint app src --ext .ts,.tsx",
     "test": "node --import tsx --test \"src/**/*.spec.ts\" \"app/**/*.spec.ts\"",

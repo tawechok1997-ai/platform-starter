@@ -108,10 +108,17 @@ export function AdminConfirmDialog({ open, title, description, confirmLabel, can
   const descriptionId = useId();
   const dialogRef = useRef<HTMLElement | null>(null);
   const cancelRef = useRef<HTMLButtonElement | null>(null);
+  const openerRef = useRef<HTMLElement | null>(null);
+  const onCancelRef = useRef(onCancel);
+  const busyRef = useRef(busy);
 
   useEffect(() => { setMounted(true); }, []);
+  useEffect(() => { onCancelRef.current = onCancel; }, [onCancel]);
+  useEffect(() => { busyRef.current = busy; }, [busy]);
   useEffect(() => {
-    if (!open) return;
+    if (!open) return undefined;
+
+    openerRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     const scrollY = window.scrollY;
     const previous = { overflow: document.body.style.overflow, position: document.body.style.position, top: document.body.style.top, width: document.body.style.width };
     document.body.style.overflow = 'hidden';
@@ -120,7 +127,11 @@ export function AdminConfirmDialog({ open, title, description, confirmLabel, can
     document.body.style.width = '100%';
     const focusTimer = window.setTimeout(() => cancelRef.current?.focus(), 30);
     const containFocus = (event: KeyboardEvent) => {
-      if (event.key === 'Escape' && !busy) { onCancel(); return; }
+      if (event.key === 'Escape' && !busyRef.current) {
+        event.preventDefault();
+        onCancelRef.current();
+        return;
+      }
       if (event.key !== 'Tab') return;
       const focusable = Array.from(dialogRef.current?.querySelectorAll<HTMLElement>('button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])') ?? []).filter((element) => !element.hasAttribute('hidden'));
       if (focusable.length === 0) { event.preventDefault(); return; }
@@ -139,16 +150,17 @@ export function AdminConfirmDialog({ open, title, description, confirmLabel, can
       document.body.style.top = previous.top;
       document.body.style.width = previous.width;
       window.scrollTo(0, scrollY);
+      window.setTimeout(() => openerRef.current?.focus(), 0);
     };
-  }, [open, busy, onCancel]);
+  }, [open]);
   if (!open || !mounted) return null;
 
   return createPortal(
-    <div className="admin-confirm-layer" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget && !busy) onCancel(); }}>
+    <div className="admin-confirm-layer" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget && !busyRef.current) onCancelRef.current(); }}>
       <section ref={dialogRef} className="admin-confirm-dialog" role="alertdialog" aria-modal="true" aria-labelledby={titleId} aria-describedby={descriptionId}>
         <div className="admin-confirm-dialog__head"><div className={`admin-confirm-dialog__mark admin-confirm-dialog__mark--${tone}`} aria-hidden="true">!</div><div className="admin-confirm-dialog__copy"><h2 id={titleId}>{title}</h2><p id={descriptionId}>{description}</p></div></div>
         <div className="admin-confirm-dialog__body">{details ? <div className="admin-confirm-dialog__details">{details}</div> : null}</div>
-        <div className="admin-confirm-dialog__actions"><button ref={cancelRef} type="button" className="admin-ui-button admin-ui-button--secondary admin-ui-button--regular" disabled={busy} onClick={onCancel}>{cancelLabel}</button><button type="button" disabled={busy} onClick={onConfirm} className={`admin-ui-button admin-ui-button--${tone} admin-ui-button--regular`}>{busy ? 'กำลังดำเนินการ...' : confirmLabel}</button></div>
+        <div className="admin-confirm-dialog__actions"><button ref={cancelRef} type="button" className="admin-ui-button admin-ui-button--secondary admin-ui-button--regular" disabled={busy} onClick={() => onCancelRef.current()}>{cancelLabel}</button><button type="button" disabled={busy} onClick={onConfirm} className={`admin-ui-button admin-ui-button--${tone} admin-ui-button--regular`}>{busy ? 'กำลังดำเนินการ...' : confirmLabel}</button></div>
       </section>
     </div>, document.body,
   );

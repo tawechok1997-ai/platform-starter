@@ -227,6 +227,7 @@ export class AdminAccessController {
   ) {
     const result = await this.ownershipCommands.transferOwnership(
       req.user.id,
+      req.user.sessionId,
       body.targetAdminId,
       body.twoFactorCode,
       body.reason,
