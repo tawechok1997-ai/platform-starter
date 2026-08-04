@@ -15,6 +15,7 @@ import { DesktopGameFeedProvider } from './components/member-home/member-source-
 import HomeSidebarScrollController from './components/member-home/home-sidebar-scroll-controller';
 import MobileAuthenticatedAvatarRuntime from './components/mobile-home/mobile-authenticated-avatar-runtime';
 import MobileAuthenticatedHomeRuntime from './components/mobile-home/mobile-authenticated-home-runtime';
+import MobileCanonicalGameLaunchCapture from './components/mobile-home/mobile-canonical-game-launch-capture';
 import MobileCouponPopupBridge from './components/mobile-home/mobile-coupon-popup-bridge';
 import MobileHomeGuidePreview from './components/mobile-home/mobile-home-guide-preview';
 import MobileHomeImageRecoveryRuntime from './components/mobile-home/mobile-home-image-recovery-runtime';
@@ -80,6 +81,7 @@ export default function MemberHome(props: MemberHomeProps) {
     return (
       <>
         <MobileHomeRoot content={props.cmsContent} showPromotion={props.showPromotion} />
+        <MobileCanonicalGameLaunchCapture />
         <MobileP4P6ClosureRuntime />
         <MobileP6GuestBottomNavigation />
         <MobileAuthenticatedHomeRuntime />
