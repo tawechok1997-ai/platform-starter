@@ -2,15 +2,14 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import MobileMemberPromotionsPage from '../../../components/mobile-home/mobile-member-promotions-page';
-import { SOURCE_PROMOTION_PAYLOAD } from '../../../components/mobile-home/mobile-member-promotion-source';
+import MobileMemberPromotionsLivePage from '../../../components/mobile-home/mobile-member-promotions-live-page';
 import { memberApiFetch } from '../../../member-api';
 
 type UnknownRecord = Record<string, unknown>;
 
 export default function MobilePromotionsRoute() {
   const router = useRouter();
-  const [payload, setPayload] = useState<unknown>(SOURCE_PROMOTION_PAYLOAD);
+  const [payload, setPayload] = useState<unknown>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -27,10 +26,10 @@ export default function MobilePromotionsRoute() {
     }).then(async (response) => {
       const data = await response.json().catch(() => null);
       if (!response.ok) throw new Error(typeof data?.message === 'string' ? data.message : 'โหลดโปรโมชั่นไม่สำเร็จ');
-      setPayload(hasPromotionCampaigns(data) ? data : SOURCE_PROMOTION_PAYLOAD);
+      setPayload(hasPromotionCampaigns(data) ? data : { features: { promotion_campaigns: [] } });
     }).catch((reason) => {
       if (controller.signal.aborted) return;
-      setPayload(SOURCE_PROMOTION_PAYLOAD);
+      setPayload({ features: { promotion_campaigns: [] } });
       setError(reason instanceof Error ? reason.message : 'โหลดโปรโมชั่นไม่สำเร็จ');
     }).finally(() => {
       if (!controller.signal.aborted) setLoading(false);
@@ -40,7 +39,7 @@ export default function MobilePromotionsRoute() {
   }, []);
 
   return (
-    <MobileMemberPromotionsPage
+    <MobileMemberPromotionsLivePage
       payload={payload}
       loading={loading}
       error={error}
