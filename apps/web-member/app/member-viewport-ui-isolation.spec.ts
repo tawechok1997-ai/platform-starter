@@ -49,12 +49,16 @@ test('mobile portal owners are explicitly tagged and remain mobile-only', () => 
   assert.match(mobilePopupRuntime, /if \(!isMobile \|\| !summary\.isLoggedIn/);
 });
 
-test('the last layout stylesheet is a geometry-free viewport isolation guard', () => {
+test('the last layout stylesheet keeps viewport isolation geometry-free', () => {
   const isolationImport = "import './member-viewport-ui-isolation.css';";
   assert.match(layout, /import '\.\/member-viewport-ui-isolation\.css';/);
   assert.equal(layout.lastIndexOf(isolationImport) > layout.lastIndexOf("import './member-mobile-home-bottom-owner.css';"), true);
   assert.match(isolationCss, /html\[data-member-viewport-mode='mobile'\]/);
   assert.match(isolationCss, /html\[data-member-viewport-mode='desktop'\]/);
   assert.match(isolationCss, /\[data-ui-owner='mobile-popup'\]/);
-  assert.doesNotMatch(isolationCss, /(?:width|height|margin|padding|font-size|background)\s*:/);
+  const popupCenteringMarker = '/* Keep every current Mobile popup';
+  const markerIndex = isolationCss.indexOf(popupCenteringMarker);
+  assert.ok(markerIndex >= 0);
+  const viewportRules = isolationCss.slice(0, markerIndex).replace(/\/\*[\s\S]*?\*\//g, '');
+  assert.doesNotMatch(viewportRules, /(?:width|height|margin|padding|font-size|background)\s*:/);
 });

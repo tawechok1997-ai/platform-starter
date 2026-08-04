@@ -16,11 +16,12 @@ test('authenticated search route owns one source-shaped page', () => {
   assert.match(page, /เกมใหม่/);
 });
 
-test('search reads the central catalog and resolves CDN media through local assets first', () => {
+test('search reads the central catalog and resolves CDN media through platform-aware local assets first', () => {
   assert.match(page, /loadMemberGameCatalog\(platform, controller\.signal\)/);
   assert.match(catalog, /memberApiFetch\(`\/games\/catalog\?\$\{params\.toString\(\)\}`/);
   assert.match(catalog, /platform,/);
-  assert.match(catalogModel, /resolveLocalAssetOrSource\(source, platform\)/);
+  assert.match(catalogModel, /resolveGameAssetOrSource\(/);
+  assert.match(catalogModel, /resolveProviderAssetOrSource\(/);
   assert.match(catalogModel, /providerIconSource/);
   assert.match(page, /restoreRemoteImage\(event, game\.imageSource\)/);
   assert.doesNotMatch(page, /REFERENCE_GAMES|BROWSE_GAMES|FALLBACK_GAMES/);
