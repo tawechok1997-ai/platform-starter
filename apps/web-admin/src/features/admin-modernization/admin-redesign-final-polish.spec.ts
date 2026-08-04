@@ -21,7 +21,8 @@ test('cash-flow widget uses the real historical runtime owner', () => {
 });
 
 test('widget layouts remain local-first and synchronize to the authenticated account', () => {
-  assert.match(layout, /\/admin\/preferences\/dashboard-widget-layout-v1/);
+  assert.match(layout, /DASHBOARD_LAYOUT_PREFERENCE_KEY = 'dashboard-widget-layout-v1'/);
+  assert.match(layout, /`\/admin\/preferences\/\$\{DASHBOARD_LAYOUT_PREFERENCE_KEY\}`/);
   assert.match(layout, /method: 'PATCH'/);
   assert.match(layout, /SAVE_DEBOUNCE_MS = 600/);
   assert.match(layout, /window\.localStorage/);
