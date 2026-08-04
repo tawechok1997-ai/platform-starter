@@ -26,7 +26,7 @@ test('lottery heading and filter match the supplied mobile source', () => {
   assert.match(page, /stacked/);
   assert.match(shared, /data-mobile-provider-filter-button="true"/);
   assert.match(shared, /ProviderFilter = 'all' \| 'new'/);
-  assert.match(shared, /providers\.filter\(\(provider\) => provider\.isNew\)/);
+  assert.match(shared, /filter === 'new' \? providerCards\.filter\(\(provider\) => provider\.isNew\) : providerCards/);
   assert.match(css, /\.filterButton\s*\{[\s\S]*height:\s*20px/);
 });
 

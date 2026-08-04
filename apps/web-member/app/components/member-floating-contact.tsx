@@ -22,6 +22,15 @@ const MOBILE_MENU_BACK_SELECTOR = [
 const MOBILE_REFERRAL_COPY_SELECTOR = '[data-mobile-member-drawer-copy="referral"]';
 const MOBILE_REFERRAL_LABELS = new Set(['แนะนำเพื่อน', 'Refer a friend']);
 const MOBILE_REFERRAL_ROUTES = new Set(['/affiliate', '/mobile/member/affiliate']);
+const MOBILE_CATEGORY_IDS = new Set([
+  'home',
+  'casino',
+  'slot',
+  'fishing',
+  'sport',
+  'card',
+  'lottery',
+]);
 
 export default function MemberFloatingContact() {
   const pathname = usePathname() ?? '/';
@@ -77,6 +86,29 @@ export default function MemberFloatingContact() {
 
     window.addEventListener('click', routeReferralActionsToCopyOwner, true);
     return () => window.removeEventListener('click', routeReferralActionsToCopyOwner, true);
+  }, []);
+
+  useEffect(() => {
+    const routeCategorySelectionToContentOwner = (event: MouseEvent) => {
+      if (!(event.target instanceof Element)) return;
+      const categoryButton = event.target.closest<HTMLButtonElement>(
+        'button[data-mobile-category-id]',
+      );
+      if (!categoryButton?.closest('[data-mobile-home-root="true"]')) return;
+
+      const category = categoryButton.dataset.mobileCategoryId ?? '';
+      if (!MOBILE_CATEGORY_IDS.has(category)) return;
+
+      // MobileHomeRoot owns the active button styling while
+      // MobileHighlightTabContent owns the rendered category page. Keep both
+      // owners synchronized without cancelling the original React click.
+      window.dispatchEvent(new CustomEvent('member:mobile-category-select', {
+        detail: { category },
+      }));
+    };
+
+    document.addEventListener('click', routeCategorySelectionToContentOwner);
+    return () => document.removeEventListener('click', routeCategorySelectionToContentOwner);
   }, []);
 
   useEffect(() => {

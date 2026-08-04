@@ -1,0 +1,18 @@
+@import './member-source-content-popup-hardening.css';
+
+.member-shared-popup-header .member-shared-popup-kind-icon {
+  display: block;
+  width: 31px;
+  height: 31px;
+  fill: none;
+  stroke: #c8c8c8;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.member-shared-popup-header .member-shared-popup-kind-icon path,
+.member-shared-popup-header .member-shared-popup-kind-icon rect,
+.member-shared-popup-header .member-shared-popup-kind-icon circle {
+  vector-effect: non-scaling-stroke;
+}

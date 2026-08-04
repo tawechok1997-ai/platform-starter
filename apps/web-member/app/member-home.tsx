@@ -8,7 +8,6 @@ import {
   defaultFeatureFlags,
   defaultIconSettings,
 } from './site-settings';
-import MemberGameSectionRuntimeController from './components/member-game-section-runtime-controller';
 import MemberHomeRuntimeController from './components/member-home-runtime-controller';
 import { CmsPopup } from './components/member-home-sections';
 import { DesktopHomeScaffold } from './components/member-home/desktop-home-scaffold';
@@ -16,9 +15,9 @@ import { DesktopGameFeedProvider } from './components/member-home/member-source-
 import HomeSidebarScrollController from './components/member-home/home-sidebar-scroll-controller';
 import MobileAuthenticatedAvatarRuntime from './components/mobile-home/mobile-authenticated-avatar-runtime';
 import MobileAuthenticatedHomeRuntime from './components/mobile-home/mobile-authenticated-home-runtime';
-import MobileCategoryTabRuntime from './components/mobile-home/mobile-category-tab-runtime';
 import MobileCouponPopupBridge from './components/mobile-home/mobile-coupon-popup-bridge';
 import MobileHomeGuidePreview from './components/mobile-home/mobile-home-guide-preview';
+import MobileHomeImageRecoveryRuntime from './components/mobile-home/mobile-home-image-recovery-runtime';
 import MobileHomeMotionRuntime from './components/mobile-home/mobile-home-motion-runtime';
 import MobileHomeRoot from './components/mobile-home/mobile-home-root';
 import MobileMemberMenuSourceBridge from './components/mobile-home/mobile-member-menu-source-bridge';
@@ -46,22 +45,34 @@ type ViewportMode = 'desktop' | 'mobile';
 type HomePopupKind = 'promotion' | 'activity' | 'news';
 
 const POPUP_CLOSED_VERSION_KEY = 'member_cms_popup_closed_version';
-const MOBILE_HOME_QUERY = '(max-width: 900px)';
+const NARROW_HOME_QUERY = '(max-width: 900px)';
+const MOBILE_INPUT_QUERY = '(hover: none), (pointer: coarse)';
 
 export default function MemberHome(props: MemberHomeProps) {
-  // Mobile is the safe server-rendered default. It prevents a blank page while
-  // the client bundle hydrates, and useLayoutEffect switches wide screens to
-  // Desktop before the hydrated frame is painted.
-  const [viewportMode, setViewportMode] = useState<ViewportMode>('mobile');
+  // Keep the server and first client render intentionally lightweight. Rendering
+  // the complete Mobile tree first on every Desktop visit caused both viewport
+  // owners, their observers and their image work to run during hydration.
+  const [viewportMode, setViewportMode] = useState<ViewportMode | null>(null);
 
   useLayoutEffect(() => {
-    const media = window.matchMedia(MOBILE_HOME_QUERY);
-    const syncViewport = () => setViewportMode(media.matches ? 'mobile' : 'desktop');
+    const narrow = window.matchMedia(NARROW_HOME_QUERY);
+    const mobileInput = window.matchMedia(MOBILE_INPUT_QUERY);
+    const syncViewport = () => setViewportMode(isMobileHomeViewport(narrow, mobileInput) ? 'mobile' : 'desktop');
 
     syncViewport();
-    media.addEventListener?.('change', syncViewport);
-    return () => media.removeEventListener?.('change', syncViewport);
+    narrow.addEventListener?.('change', syncViewport);
+    mobileInput.addEventListener?.('change', syncViewport);
+    window.addEventListener('orientationchange', syncViewport);
+    return () => {
+      narrow.removeEventListener?.('change', syncViewport);
+      mobileInput.removeEventListener?.('change', syncViewport);
+      window.removeEventListener('orientationchange', syncViewport);
+    };
   }, []);
+
+  if (viewportMode === null) {
+    return <div className="member-home-viewport-pending" data-member-home-viewport-pending="true" aria-hidden="true" />;
+  }
 
   if (viewportMode === 'mobile') {
     return (
@@ -71,9 +82,9 @@ export default function MemberHome(props: MemberHomeProps) {
         <MobileCouponPopupBridge />
         <MobileMemberMenuSourceBridge />
         <MobileAuthenticatedAvatarRuntime />
-        <MobileCategoryTabRuntime />
         <MobileHomeGuidePreview />
         <MobileScrollComfortGuard />
+        <MobileHomeImageRecoveryRuntime />
         <MobileHomeMotionRuntime contentVersion={mobileHomeMotionVersion(props.cmsContent)} />
       </>
     );
@@ -124,12 +135,22 @@ function DesktopMemberHome(props: MemberHomeProps) {
       </DesktopGameFeedProvider>
       <HomeSidebarScrollController />
       <MemberHomeRuntimeController />
-      <MemberGameSectionRuntimeController />
       {props.cmsContent.popup.enabled && !popupClosed ? (
         <CmsPopup content={props.cmsContent} primaryColor={props.primaryColor} onClose={closePopup} />
       ) : null}
     </>
   );
+}
+
+function isMobileHomeViewport(narrow: MediaQueryList, mobileInput: MediaQueryList) {
+  if (!narrow.matches) return false;
+  if (mobileInput.matches) return true;
+
+  // Browser page zoom changes CSS viewport width on desktop and previously
+  // caused the Mobile tree to render inside a desktop browser. Physical screen
+  // size keeps zoomed desktop sessions on the Desktop owner while real compact
+  // devices continue to use the Mobile owner.
+  return Math.min(window.screen.width, window.screen.height) <= 900;
 }
 
 function mobileHomeMotionVersion(content: CmsContent) {

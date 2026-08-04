@@ -18,6 +18,9 @@ let frozenViewportWidth: number | null = null;
  * The first overlay captures and locks the document. Nested overlays only
  * increase the reference count, so closing one overlay cannot restore stale
  * styles while another overlay is still visible.
+ *
+ * data-member-overlay-open is deliberately not owned here. The visual overlay
+ * detector owns that state; this utility only exposes the lock state/count.
  */
 export function acquireMemberDocumentOverlayLock() {
   if (typeof window === 'undefined' || typeof document === 'undefined') {
@@ -49,7 +52,7 @@ export function acquireMemberDocumentOverlayLock() {
     }
     html.style.overflow = 'hidden';
     html.style.overscrollBehavior = 'none';
-    html.dataset.memberOverlayOpen = 'true';
+    html.dataset.memberOverlayLock = 'true';
     html.style.setProperty('--member-overlay-viewport-width', `${measuredViewportWidth}px`);
   }
 
@@ -95,7 +98,7 @@ function restoreDocumentStyles() {
     html.style.overscrollBehavior = snapshot.htmlOverscrollBehavior;
   }
 
-  delete html.dataset.memberOverlayOpen;
+  delete html.dataset.memberOverlayLock;
   delete html.dataset.memberOverlayCount;
   html.style.removeProperty('--member-overlay-viewport-width');
   styleSnapshot = null;

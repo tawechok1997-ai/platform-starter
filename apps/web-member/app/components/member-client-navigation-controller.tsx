@@ -18,6 +18,23 @@ const POPUP_TRIGGER_SELECTOR = [
   '[aria-haspopup="dialog"]',
 ].join(',');
 
+const GAME_ACTION_SELECTOR = [
+  '[data-public-game-action="login"]',
+  '[data-game-id]',
+  '[data-game-code]',
+  '[data-game-name]',
+  '.source-highlight-hero__link',
+  '.source-highlight-game',
+  '.reference-game-tile',
+  '.source-popular-card',
+  '.source-online-card',
+  '.v47-mobile-game-grid',
+  '.browse-source-game-card',
+  '.game-lobby-card',
+  '.hot-game-card',
+  '.game-detail-play',
+].join(',');
+
 const TOURNAMENT_TRIGGER_SELECTOR = '.reference-tournament-cta';
 const TOURNAMENT_DESTINATION = '/browse/tournaments';
 const ROUTE_ENTER_DURATION_MS = 240;
@@ -139,6 +156,7 @@ export default function MemberClientNavigationController() {
 
 function shouldAnimateRouteLink(link: HTMLAnchorElement, destination: InternalDestination) {
   if (link.closest(POPUP_TRIGGER_SELECTOR)) return false;
+  if (link.closest(GAME_ACTION_SELECTOR)) return false;
   if (destination.url.pathname === '/login' || destination.url.pathname === '/register') return false;
   if (destination.url.pathname === '/promotions' || destination.url.pathname === '/browse/promotions') return false;
   return true;
@@ -166,6 +184,11 @@ function internalDestinationFor(link: HTMLAnchorElement | null): InternalDestina
   }
 
   if (url.origin !== window.location.origin) return null;
+
+  // /guide is an in-place UsageGuideModal entry, not a route transition.
+  // Returning null lets UsageGuideController receive the original bubble click.
+  if (url.pathname.replace(/\/+$/, '') === '/guide') return null;
+
   return {
     href: `${url.pathname}${url.search}${url.hash}`,
     url,

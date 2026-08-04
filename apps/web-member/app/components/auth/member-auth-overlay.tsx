@@ -14,16 +14,21 @@ type MemberAuthOverlayProps = {
 };
 
 const EXIT_DURATION_MS = 180;
+const REGISTER_LABELS = ['สมัครสมาชิก', 'ลงทะเบียน', 'register', 'sign up'];
+const LOGIN_LABELS = ['เข้าสู่ระบบ', 'ล็อกอิน', 'login', 'log in', 'sign in'];
 
 export default function MemberAuthOverlay({ mode, onModeChange, onClose, onSuccess }: MemberAuthOverlayProps) {
   const [activeMode, setActiveMode] = useState<MemberAuthMode>(mode);
   const [frameReady, setFrameReady] = useState(false);
   const [visible, setVisible] = useState(false);
   const [closing, setClosing] = useState(false);
+  const [dismissed, setDismissed] = useState(false);
   const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null);
   const exitTimerRef = useRef<number | null>(null);
   const closingRef = useRef(false);
   const authCompletionRef = useRef(false);
+  const activeModeRef = useRef<MemberAuthMode>(mode);
+  const releaseDocumentLockRef = useRef<(() => void) | null>(null);
   const onModeChangeRef = useRef(onModeChange);
 
   useEffect(() => {
@@ -31,10 +36,13 @@ export default function MemberAuthOverlay({ mode, onModeChange, onClose, onSucce
   }, [onModeChange]);
 
   useEffect(() => {
+    activeModeRef.current = mode;
     setActiveMode(mode);
+    setDismissed(false);
   }, [mode]);
 
   const switchMode = useCallback((nextMode: MemberAuthMode) => {
+    activeModeRef.current = nextMode;
     setActiveMode(nextMode);
     onModeChangeRef.current?.(nextMode);
   }, []);
@@ -46,17 +54,36 @@ export default function MemberAuthOverlay({ mode, onModeChange, onClose, onSucce
     }
   }, []);
 
+  const releaseDocumentLockNow = useCallback(() => {
+    const release = releaseDocumentLockRef.current;
+    releaseDocumentLockRef.current = null;
+    release?.();
+  }, []);
+
   const beginClose = useCallback((afterClose: () => void | Promise<void>) => {
     if (closingRef.current) return;
     closingRef.current = true;
     clearExitTimer();
     setClosing(true);
     setVisible(false);
+
     exitTimerRef.current = window.setTimeout(() => {
       exitTimerRef.current = null;
-      void afterClose();
+
+      // Remove the full-screen portal and restore the document before the URL
+      // transition. Mobile Safari can delay router updates, and leaving an
+      // invisible iframe mounted during that delay blocks every control below.
+      setDismissed(true);
+      releaseDocumentLockNow();
+      document.documentElement.removeAttribute('data-member-overlay-open');
+      document.querySelectorAll<HTMLElement>('[data-member-active-overlay="true"]')
+        .forEach((element) => element.removeAttribute('data-member-active-overlay'));
+
+      window.requestAnimationFrame(() => {
+        void afterClose();
+      });
     }, EXIT_DURATION_MS);
-  }, [clearExitTimer]);
+  }, [clearExitTimer, releaseDocumentLockNow]);
 
   const requestClose = useCallback(() => {
     beginClose(onClose);
@@ -82,6 +109,7 @@ export default function MemberAuthOverlay({ mode, onModeChange, onClose, onSucce
     authCompletionRef.current = false;
     setClosing(false);
     setVisible(false);
+    setDismissed(false);
 
     let secondAnimationFrame = 0;
     const firstAnimationFrame = window.requestAnimationFrame(() => {
@@ -102,6 +130,7 @@ export default function MemberAuthOverlay({ mode, onModeChange, onClose, onSucce
 
   useEffect(() => {
     const releaseDocumentLock = acquireMemberDocumentOverlayLock();
+    releaseDocumentLockRef.current = releaseDocumentLock;
 
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') requestClose();
@@ -124,6 +153,9 @@ export default function MemberAuthOverlay({ mode, onModeChange, onClose, onSucce
       clearExitTimer();
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('message', handleMessage);
+      if (releaseDocumentLockRef.current === releaseDocumentLock) {
+        releaseDocumentLockRef.current = null;
+      }
       releaseDocumentLock();
     };
   }, [clearExitTimer, completeAuth, requestClose, switchMode]);
@@ -133,31 +165,33 @@ export default function MemberAuthOverlay({ mode, onModeChange, onClose, onSucce
   function revealFrameWhenEmbedded(event: SyntheticEvent<HTMLIFrameElement>) {
     const frame = event.currentTarget;
     const embeddedDocument = frame.contentDocument;
+    const embeddedElement = embeddedDocument?.defaultView?.Element;
 
-    if (embeddedDocument && embeddedDocument.documentElement.dataset.memberAuthNavigationBound !== 'true') {
+    if (
+      embeddedDocument
+      && embeddedElement
+      && embeddedDocument.documentElement.dataset.memberAuthNavigationBound !== 'true'
+    ) {
       embeddedDocument.documentElement.dataset.memberAuthNavigationBound = 'true';
       embeddedDocument.addEventListener('click', (clickEvent) => {
-        if (!(clickEvent.target instanceof Element)) return;
-        const link = clickEvent.target.closest<HTMLAnchorElement>('a[href]');
-        if (!link) return;
+        const target = clickEvent.target;
+        if (!(target instanceof embeddedElement)) return;
 
-        let target: URL;
-        try {
-          target = new URL(link.getAttribute('href') ?? '', window.location.origin);
-        } catch {
-          return;
-        }
+        const control = target.closest<HTMLElement>([
+          'a[href]',
+          'button',
+          '[role="tab"]',
+          '[data-auth-mode]',
+          '[data-member-auth-switch]',
+        ].join(','));
+        if (!control) return;
 
-        if (target.origin !== window.location.origin) return;
-        const nextMode = target.pathname === '/register'
-          ? 'register'
-          : target.pathname === '/login'
-            ? 'login'
-            : null;
-        if (!nextMode) return;
+        const nextMode = embeddedAuthMode(control, activeModeRef.current);
+        if (!nextMode || nextMode === activeModeRef.current) return;
 
         clickEvent.preventDefault();
         clickEvent.stopPropagation();
+        clickEvent.stopImmediatePropagation();
         switchMode(nextMode);
       }, true);
     }
@@ -175,6 +209,8 @@ export default function MemberAuthOverlay({ mode, onModeChange, onClose, onSucce
 
     window.requestAnimationFrame(checkEmbeddedMode);
   }
+
+  if (dismissed) return null;
 
   const motionState = closing ? 'closing' : visible ? 'open' : 'opening';
   const overlay = (
@@ -199,4 +235,42 @@ export default function MemberAuthOverlay({ mode, onModeChange, onClose, onSucce
   );
 
   return portalTarget ? createPortal(overlay, portalTarget) : null;
+}
+
+function embeddedAuthMode(control: HTMLElement, currentMode: MemberAuthMode): MemberAuthMode | null {
+  const explicit = [
+    control.dataset.authMode,
+    control.dataset.memberAuthSwitch,
+    control.getAttribute('data-mode'),
+    control.getAttribute('data-tab'),
+  ].find((value) => value === 'login' || value === 'register');
+  if (explicit === 'login' || explicit === 'register') return explicit;
+
+  const href = control.getAttribute('href');
+  if (href) {
+    try {
+      const target = new URL(href, window.location.origin);
+      if (target.origin === window.location.origin) {
+        const requestedMode = target.searchParams.get('auth');
+        if (requestedMode === 'login' || target.pathname === '/login') return 'login';
+        if (requestedMode === 'register' || target.pathname === '/register') return 'register';
+      }
+    } catch {
+      // Fall back to the visible switch label below.
+    }
+  }
+
+  const label = (control.textContent ?? '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .toLowerCase();
+  if (!label) return null;
+
+  if (currentMode === 'login' && REGISTER_LABELS.some((candidate) => label.includes(candidate))) {
+    return 'register';
+  }
+  if (currentMode === 'register' && LOGIN_LABELS.some((candidate) => label.includes(candidate))) {
+    return 'login';
+  }
+  return null;
 }

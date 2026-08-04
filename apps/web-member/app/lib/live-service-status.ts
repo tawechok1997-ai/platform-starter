@@ -1,10 +1,11 @@
 export type LiveServiceLocale = 'th' | 'en';
+export type LiveServiceMode = 'active' | 'maintenance';
 
 export const LIVE_ROUTE = '/live';
 
-export const LIVE_SERVICE_STATUS = {
-  mode: 'maintenance',
-} as const;
+export const LIVE_SERVICE_STATUS: { mode: LiveServiceMode } = {
+  mode: 'active',
+};
 
 export const LIVE_SERVICE_COPY: Record<LiveServiceLocale, {
   badge: string;
