@@ -15,12 +15,19 @@ test('Mobile Home header remains visible with bounded sticky positioning', () =>
   assert.doesNotMatch(stickyCss, /data-mobile-section-owner='header'[\s\S]*position:\s*fixed\s*!important/);
 });
 
+test('document is the sole vertical scroll owner for Mobile Home', () => {
+  assert.match(stickyCss, /html\[data-member-viewport-mode='mobile'\]:has\(\[data-mobile-home-root='true'\]\)[\s\S]*overflow-x:\s*clip\s*!important/);
+  assert.match(stickyCss, /html\[data-member-viewport-mode='mobile'\]:has\(\[data-mobile-home-root='true'\]\)[\s\S]*overflow-y:\s*auto\s*!important/);
+  assert.match(stickyCss, /body:has\(\[data-mobile-home-root='true'\]\)[\s\S]*overflow-x:\s*clip\s*!important/);
+  assert.match(stickyCss, /body:has\(\[data-mobile-home-root='true'\]\)[\s\S]*overflow-y:\s*visible\s*!important/);
+  assert.doesNotMatch(stickyCss, /body:has\(\[data-mobile-home-root='true'\]\)[\s\S]*overflow-y:\s*auto\s*!important/);
+});
+
 test('outer branded main cannot trap the sticky header in a non-scrolling overflow owner', () => {
   assert.match(stickyCss, /main\[data-animation-level\]:has\(\[data-mobile-home-root='true'\]\)/);
   assert.match(stickyCss, /main\[data-animation-level\]:has\([\s\S]*overflow-x:\s*clip\s*!important/);
   assert.match(stickyCss, /main\[data-animation-level\]:has\([\s\S]*overflow-y:\s*visible\s*!important/);
   assert.match(stickyCss, /main\[data-animation-level\]:has\([\s\S]*contain:\s*none\s*!important/);
-  assert.doesNotMatch(stickyCss, /body:has\(\[data-mobile-home-root='true'\]\)\s*>\s*main\[data-animation-level\]/);
 });
 
 test('Mobile Home shell and padded full-width sections stay inside the viewport', () => {
