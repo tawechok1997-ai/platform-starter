@@ -7,6 +7,7 @@ const PUBLIC_ADMIN_CONTROLLERS = new Set([
   'modules/admin-access/admin-invitation.controller.ts',
 ]);
 const MUTATION_DECORATOR = /@(Post|Put|Patch|Delete)\s*\(/g;
+const PERMISSION_DECORATOR = /@Require(?:Any)?Permission\(/;
 
 async function walk(directory) {
   const entries = await readdir(directory, { withFileTypes: true });
@@ -32,7 +33,7 @@ function hasAdminGuard(source) {
 }
 
 function hasPermissionMetadata(source) {
-  return /@RequirePermission\(/.test(source);
+  return PERMISSION_DECORATOR.test(source);
 }
 
 function lineNumber(source, index) {
@@ -73,7 +74,7 @@ function adminControllerClassBlocks(source) {
 function classHasPermission(classSource) {
   const classIndex = classSource.search(/export\s+class\s+/);
   if (classIndex < 0) return false;
-  return /@RequirePermission\(/.test(classSource.slice(0, classIndex));
+  return PERMISSION_DECORATOR.test(classSource.slice(0, classIndex));
 }
 
 function mutationHandlersMissingPermission(source) {
@@ -90,7 +91,7 @@ function mutationHandlersMissingPermission(source) {
       let start = index;
       while (start > 0 && /^\s*@/.test(lines[start - 1])) start -= 1;
       const decoratorBlock = lines.slice(start, index + 1).join('\n');
-      if (!/@RequirePermission\(/.test(decoratorBlock)) {
+      if (!PERMISSION_DECORATOR.test(decoratorBlock)) {
         const localOffset = lines.slice(0, index).join('\n').length + (index > 0 ? 1 : 0);
         missing.push({
           method: mutation[1].toUpperCase(),
@@ -143,7 +144,7 @@ if (unguarded.length > 0) {
 }
 
 if (unsafeMutations.length > 0) {
-  console.error('\nAdmin mutation handlers missing @RequirePermission metadata:');
+  console.error('\nAdmin mutation handlers missing permission metadata:');
   for (const item of unsafeMutations) console.error(`  - ${item.path}:${item.line} (${item.method})`);
 }
 
