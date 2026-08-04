@@ -21,6 +21,7 @@ describe('AdminOwnershipCommandService', () => {
   function createHarness() {
     let ownerId = '00000000-0000-0000-0000-000000000001';
     const actorId = ownerId;
+    const actorSessionId = '00000000-0000-0000-0000-000000000010';
     const targetId = '00000000-0000-0000-0000-000000000002';
     const competingTargetId = '00000000-0000-0000-0000-000000000003';
     const lockOrder: string[] = [];
@@ -76,6 +77,7 @@ describe('AdminOwnershipCommandService', () => {
       adminAuth,
       tx,
       actorId,
+      actorSessionId,
       targetId,
       competingTargetId,
       lockOrder,
@@ -83,12 +85,13 @@ describe('AdminOwnershipCommandService', () => {
     };
   }
 
-  it('locks actor and target deterministically and commits role transfer with its audit', async () => {
+  it('locks actor and target deterministically and commits policy evidence with the audit', async () => {
     const harness = createHarness();
 
     await expect(
       harness.service.transferOwnership(
         harness.actorId,
+        harness.actorSessionId,
         harness.targetId,
         '123456',
         'planned ownership transfer',
@@ -101,6 +104,16 @@ describe('AdminOwnershipCommandService', () => {
     expect(harness.tx.adminUserRole.delete).toHaveBeenCalledTimes(1);
     expect(harness.tx.adminUserRole.create).toHaveBeenCalledTimes(1);
     expect(harness.tx.adminAuditLog.create).toHaveBeenCalledTimes(1);
+    expect(harness.tx.adminAuditLog.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        newData: expect.objectContaining({
+          sensitiveActionPolicy: expect.objectContaining({
+            actorSessionId: harness.actorSessionId,
+            stepUpMethod: 'totp',
+          }),
+        }),
+      }),
+    });
     expect(harness.currentOwner()).toBe(harness.targetId);
     expect(harness.lockOrder).toEqual([harness.actorId, harness.targetId]);
   });
@@ -110,6 +123,7 @@ describe('AdminOwnershipCommandService', () => {
 
     await harness.service.transferOwnership(
       harness.actorId,
+      harness.actorSessionId,
       harness.targetId,
       '123456',
       'first ownership transfer',
@@ -119,6 +133,7 @@ describe('AdminOwnershipCommandService', () => {
     await expect(
       harness.service.transferOwnership(
         harness.actorId,
+        harness.actorSessionId,
         harness.competingTargetId,
         '123456',
         'competing ownership transfer',
@@ -143,6 +158,7 @@ describe('AdminOwnershipCommandService', () => {
     await expect(
       harness.service.transferOwnership(
         harness.actorId,
+        harness.actorSessionId,
         harness.targetId,
         '123456',
         'invalid ownership transfer',
@@ -153,5 +169,23 @@ describe('AdminOwnershipCommandService', () => {
     expect(harness.tx.adminUserRole.delete).not.toHaveBeenCalled();
     expect(harness.tx.adminUserRole.create).not.toHaveBeenCalled();
     expect(harness.tx.adminAuditLog.create).not.toHaveBeenCalled();
+  });
+
+  it('rejects ownership transfer when the authenticated session is missing', async () => {
+    const harness = createHarness();
+
+    await expect(
+      harness.service.transferOwnership(
+        harness.actorId,
+        '',
+        harness.targetId,
+        '123456',
+        'invalid ownership transfer',
+        {},
+      ),
+    ).rejects.toBeInstanceOf(ForbiddenException);
+
+    expect(harness.adminAuth.assertStepUp).not.toHaveBeenCalled();
+    expect(harness.prisma.$transaction).not.toHaveBeenCalled();
   });
 });
