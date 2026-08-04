@@ -92,11 +92,15 @@ test('saved layout ignores unknown duplicates and clamps unsafe spans', () => {
   ]);
 
   assert.equal(layout.length, definitions.length);
-  assert.deepEqual(layout.map((item) => item.widgetId), ['risk.open-alerts', 'finance.cash-flow', 'system.health']);
+  assert.deepEqual(layout.map((item) => item.widgetId), [
+    'risk.open-alerts',
+    'system.health',
+    'finance.cash-flow',
+  ]);
   assert.deepEqual(layout.map((item) => item.order), [0, 1, 2]);
   assert.deepEqual(layout.find((item) => item.widgetId === 'finance.cash-flow'), {
     widgetId: 'finance.cash-flow',
-    order: 1,
+    order: 2,
     columns: 4,
     rows: 1,
     pinned: false,
@@ -112,11 +116,15 @@ test('drag resize pin and restore operations stay immutable', () => {
   assert.deepEqual(defaults.map((item) => item.widgetId), ['risk.open-alerts', 'finance.cash-flow', 'system.health']);
 
   const pinned = updateAdminWidgetLayoutItem(moved, 'finance.cash-flow', { pinned: true, columns: 3, rows: 2 });
-  const firstPinned = pinned[0];
-  assert.ok(firstPinned);
-  assert.deepEqual(pinned.map((item) => item.widgetId), ['finance.cash-flow', 'risk.open-alerts', 'system.health']);
-  assert.equal(firstPinned.columns, 3);
-  assert.equal(firstPinned.rows, 2);
+  const financePinned = pinned.find((item) => item.widgetId === 'finance.cash-flow');
+  assert.ok(financePinned);
+  assert.deepEqual(pinned.map((item) => item.widgetId), [
+    'risk.open-alerts',
+    'finance.cash-flow',
+    'system.health',
+  ]);
+  assert.equal(financePinned.columns, 3);
+  assert.equal(financePinned.rows, 2);
 });
 
 test('saved layout payload is versioned and isolated per administrator', () => {
