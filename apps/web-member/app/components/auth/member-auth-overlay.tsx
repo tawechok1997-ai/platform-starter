@@ -28,6 +28,7 @@ export default function MemberAuthOverlay({ mode, onModeChange, onClose, onSucce
   const closingRef = useRef(false);
   const authCompletionRef = useRef(false);
   const activeModeRef = useRef<MemberAuthMode>(mode);
+  const initialPathRef = useRef(mode === 'register' ? '/register?embed=1' : '/login?embed=1');
   const releaseDocumentLockRef = useRef<(() => void) | null>(null);
   const onModeChangeRef = useRef(onModeChange);
 
@@ -125,10 +126,6 @@ export default function MemberAuthOverlay({ mode, onModeChange, onClose, onSucce
   }, [clearExitTimer]);
 
   useEffect(() => {
-    setFrameReady(false);
-  }, [activeMode]);
-
-  useEffect(() => {
     const releaseDocumentLock = acquireMemberDocumentOverlayLock();
     releaseDocumentLockRef.current = releaseDocumentLock;
 
@@ -160,12 +157,14 @@ export default function MemberAuthOverlay({ mode, onModeChange, onClose, onSucce
     };
   }, [clearExitTimer, completeAuth, requestClose, switchMode]);
 
-  const path = activeMode === 'register' ? '/register?embed=1' : '/login?embed=1';
-
   function revealFrameWhenEmbedded(event: SyntheticEvent<HTMLIFrameElement>) {
     const frame = event.currentTarget;
     const embeddedDocument = frame.contentDocument;
     const embeddedElement = embeddedDocument?.defaultView?.Element;
+
+    if (embeddedDocument) {
+      embeddedDocument.documentElement.dataset.memberAuthStableShell = 'true';
+    }
 
     if (
       embeddedDocument
@@ -189,9 +188,9 @@ export default function MemberAuthOverlay({ mode, onModeChange, onClose, onSucce
         const nextMode = embeddedAuthMode(control, activeModeRef.current);
         if (!nextMode || nextMode === activeModeRef.current) return;
 
-        clickEvent.preventDefault();
-        clickEvent.stopPropagation();
-        clickEvent.stopImmediatePropagation();
+        // Let the embedded Next.js Link complete its own client-side navigation.
+        // The iframe stays mounted, so Login and Register remain one popup shell
+        // instead of replacing the whole frame and replaying the opening state.
         switchMode(nextMode);
       }, true);
     }
@@ -226,7 +225,7 @@ export default function MemberAuthOverlay({ mode, onModeChange, onClose, onSucce
       <span className="member-auth-overlay__backdrop" aria-hidden="true" />
       <iframe
         className="member-auth-overlay__frame"
-        src={path}
+        src={initialPathRef.current}
         title={activeMode === 'register' ? 'สมัครสมาชิก' : 'เข้าสู่ระบบ'}
         allow="clipboard-write"
         onLoad={revealFrameWhenEmbedded}
