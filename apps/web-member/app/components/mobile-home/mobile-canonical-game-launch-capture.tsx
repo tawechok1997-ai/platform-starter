@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useLayoutEffect } from 'react';
 import {
   getMemberGameCatalog,
   type MemberCatalogGame,
@@ -11,9 +11,12 @@ const GAME_ACTION_SELECTOR = '[data-game-id][data-provider-code]';
 type CatalogIndex = Map<string, MemberCatalogGame>;
 
 export default function MobileCanonicalGameLaunchCapture() {
-  useEffect(() => {
+  useLayoutEffect(() => {
     let disposed = false;
     const catalogIndex: CatalogIndex = new Map();
+    const html = document.documentElement;
+
+    html.dataset.mobileCanonicalLaunchCapture = 'ready';
 
     void getMemberGameCatalog('mobile')
       .then((items) => {
@@ -50,17 +53,20 @@ export default function MobileCanonicalGameLaunchCapture() {
       const href = `/games?${query.toString()}`;
 
       event.preventDefault();
-      event.stopPropagation();
+      event.stopImmediatePropagation();
       action.dataset.mobileGameLaunch = 'canonical';
       action.dataset.gamePlatform = 'mobile';
       action.dataset.mobileGameLaunchHref = href;
+      html.dataset.mobileCanonicalLaunchHref = href;
       window.location.assign(href);
     };
 
-    document.addEventListener('click', handleGameClick, true);
+    window.addEventListener('click', handleGameClick, true);
     return () => {
       disposed = true;
-      document.removeEventListener('click', handleGameClick, true);
+      window.removeEventListener('click', handleGameClick, true);
+      delete html.dataset.mobileCanonicalLaunchCapture;
+      delete html.dataset.mobileCanonicalLaunchHref;
     };
   }, []);
 
