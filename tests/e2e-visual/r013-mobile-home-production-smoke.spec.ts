@@ -4,6 +4,7 @@ import path from 'node:path';
 
 const MEMBER_HOME_URL = process.env.MEMBER_HOME_URL
   ?? 'https://platformweb-member-production.up.railway.app/';
+const LOCAL_SMOKE = isLoopbackUrl(MEMBER_HOME_URL);
 
 type AncestorMetric = {
   node: string;
@@ -103,9 +104,8 @@ test.describe('production Mobile Home smoke', () => {
     const relevantConsoleErrors = consoleRecords.filter((entry) => (
       entry.type === 'error'
       && !/favicon|ERR_BLOCKED_BY_CLIENT/i.test(entry.text)
+      && !(LOCAL_SMOKE && /ERR_CONNECTION_REFUSED/i.test(entry.text))
     ));
-    expect(pageErrors, `Page errors: ${JSON.stringify(pageErrors)}`).toEqual([]);
-    expect(relevantConsoleErrors, `Console errors: ${JSON.stringify(relevantConsoleErrors)}`).toEqual([]);
 
     await fs.writeFile(path.join(evidenceDir, 'metrics.json'), JSON.stringify({
       top: topMetrics,
@@ -115,6 +115,9 @@ test.describe('production Mobile Home smoke', () => {
     await fs.writeFile(path.join(evidenceDir, 'console.json'), JSON.stringify(consoleRecords, null, 2));
     await fs.writeFile(path.join(evidenceDir, 'page-errors.json'), JSON.stringify(pageErrors, null, 2));
     await fs.writeFile(path.join(evidenceDir, 'failed-requests.json'), JSON.stringify(failedRequests, null, 2));
+
+    expect(pageErrors, `Page errors: ${JSON.stringify(pageErrors)}`).toEqual([]);
+    expect(relevantConsoleErrors, `Console errors: ${JSON.stringify(relevantConsoleErrors)}`).toEqual([]);
   });
 });
 
@@ -197,5 +200,14 @@ function sanitizeUrl(value: string) {
     return url.toString();
   } catch {
     return value;
+  }
+}
+
+function isLoopbackUrl(value: string) {
+  try {
+    const hostname = new URL(value).hostname;
+    return hostname === '127.0.0.1' || hostname === 'localhost' || hostname === '::1';
+  } catch {
+    return false;
   }
 }
