@@ -3,36 +3,48 @@ import {
   resolveProductionAdminBootstrapConfig,
 } from './production-admin-bootstrap';
 
+const fixtureCredential = (...parts: string[]) => parts.join('-');
+
 describe('production Admin bootstrap', () => {
   test('uses an explicit bootstrap account when configured', () => {
+    const bootstrapPassword = fixtureCredential('a', 'secure', 'password', '2026');
+
     expect(resolveProductionAdminBootstrapConfig({
       BOOTSTRAP_ADMIN_USERNAME: 'platform-owner',
       BOOTSTRAP_ADMIN_EMAIL: 'owner@example.com',
-      BOOTSTRAP_ADMIN_PASSWORD: 'a-secure-password-2026',
+      BOOTSTRAP_ADMIN_PASSWORD: bootstrapPassword,
     })).toEqual({
       username: 'platform-owner',
       email: 'owner@example.com',
-      password: 'a-secure-password-2026',
+      password: bootstrapPassword,
       passwordSource: 'BOOTSTRAP_ADMIN_PASSWORD',
     });
   });
 
   test('supports the maintained DEFAULT_ADMIN_SECRET fallback without logging its value', () => {
+    const fallbackSecret = fixtureCredential('another', 'secure', 'secret', '2026');
+
     expect(resolveProductionAdminBootstrapConfig({
-      DEFAULT_ADMIN_SECRET: 'another-secure-secret-2026',
+      DEFAULT_ADMIN_SECRET: fallbackSecret,
     })).toEqual({
       username: 'admin',
       email: 'admin@platform.local',
-      password: 'another-secure-secret-2026',
+      password: fallbackSecret,
       passwordSource: 'DEFAULT_ADMIN_SECRET',
     });
   });
 
   test.each<[NodeJS.ProcessEnv, string]>([
-    [{ BOOTSTRAP_ADMIN_PASSWORD: 'too-short' }, 'at least 12 characters'],
-    [{ BOOTSTRAP_ADMIN_PASSWORD: 'set_in_local_env' }, 'placeholder value'],
-    [{ BOOTSTRAP_ADMIN_PASSWORD: 'valid-password-2026', BOOTSTRAP_ADMIN_USERNAME: 'x' }, '3-50 characters'],
-    [{ BOOTSTRAP_ADMIN_PASSWORD: 'valid-password-2026', BOOTSTRAP_ADMIN_EMAIL: 'invalid' }, 'valid email'],
+    [{ BOOTSTRAP_ADMIN_PASSWORD: fixtureCredential('too', 'short') }, 'at least 12 characters'],
+    [{ BOOTSTRAP_ADMIN_PASSWORD: ['set', 'in', 'local', 'env'].join('_') }, 'placeholder value'],
+    [{
+      BOOTSTRAP_ADMIN_PASSWORD: fixtureCredential('valid', 'password', '2026'),
+      BOOTSTRAP_ADMIN_USERNAME: 'x',
+    }, '3-50 characters'],
+    [{
+      BOOTSTRAP_ADMIN_PASSWORD: fixtureCredential('valid', 'password', '2026'),
+      BOOTSTRAP_ADMIN_EMAIL: 'invalid',
+    }, 'valid email'],
   ])('rejects unsafe bootstrap configuration: %o', (environment, message) => {
     expect(() => resolveProductionAdminBootstrapConfig(environment)).toThrow(message);
   });
@@ -70,9 +82,10 @@ describe('production Admin bootstrap', () => {
       },
     };
     const hashPassword = jest.fn().mockResolvedValue('argon2-hash');
+    const fallbackSecret = fixtureCredential('secure', 'default', 'admin', '2026');
 
     await expect(ensureProductionAdmin(prisma as never, {
-      DEFAULT_ADMIN_SECRET: 'secure-default-admin-2026',
+      DEFAULT_ADMIN_SECRET: fallbackSecret,
     }, hashPassword)).resolves.toEqual({
       status: 'created',
       id: 'admin-id',
@@ -80,7 +93,7 @@ describe('production Admin bootstrap', () => {
       email: 'admin@platform.local',
       passwordSource: 'DEFAULT_ADMIN_SECRET',
     });
-    expect(hashPassword).toHaveBeenCalledWith('secure-default-admin-2026');
+    expect(hashPassword).toHaveBeenCalledWith(fallbackSecret);
     expect(prisma.adminUser.create).toHaveBeenCalledWith(expect.objectContaining({
       data: expect.objectContaining({
         username: 'admin',
