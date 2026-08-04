@@ -31,6 +31,6 @@ test('serves canonical Mobile assets directly and only repairs the historical ty
 test('provider icons keep the requested platform through catalog mapping and basename resolution', () => {
   assert.match(catalogModelSource, /providerIcon:\s*resolveProviderAssetOrSource\([\s\S]*providerIconSource,[\s\S]*requestedPlatform/);
   assert.match(resolverSource, /preference === 'mobile'/);
-  assert.match(resolverSource, /if \(isMobileAsset\) score -= 70/);
-  assert.match(resolverSource, /if \(isPcAsset\) score \+= 90/);
+  assert.match(resolverSource, /if \(platform === 'mobile'\) score -= 70/);
+  assert.match(resolverSource, /if \(platform === 'pc'\) score \+= 90/);
 });
