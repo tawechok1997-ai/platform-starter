@@ -88,13 +88,21 @@ export function AdminDashboardFinanceTrends({
         const payloads = await Promise.all(responses.map((response) => response.json().catch(() => null)));
         const failedIndex = responses.findIndex((response) => !response.ok);
         if (failedIndex >= 0) {
-          throw new Error(String(payloads[failedIndex]?.message ?? 'Unable to load finance trends'));
+          throw new Error(readApiMessage(payloads[failedIndex]) ?? 'Unable to load finance trends');
+        }
+
+        const primaryPayload = parseTrendResponse(payloads[0]);
+        const comparisonPayload = compareRange ? parseTrendResponse(payloads[1]) : null;
+        if (!primaryPayload || (compareRange && !comparisonPayload)) {
+          throw new Error('Finance trend response is incomplete');
         }
         if (controller.signal.aborted) return;
-        setPrimary(payloads[0] as TrendResponse);
-        setComparison(compareRange ? payloads[1] as TrendResponse : null);
+        setPrimary(primaryPayload);
+        setComparison(comparisonPayload);
       } catch (caught) {
         if (controller.signal.aborted) return;
+        setPrimary(null);
+        setComparison(null);
         setError(caught instanceof Error ? caught.message : 'Unable to load finance trends');
       } finally {
         if (!controller.signal.aborted) setLoading(false);
@@ -184,6 +192,44 @@ export function AdminDashboardFinanceTrends({
 
 function Metric({ label, value, detail }: { label: string; value: string; detail: string }) {
   return <article className={styles.metric}><span>{label}</span><strong>{value}</strong><small>{detail}</small></article>;
+}
+
+function parseTrendResponse(value: unknown): TrendResponse | null {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
+  const candidate = value as Partial<TrendResponse>;
+  if (!candidate.range || !candidate.totals || !Array.isArray(candidate.daily) || typeof candidate.generatedAt !== 'string') return null;
+  if (!isFiniteNumber(candidate.range.days) || typeof candidate.range.from !== 'string' || typeof candidate.range.to !== 'string') return null;
+  const totals = candidate.totals;
+  if (
+    typeof totals.topUpAmount !== 'string'
+    || !isFiniteNumber(totals.topUpCount)
+    || typeof totals.withdrawalAmount !== 'string'
+    || !isFiniteNumber(totals.withdrawalCount)
+    || typeof totals.netFlow !== 'string'
+  ) return null;
+  if (!candidate.daily.every(isTrendRow)) return null;
+  return candidate as TrendResponse;
+}
+
+function isTrendRow(value: unknown): value is TrendRow {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
+  const row = value as Partial<TrendRow>;
+  return typeof row.date === 'string'
+    && typeof row.topUpAmount === 'string'
+    && isFiniteNumber(row.topUpCount)
+    && typeof row.withdrawalAmount === 'string'
+    && isFiniteNumber(row.withdrawalCount)
+    && typeof row.netFlow === 'string';
+}
+
+function isFiniteNumber(value: unknown): value is number {
+  return typeof value === 'number' && Number.isFinite(value);
+}
+
+function readApiMessage(value: unknown) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
+  const message = (value as { message?: unknown }).message;
+  return typeof message === 'string' && message.trim() ? message : null;
 }
 
 function toDailyPoints(rows: readonly TrendRow[], locale: 'th' | 'en'): AdminChartPoint[] {
