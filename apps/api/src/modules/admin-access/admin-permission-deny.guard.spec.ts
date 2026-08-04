@@ -1,4 +1,3 @@
-import assert from 'node:assert/strict';
 import { ForbiddenException } from '@nestjs/common';
 import { PermissionsGuard } from '../../common/guards/permissions.guard';
 
@@ -18,21 +17,23 @@ function guardFor(required: string[]) {
 
 test('permission guard allows wildcard access when no deny override exists', () => {
   const guard = guardFor(['wallet.adjust']);
-  assert.equal(guard.canActivate(contextFor({ permissions: ['*'] })), true);
+  expect(guard.canActivate(contextFor({ permissions: ['*'] }))).toBe(true);
 });
 
 test('permission guard applies specific deny before wildcard access', () => {
   const guard = guardFor(['wallet.adjust']);
-  assert.throws(
-    () => guard.canActivate(contextFor({ permissions: ['*'], deniedPermissions: ['wallet.adjust'] })),
-    ForbiddenException,
-  );
+  expect(() =>
+    guard.canActivate(
+      contextFor({ permissions: ['*'], deniedPermissions: ['wallet.adjust'] }),
+    ),
+  ).toThrow(ForbiddenException);
 });
 
 test('permission guard applies wildcard deny to every route permission', () => {
   const guard = guardFor(['members.view']);
-  assert.throws(
-    () => guard.canActivate(contextFor({ permissions: ['members.view'], deniedPermissions: ['*'] })),
-    ForbiddenException,
-  );
+  expect(() =>
+    guard.canActivate(
+      contextFor({ permissions: ['members.view'], deniedPermissions: ['*'] }),
+    ),
+  ).toThrow(ForbiddenException);
 });
