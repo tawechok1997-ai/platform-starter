@@ -14,7 +14,10 @@ import {
   type AdminWidgetRegistry,
   type AdminWidgetWorkspaceId,
 } from './chart-widget-contracts';
-import { useAdminWidgetLayout } from './use-admin-widget-layout';
+import {
+  useAdminWidgetLayout,
+  type AdminWidgetLayoutSyncState,
+} from './use-admin-widget-layout';
 import styles from './admin-widget-workspace.module.css';
 
 const ADMIN_WORKSPACE_CHANGE_EVENT = 'admin:workspace-change';
@@ -43,6 +46,7 @@ export type AdminWidgetWorkspaceLabels = {
   makeWider: string;
   makeShorter: string;
   makeTaller: string;
+  layoutSync?: Partial<Record<AdminWidgetLayoutSyncState, string>>;
   presets: Record<AdminDateRangePreset, string>;
   comparePeriods: Record<AdminComparePeriod, string>;
 };
@@ -137,10 +141,13 @@ export function AdminWidgetWorkspace({
     if (targetIndex >= 0) layout.move(widgetId, targetIndex);
   }
 
+  const syncLabel = labels.layoutSync?.[layout.syncState] ?? '';
+
   return <section
     className={styles.workspace}
     data-editing={editing || undefined}
     data-admin-widget-workspace={workspace}
+    data-layout-sync-state={layout.syncState}
     aria-busy={!layout.ready}
   >
     <div className={styles.controls}>
@@ -164,6 +171,7 @@ export function AdminWidgetWorkspace({
       </div>
 
       <div className={styles.layoutActions}>
+        {syncLabel ? <span className={styles.syncStatus} data-state={layout.syncState} role="status" aria-live="polite">{syncLabel}</span> : null}
         {editing ? <button type="button" onClick={layout.restoreDefault}>{labels.restoreDefault}</button> : null}
         <button type="button" data-primary="true" onClick={() => setEditing((value) => !value)}>{editing ? labels.finishEditing : labels.editLayout}</button>
       </div>
