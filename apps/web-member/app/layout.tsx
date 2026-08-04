@@ -133,7 +133,6 @@ import MemberRenderStabilityController from './components/member-render-stabilit
 import PublicDialogRuntimeController from './components/public-dialog-runtime-controller';
 import PublicLiveNavigationController from './components/public-live-navigation-controller';
 import PublicGameLoginController from './components/member-home/public-home-game-navigation-controller';
-import HomeSidebarScrollController from './components/member-home/home-sidebar-scroll-controller';
 import PublicDesktopViewportBootstrapOwner from './components/public-desktop-viewport-bootstrap-owner';
 import PublicMobileSourceHeaderOwner from './components/public-mobile-source-header-owner';
 import SiteFaviconRuntime from './components/site-favicon-runtime';
@@ -222,7 +221,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 <PublicLiveNavigationController />
                 <PublicDialogRuntimeController />
                 <PublicGameLoginController />
-                <HomeSidebarScrollController />
                 <MemberActivityPredictionRuntime />
                 <UsageGuideController />
                 <PublicMobileSourceHeaderOwner />
