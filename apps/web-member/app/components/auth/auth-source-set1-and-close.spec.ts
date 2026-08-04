@@ -3,19 +3,30 @@ import { readFileSync } from 'node:fs';
 import test from 'node:test';
 
 const layout = readFileSync(new URL('../../(auth)/layout.tsx', import.meta.url), 'utf8');
+const desktopRegisterFix = readFileSync(new URL('./auth-register-desktop-field-fix.css', import.meta.url), 'utf8');
 const sourceSetOne = readFileSync(new URL('./auth-popup-source-set1-final.css', import.meta.url), 'utf8');
 const overlay = readFileSync(new URL('./member-auth-overlay.tsx', import.meta.url), 'utf8');
 
 test('Mobile auth Source Set 1 is the final visual stylesheet owner', () => {
   const polishIndex = layout.indexOf("auth-popup-polish.css");
+  const desktopRegisterFixIndex = layout.indexOf("auth-register-desktop-field-fix.css");
   const sourceSetOneIndex = layout.indexOf("auth-popup-source-set1-final.css");
   assert.ok(polishIndex >= 0);
-  assert.ok(sourceSetOneIndex > polishIndex);
+  assert.ok(desktopRegisterFixIndex > polishIndex);
+  assert.ok(sourceSetOneIndex > desktopRegisterFixIndex);
   assert.match(sourceSetOne, /grid-template-columns:\s*repeat\(2, minmax\(0, 1fr\)\)/);
   assert.match(sourceSetOne, /clip-path:\s*none\s*!important/);
   assert.match(sourceSetOne, /a\[aria-current='page'\][\s\S]*background:\s*#3e3a49\s*!important/);
   assert.match(sourceSetOne, /source-login-close[\s\S]*background:\s*#fff\s*!important/);
   assert.doesNotMatch(sourceSetOne, /align-items:\s*flex-end\s*!important/);
+});
+
+test('desktop register step wrappers cannot collapse to Thai label min-content width', () => {
+  assert.match(desktopRegisterFix, /@media\s*\(min-width:\s*901px\)/);
+  assert.match(desktopRegisterFix, /source-register-card\s*>\s*\.source-register-step[\s\S]*width:\s*100%\s*!important/);
+  assert.match(desktopRegisterFix, /source-register-card\s*>\s*\.source-register-step[\s\S]*min-width:\s*0\s*!important/);
+  assert.match(desktopRegisterFix, /source-register-card\s*>\s*\.source-register-step[\s\S]*align-self:\s*stretch\s*!important/);
+  assert.match(desktopRegisterFix, /source-register-step\s*>\s*\.source-login-field[\s\S]*width:\s*100%\s*!important/);
 });
 
 test('closing auth removes the portal hit layer and releases the document lock before routing', () => {
