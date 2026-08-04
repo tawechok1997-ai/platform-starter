@@ -88,12 +88,14 @@ export function useAdminWidgetLayout(
 
         setItems(selectedItems);
         latestSignatureRef.current = selectedSignature;
-        acceptedSignatureRef.current = serverIsNewer || !localSaved ? selectedSignature : serverSignature;
+        acceptedSignatureRef.current = serverSaved && (serverIsNewer || !localSaved)
+          ? selectedSignature
+          : serverSignature;
         if (serverIsNewer && serverSaved) {
           window.localStorage.setItem(key, JSON.stringify(serverSaved));
         }
         setReady(true);
-        setSyncState(serverSaved ? 'saved' : localSaved ? 'local' : 'saved');
+        setSyncState(serverSaved ? 'saved' : 'local');
       } catch {
         if (cancelled) return;
         acceptedSignatureRef.current = layoutSignature(localItems);
