@@ -1,0 +1,42 @@
+name: Member Mobile Full Audit
+
+on:
+  pull_request:
+    paths:
+      - 'apps/web-member/**'
+      - 'tests/e2e-visual/r013-member-mobile-full-audit.spec.ts'
+      - 'playwright.member-mobile-audit.config.ts'
+      - '.github/workflows/member-mobile-full-audit.yml'
+  workflow_dispatch:
+
+jobs:
+  member-mobile-full-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.18.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile=false
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Audit Production Member Mobile
+        env:
+          MEMBER_HOME_URL: https://platformweb-member-production.up.railway.app/
+        run: >-
+          pnpm exec playwright test
+          tests/e2e-visual/r013-member-mobile-full-audit.spec.ts
+          -c playwright.member-mobile-audit.config.ts
+          --retries=0
+      - name: Upload Member Mobile audit evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: member-mobile-full-audit-evidence
+          path: artifacts/member-mobile-audit/**
+          if-no-files-found: error
+          retention-days: 14
