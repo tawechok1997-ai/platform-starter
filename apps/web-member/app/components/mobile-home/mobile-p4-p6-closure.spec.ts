@@ -36,7 +36,8 @@ test('P4 category rail drives the rendered category owner through one event', ()
   assert.match(runtime, /const CATEGORY_EVENT = 'member:mobile-category-select'/);
   assert.match(runtime, /new CustomEvent\(CATEGORY_EVENT/);
   assert.match(runtime, /detail:\s*\{ category \}/);
-  assert.match(runtime, /event\.target\.closest<HTMLElement>\(CATEGORY_SELECTOR\)/);
+  assert.match(runtime, /const categoryButton = event\.target\.closest/);
+  assert.match(runtime, /closest<HTMLElement>\(CATEGORY_SELECTOR\)/);
   assert.match(root, /data-mobile-category-id=\{item\.id\}/);
 });
 
@@ -56,8 +57,8 @@ test('P5 resolves Home game launches from the central Mobile catalog', () => {
 
 test('P5 does not intercept provider pages that already own canonical anchors', () => {
   assert.match(runtime, /if \(action\.closest\('a\[href\]'\)\) return/);
-  assert.match(runtime, /data\.mobileGameLaunch = 'canonical'/);
-  assert.match(runtime, /data\.gamePlatform = 'mobile'/);
+  assert.match(runtime, /dataset\.mobileGameLaunch = 'canonical'/);
+  assert.match(runtime, /dataset\.gamePlatform = 'mobile'/);
 });
 
 test('P6 drawer owns dialog semantics, keyboard trap and focus restoration', () => {
