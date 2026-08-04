@@ -9,7 +9,7 @@
     "lint": "pnpm check:generated-catalogs && eslint src --ext .ts",
     "typecheck": "pnpm check:generated-catalogs && tsc --noEmit -p tsconfig.json",
     "typecheck:strict-next": "pnpm check:generated-catalogs && tsc -p tsconfig.strict-next.json",
-    "start:prod": "prisma migrate deploy --schema ../../prisma/schema.prisma && node dist/main.js",
+    "start:prod": "node ../../tools/prepare-production-database.mjs && node dist/main.js",
     "test": "pnpm check:generated-catalogs && jest",
     "test:db:finance": "pnpm check:generated-catalogs && jest src/modules/finance/finance-concurrency.db.spec.ts src/modules/finance/finance-lifecycle.db.spec.ts --runInBand",
     "test:db:admin-access": "pnpm check:generated-catalogs && jest src/modules/admin-access/admin-delegation.db.spec.ts src/modules/admin-access/admin-access-governance.db.spec.ts --runInBand",
