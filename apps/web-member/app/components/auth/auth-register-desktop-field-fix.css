@@ -1,24 +1,29 @@
 /* Desktop-only registration width guard.
- * The shared desktop auth card centers its children. Register steps are wrappers,
- * so without an explicit width they shrink to the input's min-content width.
+ * The shared desktop auth card centers its children. Register progress and step
+ * wrappers therefore need an explicit width or they shrink to min-content.
  */
 @media (min-width: 901px) {
+  .auth-reference-scope .source-register-card > .source-register-progress,
   .auth-reference-scope .source-register-card > .source-register-step {
-    display: flex !important;
     box-sizing: border-box !important;
     width: 100% !important;
     min-width: 0 !important;
     max-width: 100% !important;
+    align-self: stretch !important;
+  }
+
+  .auth-reference-scope .source-register-card > .source-register-step {
+    display: flex !important;
     margin: 0 !important;
     padding: 0 !important;
     flex: 0 0 auto !important;
-    align-self: stretch !important;
     flex-direction: column !important;
     gap: 16px !important;
   }
 
   .auth-reference-scope .source-register-card > .source-register-step > .source-login-field,
-  .auth-reference-scope .source-register-card > .source-register-step > .public-auth-field {
+  .auth-reference-scope .source-register-card > .source-register-step > .public-auth-field,
+  .auth-reference-scope .source-register-card > .source-register-step > [class*='anti-bot'] {
     box-sizing: border-box !important;
     width: 100% !important;
     min-width: 0 !important;
