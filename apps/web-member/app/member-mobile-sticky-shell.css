@@ -1,13 +1,30 @@
 /* Mobile Home sticky chrome owner.
- * The header stays visible while the Mobile Home root is scrolling, then stops
- * at the root boundary. The category rail stays inside its two-column content
- * grid, follows below the header, and stops before the footer begins. */
+ * The document is the single vertical scroll owner. Every wrapper between the
+ * document and the sticky chrome must stay overflow-visible on the y axis. */
 @media (max-width: 900px) {
-  /* page.tsx places overflow-x:hidden on this outer main through inline style.
-   * In production the outer main is wrapped by persistent shells, so the old
-   * body > main selector never matched. That hidden overflow then became the
-   * nearest sticky scroll container even though the document performed the
-   * actual scroll, allowing the header to disappear above the viewport. */
+  /* member-mobile-category-follow.css previously gave both html and body
+   * overflow-y:auto. The browser scrolls html, while sticky selected body as
+   * its nearest overflow ancestor. Body never scrolls, so the header moved out
+   * of view by exactly window.scrollY. Keep html as the only scroll owner and
+   * make body a transparent layout wrapper. */
+  html[data-member-viewport-mode='mobile']:has([data-mobile-home-root='true']) {
+    height: auto !important;
+    min-height: 100% !important;
+    max-height: none !important;
+    overflow-x: clip !important;
+    overflow-y: auto !important;
+    overscroll-behavior-y: auto !important;
+  }
+
+  html[data-member-viewport-mode='mobile'] body:has([data-mobile-home-root='true']) {
+    height: auto !important;
+    min-height: 100% !important;
+    max-height: none !important;
+    overflow-x: clip !important;
+    overflow-y: visible !important;
+    overscroll-behavior-y: auto !important;
+  }
+
   html[data-member-viewport-mode='mobile'] main[data-animation-level]:has([data-mobile-home-root='true']) {
     box-sizing: border-box !important;
     width: 100% !important;
