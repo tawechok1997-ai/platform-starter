@@ -28,13 +28,13 @@ test('drag scroll resolves one interacted rail without scanning the desktop canv
   assert.doesNotMatch(dragScroll, /new MutationObserver/);
 });
 
-test('jackpot follower owns the left grid rail and throttles scroll work', () => {
-  assert.match(sidebar, /setProperty\('grid-template-columns', '360px minmax\(0, 1080px\)'/);
-  assert.match(sidebar, /main\.style\.setProperty\('grid-column', '2'/);
-  assert.match(sidebar, /sidebar\.style\.setProperty\('grid-column', '1'/);
+test('jackpot follower owns the original right grid rail and throttles scroll work', () => {
+  assert.match(sidebar, /setProperty\('grid-template-columns', 'minmax\(0, 1080px\) 360px'/);
+  assert.match(sidebar, /main\.style\.setProperty\('grid-column', '1'/);
+  assert.match(sidebar, /sidebar\.style\.setProperty\('grid-column', '2'/);
   assert.match(sidebar, /sidebar\.style\.setProperty\('position', 'absolute'/);
-  assert.match(sidebar, /sidebar\.style\.setProperty\('left', '0px'/);
-  assert.match(sidebar, /sidebar\.style\.setProperty\('right', 'auto'/);
+  assert.match(sidebar, /sidebar\.style\.setProperty\('left', 'auto'/);
+  assert.match(sidebar, /sidebar\.style\.setProperty\('right', '0px'/);
   assert.match(sidebar, /sidebar\.style\.setProperty\('z-index', '20'/);
   assert.match(sidebar, /window\.requestAnimationFrame\(syncGeometry\)/);
   assert.match(sidebar, /resizeObserver\.observe\(body\)/);
@@ -44,10 +44,10 @@ test('jackpot follower owns the left grid rail and throttles scroll work', () =>
   assert.doesNotMatch(sidebar, /setProperty\('position', 'fixed'/);
 });
 
-test('desktop home reserves the left sidebar column and keeps the main feed on the right', () => {
-  assert.match(sidebarLayout, /grid-template-columns:\s*360px\s+minmax\(0,\s*1080px\)/);
-  assert.match(sidebarLayout, /reference-main-column[\s\S]*?grid-column:\s*2\s*!important/);
-  assert.match(sidebarLayout, /reference-sidebar[\s\S]*?grid-column:\s*1\s*!important/);
-  assert.match(responsiveLayout, /grid-template-columns:\s*310px\s+minmax\(0,\s*1fr\)/);
-  assert.match(responsiveLayout, /grid-template-columns:\s*330px\s+minmax\(0,\s*1fr\)/);
+test('desktop home keeps the main feed left and reserves the jackpot column on the right', () => {
+  assert.match(sidebarLayout, /grid-template-columns:\s*minmax\(0,\s*1080px\)\s+360px/);
+  assert.match(sidebarLayout, /reference-main-column[\s\S]*?grid-column:\s*1\s*!important/);
+  assert.match(sidebarLayout, /reference-sidebar[\s\S]*?grid-column:\s*2\s*!important/);
+  assert.match(responsiveLayout, /grid-template-columns:\s*minmax\(0,\s*1fr\)\s+310px/);
+  assert.match(responsiveLayout, /grid-template-columns:\s*minmax\(0,\s*1fr\)\s+330px/);
 });
