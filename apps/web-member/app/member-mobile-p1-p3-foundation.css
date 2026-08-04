@@ -1,9 +1,8 @@
 /* P1-P3 Mobile foundation owner.
  *
- * This file is intentionally imported last from app/layout.tsx. It owns only
- * the shared Mobile document scroll model, the Home header, and the bounded
- * category follower. Page-specific appearance remains with the source-theme
- * and CSS-module owners.
+ * Loaded through the final Mobile category stylesheet. It owns only the shared
+ * Mobile document scroll model, the Home header, and the bounded category rail.
+ * Page-specific appearance remains with the source-theme and CSS-module owners.
  */
 
 @media (max-width: 900px) {
@@ -13,7 +12,7 @@
       var(--member-mobile-header-height) + env(safe-area-inset-top, 0px)
     );
     --member-mobile-category-offset: calc(
-      var(--member-mobile-header-offset) + 4px
+      64px + env(safe-area-inset-top, 0px)
     );
 
     width: 100% !important;
@@ -115,38 +114,30 @@
     transform: none !important;
   }
 
+  /* Native sticky is bounded by the category/content grid automatically. It
+   * follows below the Header and stops before the next page section/Footer,
+   * without a duplicate fixed-position JavaScript state machine. */
   html[data-member-viewport-mode='mobile']
     [data-mobile-section-owner='category-menu'] {
-    top: var(--member-mobile-category-offset) !important;
+    position: sticky !important;
+    top: calc(64px + env(safe-area-inset-top, 0px)) !important;
+    right: auto !important;
+    bottom: auto !important;
+    left: auto !important;
+    z-index: 100 !important;
+    grid-column: 1 !important;
+    align-self: start !important;
     max-height: calc(
       100dvh - var(--member-mobile-category-offset) - 8px
     ) !important;
-    align-self: start !important;
     overflow-x: clip !important;
     overflow-y: auto !important;
     overscroll-behavior: contain !important;
     touch-action: pan-y !important;
     scrollbar-width: none !important;
+    transform: none !important;
+    contain: none !important;
     -webkit-overflow-scrolling: touch;
-  }
-
-  html[data-member-viewport-mode='mobile']
-    [data-mobile-section-owner='category-menu'][data-mobile-category-follow='start'] {
-    position: relative !important;
-    top: 0 !important;
-  }
-
-  html[data-member-viewport-mode='mobile']
-    [data-mobile-section-owner='category-menu'][data-mobile-category-follow='fixed'] {
-    position: fixed !important;
-    top: var(--member-mobile-category-offset) !important;
-  }
-
-  html[data-member-viewport-mode='mobile']
-    [data-mobile-section-owner='category-menu'][data-mobile-category-follow='end'] {
-    position: absolute !important;
-    top: auto !important;
-    bottom: 0 !important;
   }
 
   html[data-member-viewport-mode='mobile']
