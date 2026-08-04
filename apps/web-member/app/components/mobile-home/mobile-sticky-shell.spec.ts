@@ -15,6 +15,15 @@ test('Mobile Home header remains visible with bounded sticky positioning', () =>
   assert.doesNotMatch(stickyCss, /data-mobile-section-owner='header'[\s\S]*position:\s*fixed\s*!important/);
 });
 
+test('Mobile Home shell and padded full-width sections stay inside the viewport', () => {
+  assert.match(stickyCss, /data-mobile-home-root='true'[\s\S]*box-sizing:\s*border-box\s*!important/);
+  assert.match(stickyCss, /data-mobile-home-root='true'[\s\S]*width:\s*min\(100%, 640px\)\s*!important/);
+  assert.match(stickyCss, /data-mobile-section-owner='header'\] > :first-child[\s\S]*box-sizing:\s*border-box\s*!important/);
+  assert.match(stickyCss, /data-mobile-section-owner='header'\] > :first-child[\s\S]*max-width:\s*100%\s*!important/);
+  assert.match(stickyCss, /data-mobile-section-owner='auth-actions'[\s\S]*box-sizing:\s*border-box\s*!important/);
+  assert.match(stickyCss, /data-mobile-section-owner='auth-actions'[\s\S]*max-width:\s*100%\s*!important/);
+});
+
 test('Mobile category rail follows below the header and stops at its grid owner', () => {
   assert.match(stickyCss, /\*:has\(> \[data-mobile-section-owner='category-menu'\]\)[\s\S]*position:\s*relative\s*!important/);
   assert.match(stickyCss, /data-mobile-section-owner='category-menu'[\s\S]*position:\s*sticky\s*!important/);
