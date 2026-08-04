@@ -20,8 +20,9 @@ test('all current mobile popup content owners center short content vertically', 
 });
 
 test('the centering contract does not resize popup geometry', () => {
-  const contract = css
-    .slice(css.indexOf('Keep every current Mobile popup'))
-    .replace(/\/\*[\s\S]*?\*\//g, '');
-  assert.doesNotMatch(contract, /\b(?:width|height|max-height|max-width|padding):/);
+  const marker = '/* Keep every current Mobile popup';
+  const start = css.indexOf(marker);
+  assert.ok(start >= 0);
+  const contract = css.slice(start).replace(/\/\*[\s\S]*?\*\//g, '');
+  assert.doesNotMatch(contract, /(?:^|[;{\s])(?:width|height|max-height|max-width|padding)\s*:/m);
 });
