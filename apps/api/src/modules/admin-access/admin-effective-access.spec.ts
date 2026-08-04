@@ -1,4 +1,3 @@
-import assert from 'node:assert/strict';
 import {
   isAdminPermissionAllowed,
   resolveAdminEffectivePermissions,
@@ -10,7 +9,7 @@ test('combines role and delegated permissions without duplicates', () => {
     delegatedPermissionCodes: ['withdraw.view', 'withdraw.approve'],
   });
 
-  assert.deepEqual(resolved.permissions, ['members.view', 'withdraw.approve', 'withdraw.view']);
+  expect(resolved.permissions).toEqual(['members.view', 'withdraw.approve', 'withdraw.view']);
 });
 
 test('explicit deny wins over role and delegation permissions', () => {
@@ -20,8 +19,8 @@ test('explicit deny wins over role and delegation permissions', () => {
     overrides: [{ permissionCode: 'withdraw.approve', effect: 'DENY' }],
   });
 
-  assert.equal(isAdminPermissionAllowed(resolved, 'withdraw.approve'), false);
-  assert.deepEqual(resolved.deniedPermissions, ['withdraw.approve']);
+  expect(isAdminPermissionAllowed(resolved, 'withdraw.approve')).toBe(false);
+  expect(resolved.deniedPermissions).toEqual(['withdraw.approve']);
 });
 
 test('specific deny blocks a wildcard account only for that permission', () => {
@@ -31,9 +30,9 @@ test('specific deny blocks a wildcard account only for that permission', () => {
     overrides: [{ permissionCode: 'wallet.adjust', effect: 'DENY' }],
   });
 
-  assert.equal(resolved.hasWildcard, true);
-  assert.equal(isAdminPermissionAllowed(resolved, 'members.view'), true);
-  assert.equal(isAdminPermissionAllowed(resolved, 'wallet.adjust'), false);
+  expect(resolved.hasWildcard).toBe(true);
+  expect(isAdminPermissionAllowed(resolved, 'members.view')).toBe(true);
+  expect(isAdminPermissionAllowed(resolved, 'wallet.adjust')).toBe(false);
 });
 
 test('wildcard deny removes all access', () => {
@@ -43,8 +42,8 @@ test('wildcard deny removes all access', () => {
     overrides: [{ permissionCode: '*', effect: 'DENY' }],
   });
 
-  assert.deepEqual(resolved.permissions, []);
-  assert.equal(isAdminPermissionAllowed(resolved, 'members.view'), false);
+  expect(resolved.permissions).toEqual([]);
+  expect(isAdminPermissionAllowed(resolved, 'members.view')).toBe(false);
 });
 
 test('expired overrides are ignored', () => {
@@ -61,5 +60,5 @@ test('expired overrides are ignored', () => {
     now,
   });
 
-  assert.equal(isAdminPermissionAllowed(resolved, 'members.view'), true);
+  expect(isAdminPermissionAllowed(resolved, 'members.view')).toBe(true);
 });
