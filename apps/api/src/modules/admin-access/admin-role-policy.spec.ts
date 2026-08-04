@@ -1,5 +1,4 @@
 import assert from 'node:assert/strict';
-import test from 'node:test';
 import { evaluateRoleGrant, normalizeRoleSelection, type AdminRolePolicyRole } from './admin-role-policy';
 import { ADMIN_ROLE_TEMPLATE_CODES, ADMIN_ROLE_TEMPLATES } from './admin-role-templates';
 
