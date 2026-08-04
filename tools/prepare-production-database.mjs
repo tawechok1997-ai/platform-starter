@@ -82,11 +82,14 @@ async function listMigrationNames() {
 }
 
 async function inspectDatabase() {
-  return withPrisma(async (prisma) => ({
-    usersExists: await relationExists(prisma, 'users'),
-    migrationHistory: await readMigrationHistory(prisma),
-    nonEmptyTables: await findNonEmptyPublicTables(prisma),
-  }));
+  return withPrisma(async (prisma) => {
+    const usersExists = await relationExists(prisma, 'users');
+    return {
+      usersExists,
+      migrationHistory: await readMigrationHistory(prisma),
+      nonEmptyTables: usersExists ? [] : await findNonEmptyPublicTables(prisma),
+    };
+  });
 }
 
 function successfulMigrationNames(history) {
@@ -99,6 +102,17 @@ function successfulMigrationNames(history) {
 
 function activeFailedMigrations(history) {
   return history.filter((migration) => !migration.finished_at && !migration.rolled_back_at);
+}
+
+async function baselineMigrationHistory(history = []) {
+  const migrationNames = await listMigrationNames();
+  const appliedNames = successfulMigrationNames(history);
+
+  for (const migrationName of migrationNames) {
+    if (!appliedNames.has(migrationName)) {
+      runPrisma(['migrate', 'resolve', '--applied', migrationName]);
+    }
+  }
 }
 
 async function baselineEmptyDatabase(state) {
@@ -117,16 +131,8 @@ async function baselineEmptyDatabase(state) {
 
   runPrisma(['db', 'push', '--accept-data-loss', '--skip-generate']);
 
-  const migrationNames = await listMigrationNames();
   const refreshedHistory = await withPrisma((prisma) => readMigrationHistory(prisma));
-  const appliedNames = successfulMigrationNames(refreshedHistory);
-
-  for (const migrationName of migrationNames) {
-    if (!appliedNames.has(migrationName)) {
-      runPrisma(['migrate', 'resolve', '--applied', migrationName]);
-    }
-  }
-
+  await baselineMigrationHistory(refreshedHistory);
   runPrisma(['migrate', 'deploy']);
 }
 
@@ -147,6 +153,11 @@ async function main() {
     throw new Error(
       `Database contains public.users but has unresolved failed migrations: ${failedMigrations.map((item) => item.migration_name).join(', ')}`,
     );
+  }
+
+  if (state.migrationHistory.length === 0) {
+    console.warn('[database-bootstrap] Existing schema has no Prisma migration history; recording the current migrations as the baseline.');
+    await baselineMigrationHistory();
   }
 
   runPrisma(['migrate', 'deploy']);
