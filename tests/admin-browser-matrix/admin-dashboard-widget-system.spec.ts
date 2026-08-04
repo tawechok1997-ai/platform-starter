@@ -16,7 +16,7 @@ for (const locale of ['th', 'en'] as const) {
     await page.goto('/dashboard', { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('networkidle', { timeout: 10_000 }).catch(() => undefined);
 
-    const dashboard = page.locator('main');
+    const dashboard = page.locator('main.admin-shell');
     await expect(dashboard).toBeVisible();
     await expect(page.locator('[data-admin-widget-workspace="all"]')).toBeVisible();
     await expect(page.locator('[data-widget-id]')).toHaveCount(6);
