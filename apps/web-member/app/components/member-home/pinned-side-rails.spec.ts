@@ -15,12 +15,15 @@ const home = readFileSync(
   'utf8',
 );
 
-test('desktop jackpot sidebar stays in its original grid rail and sticks below the header', () => {
-  assert.match(desktop, /setProperty\('position', 'sticky'/);
-  assert.match(desktop, /DEFAULT_STICKY_TOP = 124/);
+test('desktop jackpot remains in the original right rail and follows page scroll', () => {
+  assert.match(desktop, /setProperty\('position', 'absolute'/);
+  assert.match(desktop, /DEFAULT_PIN_TOP = 124/);
+  assert.match(desktop, /setProperty\('right', '0px'/);
   assert.match(desktop, /setProperty\('left', 'auto'/);
   assert.match(desktop, /setProperty\('z-index', '20'/);
-  assert.match(desktop, /scrollState = 'pinned'/);
+  assert.match(desktop, /addEventListener\('scroll', scheduleGeometry/);
+  assert.match(desktop, /const followTop = Math\.max\(0, \(pinTop - bodyRect\.top\) \/ scale\)/);
+  assert.match(desktop, /scrollState = 'following'/);
   assert.doesNotMatch(desktop, /desktopSidebarPlaceholder/);
   assert.doesNotMatch(desktop, /setProperty\('position', 'fixed'/);
 });
