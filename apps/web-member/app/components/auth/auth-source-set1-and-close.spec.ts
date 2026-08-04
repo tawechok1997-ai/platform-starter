@@ -21,9 +21,9 @@ test('Mobile auth Source Set 1 is the final visual stylesheet owner', () => {
   assert.doesNotMatch(sourceSetOne, /align-items:\s*flex-end\s*!important/);
 });
 
-test('desktop register step wrappers cannot collapse to Thai label min-content width', () => {
+test('desktop register progress and step wrappers cannot collapse to min-content width', () => {
   assert.match(desktopRegisterFix, /@media\s*\(min-width:\s*901px\)/);
-  assert.match(desktopRegisterFix, /source-register-card\s*>\s*\.source-register-step[\s\S]*width:\s*100%\s*!important/);
+  assert.match(desktopRegisterFix, /source-register-card\s*>\s*\.source-register-progress,[\s\S]*source-register-card\s*>\s*\.source-register-step[\s\S]*width:\s*100%\s*!important/);
   assert.match(desktopRegisterFix, /source-register-card\s*>\s*\.source-register-step[\s\S]*min-width:\s*0\s*!important/);
   assert.match(desktopRegisterFix, /source-register-card\s*>\s*\.source-register-step[\s\S]*align-self:\s*stretch\s*!important/);
   assert.match(desktopRegisterFix, /source-register-step\s*>\s*\.source-login-field[\s\S]*width:\s*100%\s*!important/);
