@@ -8,7 +8,7 @@ const viewports = [
 
 export default defineConfig({
   testDir: './tests/e2e-visual',
-  testMatch: /r013-member-mobile-full-audit\.spec\.ts/,
+  testMatch: /r013-member-mobile-(?:full|protected-route)-audit\.spec\.ts/,
   outputDir: 'artifacts/member-mobile-audit/test-results',
   timeout: 180_000,
   expect: { timeout: 12_000 },
