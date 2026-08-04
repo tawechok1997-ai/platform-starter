@@ -26,11 +26,14 @@ test('drag scroll resolves one interacted rail without scanning the desktop canv
   assert.doesNotMatch(dragScroll, /new MutationObserver/);
 });
 
-test('jackpot sidebar remains in the original grid without fixed geometry observers', () => {
-  assert.match(sidebar, /setProperty\('position', 'sticky'/);
-  assert.match(sidebar, /setProperty\('left', 'auto'/);
+test('jackpot follower stays scoped to its home grid and throttles scroll work', () => {
+  assert.match(sidebar, /setProperty\('position', 'absolute'/);
+  assert.match(sidebar, /setProperty\('right', '0px'/);
   assert.match(sidebar, /setProperty\('z-index', '20'/);
-  assert.doesNotMatch(sidebar, /new ResizeObserver/);
+  assert.match(sidebar, /window\.requestAnimationFrame\(syncGeometry\)/);
+  assert.match(sidebar, /resizeObserver\.observe\(body\)/);
+  assert.match(sidebar, /window\.addEventListener\('scroll', scheduleGeometry/);
+  assert.doesNotMatch(sidebar, /resizeObserver\.observe\(sidebar\)/);
   assert.doesNotMatch(sidebar, /placeholder/);
   assert.doesNotMatch(sidebar, /setProperty\('position', 'fixed'/);
 });
