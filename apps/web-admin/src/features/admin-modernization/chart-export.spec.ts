@@ -24,7 +24,9 @@ test('chart CSV keeps stable columns and escapes labels', () => {
 test('chart CSV blob includes the UTF-8 marker for spreadsheet compatibility', async () => {
   const blob = createAdminChartCsvBlob(points, series);
   assert.equal(blob.type, 'text/csv;charset=utf-8');
-  assert.equal((await blob.text()).startsWith('\uFEFFlabel,Deposits,Withdrawals'), true);
+  const bytes = new Uint8Array(await blob.arrayBuffer());
+  assert.deepEqual([...bytes.slice(0, 3)], [0xef, 0xbb, 0xbf]);
+  assert.match(new TextDecoder('utf-8').decode(bytes), /^label,Deposits,Withdrawals/);
 });
 
 test('export file names are normalized and retain the requested extension', () => {
