@@ -106,13 +106,21 @@ export default function PublicGameLoginController() {
         return;
       }
 
+      // One click owns one provider launch. Previously a second click aborted
+      // the first request and started another one, which could create duplicate
+      // provider sessions or leave the user staring at the wrong error state.
+      if (launchAbortRef.current || action.dataset.memberGameLaunching === 'true') {
+        event.preventDefault();
+        event.stopPropagation();
+        return;
+      }
+
       const candidate = readGameCandidate(action);
       if (!candidate) return;
 
       event.preventDefault();
       event.stopPropagation();
 
-      launchAbortRef.current?.abort();
       const controller = new AbortController();
       launchAbortRef.current = controller;
       let timedOut = false;
@@ -122,6 +130,7 @@ export default function PublicGameLoginController() {
       }, GAME_LAUNCH_TIMEOUT_MS);
 
       action.dataset.memberGameLaunching = 'true';
+      action.setAttribute('aria-busy', 'true');
       const copy = LAUNCH_COPY[locale];
       const gameName = candidate.name || copy.game;
       setLaunchState({ status: 'loading', gameName, message: copy.connecting });
@@ -148,6 +157,7 @@ export default function PublicGameLoginController() {
       } finally {
         window.clearTimeout(timeout);
         delete action.dataset.memberGameLaunching;
+        action.removeAttribute('aria-busy');
         if (launchAbortRef.current === controller) launchAbortRef.current = null;
       }
     };
@@ -277,8 +287,15 @@ function gameDestination(action: HTMLElement) {
     game,
   });
   if (candidate.providerCode) params.set('provider', candidate.providerCode);
-  params.set('platform', 'mobile');
+  params.set('platform', currentPlatform());
   return `/games?${params.toString()}`;
+}
+
+function currentPlatform(): 'pc' | 'mobile' {
+  const mode = document.documentElement.dataset.memberViewportMode;
+  if (mode === 'mobile') return 'mobile';
+  if (mode === 'desktop') return 'pc';
+  return window.matchMedia('(max-width: 900px)').matches ? 'mobile' : 'pc';
 }
 
 function firstText(...values: Array<string | null | undefined>) {
