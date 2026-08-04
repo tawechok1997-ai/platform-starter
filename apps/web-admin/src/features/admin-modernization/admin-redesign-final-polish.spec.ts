@@ -5,9 +5,9 @@ import test from 'node:test';
 const workspace = readFileSync(new URL('./admin-widget-workspace.tsx', import.meta.url), 'utf8');
 const finance = readFileSync(new URL('./admin-dashboard-finance-trends.tsx', import.meta.url), 'utf8');
 const layout = readFileSync(new URL('./use-admin-widget-layout.ts', import.meta.url), 'utf8');
-const workflow = readFileSync(new URL('../../../../.github/workflows/admin-authenticated-ui-smoke.yml', import.meta.url), 'utf8');
-const migration = readFileSync(new URL('../../../../prisma/migrations/20260805040000_add_admin_ui_preferences/migration.sql', import.meta.url), 'utf8');
-const bootstrap = readFileSync(new URL('../../../../tools/prepare-production-database.mjs', import.meta.url), 'utf8');
+const workflow = readFileSync(new URL('../../../../../.github/workflows/admin-authenticated-ui-smoke.yml', import.meta.url), 'utf8');
+const migration = readFileSync(new URL('../../../../../prisma/migrations/20260805040000_add_admin_ui_preferences/migration.sql', import.meta.url), 'utf8');
+const bootstrap = readFileSync(new URL('../../../../../tools/prepare-production-database.mjs', import.meta.url), 'utf8');
 
 test('cash-flow widget uses the real historical runtime owner', () => {
   assert.match(workspace, /AdminDashboardFinanceTrends/);
