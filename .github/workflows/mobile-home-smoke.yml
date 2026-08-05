@@ -7,13 +7,14 @@ on:
       - 'tests/e2e-visual/r013-mobile-home-production-smoke.spec.ts'
       - 'tests/e2e-visual/r013-mobile-p7-p9-smoke.spec.ts'
       - 'tests/e2e-visual/r013-mobile-p10-p12-smoke.spec.ts'
+      - 'tests/e2e-visual/r013-member-auth-lifecycle.spec.ts'
       - 'playwright.visual.config.ts'
       - '.github/workflows/mobile-home-smoke.yml'
 
 jobs:
   mobile-home-smoke:
     runs-on: ubuntu-latest
-    timeout-minutes: 16
+    timeout-minutes: 28
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -37,6 +38,16 @@ jobs:
           --project=360x800
           --project=390x844
           --project=430x932
+          --retries=0
+      - name: Run Auth lifecycle twenty-cycle smoke
+        env:
+          MEMBER_HOME_URL: http://127.0.0.1:3101/
+        run: >-
+          pnpm exec playwright test
+          tests/e2e-visual/r013-member-auth-lifecycle.spec.ts
+          -c playwright.visual.config.ts
+          --project=390x844
+          --project=1024x768
           --retries=0
       - name: Upload Mobile Home evidence
         if: always()
