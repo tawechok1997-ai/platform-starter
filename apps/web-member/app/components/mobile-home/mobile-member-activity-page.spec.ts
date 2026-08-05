@@ -21,16 +21,14 @@ test('existing mobile member route reuses the dedicated activity source layout',
   assert.match(sectionPage, /endpoint: '\/public\/site-settings', publicEndpoint: true/);
 });
 
-test('activity cards resolve the three source CDN basenames against shared PC assets', () => {
-  for (const basename of [
-    '1785515180099-ffe2dd0b-23d8-41c3-964e-25368bc2188d.jpeg',
-    '1784904726144-c10c3ca6-cf70-41d3-a763-aa33c8917b2d.jpeg',
-    '1719130004352-5323a6c4-0ad4-4cda-8475-dd0f5701b61b.png',
-  ]) assert.match(activityPage, new RegExp(basename.replaceAll('.', '\\.')));
-  assert.match(activityPage, /resolveLocalAssetByBasename\(sourceUrl, 'pc'\)/);
-  assert.match(activityPage, /title: 'ภารกิจ'/);
-  assert.match(activityPage, /title: 'ทายผลหวย'/);
-  assert.match(activityPage, /title: 'ทำยอด Turn รับรางวัลจุใจ'/);
+test('activity cards consume API items and keep a bounded image recovery chain', () => {
+  assert.match(activityPage, /items\.map\(\(item\) => \(\{/);
+  assert.match(activityPage, /resolveLocalAssetOrSource\(item\.image, 'mobile'\)/);
+  assert.match(activityPage, /src=\{activity\.imageUrl \|\| FALLBACK_ACTIVITY_IMAGE\}/);
+  assert.match(activityPage, /recoverActivityImage\(event\.currentTarget, activity\.image\)/);
+  assert.match(activityPage, /image\.dataset\.activityImageFallback = 'source'/);
+  assert.match(activityPage, /image\.dataset\.activityImageFallback = 'generic'/);
+  assert.doesNotMatch(activityPage, /SOURCE_ACTIVITIES/);
 });
 
 test('activity page geometry follows the source screen', () => {
