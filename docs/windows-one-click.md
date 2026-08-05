@@ -37,6 +37,18 @@ After setup, these URLs open automatically:
 | Admin Web | `http://localhost:3001` |
 | API health | `http://localhost:4000/health` |
 
+## First local Admin sign-in
+
+The local bootstrap Admin username and email come from `BOOTSTRAP_ADMIN_USERNAME` and `BOOTSTRAP_ADMIN_EMAIL` in `.env.windows.local`. The setup replaces the maintained password placeholder with a random per-machine value.
+
+From the repository folder, run this command only in your own local terminal to display the generated password:
+
+```powershell
+powershell.exe -NoProfile -Command "(Select-String -LiteralPath '.env.windows.local' -Pattern '^BOOTSTRAP_ADMIN_PASSWORD=').Line -replace '^BOOTSTRAP_ADMIN_PASSWORD=', ''"
+```
+
+Do not paste the generated password into chat, tickets, logs, screenshots, or a deployed environment. If `.env.windows.local` already existed before setup, the installer preserves its existing local credentials.
+
 ## Later use
 
 - Double-click `Start-Windows.cmd` to start the complete stack.
@@ -44,6 +56,8 @@ After setup, these URLs open automatically:
 - Database and Redis volumes are preserved when the stack stops.
 
 The launcher records each PowerShell process ID together with its exact start time. Start and stop operations verify both values before reusing or terminating a process. A stale record or a Windows-reused PID is ignored instead of risking termination of an unrelated program.
+
+If startup opens only part of the application stack or a process tree cannot be stopped, the launcher surfaces the native failure instead of reporting success. Partially opened application terminals are cleaned up before the startup command exits.
 
 ## Local isolation and secrets
 
@@ -61,11 +75,12 @@ Both `.env.windows.local` and `.local/` are excluded from Git. Never copy these 
 
 ## Automated verification
 
-The `Windows One-Click Smoke` GitHub Actions workflow runs on `windows-latest` whenever the installer, launchers, Windows scripts, Compose file, or their contracts change. It verifies:
+The `Windows One-Click Smoke` GitHub Actions workflow runs on `windows-latest` whenever the installer, launchers, Windows scripts, Compose file, environment template, ignore rules, documentation, or their contracts change. It verifies:
 
 - the Node contract suite for the complete one-click surface
 - Windows PowerShell 5.1 parsing for every script under `scripts/windows/`
 - root `.cmd` wrappers pointing to the maintained PowerShell owners
+- generated environment keys and the local Admin credential recovery instructions
 
 This native smoke gate catches syntax and launcher regressions, but it does not replace the required clean-machine test for UAC, WSL enablement, reboot continuation, Docker Desktop first boot, image pulls, and the complete three-application startup.
 
