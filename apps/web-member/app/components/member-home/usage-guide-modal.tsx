@@ -25,6 +25,7 @@ const DESKTOP_GUIDE_MEDIA = '(min-width: 901px)';
 
 export default function UsageGuideModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { locale } = useMemberLocale();
+  const [mounted, setMounted] = useState(false);
   const [activeTab, setActiveTab] = useState<GuideTab>('all');
   const [openItem, setOpenItem] = useState<string | null>(null);
   const [openDesktopItems, setOpenDesktopItems] = useState<ReadonlySet<string>>(
@@ -39,6 +40,10 @@ export default function UsageGuideModal({ open, onClose }: { open: boolean; onCl
       : USAGE_GUIDE_GROUPS.filter((group) => group.tab === activeTab),
     [activeTab],
   );
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     if (!open) return;
@@ -79,7 +84,7 @@ export default function UsageGuideModal({ open, onClose }: { open: boolean; onCl
     }
   }, [open]);
 
-  if (!open || typeof document === 'undefined') return null;
+  if (!open || !mounted) return null;
 
   const closeFromBackdrop = (event: MouseEvent<HTMLDivElement>) => {
     if (event.target === event.currentTarget) onClose();
