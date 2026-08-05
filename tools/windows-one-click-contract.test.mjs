@@ -7,9 +7,11 @@ const read = (path) => readFileSync(new URL(`../${path}`, import.meta.url), 'utf
 const setupCmd = read('Setup-Windows.cmd');
 const startCmd = read('Start-Windows.cmd');
 const stopCmd = read('Stop-Windows.cmd');
+const verifyCmd = read('Verify-Windows.cmd');
 const setup = read('scripts/windows/setup.ps1');
 const start = read('scripts/windows/start.ps1');
 const stop = read('scripts/windows/stop.ps1');
+const verify = read('scripts/windows/verify.ps1');
 const compose = read('compose.windows.yml');
 const envExample = read('.env.example');
 const docs = read('docs/windows-one-click.md');
@@ -20,6 +22,7 @@ test('root launchers delegate to maintained PowerShell owners', () => {
   assert.match(setupCmd, /scripts\\windows\\setup\.ps1/);
   assert.match(startCmd, /scripts\\windows\\start\.ps1/);
   assert.match(stopCmd, /scripts\\windows\\stop\.ps1/);
+  assert.match(verifyCmd, /scripts\\windows\\verify\.ps1/);
 });
 
 
@@ -154,4 +157,25 @@ test('recorded terminals are reused only while every application remains healthy
   assert.match(start, /Test-HttpEndpoint -Url 'http:\/\/localhost:3001'/);
   assert.match(start, /already running and healthy/);
   assert.match(start, /else \{[\s\S]*Stop-RecordedProcesses[\s\S]*Opening application terminals/s);
+});
+
+
+test('clean-machine verifier checks the complete local stack and writes redacted evidence', () => {
+  assert.match(verifyCmd, /windows-clean-machine-verification\.json/);
+  assert.match(verify, /Windows 10\|Windows 11/);
+  assert.match(verify, /wsl\.exe.*--status/s);
+  assert.match(verify, /Node\.js 22/);
+  assert.match(verify, /pnpm 11\.18\.0/);
+  assert.match(verify, /Docker engine readiness/);
+  assert.match(verify, /compose.*config.*--quiet/s);
+  assert.match(verify, /pg_isready/);
+  assert.match(verify, /redis-cli.*ping/s);
+  assert.match(verify, /prisma.*migrate.*status/s);
+  assert.match(verify, /localhost:4000\/health/);
+  assert.match(verify, /localhost:3000/);
+  assert.match(verify, /localhost:3001/);
+  assert.match(verify, /windows-clean-machine-verification\.json/);
+  assert.match(verify, /No secrets are written to the evidence report/);
+  assert.doesNotMatch(verify, /checks\s*=\s*\$environmentValues/);
+  assert.doesNotMatch(verify, /detail\s*=\s*\$safeValue/);
 });
