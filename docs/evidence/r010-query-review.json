@@ -31,6 +31,11 @@
       "owner": "provider-simulator",
       "reason": "Round reconstruction performs a transaction-scoped ledger read for deterministic state recovery, unlike the wallet admin detail projection."
     },
+    "duplicate:d57361860c815debc0a4237b": {
+      "status": "documented-exception",
+      "owner": "provider-simulator",
+      "reason": "Transaction reconstruction and slot-round history both read member-owned game ledger entries but apply different limits and map them into distinct deterministic recovery and history contracts."
+    },
     "duplicate:2080dc38ccf3f10711ff131b": {
       "status": "documented-exception",
       "owner": "risk-alerts",

@@ -50,6 +50,9 @@ export function transitionGameRound(
       if (round.settleTransactionId) {
         throw new GameRoundTransitionError('Round already has a different settlement transaction');
       }
+      if (round.refundTransactionId) {
+        throw new GameRoundTransitionError('Cannot settle a refunded round');
+      }
       if (round.state !== 'BET') {
         throw new GameRoundTransitionError(`Cannot settle while round is ${round.state}`);
       }
