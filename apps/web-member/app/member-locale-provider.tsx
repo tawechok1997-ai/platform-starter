@@ -18,6 +18,7 @@ const MOBILE_LANGUAGE_TOGGLE_SELECTOR = [
   'button[aria-label="เปลี่ยนภาษา"]',
   'button[aria-label="Change language"]',
 ].join(',');
+const UNSUPPORTED_MOBILE_LANGUAGE_SELECTOR = '[data-mobile-unsupported-locale="true"]';
 const MOBILE_VIEWPORT_QUERY = '(max-width: 900px)';
 
 type MemberLocaleContextValue = {
@@ -87,6 +88,25 @@ export function MemberLocaleProvider({ children }: { children: ReactNode }) {
     window.addEventListener('click', handleMobileLanguageToggle, true);
     return () => window.removeEventListener('click', handleMobileLanguageToggle, true);
   }, [commitLocale]);
+
+  useEffect(() => {
+    const removeUnsupportedMobileLanguageOptions = () => {
+      if (!window.matchMedia(MOBILE_VIEWPORT_QUERY).matches) return;
+      document.querySelectorAll<HTMLElement>(UNSUPPORTED_MOBILE_LANGUAGE_SELECTOR)
+        .forEach((element) => element.remove());
+    };
+
+    const observer = new MutationObserver(removeUnsupportedMobileLanguageOptions);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['data-mobile-unsupported-locale'],
+      childList: true,
+      subtree: true,
+    });
+    removeUnsupportedMobileLanguageOptions();
+
+    return () => observer.disconnect();
+  }, []);
 
   const setLocale = useCallback((nextLocale: MemberLocale) => {
     commitLocale(nextLocale);
