@@ -52,9 +52,9 @@ test.describe('Member auth lifecycle regression', () => {
 
 async function openAuth(page: Page, mode: 'login' | 'register', requestId: string) {
   const accessibleName = mode === 'login' ? LOGIN_NAME : REGISTER_NAME;
-  const visibleControl = page.getByRole('button', { name: accessibleName }).filter({ visible: true }).first();
+  const visibleControl = page.getByRole('button', { name: accessibleName }).first();
 
-  if (await visibleControl.count()) {
+  if (await visibleControl.isVisible().catch(() => false)) {
     await visibleControl.click({ timeout: 5_000 }).catch(async () => {
       await dispatchAuthRequest(page, mode, requestId);
     });
