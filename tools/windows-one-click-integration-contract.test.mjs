@@ -64,3 +64,15 @@ test('smoke services bind only to loopback and expose deterministic health respo
   assert.match(service, /ok: true/);
   assert.match(service, /cache-control/);
 });
+
+
+test('Windows workflow executes and validates the redacted verifier report', () => {
+  assert.match(workflow, /Run verifier evidence smoke/);
+  assert.match(workflow, /scripts\\windows\\verify\.ps1/);
+  assert.match(workflow, /windows-clean-machine-verification\.json/);
+  assert.match(workflow, /ConvertFrom-Json/);
+  assert.match(workflow, /schemaVersion/);
+  assert.match(workflow, /summary\.total/);
+  assert.match(workflow, /ci-smoke-secret-/);
+  assert.match(workflow, /Verifier evidence leaked an environment secret value/);
+});
