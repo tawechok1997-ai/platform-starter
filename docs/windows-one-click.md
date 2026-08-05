@@ -112,7 +112,7 @@ The `Windows One-Click Smoke` GitHub Actions workflow runs on `windows-latest` w
 
 The static and native checks verify:
 
-- 18 Node contracts for the complete one-click surface, verifier, and lifecycle ownership
+- 19 Node contracts for the complete one-click surface, verifier, and lifecycle ownership
 - Windows PowerShell 5.1 parsing for every script under `scripts/windows/`
 - root `.cmd` wrappers pointing to the maintained PowerShell owners
 - generated environment keys and the local Admin credential recovery instructions
@@ -125,8 +125,10 @@ The static and native checks verify:
 - complete stop cleanup and removal of the process record
 - stale PID protection without terminating an unrelated process
 - the clean-machine verifier owner and redacted evidence contract
+- execution of the verifier in a separate Windows PowerShell 5.1 process
+- JSON schema, minimum check inventory, summary presence, and secret-redaction validation
 
-The lifecycle integration uses isolated loopback smoke services and a fake Docker command. It proves launcher behavior on Windows PowerShell 5.1 without installing Docker Desktop or exposing network services outside the runner.
+The lifecycle integration uses isolated loopback smoke services and a fake Docker command. It proves launcher behavior on Windows PowerShell 5.1 without installing Docker Desktop or exposing network services outside the runner. A second evidence smoke invokes the maintained verifier on the Windows runner with disposable environment markers, validates the generated JSON, and rejects the run if any marker value appears in the report.
 
 This native gate does not replace the remaining clean-machine checks for Windows 10/11 client UAC, WSL feature enablement, reboot continuation, Docker Desktop first boot, real container image pulls, real database initialization, the complete application stack, or bootstrap Admin sign-in. `Verify-Windows.cmd` turns those checks into one redacted machine report after the real setup is run.
 
