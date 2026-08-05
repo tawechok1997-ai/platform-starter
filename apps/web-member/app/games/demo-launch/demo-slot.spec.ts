@@ -57,10 +57,12 @@ test('slot page reads the persisted member wallet after every successful spin', 
   assert.match(page, /moneyEquals\(persistedWallet\.balance, expectedBalance\)/);
   assert.match(page, /data-demo-slot-wallet-readback="true"/);
   assert.match(page, /ยืนยันยอดจาก Wallet DB แล้ว/);
-  assert.doesNotMatch(
-    page,
-    /setWallet\(\s*(?:\([^)]*\)\s*=>\s*)?\(?\s*\{[^}]*\bbalance:\s*nextBalance\b/s,
-  );
+
+  const spinStart = page.indexOf('  async function spin()');
+  const renderStart = page.indexOf('\n  return (', spinStart);
+  assert.ok(spinStart >= 0 && renderStart > spinStart, 'spin source boundary must remain discoverable');
+  const spinSource = page.slice(spinStart, renderStart);
+  assert.doesNotMatch(spinSource, /setWallet\(/);
 });
 
 test('ledger history exposes authenticated round refresh and rollback', () => {
