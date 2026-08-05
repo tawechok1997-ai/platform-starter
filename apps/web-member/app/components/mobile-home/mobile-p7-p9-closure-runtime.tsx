@@ -216,8 +216,16 @@ export default function MobileP7P9ClosureRuntime({
           overflow-x: clip !important;
         }
 
+        html[data-mobile-p7-p9-phase][data-mobile-overlay-open='true'],
+        html[data-mobile-p7-p9-phase][data-mobile-overlay-open='true'] body {
+          overflow: hidden !important;
+          overscroll-behavior: none !important;
+          touch-action: none !important;
+        }
+
         html[data-mobile-p7-p9-phase] [data-mobile-member-page],
         html[data-mobile-p7-p9-phase] .member-finance-page,
+        html[data-mobile-p7-p9-phase] .finance-flow-page,
         html[data-mobile-p7-p9-phase] main:has(> a[href='/']) {
           box-sizing: border-box !important;
           width: 100% !important;
@@ -229,6 +237,7 @@ export default function MobileP7P9ClosureRuntime({
 
         html[data-mobile-p7-p9-phase] [data-mobile-member-page] *,
         html[data-mobile-p7-p9-phase] .member-finance-page *,
+        html[data-mobile-p7-p9-phase] .finance-flow-page *,
         html[data-mobile-p7-p9-phase] main:has(> a[href='/']) * {
           box-sizing: border-box;
           min-width: 0;
@@ -237,6 +246,9 @@ export default function MobileP7P9ClosureRuntime({
         html[data-mobile-p7-p9-phase] .member-finance-page input,
         html[data-mobile-p7-p9-phase] .member-finance-page select,
         html[data-mobile-p7-p9-phase] .member-finance-page textarea,
+        html[data-mobile-p7-p9-phase] .finance-flow-page input,
+        html[data-mobile-p7-p9-phase] .finance-flow-page select,
+        html[data-mobile-p7-p9-phase] .finance-flow-page textarea,
         html[data-mobile-p7-p9-phase] main:has(> a[href='/']) input,
         html[data-mobile-p7-p9-phase] main:has(> a[href='/']) select,
         html[data-mobile-p7-p9-phase] main:has(> a[href='/']) textarea {
@@ -282,7 +294,8 @@ export default function MobileP7P9ClosureRuntime({
         html[data-mobile-p7-p9-phase] :is(
           [data-mobile-popup-owner],
           [data-mobile-member-page],
-          .member-finance-page
+          .member-finance-page,
+          .finance-flow-page
         ) :focus-visible {
           outline: 2px solid #d98cff !important;
           outline-offset: 2px !important;
@@ -295,7 +308,8 @@ export default function MobileP7P9ClosureRuntime({
           html[data-mobile-p7-p9-phase] #member-desktop-scale-shell,
           html[data-mobile-p7-p9-phase] #member-desktop-scale-canvas,
           html[data-mobile-p7-p9-phase] [data-mobile-member-page],
-          html[data-mobile-p7-p9-phase] .member-finance-page {
+          html[data-mobile-p7-p9-phase] .member-finance-page,
+          html[data-mobile-p7-p9-phase] .finance-flow-page {
             overflow-x: hidden !important;
           }
         }
