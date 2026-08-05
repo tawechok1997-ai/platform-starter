@@ -3,6 +3,8 @@ name: Windows One-Click Smoke
 on:
   pull_request:
     paths:
+      - '.env.example'
+      - '.gitignore'
       - 'Setup-Windows.cmd'
       - 'Start-Windows.cmd'
       - 'Stop-Windows.cmd'
