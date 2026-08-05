@@ -1,0 +1,39 @@
+name: platform-starter-windows
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: platform-starter-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: platform
+      POSTGRES_PASSWORD: ${WINDOWS_POSTGRES_PASSWORD:?WINDOWS_POSTGRES_PASSWORD is required}
+      POSTGRES_DB: platform
+    ports:
+      - "127.0.0.1:55432:5432"
+    volumes:
+      - platform_starter_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U platform -d platform"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  redis:
+    image: redis:7-alpine
+    container_name: platform-starter-redis
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    ports:
+      - "127.0.0.1:56379:6379"
+    volumes:
+      - platform_starter_redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+volumes:
+  platform_starter_postgres_data:
+  platform_starter_redis_data:
