@@ -35,22 +35,44 @@ function Get-RecordedProcess {
   return $process
 }
 
+function Stop-ProcessTree {
+  param(
+    [Parameter(Mandatory = $true)][System.Diagnostics.Process]$Process,
+    [Parameter(Mandatory = $true)][string]$Name
+  )
+
+  & taskkill.exe /PID $Process.Id /T /F *> $null
+  $exitCode = $LASTEXITCODE
+  if ($exitCode -eq 0) {
+    return
+  }
+
+  $remaining = Get-Process -Id $Process.Id -ErrorAction SilentlyContinue
+  if ($remaining) {
+    throw "taskkill exited with code $exitCode while stopping $Name (PID $($Process.Id))."
+  }
+}
+
 try {
   if (Test-Path -LiteralPath $ProcessFile) {
     try {
       $records = @(Get-Content -LiteralPath $ProcessFile -Raw | ConvertFrom-Json)
-      foreach ($record in $records) {
-        $process = Get-RecordedProcess -Record $record
-        if ($process) {
-          Write-Host "Stopping $($record.name)..." -ForegroundColor Cyan
-          & taskkill.exe /PID $process.Id /T /F *> $null
-        } else {
-          Write-Host "Skipping stale process record for $($record.name)." -ForegroundColor Yellow
-        }
-      }
-    } finally {
+    } catch {
       Remove-Item -LiteralPath $ProcessFile -Force -ErrorAction SilentlyContinue
+      throw 'The Windows process record was invalid and has been removed. Run Stop-Windows.cmd again if application terminals remain open.'
     }
+
+    foreach ($record in $records) {
+      $process = Get-RecordedProcess -Record $record
+      if ($process) {
+        Write-Host "Stopping $($record.name)..." -ForegroundColor Cyan
+        Stop-ProcessTree -Process $process -Name ([string]$record.name)
+      } else {
+        Write-Host "Skipping stale process record for $($record.name)." -ForegroundColor Yellow
+      }
+    }
+
+    Remove-Item -LiteralPath $ProcessFile -Force -ErrorAction SilentlyContinue
   }
 
   if ((Test-Path -LiteralPath $EnvironmentPath) -and (Get-Command docker.exe -ErrorAction SilentlyContinue)) {
