@@ -12,6 +12,7 @@ const start = read('scripts/windows/start.ps1');
 const stop = read('scripts/windows/stop.ps1');
 const compose = read('compose.windows.yml');
 const envExample = read('.env.example');
+const docs = read('docs/windows-one-click.md');
 const gitignore = read('.gitignore');
 
 
@@ -81,6 +82,18 @@ test('Windows setup isolates local credentials from maintained environments', ()
   assert.match(envExample, /^BOOTSTRAP_ADMIN_PASSWORD=set_in_local_env$/m);
   assert.match(gitignore, /^\.env\.windows\.local$/m);
   assert.match(gitignore, /^\.local\/$/m);
+});
+
+
+test('local Admin credentials remain discoverable without writing the secret to setup output', () => {
+  assert.match(setupCmd, /Local Admin credentials are stored in \.env\.windows\.local/);
+  assert.match(setupCmd, /docs\\windows-one-click\.md/);
+  assert.doesNotMatch(setupCmd, /BOOTSTRAP_ADMIN_PASSWORD=/);
+  assert.match(docs, /## First local Admin sign-in/);
+  assert.match(docs, /BOOTSTRAP_ADMIN_USERNAME/);
+  assert.match(docs, /BOOTSTRAP_ADMIN_EMAIL/);
+  assert.match(docs, /Select-String[\s\S]*BOOTSTRAP_ADMIN_PASSWORD=/);
+  assert.match(docs, /Do not paste the generated password into chat, tickets, logs, screenshots/);
 });
 
 
