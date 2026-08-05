@@ -5,28 +5,48 @@ on:
     branches:
       - main
     paths:
+      - '.github/workflows/member-production-verification.yml'
       - '.github/workflows/railway-web-member-inspect.yml'
       - '.github/workflows/railway-web-member-recovery.yml'
+      - 'docs/member-production-verification.md'
+      - 'tools/member-production-workflow-contract.test.mjs'
   workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
+  workflow-contracts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check out workflow source
+        uses: actions/checkout@v4
+
+      - name: Setup Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Run Member production workflow contracts
+        run: node --test tools/member-production-workflow-contract.test.mjs
+
   inspect:
+    needs: workflow-contracts
     runs-on: ubuntu-latest
     timeout-minutes: 8
-    container: ghcr.io/railwayapp/cli:latest
+    container: ghcr.io/railwayapp/cli:4.65.0
     env:
       RAILWAY_PROJECT_ID: 9a018c35-5d56-4541-a133-2ac7e1d6731c
       RAILWAY_ENVIRONMENT_ID: d0874330-b90d-4e5e-b265-08411afa6945
       RAILWAY_SERVICE_ID: bcd0f4e5-b68b-4b78-bd92-3f0400254f7c
-      PROJECT_TOKEN: ${{ secrets.RAILWAY_PROJECT_TOKEN }}
-      API_TOKEN: ${{ secrets.RAILWAY_API_TOKEN }}
     steps:
       - name: Select Railway authentication token
         id: auth
         shell: sh
+        env:
+          PROJECT_TOKEN: ${{ secrets.RAILWAY_PROJECT_TOKEN }}
+          API_TOKEN: ${{ secrets.RAILWAY_API_TOKEN }}
         run: |
           set -eu
 
@@ -90,6 +110,7 @@ jobs:
           {
             echo "## Railway Web Member inspection"
             echo
+            echo "- Railway CLI: \`4.65.0\`"
             echo "- Project: \`$RAILWAY_PROJECT_ID\`"
             echo "- Environment: \`$RAILWAY_ENVIRONMENT_ID\`"
             echo "- Service: \`$RAILWAY_SERVICE_ID\`"
