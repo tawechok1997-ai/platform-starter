@@ -13,9 +13,12 @@ export default function MobileActivityRoute() {
   const router = useRouter();
   const [items, setItems] = useState<MobileActivityContentItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     const controller = new AbortController();
+    setLoading(true);
+    setError('');
 
     memberApiFetch('/public/activities', {
       cache: 'no-store',
@@ -24,10 +27,15 @@ export default function MobileActivityRoute() {
       skipAuth: true,
     }).then(async (response) => {
       const payload = await response.json().catch(() => null);
-      if (!response.ok) return;
+      if (!response.ok) {
+        const message = firstString(asRecord(payload).message) || 'โหลดกิจกรรมไม่สำเร็จ';
+        throw new Error(message);
+      }
       setItems(extractActivities(payload));
-    }).catch(() => {
-      // Source cards remain available while the API is unavailable or before the migration is deployed.
+    }).catch((reason) => {
+      if (controller.signal.aborted) return;
+      setItems([]);
+      setError(reason instanceof Error ? reason.message : 'โหลดกิจกรรมไม่สำเร็จ');
     }).finally(() => {
       if (!controller.signal.aborted) setLoading(false);
     });
@@ -39,6 +47,7 @@ export default function MobileActivityRoute() {
     <MobileMemberActivityPage
       items={items}
       loading={loading}
+      error={error}
       onBack={() => router.push('/')}
     />
   );

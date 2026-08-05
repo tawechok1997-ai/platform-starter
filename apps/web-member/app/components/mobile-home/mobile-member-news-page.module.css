@@ -1,0 +1,150 @@
+.page {
+  width: min(100%, 428px);
+  min-height: 100dvh;
+  margin: 0 auto;
+  color: #fff;
+  background: #141019;
+  box-shadow: 0 0 24px rgb(255 255 255 / 14%);
+}
+
+.header {
+  position: sticky;
+  z-index: 20;
+  top: 0;
+  display: grid;
+  width: 100%;
+  height: 50px;
+  padding: 0 8px;
+  grid-template-columns: 40px minmax(0, 1fr) 40px;
+  align-items: center;
+  background: #171422;
+}
+
+.header button {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  place-items: center;
+  border: 0;
+  color: #fff;
+  background: transparent;
+}
+
+.header h1 {
+  margin: 0;
+  overflow: hidden;
+  font-size: 18px;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.body {
+  width: 100%;
+  padding: 18px 16px calc(72px + env(safe-area-inset-bottom));
+}
+
+.panel,
+.list {
+  display: grid;
+  width: 100%;
+  gap: 12px;
+}
+
+.panel {
+  min-height: 220px;
+  padding: 14px 12px;
+  border: 1px solid #413e4b;
+  border-radius: 8px;
+  background: linear-gradient(360deg, rgb(27 24 36 / 60%) -5.86%, rgb(63 59 75 / 60%) 104.05%);
+}
+
+.card {
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr);
+  gap: 12px;
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid rgb(255 255 255 / 8%);
+  border-radius: 10px;
+  color: inherit;
+  background: #17141d;
+  text-decoration: none;
+}
+
+.image,
+.placeholder {
+  display: block;
+  width: 96px;
+  height: 72px;
+  border-radius: 8px;
+  object-fit: cover;
+  background: #292431;
+}
+
+.placeholder {
+  display: grid;
+  place-items: center;
+  color: #a98db8;
+  font-size: 24px;
+}
+
+.copy {
+  display: grid;
+  min-width: 0;
+  align-content: center;
+  gap: 6px;
+}
+
+.copy strong {
+  overflow: hidden;
+  font-size: 14px;
+  line-height: 20px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.copy p {
+  display: -webkit-box;
+  margin: 0;
+  overflow: hidden;
+  color: #aaa4b2;
+  font-size: 12px;
+  line-height: 18px;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.state {
+  display: grid;
+  min-height: 190px;
+  place-items: center;
+  color: #aaa4b2;
+  font-size: 13px;
+  text-align: center;
+}
+
+.skeleton {
+  height: 94px;
+  border-radius: 10px;
+  background: linear-gradient(90deg, #211d27, #332d3d, #211d27);
+  background-size: 220% 100%;
+  animation: pulse 1.2s linear infinite;
+}
+
+@keyframes pulse {
+  to { background-position: -120% 0; }
+}
+
+@media (max-width: 359px) {
+  .body { padding-inline: 8px; }
+  .panel { padding-inline: 8px; }
+  .card { grid-template-columns: 82px minmax(0, 1fr); }
+  .image,
+  .placeholder { width: 82px; height: 64px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton { animation: none; }
+}

@@ -8,13 +8,15 @@ const detailRoute = readFileSync(new URL('../../mobile/member/activity/[activity
 const detailPage = readFileSync(new URL('./mobile-member-activity-detail-page.tsx', import.meta.url), 'utf8');
 const styles = readFileSync(new URL('./mobile-member-activity-detail-page.module.css', import.meta.url), 'utf8');
 
-test('activity list uses the dedicated public API and authenticated child routes', () => {
-  assert.match(listRoute, /\/public\/activities/);
+test('activity list uses the dedicated public API and API-provided child routes', () => {
+  assert.match(listRoute, /memberApiFetch\('\/public\/activities'/);
+  assert.match(listRoute, /skipAuth:\s*true/);
   assert.doesNotMatch(listRoute, /\/public\/site-settings/);
-  assert.match(listPage, /\/mobile\/member\/activity\/daily-mission/);
-  assert.match(listPage, /\/mobile\/member\/activity\/lottery-prediction/);
-  assert.match(listPage, /\/mobile\/member\/activity\/turnover-reward/);
+  assert.match(listPage, /items:\s*MobileActivityContentItem\[\]/);
+  assert.match(listPage, /activity\.href\.startsWith\('\/'\)/);
+  assert.match(listPage, /router\.push\(activity\.href\)/);
   assert.match(listPage, /detail: \{ mode: 'login', next: activity\.href \}/);
+  assert.doesNotMatch(listPage, /daily-mission|lottery-prediction|turnover-reward/);
   assert.match(detailRoute, /MobileMemberActivityDetailPage/);
 });
 
