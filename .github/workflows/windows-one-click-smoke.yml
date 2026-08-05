@@ -9,6 +9,7 @@ on:
       - 'Start-Windows.cmd'
       - 'Stop-Windows.cmd'
       - 'compose.windows.yml'
+      - 'docs/windows-one-click.md'
       - 'scripts/windows/**'
       - 'tools/windows-one-click-contract.test.mjs'
       - '.github/workflows/windows-one-click-smoke.yml'
