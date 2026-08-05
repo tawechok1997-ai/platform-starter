@@ -152,45 +152,60 @@ async function relationPresence(prisma, relationNames) {
 }
 
 async function applyBootstrapSafeMigrations() {
-  await withPrisma(async (prisma) => {
-    for (const migration of BOOTSTRAP_SAFE_MIGRATIONS) {
-      const before = await relationPresence(prisma, migration.requiredRelations);
-      const existing = before.filter((relation) => relation.exists).map((relation) => relation.relationName);
-      const missing = before.filter((relation) => !relation.exists).map((relation) => relation.relationName);
-
-      if (missing.length === 0) {
-        console.log(`[database-bootstrap] Bootstrap-safe migration ${migration.name} is already materialized.`);
-        continue;
-      }
-
-      if (existing.length > 0) {
-        throw new Error(
-          `Refusing partial bootstrap-safe migration ${migration.name}; existing relations: ${existing.join(', ')}; missing relations: ${missing.join(', ')}`,
+  await withPrisma((prisma) =>
+    prisma.$transaction(
+      async (tx) => {
+        await tx.$queryRawUnsafe(
+          "SELECT pg_advisory_xact_lock(hashtext('platform-bootstrap-safe-migrations'))",
         );
-      }
 
-      console.warn(
-        `[database-bootstrap] Migration history does not match the physical schema; applying ${migration.name} to restore: ${missing.join(', ')}.`,
-      );
-      const migrationPath = path.join(migrationsDirectory, migration.name, 'migration.sql');
-      const sql = await readFile(migrationPath, 'utf8');
-      const statements = sql
-        .split(/;\s*(?:\r?\n|$)/)
-        .map((statement) => statement.trim())
-        .filter(Boolean);
-      for (const statement of statements) await prisma.$executeRawUnsafe(statement);
+        for (const migration of BOOTSTRAP_SAFE_MIGRATIONS) {
+          const before = await relationPresence(tx, migration.requiredRelations);
+          const existing = before
+            .filter((relation) => relation.exists)
+            .map((relation) => relation.relationName);
+          const missing = before
+            .filter((relation) => !relation.exists)
+            .map((relation) => relation.relationName);
 
-      const after = await relationPresence(prisma, migration.requiredRelations);
-      const stillMissing = after
-        .filter((relation) => !relation.exists)
-        .map((relation) => relation.relationName);
-      if (stillMissing.length > 0) {
-        throw new Error(
-          `Bootstrap-safe migration ${migration.name} completed without creating required relations: ${stillMissing.join(', ')}`,
-        );
-      }
-    }
-  });
+          if (missing.length === 0) {
+            console.log(
+              `[database-bootstrap] Bootstrap-safe migration ${migration.name} is already materialized.`,
+            );
+            continue;
+          }
+
+          if (existing.length > 0) {
+            throw new Error(
+              `Refusing partial bootstrap-safe migration ${migration.name}; existing relations: ${existing.join(', ')}; missing relations: ${missing.join(', ')}`,
+            );
+          }
+
+          console.warn(
+            `[database-bootstrap] Migration history does not match the physical schema; applying ${migration.name} to restore: ${missing.join(', ')}.`,
+          );
+          const migrationPath = path.join(migrationsDirectory, migration.name, 'migration.sql');
+          const sql = await readFile(migrationPath, 'utf8');
+          const statements = sql
+            .split(/;\s*(?:\r?\n|$)/)
+            .map((statement) => statement.trim())
+            .filter(Boolean);
+          for (const statement of statements) await tx.$executeRawUnsafe(statement);
+
+          const after = await relationPresence(tx, migration.requiredRelations);
+          const stillMissing = after
+            .filter((relation) => !relation.exists)
+            .map((relation) => relation.relationName);
+          if (stillMissing.length > 0) {
+            throw new Error(
+              `Bootstrap-safe migration ${migration.name} completed without creating required relations: ${stillMissing.join(', ')}`,
+            );
+          }
+        }
+      },
+      { maxWait: 30_000, timeout: 30_000 },
+    ),
+  );
 }
 
 async function baselineEmptyDatabase(state) {
