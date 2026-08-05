@@ -42,4 +42,41 @@ describe('AdminAuthController request and cookie handling', () => {
     expect(cookie).toContain('SameSite=Lax');
     expect((instance as any).readRefreshCookie({ headers: { cookie } })).toBe('session.raw-token');
   });
+
+  it('keeps Admin Login anti-bot disabled until explicitly enabled', async () => {
+    const previous = process.env.ADMIN_LOGIN_ANTI_BOT_ENABLED;
+    const login = {
+      signIn: jest.fn().mockResolvedValue({ accessToken: 'access-token', refreshToken: 'refresh-token' }),
+    };
+    const antiBot = { assertValid: jest.fn().mockResolvedValue({ required: true, success: true }) };
+    const loginDefense = { assertAllowed: jest.fn().mockResolvedValue(undefined) };
+    const instance = new AdminAuthController(
+      login as any,
+      {} as any,
+      {} as any,
+      {} as any,
+      {} as any,
+      {} as any,
+      {} as any,
+      antiBot as any,
+      loginDefense as any,
+    );
+    const dto = { username: 'admin', secret: 'secret', deviceId: 'web-admin' } as any;
+    const request = { ip: '203.0.113.10', socket: { remoteAddress: '10.0.0.4' }, headers: {} } as any;
+    const response = { setHeader: jest.fn() };
+
+    try {
+      delete process.env.ADMIN_LOGIN_ANTI_BOT_ENABLED;
+      await instance.signIn(dto, request, response);
+      expect(antiBot.assertValid).not.toHaveBeenCalled();
+
+      process.env.ADMIN_LOGIN_ANTI_BOT_ENABLED = 'true';
+      await instance.signIn(dto, request, response);
+      expect(antiBot.assertValid).toHaveBeenCalledTimes(1);
+      expect(antiBot.assertValid).toHaveBeenCalledWith('ADMIN_LOGIN', undefined, '203.0.113.10');
+    } finally {
+      if (previous === undefined) delete process.env.ADMIN_LOGIN_ANTI_BOT_ENABLED;
+      else process.env.ADMIN_LOGIN_ANTI_BOT_ENABLED = previous;
+    }
+  });
 });
