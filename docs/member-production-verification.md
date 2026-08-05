@@ -3,7 +3,7 @@
 Production URL:
 
 ```text
-https://platformweb-member-production.up.railway.app
+https://platformweb-member-production-26b4.up.railway.app
 ```
 
 The workflow `.github/workflows/member-production-verification.yml` verifies:
