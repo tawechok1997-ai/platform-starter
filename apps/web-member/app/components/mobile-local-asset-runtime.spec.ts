@@ -38,7 +38,7 @@ test('local media failure returns to the original CDN only once before generic f
   assert.match(runtime, /mobileLocalFailedSource/);
   assert.match(fallbackController, /image\.dataset\.mobileLocalFailedSource = originalMobileSource/);
   assert.match(fallbackController, /image\.src = originalMobileSource/);
-  assert.match(fallbackController, /image\.src = MEMBER_IMAGE_FALLBACK/);
+  assert.match(fallbackController, /applyFallbackToImage\(image\)/);
 });
 
 test('mobile source theme is scoped to mobile owners and preserves popup viewport safety', () => {
