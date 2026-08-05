@@ -133,3 +133,5 @@ jobs:
             Remove-Item -LiteralPath $environmentPath -Force -ErrorAction SilentlyContinue
             Remove-Item -LiteralPath $evidencePath -Force -ErrorAction SilentlyContinue
           }
+
+          exit 0
