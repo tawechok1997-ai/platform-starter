@@ -35,7 +35,9 @@ export class AdminAuthController {
   async signIn(@Body() dto: AdminSignInDto, @Req() req: HttpRequestContext, @Res({ passthrough: true }) res: any) {
     const meta = getRequestMeta(req, dto.deviceId);
     await this.loginDefense.assertAllowed(dto.username, meta);
-    await this.antiBot.assertValid('ADMIN_LOGIN', dto.captchaToken, meta.ipAddress);
+    if (this.adminLoginAntiBotEnabled()) {
+      await this.antiBot.assertValid('ADMIN_LOGIN', dto.captchaToken, meta.ipAddress);
+    }
     const result = await this.login.signIn(dto, meta);
     this.setRefreshCookie(res, this.sessionRefreshToken(result));
     return result;
@@ -122,6 +124,10 @@ export class AdminAuthController {
   async updateMe(@CurrentUser() user: AuthenticatedAdminActor, @Body() dto: UpdateAdminProfileDto, @Req() req: AdminRequestContext) {
     await this.profileCommands.updateProfile(user.id, dto, getRequestMeta(req));
     return this.profileQueries.getProfile(user.id, user.permissions ?? []);
+  }
+
+  private adminLoginAntiBotEnabled() {
+    return String(process.env.ADMIN_LOGIN_ANTI_BOT_ENABLED ?? '').trim().toLowerCase() === 'true';
   }
 
   private sessionRefreshToken(result: unknown) {
