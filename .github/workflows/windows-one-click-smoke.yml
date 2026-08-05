@@ -12,6 +12,8 @@ on:
       - 'docs/windows-one-click.md'
       - 'scripts/windows/**'
       - 'tools/windows-one-click-contract.test.mjs'
+      - 'tools/windows-one-click-integration-smoke.ps1'
+      - 'tools/windows-one-click-smoke-service.mjs'
       - '.github/workflows/windows-one-click-smoke.yml'
   workflow_dispatch:
 
@@ -26,7 +28,7 @@ jobs:
   windows-smoke:
     name: PowerShell and launcher contracts
     runs-on: windows-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
 
     steps:
       - name: Checkout
@@ -70,3 +72,7 @@ jobs:
           findstr /C:"scripts\windows\setup.ps1" Setup-Windows.cmd
           findstr /C:"scripts\windows\start.ps1" Start-Windows.cmd
           findstr /C:"scripts\windows\stop.ps1" Stop-Windows.cmd
+
+      - name: Run native launcher lifecycle integration smoke
+        shell: powershell
+        run: powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File tools\windows-one-click-integration-smoke.ps1
