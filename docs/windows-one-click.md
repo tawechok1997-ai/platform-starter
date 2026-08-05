@@ -2,7 +2,7 @@
 
 Updated: **2026-08-05**  
 Owner: **Platform Engineering**  
-Status: **Supported for local development on Windows 10/11**
+Status: **Supported for local development on Windows 10/11 after a real clean-machine smoke test**
 
 ## What it installs
 
@@ -18,7 +18,7 @@ Double-clicking `Setup-Windows.cmd` prepares the complete local development stac
 - repository dependencies, Prisma client, migrations, and local seed data
 - API, Member Web, and Admin Web development processes
 
-The installer requests Windows Administrator permission only for Windows features and machine-wide applications. Project commands continue in the normal user session.
+The installer requests Windows Administrator permission for Windows features, machine-wide applications, and the Corepack pnpm shim. Project dependency installation, database initialization, and application startup continue in the normal user session.
 
 ## First run
 
@@ -43,6 +43,8 @@ After setup, these URLs open automatically:
 - Double-click `Stop-Windows.cmd` to stop the applications, PostgreSQL, and Redis.
 - Database and Redis volumes are preserved when the stack stops.
 
+The launcher records each PowerShell process ID together with its exact start time. Start and stop operations verify both values before reusing or terminating a process. A stale record or a Windows-reused PID is ignored instead of risking termination of an unrelated program.
+
 ## Local isolation and secrets
 
 The setup creates `.env.windows.local`. It does not overwrite `.env` or `.env.local`.
@@ -52,9 +54,20 @@ The Windows environment uses:
 - PostgreSQL on `127.0.0.1:55432`
 - Redis on `127.0.0.1:56379`
 - generated per-machine database and application secrets
+- a generated bootstrap Admin password instead of the maintained placeholder
 - local private storage under `.local/`
 
 Both `.env.windows.local` and `.local/` are excluded from Git. Never copy these generated local secrets into a deployed environment.
+
+## Automated verification
+
+The `Windows One-Click Smoke` GitHub Actions workflow runs on `windows-latest` whenever the installer, launchers, Windows scripts, Compose file, or their contracts change. It verifies:
+
+- the Node contract suite for the complete one-click surface
+- Windows PowerShell 5.1 parsing for every script under `scripts/windows/`
+- root `.cmd` wrappers pointing to the maintained PowerShell owners
+
+This native smoke gate catches syntax and launcher regressions, but it does not replace the required clean-machine test for UAC, WSL enablement, reboot continuation, Docker Desktop first boot, image pulls, and the complete three-application startup.
 
 ## Logs and recovery
 
