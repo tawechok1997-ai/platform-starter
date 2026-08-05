@@ -53,6 +53,7 @@ Do not paste the generated password into chat, tickets, logs, screenshots, or a 
 
 - Double-click `Start-Windows.cmd` to start the complete stack.
 - Double-click `Stop-Windows.cmd` to stop the applications, PostgreSQL, and Redis.
+- Double-click `Verify-Windows.cmd` after setup to verify the real machine and generate evidence.
 - Database and Redis volumes are preserved when the stack stops.
 
 The launcher records each PowerShell process ID together with its exact start time. Start and stop operations verify both values before reusing or terminating a process. A stale record or a Windows-reused PID is ignored instead of risking termination of an unrelated program.
@@ -60,6 +61,36 @@ The launcher records each PowerShell process ID together with its exact start ti
 Process records are normalized before use because Windows PowerShell 5.1 may deserialize a JSON array as a nested object array. PID values must contain exactly one valid integer before the launcher can inspect or terminate the recorded process.
 
 If startup opens only part of the application stack or a process tree cannot be stopped, the launcher surfaces the native failure instead of reporting success. Partially opened application terminals are cleaned up before the startup command exits.
+
+## Clean-machine verification evidence
+
+After the setup completes and all three applications are running, double-click:
+
+```text
+Verify-Windows.cmd
+```
+
+The verifier checks the actual machine rather than relying on the CI simulation. It validates:
+
+- Windows 10/11 client edition and WSL status
+- Git, Node.js 22, pnpm 11.18.0, Docker CLI, and Docker Desktop
+- the generated Windows environment and required non-placeholder keys
+- Docker engine readiness and Compose configuration
+- running PostgreSQL and Redis services
+- `pg_isready` and Redis `PONG`
+- Prisma migration status against the local database
+- API, Member, and Admin process records
+- API, Member, and Admin HTTP endpoints
+
+The result is written to:
+
+```text
+.local/evidence/windows-clean-machine-verification.json
+```
+
+The report contains check names, pass/fail status, machine name, username, timestamps, and safe diagnostic text. It does **not** include generated passwords, database URLs, tokens, encryption keys, or other environment values. The `.local/` directory is excluded from Git.
+
+A non-zero exit code means at least one required check failed. Correct the failed item, run `Start-Windows.cmd` if necessary, then run `Verify-Windows.cmd` again. Keep the JSON report as the acceptance evidence for the real clean-machine test.
 
 ## Local isolation and secrets
 
@@ -81,7 +112,7 @@ The `Windows One-Click Smoke` GitHub Actions workflow runs on `windows-latest` w
 
 The static and native checks verify:
 
-- 17 Node contracts for the complete one-click surface and lifecycle ownership
+- 18 Node contracts for the complete one-click surface, verifier, and lifecycle ownership
 - Windows PowerShell 5.1 parsing for every script under `scripts/windows/`
 - root `.cmd` wrappers pointing to the maintained PowerShell owners
 - generated environment keys and the local Admin credential recovery instructions
@@ -93,10 +124,11 @@ The static and native checks verify:
 - replacement of the complete recorded stack after one service becomes unhealthy
 - complete stop cleanup and removal of the process record
 - stale PID protection without terminating an unrelated process
+- the clean-machine verifier owner and redacted evidence contract
 
 The lifecycle integration uses isolated loopback smoke services and a fake Docker command. It proves launcher behavior on Windows PowerShell 5.1 without installing Docker Desktop or exposing network services outside the runner.
 
-This native gate does not replace the remaining clean-machine checks for Windows 10/11 client UAC, WSL feature enablement, reboot continuation, Docker Desktop first boot, real container image pulls, real database initialization, the complete application stack, or bootstrap Admin sign-in.
+This native gate does not replace the remaining clean-machine checks for Windows 10/11 client UAC, WSL feature enablement, reboot continuation, Docker Desktop first boot, real container image pulls, real database initialization, the complete application stack, or bootstrap Admin sign-in. `Verify-Windows.cmd` turns those checks into one redacted machine report after the real setup is run.
 
 ## Logs and recovery
 
@@ -113,6 +145,7 @@ Safe recovery order:
 1. Run `Stop-Windows.cmd`.
 2. Start Docker Desktop and wait until its engine is ready.
 3. Run `Setup-Windows.cmd` again. The setup is idempotent and preserves the generated Windows environment.
+4. Run `Verify-Windows.cmd` and review the failed checks in the evidence report.
 
 Do not delete the Docker volume unless local database data can be discarded.
 
