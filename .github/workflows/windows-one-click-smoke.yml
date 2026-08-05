@@ -12,6 +12,7 @@ on:
       - 'docs/windows-one-click.md'
       - 'scripts/windows/**'
       - 'tools/windows-one-click-contract.test.mjs'
+      - 'tools/windows-one-click-integration-contract.test.mjs'
       - 'tools/windows-one-click-integration-smoke.ps1'
       - 'tools/windows-one-click-smoke-service.mjs'
       - '.github/workflows/windows-one-click-smoke.yml'
@@ -41,7 +42,10 @@ jobs:
 
       - name: Run one-click contract tests
         shell: pwsh
-        run: node --test tools/windows-one-click-contract.test.mjs
+        run: >-
+          node --test
+          tools/windows-one-click-contract.test.mjs
+          tools/windows-one-click-integration-contract.test.mjs
 
       - name: Parse Windows PowerShell owners
         shell: powershell
