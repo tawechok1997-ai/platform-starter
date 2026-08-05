@@ -13,7 +13,10 @@ test('P10 keeps one locale owner with only Thai and English enabled', () => {
   assert.match(localeProvider, /const STORAGE_KEY = 'member_locale'/);
   assert.match(localeProvider, /document\.documentElement\.lang = locale/);
   assert.match(localeProvider, /<MobileP10P12ClosureRuntime locale=\{locale\} \/>/);
-  assert.match(localeProvider, /handleMobileLanguageToggle/);
+  assert.match(localeProvider, /MOBILE_LANGUAGE_TOGGLE_SELECTOR/);
+  assert.match(localeProvider, /window\.matchMedia\(MOBILE_VIEWPORT_QUERY\)\.matches/);
+  assert.match(localeProvider, /window\.addEventListener\('click', handleMobileLanguageToggle, true\)/);
+  assert.match(localeProvider, /window\.removeEventListener\('click', handleMobileLanguageToggle, true\)/);
   assert.match(localeProvider, /event\.stopImmediatePropagation\(\)/);
   assert.match(runtime, /const SUPPORTED_LOCALES = new Set<MemberLocale>\(\['th', 'en'\]\)/);
   assert.match(runtime, /patchUnsupportedLanguageOptions/);
