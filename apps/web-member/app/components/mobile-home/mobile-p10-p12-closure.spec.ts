@@ -5,6 +5,7 @@ import test from 'node:test';
 const runtime = readFileSync(new URL('./mobile-p10-p12-closure-runtime.tsx', import.meta.url), 'utf8');
 const localeProvider = readFileSync(new URL('../../member-locale-provider.tsx', import.meta.url), 'utf8');
 const mobileHome = readFileSync(new URL('./mobile-home-root.tsx', import.meta.url), 'utf8');
+const guideModal = readFileSync(new URL('../member-home/usage-guide-modal.tsx', import.meta.url), 'utf8');
 const mobileSmokeWorkflow = readFileSync(new URL('../../../../../.github/workflows/mobile-home-smoke.yml', import.meta.url), 'utf8');
 
 test('P10 keeps one locale owner with only Thai and English enabled', () => {
@@ -12,6 +13,8 @@ test('P10 keeps one locale owner with only Thai and English enabled', () => {
   assert.match(localeProvider, /const STORAGE_KEY = 'member_locale'/);
   assert.match(localeProvider, /document\.documentElement\.lang = locale/);
   assert.match(localeProvider, /<MobileP10P12ClosureRuntime locale=\{locale\} \/>/);
+  assert.match(localeProvider, /handleMobileLanguageToggle/);
+  assert.match(localeProvider, /event\.stopImmediatePropagation\(\)/);
   assert.match(runtime, /const SUPPORTED_LOCALES = new Set<MemberLocale>\(\['th', 'en'\]\)/);
   assert.match(runtime, /patchUnsupportedLanguageOptions/);
   assert.match(runtime, /candidate\.dataset\.mobileUnsupportedLocale = 'true'/);
@@ -32,6 +35,7 @@ test('P11 restores accessible names, touch targets, focus visibility, and keyboa
 });
 
 test('P11 normalizes drawer and VIP ARIA without changing finance or provider mutations', () => {
+  assert.match(runtime, /trigger\?\.getAttribute\('aria-expanded'\) === 'true'/);
   assert.match(runtime, /drawer\.setAttribute\('role', 'dialog'\)/);
   assert.match(runtime, /drawer\.setAttribute\('aria-modal', 'true'\)/);
   assert.match(runtime, /patchVipSectionLockAria/);
@@ -39,7 +43,11 @@ test('P11 normalizes drawer and VIP ARIA without changing finance or provider mu
   assert.doesNotMatch(runtime, /fetch\(|memberApiFetch\(|POST|PUT|PATCH|DELETE/);
 });
 
-test('P12 requires the dedicated browser smoke in the existing three-viewport gate', () => {
+test('P12 mounts the guide portal after hydration and keeps the browser smoke gate', () => {
+  assert.match(guideModal, /const \[mounted, setMounted\] = useState\(false\)/);
+  assert.match(guideModal, /setMounted\(true\)/);
+  assert.match(guideModal, /if \(!open \|\| !mounted\) return null/);
+  assert.doesNotMatch(guideModal, /typeof document === 'undefined'/);
   assert.match(mobileSmokeWorkflow, /r013-mobile-p10-p12-smoke\.spec\.ts/);
   assert.match(mobileSmokeWorkflow, /--project=360x800/);
   assert.match(mobileSmokeWorkflow, /--project=390x844/);
