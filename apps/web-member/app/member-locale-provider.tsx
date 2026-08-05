@@ -14,11 +14,11 @@ import MobileP10P12ClosureRuntime from './components/mobile-home/mobile-p10-p12-
 export type MemberLocale = 'th' | 'en';
 
 const STORAGE_KEY = 'member_locale';
-const MOBILE_LANGUAGE_OWNER_SELECTOR = [
-  '[data-mobile-home-root] button[aria-label="เปลี่ยนภาษา"]',
-  '[data-mobile-home-root] button[aria-label="Change language"]',
-  '#mobile-home-drawer button',
+const MOBILE_LANGUAGE_TOGGLE_SELECTOR = [
+  'button[aria-label="เปลี่ยนภาษา"]',
+  'button[aria-label="Change language"]',
 ].join(',');
+const MOBILE_VIEWPORT_QUERY = '(max-width: 900px)';
 
 type MemberLocaleContextValue = {
   locale: MemberLocale;
@@ -67,18 +67,16 @@ export function MemberLocaleProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const handleMobileLanguageToggle = (event: MouseEvent) => {
+      if (!window.matchMedia(MOBILE_VIEWPORT_QUERY).matches) return;
       if (!(event.target instanceof Element)) return;
-      const button = event.target.closest<HTMLButtonElement>(MOBILE_LANGUAGE_OWNER_SELECTOR);
-      if (!button) return;
 
-      const label = `${button.getAttribute('aria-label') ?? ''} ${button.textContent ?? ''}`
-        .trim()
-        .toLowerCase();
-      if (!/เปลี่ยนภาษา|change language/.test(label)) return;
+      const button = event.target.closest<HTMLButtonElement>(MOBILE_LANGUAGE_TOGGLE_SELECTOR);
+      if (!button || !button.isConnected || button.disabled) return;
 
       event.preventDefault();
       event.stopPropagation();
       event.stopImmediatePropagation();
+
       const activeLocale = normalizeLocale(
         document.documentElement.dataset.memberLocale
         ?? window.localStorage.getItem(STORAGE_KEY),
@@ -86,8 +84,8 @@ export function MemberLocaleProvider({ children }: { children: ReactNode }) {
       commitLocale(activeLocale === 'th' ? 'en' : 'th');
     };
 
-    document.addEventListener('click', handleMobileLanguageToggle, true);
-    return () => document.removeEventListener('click', handleMobileLanguageToggle, true);
+    window.addEventListener('click', handleMobileLanguageToggle, true);
+    return () => window.removeEventListener('click', handleMobileLanguageToggle, true);
   }, [commitLocale]);
 
   const setLocale = useCallback((nextLocale: MemberLocale) => {
