@@ -38,9 +38,17 @@ function Invoke-CapturedCommand {
     [string[]]$Arguments = @()
   )
 
-  $output = & $FilePath @Arguments 2>&1 | Out-String
+  $previousErrorActionPreference = $ErrorActionPreference
+  try {
+    $ErrorActionPreference = 'Continue'
+    $output = & $FilePath @Arguments 2>&1 | ForEach-Object { [string]$_ } | Out-String
+    $exitCode = $LASTEXITCODE
+  } finally {
+    $ErrorActionPreference = $previousErrorActionPreference
+  }
+
   return [pscustomobject]@{
-    exitCode = $LASTEXITCODE
+    exitCode = $exitCode
     output = $output.Trim()
   }
 }
@@ -99,7 +107,7 @@ function Convert-ToFlatRecords {
   }
 
   Add-RecordValue -Item $Value
-  return @($records)
+  return $records.ToArray()
 }
 
 function Test-HttpEndpoint {
@@ -276,7 +284,7 @@ try {
       total = $Checks.Count
       success = $failedChecks.Count -eq 0
     }
-    checks = @($Checks)
+    checks = $Checks.ToArray()
   }
 
   $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
