@@ -48,10 +48,14 @@ export class ProviderSimulatorSlotRoundService {
     const roundEntries = entries.filter((entry) => entry.roundId === normalizedRoundId);
     const bet = roundEntries.find((entry) => entry.operation === 'BET');
     const win = roundEntries.find((entry) => entry.operation === 'WIN');
+    const refund = roundEntries.find((entry) => entry.operation === 'REFUND');
     const rollbackBet = roundEntries.find((entry) => entry.operation === 'ROLLBACK_BET');
     const rollbackWin = roundEntries.find((entry) => entry.operation === 'ROLLBACK_WIN');
 
     if (!bet) throw new NotFoundException('The simulator bet for this round was not found');
+    if (refund) {
+      throw new BadRequestException('Refunded simulator rounds cannot be rolled back');
+    }
     if (rollbackBet && (!win || rollbackWin)) {
       const latest = await this.history(userId, sessionId);
       return {
