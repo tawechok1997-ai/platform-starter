@@ -9,6 +9,7 @@ import {
   useState,
   type ReactNode,
 } from 'react';
+import MobileP10P12ClosureRuntime from './components/mobile-home/mobile-p10-p12-closure-runtime';
 
 export type MemberLocale = 'th' | 'en';
 
@@ -73,7 +74,12 @@ export function MemberLocaleProvider({ children }: { children: ReactNode }) {
     [locale, setLocale, toggleLocale],
   );
 
-  return <MemberLocaleContext.Provider value={value}>{children}</MemberLocaleContext.Provider>;
+  return (
+    <MemberLocaleContext.Provider value={value}>
+      <MobileP10P12ClosureRuntime locale={locale} />
+      {children}
+    </MemberLocaleContext.Provider>
+  );
 }
 
 export function useMemberLocale() {
