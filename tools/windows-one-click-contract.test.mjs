@@ -37,12 +37,28 @@ test('setup owns a complete Windows 10 and 11 bootstrap', () => {
 });
 
 
+test('pnpm activation happens while the machine bootstrap is elevated', () => {
+  const machineBootstrap = setup.match(/function Invoke-MachineBootstrap \{([\s\S]*?)\n\}/)?.[1] ?? '';
+  const pnpmInstaller = setup.match(/function Install-Pnpm \{([\s\S]*?)\n\}/)?.[1] ?? '';
+  const dependencyInstaller = setup.match(/function Install-ProjectDependencies \{([\s\S]*?)\n\}/)?.[1] ?? '';
+
+  assert.match(machineBootstrap, /Install-Node22[\s\S]*Install-Pnpm[\s\S]*Install-DockerDesktop/);
+  assert.match(pnpmInstaller, /corepack\.cmd'.*'enable'/s);
+  assert.match(pnpmInstaller, /corepack\.cmd'.*'prepare'.*'pnpm@11\.18\.0'.*'--activate'/s);
+  assert.match(pnpmInstaller, /pnpm\.cmd --version/);
+  assert.doesNotMatch(dependencyInstaller, /corepack\.cmd'.*'enable'/s);
+  assert.match(dependencyInstaller, /pnpm is not available on PATH/);
+});
+
+
 test('Windows setup isolates local credentials from maintained environments', () => {
   assert.match(setup, /\.env\.windows\.local/);
   assert.match(setup, /New-HexSecret/);
   assert.match(setup, /127\.0\.0\.1:55432/);
   assert.match(setup, /127\.0\.0\.1:56379/);
   assert.match(setup, /preserving local secrets and database credentials/);
+  assert.match(setup, /'DEFAULT_ADMIN_SECRET'\s*=\s*\(New-HexSecret\)/);
+  assert.match(setup, /'BOOTSTRAP_ADMIN_PASSWORD'\s*=\s*\(New-HexSecret\)/);
   assert.match(gitignore, /^\.env\.windows\.local$/m);
   assert.match(gitignore, /^\.local\/$/m);
 });
