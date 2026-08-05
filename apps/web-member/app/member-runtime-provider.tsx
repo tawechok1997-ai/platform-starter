@@ -11,6 +11,7 @@ import {
   useState,
 } from 'react';
 import MemberNavigationStateController from './components/member-navigation-state-controller';
+import { V47_ASSETS } from './components/member-home/v47-asset-map';
 import { useMemberLocale } from './member-locale-provider';
 import { memberApiFetch } from './member-api';
 import { buildMemberHomeDataRuntime, type MemberHomeDataRuntime } from './member-home-data-runtime';
@@ -56,6 +57,32 @@ const MemberRuntimeContext = createContext<MemberRuntimeContextValue | null>(nul
 const PROFILE_TIMEOUT_MS = 12_000;
 const PROFILE_FOCUS_COOLDOWN_MS = 30_000;
 
+const MEMBER_ICON_FALLBACKS: Record<keyof MemberRuntimeSnapshot['icons'], string> = {
+  home: V47_ASSETS.menuHome,
+  casino: V47_ASSETS.menuCasino,
+  slot: V47_ASSETS.menuSlot,
+  fishing: V47_ASSETS.menuFishing,
+  sport: V47_ASSETS.menuSport,
+  card: V47_ASSETS.menuCard,
+  lottery: V47_ASSETS.menuLottery,
+  live: V47_ASSETS.menuLive,
+  search: '',
+  mission: V47_ASSETS.headerMission,
+  announcement: V47_ASSETS.announcement,
+  promotion: V47_ASSETS.quickPromotion,
+  activity: V47_ASSETS.quickActivity,
+  news: V47_ASSETS.quickNews,
+  tournament: V47_ASSETS.tournamentIcon,
+  jackpot: V47_ASSETS.coin,
+  leaderboard: V47_ASSETS.leaderboard,
+  miniGame: V47_ASSETS.miniGame,
+  popular: V47_ASSETS.gameHit,
+  online: V47_ASSETS.mostOnline,
+  classic: V47_ASSETS.gameHit,
+  contact: '/assets/asset-pc/images/footer/contact/icon-open-gold.webp',
+  close: '/images/close.svg',
+};
+
 export function MemberRuntimeProvider({ children }: { children: ReactNode }) {
   const { locale } = useMemberLocale();
   const { typedSettings } = useSiteSettings();
@@ -69,7 +96,10 @@ export function MemberRuntimeProvider({ children }: { children: ReactNode }) {
   const content = typedSettings.features.cms_content;
   const features = useMemo(() => buildMemberFeatureVisibility(typedSettings), [typedSettings]);
   const theme = useMemo(() => buildMemberThemeRuntime(typedSettings), [typedSettings]);
-  const icons = useMemo(() => buildMemberIconRuntime(typedSettings, content), [content, typedSettings]);
+  const icons = useMemo(
+    () => sanitizeMemberIconRuntime(buildMemberIconRuntime(typedSettings, content)),
+    [content, typedSettings],
+  );
   const navigation = useMemo(
     () => buildConfiguredMemberNavigation(typedSettings, locale, features, icons),
     [features, icons, locale, typedSettings],
@@ -211,6 +241,24 @@ export function useMemberRuntime() {
   const context = useContext(MemberRuntimeContext);
   if (!context) throw new Error('useMemberRuntime must be used inside MemberRuntimeProvider');
   return context;
+}
+
+function sanitizeMemberIconRuntime(icons: MemberRuntimeSnapshot['icons']): MemberRuntimeSnapshot['icons'] {
+  return Object.fromEntries(
+    Object.entries(icons).map(([key, value]) => [
+      key,
+      isRenderableImageSource(value)
+        ? value
+        : MEMBER_ICON_FALLBACKS[key as keyof MemberRuntimeSnapshot['icons']],
+    ]),
+  ) as MemberRuntimeSnapshot['icons'];
+}
+
+function isRenderableImageSource(value: string) {
+  const source = value.trim();
+  if (!source) return false;
+  if (/^(?:https?:\/\/|\/|\.\/|\.\.\/|data:image\/|blob:)/i.test(source)) return true;
+  return /^[^\s/]+\.(?:avif|gif|ico|jpe?g|png|svg|webm|webp)(?:[?#].*)?$/i.test(source);
 }
 
 function normalizeRuntimeProfile(payload: unknown): MemberRuntimeProfile {

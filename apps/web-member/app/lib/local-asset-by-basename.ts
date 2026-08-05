@@ -17,6 +17,7 @@ export type LocalProviderArtworkKind =
 
 const CANONICAL_PC_ASSET_ROOT = '/assets/asset-pc/images/';
 const CANONICAL_MOBILE_ASSET_ROOT = '/assets/asset-mobile/';
+const MEMBER_IMAGE_FALLBACK = '/images/fallbacks/noah345-placeholder.svg';
 
 const GENERIC_IDENTITY_SEGMENTS = new Set([
   'asset',
@@ -110,7 +111,8 @@ export function resolveLocalAssetOrSource(
     return resolveGameAssetOrSource(canonicalSource, preference);
   }
 
-  return resolveLocalAssetByBasename(canonicalSource, preference) || canonicalSource;
+  return resolveLocalAssetByBasename(canonicalSource, preference)
+    || unresolvedSourceOrFallback(canonicalSource);
 }
 
 export function resolveProviderAssetOrSource(
@@ -122,7 +124,7 @@ export function resolveProviderAssetOrSource(
   const source = canonicalizeLocalAssetPath(String(sourceUrl ?? '').trim());
   if (!source) return '';
   const sourcePath = extractPathname(source);
-  if (!sourcePath) return source;
+  if (!sourcePath) return unresolvedSourceOrFallback(source);
 
   const providerIdentities = providerIdentityCandidates(providerCode, sourcePath);
   const kinds = providerKindCandidates(kind, sourcePath);
@@ -142,7 +144,8 @@ export function resolveProviderAssetOrSource(
     }
   }
 
-  return resolveStrictPlatformBasename(source, preference) || source;
+  return resolveStrictPlatformBasename(source, preference)
+    || unresolvedSourceOrFallback(source);
 }
 
 export function resolveGameAssetOrSource(
@@ -154,7 +157,7 @@ export function resolveGameAssetOrSource(
   const source = canonicalizeLocalAssetPath(String(sourceUrl ?? '').trim());
   if (!source) return '';
   const sourcePath = extractPathname(source);
-  if (!sourcePath) return source;
+  if (!sourcePath) return unresolvedSourceOrFallback(source);
 
   const gameIdentities = gameIdentityCandidates(gameId, sourcePath);
   const providerIdentities = gameProviderIdentityCandidates(providerCode, sourcePath);
@@ -174,7 +177,8 @@ export function resolveGameAssetOrSource(
     }
   }
 
-  return resolveStrictPlatformBasename(source, preference) || source;
+  return resolveStrictPlatformBasename(source, preference)
+    || unresolvedSourceOrFallback(source);
 }
 
 export function extractAssetBasename(sourceUrl?: string | null): string {
@@ -384,6 +388,20 @@ function resolveStrictPlatformBasename(source: string, preference: LocalAssetPre
     ? candidates
     : candidates.filter((candidate) => candidatePlatform(candidate) === preference);
   return rankCandidates(strictCandidates, sourcePath, preference)[0] ?? '';
+}
+
+function unresolvedSourceOrFallback(source: string) {
+  const value = source.trim();
+  const sourcePath = extractPathname(value);
+
+  // A local asset path that is absent from the build-generated index cannot
+  // become valid at runtime. Return the stable placeholder before the browser
+  // starts a guaranteed 404 request.
+  if (/^\/assets\//i.test(sourcePath)) return MEMBER_IMAGE_FALLBACK;
+
+  if (/^(?:https?:\/\/|\/|\.\/|\.\.\/|data:image\/|blob:)/i.test(value)) return value;
+  if (/^[^\s/]+\.(?:avif|gif|ico|jpe?g|png|svg|webm|webp)(?:[?#].*)?$/i.test(value)) return value;
+  return MEMBER_IMAGE_FALLBACK;
 }
 
 function rankCandidates(

@@ -38,8 +38,9 @@ test('jackpot follower owns the original right grid rail and throttles scroll wo
   assert.match(sidebar, /sidebar\.style\.setProperty\('z-index', '20'/);
   assert.match(sidebar, /window\.requestAnimationFrame\(syncGeometry\)/);
   assert.match(sidebar, /resizeObserver\.observe\(body\)/);
+  assert.match(sidebar, /resizeObserver\.observe\(main\)/);
+  assert.match(sidebar, /resizeObserver\.observe\(sidebar\)/);
   assert.match(sidebar, /window\.addEventListener\('scroll', scheduleGeometry/);
-  assert.doesNotMatch(sidebar, /resizeObserver\.observe\(sidebar\)/);
   assert.doesNotMatch(sidebar, /placeholder/);
   assert.doesNotMatch(sidebar, /setProperty\('position', 'fixed'/);
 });

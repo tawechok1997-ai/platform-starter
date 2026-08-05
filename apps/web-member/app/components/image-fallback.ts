@@ -1,34 +1,25 @@
 import type { SyntheticEvent } from 'react';
 
-const LOCAL_GAME_ROOT = '/assets/asset-pc/images/games/';
-
 export const MEMBER_IMAGE_FALLBACK = '/images/fallbacks/noah345-placeholder.svg';
 
 export function applyMemberImageFallback(event: SyntheticEvent<HTMLImageElement>, fallback = MEMBER_IMAGE_FALLBACK) {
   const image = event.currentTarget;
-  const source = (image.currentSrc || image.src || '').replace(/\\/g, '/').split(/[?#]/, 1)[0] ?? '';
-  const gameMarker = '/games/';
-  const markerIndex = source.toLowerCase().lastIndexOf(gameMarker);
+  applyFallbackToImage(image, fallback);
+}
 
-  if (markerIndex >= 0 && image.dataset.localGameRetry !== 'true') {
-    const fileName = source.slice(markerIndex + gameMarker.length).split('/').filter(Boolean).pop() ?? '';
-    if (fileName && !fileName.includes('..')) {
-      const localAsset = `${LOCAL_GAME_ROOT}${fileName}`;
-      if (!source.endsWith(localAsset)) {
-        image.dataset.localGameRetry = 'true';
-        image.src = localAsset;
-        return;
-      }
-    }
-  }
+export function applyFallbackToImage(image: HTMLImageElement, fallback = MEMBER_IMAGE_FALLBACK) {
+  if (image.dataset.fallbackApplied === 'true' || image.src.includes(fallback)) return;
 
-  if (markerIndex >= 0 || image.dataset.localGameRetry === 'true') {
-    image.style.display = 'none';
-    return;
-  }
-
-  if (image.dataset.fallbackApplied === 'true') return;
+  // Do not manufacture a local `/games/<basename>` URL after a remote image
+  // fails. The old retry created a second guaranteed 404 whenever that basename
+  // was not shipped. Catalog owners already resolve local assets before render;
+  // at error time the safe final state is the branded placeholder.
   image.dataset.fallbackApplied = 'true';
+  image.removeAttribute('srcset');
+  image.removeAttribute('sizes');
+  image.style.removeProperty('display');
+  image.style.removeProperty('visibility');
+  image.style.removeProperty('opacity');
   image.src = fallback;
 }
 

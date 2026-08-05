@@ -23,7 +23,10 @@ test('global and Mobile generic image runtimes leave game cards to their React o
     assert.ok(mobileAssetRuntime.includes(selector), `Mobile asset runtime must exclude ${selector}`);
   }
 
-  assert.match(globalFallback, /if \(image\.closest\(GAME_ART_OWNER_SELECTOR\)\) return/);
+  assert.match(
+    globalFallback,
+    /if \(image\.closest\(GAME_ART_OWNER_SELECTOR\)\) \{[\s\S]*window\.setTimeout\([\s\S]*applyFallbackToImage\(image\)/,
+  );
   assert.match(mobileAssetRuntime, /if \(image\.closest\(CARD_OWNED_MEDIA_SELECTOR\)\) return/);
 });
 
