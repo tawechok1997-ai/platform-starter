@@ -57,6 +57,8 @@ Do not paste the generated password into chat, tickets, logs, screenshots, or a 
 
 The launcher records each PowerShell process ID together with its exact start time. Start and stop operations verify both values before reusing or terminating a process. A stale record or a Windows-reused PID is ignored instead of risking termination of an unrelated program.
 
+Process records are normalized before use because Windows PowerShell 5.1 may deserialize a JSON array as a nested object array. PID values must contain exactly one valid integer before the launcher can inspect or terminate the recorded process.
+
 If startup opens only part of the application stack or a process tree cannot be stopped, the launcher surfaces the native failure instead of reporting success. Partially opened application terminals are cleaned up before the startup command exits.
 
 ## Local isolation and secrets
@@ -75,14 +77,26 @@ Both `.env.windows.local` and `.local/` are excluded from Git. Never copy these 
 
 ## Automated verification
 
-The `Windows One-Click Smoke` GitHub Actions workflow runs on `windows-latest` whenever the installer, launchers, Windows scripts, Compose file, environment template, ignore rules, documentation, or their contracts change. It verifies:
+The `Windows One-Click Smoke` GitHub Actions workflow runs on `windows-latest` whenever the installer, launchers, Windows scripts, Compose file, environment template, ignore rules, documentation, smoke helpers, or their contracts change.
 
-- the Node contract suite for the complete one-click surface
+The static and native checks verify:
+
+- 17 Node contracts for the complete one-click surface and lifecycle ownership
 - Windows PowerShell 5.1 parsing for every script under `scripts/windows/`
 - root `.cmd` wrappers pointing to the maintained PowerShell owners
 - generated environment keys and the local Admin credential recovery instructions
+- PowerShell 5.1-safe process-record normalization
+- the maintained `start.ps1` and `stop.ps1` owners running on a native Windows runner
+- first startup of API, Member, and Admin loopback smoke services
+- a second healthy start reusing the same three recorded terminal processes
+- recovery after the Member child service is terminated
+- replacement of the complete recorded stack after one service becomes unhealthy
+- complete stop cleanup and removal of the process record
+- stale PID protection without terminating an unrelated process
 
-This native smoke gate catches syntax and launcher regressions, but it does not replace the required clean-machine test for UAC, WSL enablement, reboot continuation, Docker Desktop first boot, image pulls, and the complete three-application startup.
+The lifecycle integration uses isolated loopback smoke services and a fake Docker command. It proves launcher behavior on Windows PowerShell 5.1 without installing Docker Desktop or exposing network services outside the runner.
+
+This native gate does not replace the remaining clean-machine checks for Windows 10/11 client UAC, WSL feature enablement, reboot continuation, Docker Desktop first boot, real container image pulls, real database initialization, the complete application stack, or bootstrap Admin sign-in.
 
 ## Logs and recovery
 
