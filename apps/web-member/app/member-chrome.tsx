@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { ReactNode, useCallback, useEffect, useLayoutEffect, useState } from 'react';
+import { ReactNode, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import type { MemberFeatureFlags } from './site-settings';
 import type { MemberNavigationItem } from './member-runtime-contract';
@@ -14,10 +14,18 @@ import { useMemberRuntime } from './member-runtime-provider';
 import { MemberCard, MemberLinkButton } from './components/member-ui';
 import { DesktopAllianceBand } from './components/member-home/desktop-alliance-band';
 import { V47_ASSETS } from './components/member-home/v47-asset-map';
-import MemberAuthOverlay, { type MemberAuthMode } from './components/auth/member-auth-overlay';
+import MemberAuthOverlay from './components/auth/member-auth-overlay';
 import DailyMissionModal from './components/mission/daily-mission-modal';
 import PublicAuthenticatedActions from './components/public-authenticated-actions-styled';
 import MemberSharedPopupRuntime from './components/member-shared-popup-runtime';
+import {
+  MEMBER_LEGACY_OPEN_AUTH_EVENT,
+  MEMBER_OPEN_AUTH_EVENT,
+  normalizeMemberOpenAuthDetail,
+  openMemberAuth,
+  safeNextTarget,
+  type MemberOpenAuthDetail,
+} from './lib/member-auth-events';
 
 type PublicNavKey = 'home' | 'casino' | 'slot' | 'fishing' | 'sport' | 'card' | 'lottery' | 'live';
 type ChromeViewport = 'mobile' | 'desktop';
@@ -71,7 +79,8 @@ export default function MemberChrome({ children }: { children: ReactNode }) {
   const pathname = usePathname() ?? '/';
   const searchParams = useSearchParams();
   const router = useRouter();
-  const [authModeOverride, setAuthModeOverride] = useState<MemberAuthMode | null>(null);
+  const [authRequest, setAuthRequest] = useState<MemberOpenAuthDetail | null>(null);
+  const authRequestRef = useRef<MemberOpenAuthDetail | null>(null);
   const [missionOpen, setMissionOpen] = useState(false);
   const [viewportMode, setViewportMode] = useState<ChromeViewport | null>(null);
   const { locale, toggleLocale } = useMemberLocale();
@@ -81,12 +90,12 @@ export default function MemberChrome({ children }: { children: ReactNode }) {
   const runtime = useMemberRuntime();
   const { website, branding } = typedSettings;
   const features: MemberFeatureFlags = runtime.features;
-  const requestedAuthMode = searchParams.get('auth');
-  const queryAuthMode: MemberAuthMode | null = requestedAuthMode === 'login' || requestedAuthMode === 'register'
-    ? requestedAuthMode
-    : null;
-  const authMode = authModeOverride ?? queryAuthMode;
   const activeCategory = searchParams.get('category')?.trim().toLowerCase() ?? '';
+  const queryAuthSignature = [
+    searchParams.get('auth') ?? '',
+    searchParams.get('next') ?? '',
+    searchParams.get('authRequest') ?? '',
+  ].join('|');
 
   const isPublicRoute = isPublicMemberRoute(pathname);
   const standaloneRoute = STANDALONE_PUBLIC_PREFIXES.some((prefix) => pathname.startsWith(prefix));
@@ -99,30 +108,31 @@ export default function MemberChrome({ children }: { children: ReactNode }) {
   const brandMark = branding.brand_mark || website.site_name.slice(0, 1).toUpperCase() || 'N';
   const compactWalletBalance = formatRuntimeBalance(runtime.summary.walletAvailable, runtime.summary.walletCurrency);
 
-  const closeAuth = useCallback(() => {
-    setAuthModeOverride(null);
-    const url = new URL(window.location.href);
-    if (!url.searchParams.has('auth') && !url.searchParams.has('next')) return;
-    url.searchParams.delete('auth');
-    url.searchParams.delete('next');
-    router.replace(`${url.pathname}${url.search}${url.hash}`, { scroll: false });
-  }, [router]);
+  useEffect(() => {
+    authRequestRef.current = authRequest;
+  }, [authRequest]);
 
-  const completeAuth = useCallback(async () => {
-    const next = new URLSearchParams(window.location.search).get('next');
+  const closeAuth = useCallback((requestId: string) => {
+    if (authRequestRef.current?.requestId !== requestId) return;
+    authRequestRef.current = null;
+    setAuthRequest(null);
+    replaceAuthHistory(null);
+  }, []);
+
+  const completeAuth = useCallback(async (request: MemberOpenAuthDetail) => {
     const authenticated = await verify();
-    if (!authenticated) return;
+    if (!authenticated || authRequestRef.current?.requestId !== request.requestId) return;
 
-    setAuthModeOverride(null);
-    if (next && next.startsWith('/') && !next.startsWith('//')) {
+    authRequestRef.current = null;
+    setAuthRequest(null);
+    replaceAuthHistory(null);
+
+    const next = safeNextTarget(request.next);
+    if (next) {
       router.replace(next);
       return;
     }
-
-    const url = new URL(window.location.href);
-    url.searchParams.delete('auth');
-    url.searchParams.delete('next');
-    router.replace(`${url.pathname}${url.search}${url.hash}`, { scroll: false });
+    router.refresh();
   }, [router, verify]);
 
   useLayoutEffect(() => {
@@ -135,14 +145,50 @@ export default function MemberChrome({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
+    const handleAuthOpen = (event: Event) => {
+      const request = normalizeMemberOpenAuthDetail((event as CustomEvent<unknown>).detail);
+      if (!request) return;
+
+      authRequestRef.current = request;
+      setAuthRequest(request);
+      replaceAuthHistory(request);
+      document.documentElement.dataset.memberRouteMotion = 'idle';
+    };
+
+    window.addEventListener(MEMBER_OPEN_AUTH_EVENT, handleAuthOpen);
+    window.addEventListener(MEMBER_LEGACY_OPEN_AUTH_EVENT, handleAuthOpen);
+    return () => {
+      window.removeEventListener(MEMBER_OPEN_AUTH_EVENT, handleAuthOpen);
+      window.removeEventListener(MEMBER_LEGACY_OPEN_AUTH_EVENT, handleAuthOpen);
+    };
+  }, []);
+
+  useEffect(() => {
+    const requestedMode = searchParams.get('auth');
+    if (requestedMode !== 'login' && requestedMode !== 'register') return;
+
+    const next = safeNextTarget(searchParams.get('next'));
+    const requestId = searchParams.get('authRequest')?.trim()
+      || `query:${requestedMode}:${next ?? ''}`;
+    const request: MemberOpenAuthDetail = {
+      mode: requestedMode,
+      requestId,
+      ...(next ? { next } : {}),
+    };
+
+    if (authRequestRef.current?.requestId === request.requestId) return;
+    authRequestRef.current = request;
+    setAuthRequest(request);
+  }, [queryAuthSignature, searchParams]);
+
+  useEffect(() => {
     if (!ready) return;
     if (currentRule?.authRedirectHome && isLoggedIn) {
       router.replace('/');
       return;
     }
     if (!isPublicRoute && !isLoggedIn) {
-      const next = encodeURIComponent(`${pathname}${window.location.search}`);
-      router.replace(`/?auth=login&next=${next}`);
+      openMemberAuth('login', `${pathname}${window.location.search}`);
     }
   }, [ready, isLoggedIn, isPublicRoute, pathname, currentRule?.authRedirectHome, router]);
 
@@ -179,8 +225,8 @@ export default function MemberChrome({ children }: { children: ReactNode }) {
           activeCategory={activeCategory}
           logout={logout}
           onToggleLocale={toggleLocale}
-          onOpenLogin={() => setAuthModeOverride('login')}
-          onOpenRegister={() => setAuthModeOverride('register')}
+          onOpenLogin={() => openMemberAuth('login')}
+          onOpenRegister={() => openMemberAuth('register')}
           onOpenMission={() => setMissionOpen(true)}
         />
       ) : null}
@@ -191,7 +237,15 @@ export default function MemberChrome({ children }: { children: ReactNode }) {
       </div>
 
       <MemberFooter settings={typedSettings} />
-      {authMode ? <MemberAuthOverlay mode={authMode} onClose={closeAuth} onSuccess={completeAuth} /> : null}
+      {authRequest ? (
+        <MemberAuthOverlay
+          key={authRequest.requestId}
+          mode={authRequest.mode}
+          requestId={authRequest.requestId}
+          onClose={() => closeAuth(authRequest.requestId)}
+          onSuccess={() => completeAuth(authRequest)}
+        />
+      ) : null}
       <DailyMissionModal open={missionOpen} onClose={() => setMissionOpen(false)} />
       <MemberSharedPopupRuntime
         locale={locale}
@@ -333,6 +387,21 @@ function FeatureDisabled({ label, siteName, locale }: { label: string; siteName:
       </MemberCard>
     </main>
   );
+}
+
+function replaceAuthHistory(request: MemberOpenAuthDetail | null) {
+  const url = new URL(window.location.href);
+  if (request) {
+    url.searchParams.set('auth', request.mode);
+    url.searchParams.set('authRequest', request.requestId);
+    if (request.next) url.searchParams.set('next', request.next);
+    else url.searchParams.delete('next');
+  } else {
+    url.searchParams.delete('auth');
+    url.searchParams.delete('authRequest');
+    url.searchParams.delete('next');
+  }
+  window.history.replaceState(window.history.state, '', `${url.pathname}${url.search}${url.hash}`);
 }
 
 function formatRuntimeBalance(value: string, currency: string) {
