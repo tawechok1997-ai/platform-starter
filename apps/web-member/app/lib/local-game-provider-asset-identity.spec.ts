@@ -35,7 +35,10 @@ test('runtime resolves provider and game artwork by platform identity before bas
   assert.match(resolver, /export function resolveProviderAssetOrSource/);
   assert.match(resolver, /export function resolveGameAssetOrSource/);
   assert.match(resolver, /classifyStructuredAsset\(sourcePath\)/);
-  assert.match(resolver, /return resolveStrictPlatformBasename\(source, preference\) \|\| source/);
+  assert.match(
+    resolver,
+    /return resolveStrictPlatformBasename\(source, preference\)\s*\|\| unresolvedSourceOrFallback\(source\)/,
+  );
   assert.doesNotMatch(
     resolver,
     /resolveProviderAssetOrSource[\s\S]*resolveLocalAssetByBasename\(source, preference\)/,
