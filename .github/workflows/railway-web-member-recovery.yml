@@ -1,0 +1,173 @@
+name: Recover Railway Web Member
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: Recovery action to run against the existing Web Member service.
+        required: true
+        type: choice
+        default: inspect
+        options:
+          - inspect
+          - redeploy-latest
+          - deploy-main
+          - generate-domain
+          - full-recovery
+      confirm:
+        description: Confirm this workflow may mutate the Railway Web Member service.
+        required: true
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: railway-web-member-recovery
+  cancel-in-progress: false
+
+jobs:
+  recover:
+    if: ${{ inputs.confirm == true }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    container: ghcr.io/railwayapp/cli:latest
+    env:
+      RAILWAY_PROJECT_ID: 9a018c35-5d56-4541-a133-2ac7e1d6731c
+      RAILWAY_ENVIRONMENT_ID: d0874330-b90d-4e5e-b265-08411afa6945
+      RAILWAY_SERVICE_ID: bcd0f4e5-b68b-4b78-bd92-3f0400254f7c
+      PROJECT_TOKEN: ${{ secrets.RAILWAY_PROJECT_TOKEN }}
+      API_TOKEN: ${{ secrets.RAILWAY_API_TOKEN }}
+      RECOVERY_ACTION: ${{ inputs.action }}
+    steps:
+      - name: Check out main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 1
+
+      - name: Select Railway authentication token
+        shell: sh
+        run: |
+          set -eu
+
+          if [ -n "${PROJECT_TOKEN:-}" ] && [ -n "${API_TOKEN:-}" ]; then
+            echo "Both RAILWAY_PROJECT_TOKEN and RAILWAY_API_TOKEN are configured." >&2
+            echo "Configure only one token because Railway CLI rejects simultaneous token types." >&2
+            exit 1
+          fi
+
+          if [ -n "${PROJECT_TOKEN:-}" ]; then
+            echo "RAILWAY_TOKEN=$PROJECT_TOKEN" >> "$GITHUB_ENV"
+            echo "Using project-scoped Railway token."
+          elif [ -n "${API_TOKEN:-}" ]; then
+            echo "RAILWAY_API_TOKEN=$API_TOKEN" >> "$GITHUB_ENV"
+            echo "Using account/workspace-scoped Railway API token."
+          else
+            echo "Missing Railway authentication." >&2
+            echo "Add exactly one Actions secret: RAILWAY_PROJECT_TOKEN or RAILWAY_API_TOKEN." >&2
+            exit 1
+          fi
+
+      - name: Link existing Railway service
+        shell: sh
+        run: |
+          set -eu
+          railway link \
+            --project "$RAILWAY_PROJECT_ID" \
+            --environment "$RAILWAY_ENVIRONMENT_ID" \
+            --service "$RAILWAY_SERVICE_ID" \
+            --json | tee railway-link.json
+
+      - name: Inspect service before recovery
+        shell: sh
+        run: |
+          set -eu
+          railway service status \
+            --project "$RAILWAY_PROJECT_ID" \
+            --environment "$RAILWAY_ENVIRONMENT_ID" \
+            --service "$RAILWAY_SERVICE_ID" \
+            --json | tee railway-status-before.json
+
+          railway deployment list \
+            --environment "$RAILWAY_ENVIRONMENT_ID" \
+            --service "$RAILWAY_SERVICE_ID" \
+            --limit 10 \
+            --json | tee railway-deployments-before.json
+
+      - name: Redeploy latest Railway deployment
+        if: ${{ inputs.action == 'redeploy-latest' || inputs.action == 'full-recovery' }}
+        shell: sh
+        run: |
+          set -eu
+          railway redeploy \
+            --service "$RAILWAY_SERVICE_ID" \
+            --yes \
+            --json | tee railway-redeploy.json
+
+      - name: Upload main to the existing Web Member service
+        if: ${{ inputs.action == 'deploy-main' || inputs.action == 'full-recovery' }}
+        shell: sh
+        run: |
+          set -eu
+          railway up . \
+            --project "$RAILWAY_PROJECT_ID" \
+            --environment "$RAILWAY_ENVIRONMENT_ID" \
+            --service "$RAILWAY_SERVICE_ID" \
+            --detach \
+            --message "Recover Web Member from GitHub Actions ${GITHUB_SHA}" \
+            --json | tee railway-up.json
+
+      - name: Generate Railway-provided domain
+        if: ${{ inputs.action == 'generate-domain' || inputs.action == 'full-recovery' }}
+        shell: sh
+        run: |
+          set -u
+          railway domain \
+            --service "$RAILWAY_SERVICE_ID" \
+            --json | tee railway-domain.json
+          status=$?
+
+          if [ "$status" -ne 0 ]; then
+            echo "Domain generation failed. This can mean a Railway-provided domain already exists or the selected token lacks permission." >&2
+            exit "$status"
+          fi
+
+      - name: Inspect service after recovery
+        if: always()
+        shell: sh
+        run: |
+          set +e
+          railway service status \
+            --project "$RAILWAY_PROJECT_ID" \
+            --environment "$RAILWAY_ENVIRONMENT_ID" \
+            --service "$RAILWAY_SERVICE_ID" \
+            --json | tee railway-status-after.json
+
+          railway deployment list \
+            --environment "$RAILWAY_ENVIRONMENT_ID" \
+            --service "$RAILWAY_SERVICE_ID" \
+            --limit 10 \
+            --json | tee railway-deployments-after.json
+
+          {
+            echo "## Railway Web Member recovery"
+            echo
+            echo "- Action: \`$RECOVERY_ACTION\`"
+            echo "- Project: \`$RAILWAY_PROJECT_ID\`"
+            echo "- Environment: \`$RAILWAY_ENVIRONMENT_ID\`"
+            echo "- Service: \`$RAILWAY_SERVICE_ID\`"
+            echo "- Source commit: \`$GITHUB_SHA\`"
+            echo
+            echo "Run Member Production Verification after Railway reports a successful deployment."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload recovery evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: railway-web-member-recovery-${{ github.run_id }}
+          path: railway-*.json
+          if-no-files-found: warn
+          retention-days: 14
