@@ -11,6 +11,7 @@ const setup = read('scripts/windows/setup.ps1');
 const start = read('scripts/windows/start.ps1');
 const stop = read('scripts/windows/stop.ps1');
 const compose = read('compose.windows.yml');
+const envExample = read('.env.example');
 const gitignore = read('.gitignore');
 
 
@@ -51,6 +52,24 @@ test('pnpm activation happens while the machine bootstrap is elevated', () => {
 });
 
 
+test('every generated Windows environment replacement exists exactly once in the template', () => {
+  const replacements = setup.match(/\$replacements = @\{([\s\S]*?)\n  \}/)?.[1] ?? '';
+  const replacementKeys = [...replacements.matchAll(/^\s*'([A-Z0-9_]+)'\s*=/gm)].map((match) => match[1]);
+  const templateKeys = [...envExample.matchAll(/^([A-Z_][A-Z0-9_]*)=/gm)].map((match) => match[1]);
+
+  assert.ok(replacementKeys.length > 0, 'setup replacement map must contain environment keys');
+  assert.equal(new Set(templateKeys).size, templateKeys.length, '.env.example must not contain duplicate keys');
+
+  for (const key of replacementKeys) {
+    assert.equal(
+      templateKeys.filter((templateKey) => templateKey === key).length,
+      1,
+      `${key} must exist exactly once in .env.example so setup can write its generated value`,
+    );
+  }
+});
+
+
 test('Windows setup isolates local credentials from maintained environments', () => {
   assert.match(setup, /\.env\.windows\.local/);
   assert.match(setup, /New-HexSecret/);
@@ -59,6 +78,7 @@ test('Windows setup isolates local credentials from maintained environments', ()
   assert.match(setup, /preserving local secrets and database credentials/);
   assert.match(setup, /'DEFAULT_ADMIN_SECRET'\s*=\s*\(New-HexSecret\)/);
   assert.match(setup, /'BOOTSTRAP_ADMIN_PASSWORD'\s*=\s*\(New-HexSecret\)/);
+  assert.match(envExample, /^BOOTSTRAP_ADMIN_PASSWORD=set_in_local_env$/m);
   assert.match(gitignore, /^\.env\.windows\.local$/m);
   assert.match(gitignore, /^\.local\/$/m);
 });
