@@ -30,7 +30,7 @@ describe('production database bootstrap contract', () => {
 
     for (const relation of GOVERNANCE_RELATIONS) {
       expect(bootstrapSource).toContain(`'${relation}'`);
-      expect(governanceMigration).toContain(`CREATE TABLE \"${relation}\"`);
+      expect(governanceMigration).toContain(`CREATE TABLE "${relation}"`);
     }
   });
 
