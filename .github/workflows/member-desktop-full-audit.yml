@@ -1,7 +1,5 @@
 name: Member Desktop Full Audit
 
-# Production recheck requested 2026-08-05T04:43+07:00
-
 on:
   pull_request:
     paths:
@@ -18,7 +16,9 @@ concurrency:
 jobs:
   member-desktop-full-audit:
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    timeout-minutes: 45
+    env:
+      MEMBER_HOME_URL: http://127.0.0.1:3000/
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -30,14 +30,34 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile=false
       - run: pnpm exec playwright install --with-deps chromium
-      - name: Audit Production Member Desktop
-        env:
-          MEMBER_HOME_URL: https://platformweb-member-production.up.railway.app/
+      - name: Build Member app from the pull request
+        run: pnpm --filter @platform/web-member build
+      - name: Start Member app from the pull request
+        run: |
+          pnpm --filter @platform/web-member start > /tmp/member-desktop-web.log 2>&1 &
+          echo $! > /tmp/member-desktop-web.pid
+          for attempt in {1..60}; do
+            if curl --fail --silent --show-error "$MEMBER_HOME_URL" > /dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/member-desktop-web.log
+          exit 1
+      - name: Audit Pull Request Member Desktop
         run: >-
           pnpm exec playwright test
           tests/e2e-visual/r013-member-desktop-full-audit.spec.ts
           -c playwright.member-desktop-audit.config.ts
           --retries=0
+      - name: Upload Member server log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: member-desktop-full-audit-server-log
+          path: /tmp/member-desktop-web.log
+          if-no-files-found: warn
+          retention-days: 14
       - name: Upload Member Desktop audit evidence
         if: always()
         uses: actions/upload-artifact@v4
