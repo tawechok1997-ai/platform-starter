@@ -38,6 +38,8 @@ export default function MemberAuthOverlay({
   const frameRef = useRef<HTMLIFrameElement | null>(null);
   const releaseDocumentLockRef = useRef<(() => void) | null>(null);
   const onModeChangeRef = useRef(onModeChange);
+  const onCloseRef = useRef(onClose);
+  const onSuccessRef = useRef(onSuccess);
   const previousFocusRef = useRef<HTMLElement | null>(null);
   const navigationAbortRef = useRef<AbortController | null>(null);
   const framePollRef = useRef<number | null>(null);
@@ -46,6 +48,14 @@ export default function MemberAuthOverlay({
   useEffect(() => {
     onModeChangeRef.current = onModeChange;
   }, [onModeChange]);
+
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
+
+  useEffect(() => {
+    onSuccessRef.current = onSuccess;
+  }, [onSuccess]);
 
   useEffect(() => {
     activeModeRef.current = mode;
@@ -110,18 +120,18 @@ export default function MemberAuthOverlay({
   }, [cancelFrameWork, releaseDocumentLockNow, removeOverlayOwnership, restorePreviousFocus]);
 
   const requestClose = useCallback(() => {
-    dismissImmediately(onClose);
-  }, [dismissImmediately, onClose]);
+    dismissImmediately(onCloseRef.current);
+  }, [dismissImmediately]);
 
   const completeAuth = useCallback(async () => {
     if (closingRef.current || authCompletionRef.current) return;
     authCompletionRef.current = true;
     try {
-      await onSuccess();
+      await onSuccessRef.current();
     } finally {
       authCompletionRef.current = false;
     }
-  }, [onSuccess]);
+  }, []);
 
   const navigateEmbeddedMode = useCallback((nextMode: MemberAuthMode) => {
     if (closingRef.current) return;
@@ -143,9 +153,10 @@ export default function MemberAuthOverlay({
       }
 
       const currentLocation = contentWindow.location;
+      const currentSearch = new URLSearchParams(currentLocation.search);
       const alreadyAtTarget = currentLocation.pathname === expectedPathname
-        && new URLSearchParams(currentLocation.search).get('embed') === '1'
-        && new URLSearchParams(currentLocation.search).get('request') === requestId;
+        && currentSearch.get('embed') === '1'
+        && currentSearch.get('request') === requestId;
       if (alreadyAtTarget) return;
 
       contentWindow.location.replace(nextPath);
