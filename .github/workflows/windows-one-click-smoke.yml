@@ -14,6 +14,7 @@ on:
       - 'tools/windows-one-click-contract.test.mjs'
       - 'tools/windows-one-click-integration-contract.test.mjs'
       - 'tools/windows-one-click-integration-smoke.ps1'
+      - 'tools/windows-one-click-smoke-launch-service.ps1'
       - 'tools/windows-one-click-smoke-service.mjs'
       - '.github/workflows/windows-one-click-smoke.yml'
   workflow_dispatch:
