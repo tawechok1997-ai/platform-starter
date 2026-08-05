@@ -5,7 +5,7 @@ import test from 'node:test';
 const runtime = readFileSync(new URL('./mobile-p10-p12-closure-runtime.tsx', import.meta.url), 'utf8');
 const localeProvider = readFileSync(new URL('../../member-locale-provider.tsx', import.meta.url), 'utf8');
 const mobileHome = readFileSync(new URL('./mobile-home-root.tsx', import.meta.url), 'utf8');
-const mobileSmokeWorkflow = readFileSync(new URL('../../../../.github/workflows/mobile-home-smoke.yml', import.meta.url), 'utf8');
+const mobileSmokeWorkflow = readFileSync(new URL('../../../../../.github/workflows/mobile-home-smoke.yml', import.meta.url), 'utf8');
 
 test('P10 keeps one locale owner with only Thai and English enabled', () => {
   assert.match(localeProvider, /export type MemberLocale = 'th' \| 'en'/);
