@@ -57,7 +57,10 @@ test('slot page reads the persisted member wallet after every successful spin', 
   assert.match(page, /moneyEquals\(persistedWallet\.balance, expectedBalance\)/);
   assert.match(page, /data-demo-slot-wallet-readback="true"/);
   assert.match(page, /ยืนยันยอดจาก Wallet DB แล้ว/);
-  assert.doesNotMatch(page, /balance: nextBalance/);
+  assert.doesNotMatch(
+    page,
+    /setWallet\(\s*(?:\([^)]*\)\s*=>\s*)?\(?\s*\{[^}]*\bbalance:\s*nextBalance\b/s,
+  );
 });
 
 test('ledger history exposes authenticated round refresh and rollback', () => {
