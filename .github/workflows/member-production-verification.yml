@@ -36,7 +36,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 25
     env:
-      DEFAULT_MEMBER_PRODUCTION_URL: https://platformweb-member-production.up.railway.app
+      DEFAULT_MEMBER_PRODUCTION_URL: https://platformweb-member-production-26b4.up.railway.app
       RAILWAY_MEMBER_SERVICE_URL: https://railway.com/project/9a018c35-5d56-4541-a133-2ac7e1d6731c/service/bcd0f4e5-b68b-4b78-bd92-3f0400254f7c?environmentId=d0874330-b90d-4e5e-b265-08411afa6945
     steps:
       - name: Check out repository for PR scope detection
