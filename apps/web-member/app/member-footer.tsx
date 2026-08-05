@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { memo, useEffect, useState, type SyntheticEvent } from 'react';
+import { MEMBER_SESSION_CHANGED_EVENT, hasMemberSessionTokens } from './member-api';
 import { useMemberLocale } from './member-locale-provider';
 import type { TypedPublicSiteSettings } from './site-settings-types';
 import mobileFooterStyles from './member-footer-mobile-match.module.css';
@@ -165,6 +166,7 @@ type FooterViewport = 'mobile' | 'desktop';
 
 function MemberFooter({ settings }: { settings: TypedPublicSiteSettings }) {
   const [viewport, setViewport] = useState<FooterViewport | null>(null);
+  const [hasSession, setHasSession] = useState<boolean | null>(null);
 
   useEffect(() => {
     const media = window.matchMedia('(max-width: 900px)');
@@ -175,7 +177,19 @@ function MemberFooter({ settings }: { settings: TypedPublicSiteSettings }) {
     return () => media.removeEventListener('change', syncViewport);
   }, []);
 
-  if (viewport === null) return null;
+  useEffect(() => {
+    const syncSession = () => setHasSession(hasMemberSessionTokens());
+
+    syncSession();
+    window.addEventListener(MEMBER_SESSION_CHANGED_EVENT, syncSession);
+    window.addEventListener('storage', syncSession);
+    return () => {
+      window.removeEventListener(MEMBER_SESSION_CHANGED_EVENT, syncSession);
+      window.removeEventListener('storage', syncSession);
+    };
+  }, []);
+
+  if (viewport === null || hasSession !== true) return null;
   if (viewport === 'mobile' && typeof window !== 'undefined' && window.location.pathname === '/') return null;
 
   return viewport === 'mobile'
