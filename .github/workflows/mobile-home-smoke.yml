@@ -6,13 +6,14 @@ on:
       - 'apps/web-member/**'
       - 'tests/e2e-visual/r013-mobile-home-production-smoke.spec.ts'
       - 'tests/e2e-visual/r013-mobile-p7-p9-smoke.spec.ts'
+      - 'tests/e2e-visual/r013-mobile-p10-p12-smoke.spec.ts'
       - 'playwright.visual.config.ts'
       - '.github/workflows/mobile-home-smoke.yml'
 
 jobs:
   mobile-home-smoke:
     runs-on: ubuntu-latest
-    timeout-minutes: 14
+    timeout-minutes: 16
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -24,13 +25,14 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile=false
       - run: pnpm exec playwright install --with-deps chromium
-      - name: Run Mobile Home and P7-P9 smoke
+      - name: Run Mobile Home P7-P9 and P10-P12 smoke
         env:
           MEMBER_HOME_URL: http://127.0.0.1:3101/
         run: >-
           pnpm exec playwright test
           tests/e2e-visual/r013-mobile-home-production-smoke.spec.ts
           tests/e2e-visual/r013-mobile-p7-p9-smoke.spec.ts
+          tests/e2e-visual/r013-mobile-p10-p12-smoke.spec.ts
           -c playwright.visual.config.ts
           --project=360x800
           --project=390x844
