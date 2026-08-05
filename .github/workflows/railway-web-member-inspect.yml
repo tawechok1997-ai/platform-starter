@@ -25,28 +25,35 @@ jobs:
       API_TOKEN: ${{ secrets.RAILWAY_API_TOKEN }}
     steps:
       - name: Select Railway authentication token
+        id: auth
         shell: sh
         run: |
           set -eu
 
           if [ -n "${PROJECT_TOKEN:-}" ] && [ -n "${API_TOKEN:-}" ]; then
             echo "Both Railway token secrets are configured; keep exactly one." >&2
+            echo "available=false" >> "$GITHUB_OUTPUT"
+            echo "reason=multiple-secrets" >> "$GITHUB_OUTPUT"
             exit 1
           fi
 
           if [ -n "${PROJECT_TOKEN:-}" ]; then
             echo "RAILWAY_TOKEN=$PROJECT_TOKEN" >> "$GITHUB_ENV"
-            echo "auth=project-token" >> "$GITHUB_OUTPUT"
+            echo "available=true" >> "$GITHUB_OUTPUT"
+            echo "reason=project-token" >> "$GITHUB_OUTPUT"
           elif [ -n "${API_TOKEN:-}" ]; then
             echo "RAILWAY_API_TOKEN=$API_TOKEN" >> "$GITHUB_ENV"
-            echo "auth=api-token" >> "$GITHUB_OUTPUT"
+            echo "available=true" >> "$GITHUB_OUTPUT"
+            echo "reason=api-token" >> "$GITHUB_OUTPUT"
           else
-            echo "No Railway token secret is available to GitHub Actions." >&2
-            echo "Add exactly one secret: RAILWAY_PROJECT_TOKEN or RAILWAY_API_TOKEN." >&2
-            exit 1
+            echo "No Railway token secret is available to GitHub Actions."
+            echo "Add exactly one secret: RAILWAY_PROJECT_TOKEN or RAILWAY_API_TOKEN."
+            echo "available=false" >> "$GITHUB_OUTPUT"
+            echo "reason=missing-secret" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Link existing Railway Web Member service
+        if: ${{ steps.auth.outputs.available == 'true' }}
         shell: sh
         run: |
           set -eu
@@ -57,6 +64,7 @@ jobs:
             --json | tee railway-inspect-link.json
 
       - name: Read service and deployment state
+        if: ${{ steps.auth.outputs.available == 'true' }}
         shell: sh
         run: |
           set -eu
@@ -75,6 +83,9 @@ jobs:
       - name: Write inspection summary
         if: always()
         shell: sh
+        env:
+          AUTH_AVAILABLE: ${{ steps.auth.outputs.available }}
+          AUTH_REASON: ${{ steps.auth.outputs.reason }}
         run: |
           {
             echo "## Railway Web Member inspection"
@@ -82,6 +93,8 @@ jobs:
             echo "- Project: \`$RAILWAY_PROJECT_ID\`"
             echo "- Environment: \`$RAILWAY_ENVIRONMENT_ID\`"
             echo "- Service: \`$RAILWAY_SERVICE_ID\`"
+            echo "- Railway authentication available: \`${AUTH_AVAILABLE:-false}\`"
+            echo "- Authentication result: \`${AUTH_REASON:-unknown}\`"
             echo "- This workflow is read-only."
           } >> "$GITHUB_STEP_SUMMARY"
 
