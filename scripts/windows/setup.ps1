@@ -213,6 +213,27 @@ function Install-Node22 {
   }
 }
 
+function Install-Pnpm {
+  Write-Step 'Preparing pnpm 11.18.0 with Administrator permission'
+  Refresh-ProcessPath
+  if (-not (Test-Command 'corepack.cmd')) {
+    Invoke-Native -FilePath 'npm.cmd' -Arguments @('install', '--global', 'corepack') | Out-Null
+    Refresh-ProcessPath
+  }
+
+  Invoke-Native -FilePath 'corepack.cmd' -Arguments @('enable') | Out-Null
+  Invoke-Native -FilePath 'corepack.cmd' -Arguments @('prepare', 'pnpm@11.18.0', '--activate') | Out-Null
+  Refresh-ProcessPath
+
+  if (-not (Test-Command 'pnpm.cmd')) {
+    throw 'pnpm was prepared by Corepack but is not available on PATH.'
+  }
+  $pnpmVersion = (& pnpm.cmd --version).Trim()
+  if ($pnpmVersion -ne '11.18.0') {
+    throw "pnpm 11.18.0 is required, but version $pnpmVersion is active on PATH."
+  }
+}
+
 function Find-DockerDesktopExecutable {
   $candidates = @(
     (Join-Path $env:ProgramFiles 'Docker\Docker\Docker Desktop.exe'),
@@ -261,6 +282,7 @@ function Invoke-MachineBootstrap {
   }
   Install-Git
   Install-Node22
+  Install-Pnpm
   Install-DockerDesktop
 }
 
@@ -342,6 +364,7 @@ function Write-WindowsEnvironment {
     'PASSWORD_RESET_DELIVERY_ENABLED' = 'false'
     'PASSWORD_RESET_DELIVERY_WEBHOOK_SECRET' = (New-HexSecret)
     'DEFAULT_ADMIN_SECRET' = (New-HexSecret)
+    'BOOTSTRAP_ADMIN_PASSWORD' = (New-HexSecret)
   }
 
   $output = New-Object System.Collections.Generic.List[string]
@@ -392,16 +415,15 @@ function Import-DotEnv {
 }
 
 function Install-ProjectDependencies {
-  Write-Step 'Preparing pnpm 11.18.0 with Corepack'
+  Write-Step 'Checking pnpm 11.18.0 prepared by the Administrator bootstrap'
   Refresh-ProcessPath
-  if (-not (Test-Command 'corepack.cmd')) {
-    Invoke-Native -FilePath 'npm.cmd' -Arguments @('install', '--global', 'corepack') | Out-Null
-    Refresh-ProcessPath
+  if (-not (Test-Command 'pnpm.cmd')) {
+    throw 'pnpm is not available on PATH. Run Setup-Windows.cmd again and approve the Administrator prompt.'
   }
-
-  Invoke-Native -FilePath 'corepack.cmd' -Arguments @('enable') | Out-Null
-  Invoke-Native -FilePath 'corepack.cmd' -Arguments @('prepare', 'pnpm@11.18.0', '--activate') | Out-Null
-  Refresh-ProcessPath
+  $pnpmVersion = (& pnpm.cmd --version).Trim()
+  if ($pnpmVersion -ne '11.18.0') {
+    throw "pnpm 11.18.0 is required, but version $pnpmVersion is active on PATH."
+  }
 
   Write-Step 'Installing project dependencies'
   Set-Location $RepoRoot
