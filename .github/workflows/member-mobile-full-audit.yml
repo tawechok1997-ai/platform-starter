@@ -16,7 +16,9 @@ concurrency:
 jobs:
   member-mobile-full-audit:
     runs-on: ubuntu-latest
-    timeout-minutes: 35
+    timeout-minutes: 40
+    env:
+      MEMBER_HOME_URL: http://127.0.0.1:3000/
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -28,9 +30,21 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile=false
       - run: pnpm exec playwright install --with-deps chromium
-      - name: Audit Production Mobile Home and Guest Routes
-        env:
-          MEMBER_HOME_URL: https://platformweb-member-production.up.railway.app/
+      - name: Build Member app from the pull request
+        run: pnpm --filter @platform/web-member build
+      - name: Start Member app from the pull request
+        run: |
+          pnpm --filter @platform/web-member start > /tmp/member-web.log 2>&1 &
+          echo $! > /tmp/member-web.pid
+          for attempt in {1..60}; do
+            if curl --fail --silent --show-error "$MEMBER_HOME_URL" > /dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/member-web.log
+          exit 1
+      - name: Audit Pull Request Mobile Home and Guest Routes
         run: >-
           pnpm exec playwright test
           tests/e2e-visual/r013-member-mobile-full-audit.spec.ts
@@ -38,8 +52,6 @@ jobs:
           --grep "home geometry|guest route matrix"
           --retries=0
       - name: Audit Read-only Authenticated Interactions
-        env:
-          MEMBER_HOME_URL: https://platformweb-member-production.up.railway.app/
         run: >-
           pnpm exec playwright test
           tests/e2e-visual/r013-member-mobile-authenticated-audit.spec.ts
@@ -47,16 +59,12 @@ jobs:
           --grep "authenticated shell"
           --retries=0
       - name: Audit Dedicated Authenticated Mobile Routes
-        env:
-          MEMBER_HOME_URL: https://platformweb-member-production.up.railway.app/
         run: >-
           pnpm exec playwright test
           tests/e2e-visual/r013-member-mobile-authenticated-routes-v3-audit.spec.ts
           -c playwright.member-mobile-audit.config.ts
           --retries=0
       - name: Audit Guest Protected Routes
-        env:
-          MEMBER_HOME_URL: https://platformweb-member-production.up.railway.app/
         run: >-
           pnpm exec playwright test
           tests/e2e-visual/r013-member-mobile-protected-route-audit.spec.ts
@@ -64,13 +72,19 @@ jobs:
           --grep "guest cannot"
           --retries=0
       - name: Audit Read-only Protected Routes
-        env:
-          MEMBER_HOME_URL: https://platformweb-member-production.up.railway.app/
         run: >-
           pnpm exec playwright test
           tests/e2e-visual/r013-member-mobile-protected-authenticated-routes-v3-audit.spec.ts
           -c playwright.member-mobile-audit.config.ts
           --retries=0
+      - name: Upload Member server log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: member-mobile-full-audit-server-log
+          path: /tmp/member-web.log
+          if-no-files-found: warn
+          retention-days: 14
       - name: Upload Member Mobile audit evidence
         if: always()
         uses: actions/upload-artifact@v4
