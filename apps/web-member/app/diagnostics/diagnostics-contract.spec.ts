@@ -23,7 +23,7 @@ test('diagnostics page and API expose the same build identity sources', () => {
 });
 
 test('diagnostics is publicly reachable without weakening private member routes', () => {
-  assert.match(memberRoutes, /prefix: '\/diagnostics'[\s\S]*public: true/);
-  assert.doesNotMatch(memberRoutes, /prefix: '\/deposit'[\s\S]*public: true/);
-  assert.doesNotMatch(memberRoutes, /prefix: '\/withdraw'[\s\S]*public: true/);
+  assert.match(memberRoutes, /\{ prefix: '\/diagnostics',[^\n]*public: true/);
+  assert.doesNotMatch(memberRoutes, /\{ prefix: '\/deposit',[^\n]*public: true/);
+  assert.doesNotMatch(memberRoutes, /\{ prefix: '\/withdraw',[^\n]*public: true/);
 });
