@@ -197,9 +197,10 @@ export default function MemberAuthOverlay({
     releaseDocumentLockRef.current = releaseDocumentLock;
 
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key !== 'Escape') return;
-      event.preventDefault();
-      requestClose();
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        requestClose();
+      }
     };
 
     const handleMessage = (event: MessageEvent) => {
