@@ -79,7 +79,7 @@ test.describe('Mobile P7-P9 closure smoke', () => {
         expect(response?.status() ?? 200).toBeLessThan(400);
         await expect(page.locator('html')).toHaveAttribute('data-mobile-p7-p9-ready', 'true', { timeout: 20_000 });
         await expect(page.locator('html')).toHaveAttribute('data-mobile-p7-p9-phase', 'p9');
-        await expect(page.locator('.member-finance-page, main:has(> a[href="/"])').first()).toBeVisible({ timeout: 20_000 });
+        await expect(page.locator('.finance-flow-page, .member-finance-page, main:has(> a[href="/"])').first()).toBeVisible({ timeout: 20_000 });
         expect(new URL(page.url()).pathname).toBe(routePath);
         await expectHorizontalFit(page);
       }
