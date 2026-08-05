@@ -10,7 +10,20 @@ const repositoryRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url))
 const schemaPath = path.join(repositoryRoot, 'prisma', 'schema.prisma');
 const migrationsDirectory = path.join(repositoryRoot, 'prisma', 'migrations');
 const BOOTSTRAP_SAFE_MIGRATIONS = [
-  '20260805040000_add_admin_ui_preferences',
+  {
+    name: '20260803070000_add_admin_team_access_governance',
+    requiredRelations: [
+      'admin_teams',
+      'admin_team_members',
+      'admin_reporting_lines',
+      'admin_permission_overrides',
+      'admin_access_profiles',
+    ],
+  },
+  {
+    name: '20260805040000_add_admin_ui_preferences',
+    requiredRelations: ['admin_ui_preferences'],
+  },
 ];
 
 function runPnpm(args, description = `pnpm ${args.join(' ')}`) {
@@ -129,18 +142,70 @@ async function baselineMigrationHistory(history = []) {
   }
 }
 
+async function relationPresence(prisma, relationNames) {
+  return Promise.all(
+    relationNames.map(async (relationName) => ({
+      relationName,
+      exists: await relationExists(prisma, relationName),
+    })),
+  );
+}
+
 async function applyBootstrapSafeMigrations() {
-  await withPrisma(async (prisma) => {
-    for (const migrationName of BOOTSTRAP_SAFE_MIGRATIONS) {
-      const migrationPath = path.join(migrationsDirectory, migrationName, 'migration.sql');
-      const sql = await readFile(migrationPath, 'utf8');
-      const statements = sql
-        .split(/;\s*(?:\r?\n|$)/)
-        .map((statement) => statement.trim())
-        .filter(Boolean);
-      for (const statement of statements) await prisma.$executeRawUnsafe(statement);
-    }
-  });
+  await withPrisma((prisma) =>
+    prisma.$transaction(
+      async (tx) => {
+        await tx.$queryRawUnsafe(
+          "SELECT pg_advisory_xact_lock(hashtext('platform-bootstrap-safe-migrations'))",
+        );
+
+        for (const migration of BOOTSTRAP_SAFE_MIGRATIONS) {
+          const before = await relationPresence(tx, migration.requiredRelations);
+          const existing = before
+            .filter((relation) => relation.exists)
+            .map((relation) => relation.relationName);
+          const missing = before
+            .filter((relation) => !relation.exists)
+            .map((relation) => relation.relationName);
+
+          if (missing.length === 0) {
+            console.log(
+              `[database-bootstrap] Bootstrap-safe migration ${migration.name} is already materialized.`,
+            );
+            continue;
+          }
+
+          if (existing.length > 0) {
+            throw new Error(
+              `Refusing partial bootstrap-safe migration ${migration.name}; existing relations: ${existing.join(', ')}; missing relations: ${missing.join(', ')}`,
+            );
+          }
+
+          console.warn(
+            `[database-bootstrap] Migration history does not match the physical schema; applying ${migration.name} to restore: ${missing.join(', ')}.`,
+          );
+          const migrationPath = path.join(migrationsDirectory, migration.name, 'migration.sql');
+          const sql = await readFile(migrationPath, 'utf8');
+          const statements = sql
+            .split(/;\s*(?:\r?\n|$)/)
+            .map((statement) => statement.trim())
+            .filter(Boolean);
+          for (const statement of statements) await tx.$executeRawUnsafe(statement);
+
+          const after = await relationPresence(tx, migration.requiredRelations);
+          const stillMissing = after
+            .filter((relation) => !relation.exists)
+            .map((relation) => relation.relationName);
+          if (stillMissing.length > 0) {
+            throw new Error(
+              `Bootstrap-safe migration ${migration.name} completed without creating required relations: ${stillMissing.join(', ')}`,
+            );
+          }
+        }
+      },
+      { maxWait: 30_000, timeout: 30_000 },
+    ),
+  );
 }
 
 async function baselineEmptyDatabase(state) {
@@ -163,6 +228,7 @@ async function baselineEmptyDatabase(state) {
   const refreshedHistory = await withPrisma((prisma) => readMigrationHistory(prisma));
   await baselineMigrationHistory(refreshedHistory);
   runPrisma(['migrate', 'deploy']);
+  await applyBootstrapSafeMigrations();
 }
 
 async function ensureCoreSeedData() {
@@ -207,6 +273,7 @@ async function prepareSchema() {
   }
 
   runPrisma(['migrate', 'deploy']);
+  await applyBootstrapSafeMigrations();
 }
 
 async function main() {
