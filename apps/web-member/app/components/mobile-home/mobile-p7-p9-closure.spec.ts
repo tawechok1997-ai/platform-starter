@@ -33,6 +33,9 @@ test('P7 mounts one Mobile popup and auth closure owner', () => {
   assert.match(runtime, /html\.dataset\.mobileP7P9Ready = 'true'/);
   assert.match(runtime, /body\.style\.overflow = 'hidden'/);
   assert.match(runtime, /body\.style\.overscrollBehavior = 'none'/);
+  assert.match(runtime, /data-mobile-overlay-open='true'/);
+  assert.match(runtime, /overflow:\s*hidden\s*!important/);
+  assert.match(runtime, /touch-action:\s*none\s*!important/);
 });
 
 test('P7 owns keyboard containment, focus return and auth query cleanup', () => {
@@ -104,6 +107,7 @@ test('P9 closes Mobile finance overflow without changing transaction mutations',
   assert.match(runtime, /max-width:\s*100vw\s*!important/);
   assert.match(runtime, /grid-template-columns:\s*minmax\(0, 1fr\)\s*!important/);
   assert.match(runtime, /\.member-finance-page input/);
+  assert.match(runtime, /\.finance-flow-page input/);
   assert.match(runtime, /width:\s*100%\s*!important/);
   assert.match(runtime, /overflow-x:\s*clip\s*!important/);
   assert.doesNotMatch(runtime, /memberApiFetch/);
