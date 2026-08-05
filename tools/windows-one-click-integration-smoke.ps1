@@ -43,8 +43,15 @@ function Test-Endpoint {
   param([Parameter(Mandatory = $true)][string]$Url)
 
   try {
-    $response = Invoke-WebRequest -Uri $Url -UseBasicParsing -TimeoutSec 1
-    return [int]$response.StatusCode -eq 200
+    $request = [System.Net.HttpWebRequest]::Create($Url)
+    $request.Proxy = $null
+    $request.Timeout = 1000
+    $response = $request.GetResponse()
+    try {
+      return [int]$response.StatusCode -eq 200
+    } finally {
+      $response.Dispose()
+    }
   } catch {
     return $false
   }
@@ -72,11 +79,22 @@ function Read-ProcessRecords {
     throw "Process record was not created: $ProcessFile"
   }
 
-  $records = @(Get-Content -LiteralPath $ProcessFile -Raw | ConvertFrom-Json)
+  $parsed = Get-Content -LiteralPath $ProcessFile -Raw | ConvertFrom-Json
+  $records = New-Object System.Collections.Generic.List[object]
+  foreach ($item in @($parsed)) {
+    if ($item -is [System.Array]) {
+      foreach ($nested in $item) {
+        [void]$records.Add($nested)
+      }
+    } else {
+      [void]$records.Add($item)
+    }
+  }
+
   if ($records.Count -ne 3) {
     throw "Expected three process records, found $($records.Count)."
   }
-  return $records
+  return $records.ToArray()
 }
 
 function Convert-RecordsToMap {
@@ -156,17 +174,17 @@ setlocal
 set "REPO_ROOT=%~dp0..\.."
 echo %* | findstr /C:"@platform/api" >nul
 if %ERRORLEVEL%==0 (
-  node.exe "%REPO_ROOT%\tools\windows-one-click-smoke-service.mjs" 4000 API
+  powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File "%REPO_ROOT%\tools\windows-one-click-smoke-launch-service.ps1" -Port 4000 -Name API
   exit /b
 )
 echo %* | findstr /C:"@platform/web-member" >nul
 if %ERRORLEVEL%==0 (
-  node.exe "%REPO_ROOT%\tools\windows-one-click-smoke-service.mjs" 3000 Member
+  powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File "%REPO_ROOT%\tools\windows-one-click-smoke-launch-service.ps1" -Port 3000 -Name Member
   exit /b
 )
 echo %* | findstr /C:"@platform/web-admin" >nul
 if %ERRORLEVEL%==0 (
-  node.exe "%REPO_ROOT%\tools\windows-one-click-smoke-service.mjs" 3001 Admin
+  powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File "%REPO_ROOT%\tools\windows-one-click-smoke-launch-service.ps1" -Port 3001 -Name Admin
   exit /b
 )
 echo Unexpected pnpm smoke arguments: %* 1>&2
@@ -177,12 +195,18 @@ exit /b 2
   Remove-Item -LiteralPath $ProcessFile -Force -ErrorAction SilentlyContinue
   Remove-LeftoverListeners
 
+  $urls = @(
+    'http://127.0.0.1:4000/health',
+    'http://127.0.0.1:3000',
+    'http://127.0.0.1:3001'
+  )
+
   Write-Host 'Running first Windows launcher start...' -ForegroundColor Cyan
   Invoke-OwnerScript -Path $StartScript -Arguments @('-NoBrowser')
-  foreach ($url in @('http://localhost:4000/health', 'http://localhost:3000', 'http://localhost:3001')) {
+  $firstRecords = Read-ProcessRecords
+  foreach ($url in $urls) {
     Wait-EndpointState -Url $url -ExpectedHealthy $true
   }
-  $firstRecords = Read-ProcessRecords
   $firstMap = Convert-RecordsToMap -Records $firstRecords
 
   Write-Host 'Running idempotent start to verify healthy process reuse...' -ForegroundColor Cyan
@@ -196,10 +220,10 @@ exit /b 2
 
   Write-Host 'Stopping only the Member child service to verify recovery...' -ForegroundColor Cyan
   Stop-ListenerOnPort -Port 3000
-  Wait-EndpointState -Url 'http://localhost:3000' -ExpectedHealthy $false
+  Wait-EndpointState -Url 'http://127.0.0.1:3000' -ExpectedHealthy $false
 
   Invoke-OwnerScript -Path $StartScript -Arguments @('-NoBrowser')
-  foreach ($url in @('http://localhost:4000/health', 'http://localhost:3000', 'http://localhost:3001')) {
+  foreach ($url in $urls) {
     Wait-EndpointState -Url $url -ExpectedHealthy $true
   }
   $recoveredMap = Convert-RecordsToMap -Records (Read-ProcessRecords)
@@ -214,7 +238,7 @@ exit /b 2
   if (Test-Path -LiteralPath $ProcessFile) {
     throw 'Process record remained after a successful stop.'
   }
-  foreach ($url in @('http://localhost:4000/health', 'http://localhost:3000', 'http://localhost:3001')) {
+  foreach ($url in $urls) {
     Wait-EndpointState -Url $url -ExpectedHealthy $false
   }
 
