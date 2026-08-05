@@ -20,7 +20,7 @@ on:
         required: false
         type: string
       production_url:
-        description: Optional Member Production URL override.
+        description: Optional HTTPS Member Production URL override.
         required: false
         type: string
 
@@ -39,6 +39,33 @@ jobs:
       DEFAULT_MEMBER_PRODUCTION_URL: https://platformweb-member-production.up.railway.app
       RAILWAY_MEMBER_SERVICE_URL: https://railway.com/project/9a018c35-5d56-4541-a133-2ac7e1d6731c/service/bcd0f4e5-b68b-4b78-bd92-3f0400254f7c?environmentId=d0874330-b90d-4e5e-b265-08411afa6945
     steps:
+      - name: Check out repository for PR scope detection
+        if: ${{ github.event_name == 'pull_request' }}
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Detect whether Member application code changed
+        id: changes
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          member_code_changed=false
+
+          if [[ "$EVENT_NAME" == "pull_request" ]]; then
+            git diff --name-only "$PR_BASE_SHA" "$PR_HEAD_SHA" > changed-files.txt
+            cat changed-files.txt
+            if grep -Eq '^apps/web-member/' changed-files.txt; then
+              member_code_changed=true
+            fi
+          fi
+
+          echo "member_code_changed=$member_code_changed" >> "$GITHUB_OUTPUT"
+
       - name: Resolve verification target
         id: target
         shell: bash
@@ -59,6 +86,12 @@ jobs:
           else
             expected_sha="$WORKFLOW_SHA"
           fi
+          expected_sha="$(printf '%s' "$expected_sha" | tr '[:upper:]' '[:lower:]')"
+
+          if [[ ! "$expected_sha" =~ ^([0-9a-f]{12}|[0-9a-f]{40})$ ]]; then
+            echo "Expected SHA must contain exactly 12 or 40 hexadecimal characters." >&2
+            exit 1
+          fi
 
           if [[ -n "${MANUAL_PRODUCTION_URL:-}" ]]; then
             production_url="$MANUAL_PRODUCTION_URL"
@@ -67,8 +100,13 @@ jobs:
           else
             production_url="$DEFAULT_MEMBER_PRODUCTION_URL"
           fi
-
           production_url="${production_url%/}"
+
+          if [[ ! "$production_url" =~ ^https://[^[:space:]]+$ ]]; then
+            echo "Member Production URL must be a single HTTPS URL without whitespace." >&2
+            exit 1
+          fi
+
           echo "sha=$expected_sha" >> "$GITHUB_OUTPUT"
           echo "short_sha=${expected_sha:0:12}" >> "$GITHUB_OUTPUT"
           echo "production_url=$production_url" >> "$GITHUB_OUTPUT"
@@ -77,6 +115,8 @@ jobs:
           echo "Member Production URL: $production_url"
 
       - name: Wait for production and verify deployed SHA
+        id: verify
+        continue-on-error: ${{ github.event_name == 'pull_request' }}
         shell: bash
         env:
           EXPECTED_SHA: ${{ steps.target.outputs.sha }}
@@ -109,6 +149,7 @@ jobs:
 
             version_code="$(curl --location --silent --show-error \
               --connect-timeout 10 --max-time 30 \
+              --header 'accept: application/json' \
               --dump-header artifacts/member-production-verification/version-headers.txt \
               --output artifacts/member-production-verification/version.json \
               --write-out '%{http_code}' "$version_url" || true)"
@@ -129,16 +170,30 @@ jobs:
             home_ok=false
             version_ok=false
             sha_ok=false
+            deployed_commit=""
             [[ "$home_code" =~ ^2[0-9][0-9]$ ]] && home_ok=true
             [[ "$version_code" =~ ^2[0-9][0-9]$ ]] && version_ok=true
 
-            if grep -Fqi "$EXPECTED_SHA" artifacts/member-production-verification/version.json 2>/dev/null \
-              || grep -Fqi "$EXPECTED_SHORT_SHA" artifacts/member-production-verification/version.json 2>/dev/null; then
-              sha_ok=true
+            if [[ "$version_ok" == true ]]; then
+              deployed_commit="$(jq -r 'if type == "object" and (.commit | type) == "string" then .commit else "" end' artifacts/member-production-verification/version.json 2>/dev/null || true)"
+              deployed_commit="$(printf '%s' "$deployed_commit" | tr '[:upper:]' '[:lower:]')"
+              if [[ "$deployed_commit" == "$EXPECTED_SHA" \
+                || "$deployed_commit" == "$EXPECTED_SHORT_SHA" \
+                || "${deployed_commit:0:12}" == "$EXPECTED_SHORT_SHA" ]]; then
+                sha_ok=true
+              fi
             fi
 
-            printf '{"attempt":%s,"homeCode":"%s","versionCode":"%s","productionUrl":"%s","expectedSha":"%s","shaMatched":%s,"railwayFallback":%s}\n' \
-              "$attempt" "${home_code:-curl-error}" "${version_code:-curl-error}" "$MEMBER_PRODUCTION_URL" "$EXPECTED_SHA" "$sha_ok" "$railway_fallback" \
+            jq -n \
+              --argjson attempt "$attempt" \
+              --arg homeCode "${home_code:-curl-error}" \
+              --arg versionCode "${version_code:-curl-error}" \
+              --arg productionUrl "$MEMBER_PRODUCTION_URL" \
+              --arg expectedSha "$EXPECTED_SHA" \
+              --arg deployedCommit "$deployed_commit" \
+              --argjson shaMatched "$sha_ok" \
+              --argjson railwayFallback "$railway_fallback" \
+              '{attempt:$attempt,homeCode:$homeCode,versionCode:$versionCode,productionUrl:$productionUrl,expectedSha:$expectedSha,deployedCommit:$deployedCommit,shaMatched:$shaMatched,railwayFallback:$railwayFallback}' \
               > artifacts/member-production-verification/result.json
 
             if [[ "$railway_fallback" == true ]]; then
@@ -165,7 +220,35 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: member-production-verification-${{ steps.target.outputs.short_sha }}
+          name: member-production-verification-${{ steps.target.outputs.short_sha || github.run_id }}
           path: artifacts/member-production-verification/**
           if-no-files-found: warn
           retention-days: 14
+
+      - name: Enforce production verification outcome
+        if: always()
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          MEMBER_CODE_CHANGED: ${{ steps.changes.outputs.member_code_changed }}
+          TARGET_OUTCOME: ${{ steps.target.outcome }}
+          VERIFY_OUTCOME: ${{ steps.verify.outcome }}
+        run: |
+          set -euo pipefail
+
+          if [[ "$TARGET_OUTCOME" != "success" ]]; then
+            echo "Verification target resolution failed." >&2
+            exit 1
+          fi
+
+          if [[ "$VERIFY_OUTCOME" == "success" ]]; then
+            exit 0
+          fi
+
+          if [[ "$EVENT_NAME" == "pull_request" && "$MEMBER_CODE_CHANGED" != "true" ]]; then
+            echo "::warning::Production is unhealthy, but this PR changes only verification/recovery tooling. The outage remains visible without deadlocking adoption of the recovery workflow."
+            exit 0
+          fi
+
+          echo "Member Production verification is required for this event and did not pass." >&2
+          exit 1
