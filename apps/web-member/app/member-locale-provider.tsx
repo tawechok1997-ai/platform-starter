@@ -9,10 +9,17 @@ import {
   useState,
   type ReactNode,
 } from 'react';
+import MobileP10P12ClosureRuntime from './components/mobile-home/mobile-p10-p12-closure-runtime';
 
 export type MemberLocale = 'th' | 'en';
 
 const STORAGE_KEY = 'member_locale';
+const MOBILE_LANGUAGE_TOGGLE_SELECTOR = [
+  'button[aria-label="เปลี่ยนภาษา"]',
+  'button[aria-label="Change language"]',
+].join(',');
+const UNSUPPORTED_MOBILE_LANGUAGE_SELECTOR = '[data-mobile-unsupported-locale="true"]';
+const MOBILE_VIEWPORT_QUERY = '(max-width: 900px)';
 
 type MemberLocaleContextValue = {
   locale: MemberLocale;
@@ -59,6 +66,48 @@ export function MemberLocaleProvider({ children }: { children: ReactNode }) {
     return () => window.removeEventListener('storage', syncStorageLocale);
   }, []);
 
+  useEffect(() => {
+    const handleMobileLanguageToggle = (event: MouseEvent) => {
+      if (!window.matchMedia(MOBILE_VIEWPORT_QUERY).matches) return;
+      if (!(event.target instanceof Element)) return;
+
+      const button = event.target.closest<HTMLButtonElement>(MOBILE_LANGUAGE_TOGGLE_SELECTOR);
+      if (!button || !button.isConnected || button.disabled) return;
+
+      event.preventDefault();
+      event.stopPropagation();
+      event.stopImmediatePropagation();
+
+      const activeLocale = normalizeLocale(
+        document.documentElement.dataset.memberLocale
+        ?? window.localStorage.getItem(STORAGE_KEY),
+      );
+      commitLocale(activeLocale === 'th' ? 'en' : 'th');
+    };
+
+    window.addEventListener('click', handleMobileLanguageToggle, true);
+    return () => window.removeEventListener('click', handleMobileLanguageToggle, true);
+  }, [commitLocale]);
+
+  useEffect(() => {
+    const removeUnsupportedMobileLanguageOptions = () => {
+      if (!window.matchMedia(MOBILE_VIEWPORT_QUERY).matches) return;
+      document.querySelectorAll<HTMLElement>(UNSUPPORTED_MOBILE_LANGUAGE_SELECTOR)
+        .forEach((element) => element.remove());
+    };
+
+    const observer = new MutationObserver(removeUnsupportedMobileLanguageOptions);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['data-mobile-unsupported-locale'],
+      childList: true,
+      subtree: true,
+    });
+    removeUnsupportedMobileLanguageOptions();
+
+    return () => observer.disconnect();
+  }, []);
+
   const setLocale = useCallback((nextLocale: MemberLocale) => {
     commitLocale(nextLocale);
   }, [commitLocale]);
@@ -73,7 +122,12 @@ export function MemberLocaleProvider({ children }: { children: ReactNode }) {
     [locale, setLocale, toggleLocale],
   );
 
-  return <MemberLocaleContext.Provider value={value}>{children}</MemberLocaleContext.Provider>;
+  return (
+    <MemberLocaleContext.Provider value={value}>
+      <MobileP10P12ClosureRuntime locale={locale} />
+      {children}
+    </MemberLocaleContext.Provider>
+  );
 }
 
 export function useMemberLocale() {
