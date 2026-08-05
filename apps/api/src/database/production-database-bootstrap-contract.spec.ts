@@ -41,4 +41,10 @@ describe('production database bootstrap contract', () => {
     expect(bootstrapSource).toContain('Refusing partial bootstrap-safe migration');
     expect(bootstrapSource).toContain('Migration history does not match the physical schema');
   });
+
+  test('casts the PostgreSQL void advisory-lock result before Prisma deserializes it', () => {
+    expect(bootstrapSource).toContain(
+      "SELECT pg_advisory_xact_lock(hashtext('platform-bootstrap-safe-migrations'))::text AS lock_result",
+    );
+  });
 });
