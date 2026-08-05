@@ -8,6 +8,7 @@ on:
       - 'Setup-Windows.cmd'
       - 'Start-Windows.cmd'
       - 'Stop-Windows.cmd'
+      - 'Verify-Windows.cmd'
       - 'compose.windows.yml'
       - 'docs/windows-one-click.md'
       - 'scripts/windows/**'
@@ -77,6 +78,7 @@ jobs:
           findstr /C:"scripts\windows\setup.ps1" Setup-Windows.cmd
           findstr /C:"scripts\windows\start.ps1" Start-Windows.cmd
           findstr /C:"scripts\windows\stop.ps1" Stop-Windows.cmd
+          findstr /C:"scripts\windows\verify.ps1" Verify-Windows.cmd
 
       - name: Run native launcher lifecycle integration smoke
         shell: powershell
