@@ -105,11 +105,6 @@ export default function MobileP10P12ClosureRuntime({ locale }: MobileP10P12Closu
     const media = window.matchMedia(MOBILE_QUERY);
     let frame = 0;
 
-    const scheduleSync = () => {
-      window.cancelAnimationFrame(frame);
-      frame = window.requestAnimationFrame(syncDocument);
-    };
-
     const syncDocument = () => {
       if (!media.matches) return;
       patchDrawerSemantics();
@@ -119,16 +114,20 @@ export default function MobileP10P12ClosureRuntime({ locale }: MobileP10P12Closu
       patchVipSectionLockAria();
     };
 
+    const scheduleSync = () => {
+      window.cancelAnimationFrame(frame);
+      frame = window.requestAnimationFrame(syncDocument);
+    };
+
     const observer = new MutationObserver(scheduleSync);
     observer.observe(document.documentElement, {
       attributes: true,
       attributeFilter: [
-        'aria-hidden',
+        'aria-expanded',
         'class',
         'data-state',
         'hidden',
         'open',
-        'role',
       ],
       childList: true,
       subtree: true,
@@ -333,15 +332,19 @@ function patchDrawerSemantics() {
   const drawer = document.getElementById('mobile-home-drawer');
   if (!drawer) return;
 
-  const open = isVisible(drawer)
-    && drawer.closest('[aria-hidden="true"]') === null
-    && window.getComputedStyle(drawer).pointerEvents !== 'none';
+  const trigger = document.querySelector<HTMLButtonElement>('button[aria-controls="mobile-home-drawer"]');
+  const open = trigger?.getAttribute('aria-expanded') === 'true';
 
-  drawer.setAttribute('role', 'dialog');
-  drawer.setAttribute('aria-hidden', open ? 'false' : 'true');
-  drawer.setAttribute('tabindex', '-1');
-  if (open) drawer.setAttribute('aria-modal', 'true');
-  else drawer.removeAttribute('aria-modal');
+  if (drawer.getAttribute('role') !== 'dialog') drawer.setAttribute('role', 'dialog');
+  if (drawer.getAttribute('aria-hidden') !== String(!open)) {
+    drawer.setAttribute('aria-hidden', String(!open));
+  }
+  if (drawer.getAttribute('tabindex') !== '-1') drawer.setAttribute('tabindex', '-1');
+  if (open) {
+    if (drawer.getAttribute('aria-modal') !== 'true') drawer.setAttribute('aria-modal', 'true');
+  } else if (drawer.hasAttribute('aria-modal')) {
+    drawer.removeAttribute('aria-modal');
+  }
 }
 
 function patchFormControlNames(locale: MemberLocale) {
@@ -390,11 +393,11 @@ function patchUnsupportedLanguageOptions() {
 
       recognized.forEach(({ candidate, locale }) => {
         if (locale !== 'unsupported' && SUPPORTED_LOCALES.has(locale)) return;
-        candidate.hidden = true;
-        candidate.setAttribute('aria-hidden', 'true');
-        candidate.setAttribute('tabindex', '-1');
+        if (!candidate.hidden) candidate.hidden = true;
+        if (candidate.getAttribute('aria-hidden') !== 'true') candidate.setAttribute('aria-hidden', 'true');
+        if (candidate.getAttribute('tabindex') !== '-1') candidate.setAttribute('tabindex', '-1');
         candidate.dataset.mobileUnsupportedLocale = 'true';
-        if (candidate instanceof HTMLButtonElement) candidate.disabled = true;
+        if (candidate instanceof HTMLButtonElement && !candidate.disabled) candidate.disabled = true;
       });
     });
 }
