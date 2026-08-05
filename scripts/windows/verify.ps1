@@ -51,7 +51,12 @@ function Get-FirstOutputLine {
   if ([string]::IsNullOrWhiteSpace($Text)) {
     return ''
   }
-  return (($Text -split "`r?`n") | Where-Object { -not [string]::IsNullOrWhiteSpace($_) } | Select-Object -First 1).Trim()
+
+  $lines = @($Text -split "`r?`n" | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
+  if ($lines.Count -eq 0) {
+    return ''
+  }
+  return ([string]$lines[0]).Trim()
 }
 
 function Import-DotEnv {
@@ -92,6 +97,7 @@ function Convert-ToFlatRecords {
     }
     $records.Add($Item)
   }
+
   Add-RecordValue -Item $Value
   return @($records)
 }
@@ -132,7 +138,9 @@ try {
   $wslCommand = Get-Command wsl.exe -ErrorAction SilentlyContinue
   if ($wslCommand) {
     $wslStatus = Invoke-CapturedCommand -FilePath 'wsl.exe' -Arguments @('--status')
-    Add-Check -Name 'WSL command and status' -Passed ($wslStatus.exitCode -eq 0) -Detail (if ($wslStatus.exitCode -eq 0) { 'wsl.exe --status succeeded' } else { "wsl.exe --status exited with code $($wslStatus.exitCode)" }) -Category 'machine'
+    $wslPassed = $wslStatus.exitCode -eq 0
+    $wslDetail = if ($wslPassed) { 'wsl.exe --status succeeded' } else { "wsl.exe --status exited with code $($wslStatus.exitCode)" }
+    Add-Check -Name 'WSL command and status' -Passed $wslPassed -Detail $wslDetail -Category 'machine'
   } else {
     Add-Check -Name 'WSL command and status' -Passed $false -Detail 'wsl.exe was not found on PATH' -Category 'machine'
   }
@@ -143,20 +151,25 @@ try {
     @{ name = 'pnpm 11.18.0'; command = 'pnpm.cmd'; arguments = @('--version'); pattern = '^11\.18\.0$' },
     @{ name = 'Docker CLI'; command = 'docker.exe'; arguments = @('--version'); pattern = '^Docker version ' }
   )
+
   foreach ($tool in $toolExpectations) {
     $command = Get-Command $tool.command -ErrorAction SilentlyContinue
     if (-not $command) {
       Add-Check -Name $tool.name -Passed $false -Detail "$($tool.command) was not found on PATH" -Category 'tooling'
       continue
     }
+
     $version = Invoke-CapturedCommand -FilePath $tool.command -Arguments $tool.arguments
     $firstLine = Get-FirstOutputLine -Text $version.output
     $passed = $version.exitCode -eq 0 -and $firstLine -match $tool.pattern
-    Add-Check -Name $tool.name -Passed $passed -Detail (if ($firstLine) { $firstLine } else { "exit code $($version.exitCode)" }) -Category 'tooling'
+    $detail = if ($firstLine) { $firstLine } else { "exit code $($version.exitCode)" }
+    Add-Check -Name $tool.name -Passed $passed -Detail $detail -Category 'tooling'
   }
 
   $dockerDesktop = Find-DockerDesktopExecutable
-  Add-Check -Name 'Docker Desktop installation' -Passed ($null -ne $dockerDesktop) -Detail (if ($dockerDesktop) { 'Docker Desktop executable found' } else { 'Docker Desktop executable not found' }) -Category 'tooling'
+  $dockerDesktopPassed = $null -ne $dockerDesktop
+  $dockerDesktopDetail = if ($dockerDesktopPassed) { 'Docker Desktop executable found' } else { 'Docker Desktop executable not found' }
+  Add-Check -Name 'Docker Desktop installation' -Passed $dockerDesktopPassed -Detail $dockerDesktopDetail -Category 'tooling'
 
   if (-not (Test-Path -LiteralPath $EnvironmentPath)) {
     Add-Check -Name 'Generated Windows environment' -Passed $false -Detail '.env.windows.local is missing' -Category 'configuration'
@@ -177,44 +190,64 @@ try {
     'ANTIBOT_ENCRYPTION_KEY'
   )
   $placeholderPattern = '^(set_in_local_env|change_me|replace_me|placeholder|)$'
+
   foreach ($key in $requiredEnvironmentKeys) {
     $exists = $environmentValues.ContainsKey($key)
     $safeValue = if ($exists) { [string]$environmentValues[$key] } else { '' }
     $passed = $exists -and $safeValue -notmatch $placeholderPattern
-    Add-Check -Name "Environment key $key" -Passed $passed -Detail (if ($passed) { 'present and non-placeholder' } else { 'missing or placeholder' }) -Category 'configuration'
+    $detail = if ($passed) { 'present and non-placeholder' } else { 'missing or placeholder' }
+    Add-Check -Name "Environment key $key" -Passed $passed -Detail $detail -Category 'configuration'
   }
 
   $dockerInfo = Invoke-CapturedCommand -FilePath 'docker.exe' -Arguments @('info')
-  Add-Check -Name 'Docker engine readiness' -Passed ($dockerInfo.exitCode -eq 0) -Detail (if ($dockerInfo.exitCode -eq 0) { 'docker info succeeded' } else { "docker info exited with code $($dockerInfo.exitCode)" }) -Category 'infrastructure'
+  $dockerInfoPassed = $dockerInfo.exitCode -eq 0
+  $dockerInfoDetail = if ($dockerInfoPassed) { 'docker info succeeded' } else { "docker info exited with code $($dockerInfo.exitCode)" }
+  Add-Check -Name 'Docker engine readiness' -Passed $dockerInfoPassed -Detail $dockerInfoDetail -Category 'infrastructure'
 
   $composeArguments = @('compose', '--env-file', $EnvironmentPath, '-f', $ComposePath)
   $composeConfig = Invoke-CapturedCommand -FilePath 'docker.exe' -Arguments ($composeArguments + @('config', '--quiet'))
-  Add-Check -Name 'Docker Compose configuration' -Passed ($composeConfig.exitCode -eq 0) -Detail (if ($composeConfig.exitCode -eq 0) { 'compose config validated' } else { "compose config exited with code $($composeConfig.exitCode)" }) -Category 'infrastructure'
+  $composePassed = $composeConfig.exitCode -eq 0
+  $composeDetail = if ($composePassed) { 'compose config validated' } else { "compose config exited with code $($composeConfig.exitCode)" }
+  Add-Check -Name 'Docker Compose configuration' -Passed $composePassed -Detail $composeDetail -Category 'infrastructure'
 
   $runningServices = Invoke-CapturedCommand -FilePath 'docker.exe' -Arguments ($composeArguments + @('ps', '--status', 'running', '--services'))
-  $serviceNames = @($runningServices.output -split "`r?`n" | Where-Object { -not [string]::IsNullOrWhiteSpace($_) } | ForEach-Object { $_.Trim() })
+  $serviceNames = @(
+    ($runningServices.output -split "`r?`n") |
+      Where-Object { -not [string]::IsNullOrWhiteSpace($_) } |
+      ForEach-Object { $_.Trim() }
+  )
   foreach ($serviceName in @('postgres', 'redis')) {
-    Add-Check -Name "Container service $serviceName" -Passed ($runningServices.exitCode -eq 0 -and $serviceNames -contains $serviceName) -Detail (if ($serviceNames -contains $serviceName) { 'running' } else { 'not reported as running' }) -Category 'infrastructure'
+    $servicePassed = $runningServices.exitCode -eq 0 -and $serviceNames -contains $serviceName
+    $serviceDetail = if ($servicePassed) { 'running' } else { 'not reported as running' }
+    Add-Check -Name "Container service $serviceName" -Passed $servicePassed -Detail $serviceDetail -Category 'infrastructure'
   }
 
   $postgresReady = Invoke-CapturedCommand -FilePath 'docker.exe' -Arguments ($composeArguments + @('exec', '-T', 'postgres', 'pg_isready', '-U', 'platform', '-d', 'platform'))
-  Add-Check -Name 'PostgreSQL readiness' -Passed ($postgresReady.exitCode -eq 0) -Detail (if ($postgresReady.exitCode -eq 0) { 'pg_isready succeeded' } else { "pg_isready exited with code $($postgresReady.exitCode)" }) -Category 'infrastructure'
+  $postgresPassed = $postgresReady.exitCode -eq 0
+  $postgresDetail = if ($postgresPassed) { 'pg_isready succeeded' } else { "pg_isready exited with code $($postgresReady.exitCode)" }
+  Add-Check -Name 'PostgreSQL readiness' -Passed $postgresPassed -Detail $postgresDetail -Category 'infrastructure'
 
   $redisReady = Invoke-CapturedCommand -FilePath 'docker.exe' -Arguments ($composeArguments + @('exec', '-T', 'redis', 'redis-cli', 'ping'))
   $redisLine = Get-FirstOutputLine -Text $redisReady.output
-  Add-Check -Name 'Redis readiness' -Passed ($redisReady.exitCode -eq 0 -and $redisLine -eq 'PONG') -Detail (if ($redisLine) { $redisLine } else { "exit code $($redisReady.exitCode)" }) -Category 'infrastructure'
+  $redisPassed = $redisReady.exitCode -eq 0 -and $redisLine -eq 'PONG'
+  $redisDetail = if ($redisLine) { $redisLine } else { "exit code $($redisReady.exitCode)" }
+  Add-Check -Name 'Redis readiness' -Passed $redisPassed -Detail $redisDetail -Category 'infrastructure'
 
   $prismaStatus = Invoke-CapturedCommand -FilePath 'pnpm.cmd' -Arguments @('--filter', '@platform/api', 'exec', 'prisma', 'migrate', 'status')
-  Add-Check -Name 'Prisma migration status' -Passed ($prismaStatus.exitCode -eq 0) -Detail (if ($prismaStatus.exitCode -eq 0) { 'Prisma reports the database schema as reachable and current' } else { "prisma migrate status exited with code $($prismaStatus.exitCode)" }) -Category 'database'
+  $prismaPassed = $prismaStatus.exitCode -eq 0
+  $prismaDetail = if ($prismaPassed) { 'Prisma reports the database schema as reachable and current' } else { "prisma migrate status exited with code $($prismaStatus.exitCode)" }
+  Add-Check -Name 'Prisma migration status' -Passed $prismaPassed -Detail $prismaDetail -Category 'database'
 
   if (Test-Path -LiteralPath $ProcessFile) {
     try {
       $parsed = Get-Content -LiteralPath $ProcessFile -Raw | ConvertFrom-Json
       $records = Convert-ToFlatRecords -Value $parsed
       $recordNames = @($records | ForEach-Object { [string]$_.name })
-      $recordsPassed = $records.Count -eq 3 -and @('API', 'Member', 'Admin') | ForEach-Object { $recordNames -contains $_ } | Where-Object { -not $_ } | Measure-Object | Select-Object -ExpandProperty Count
-      $recordsPassed = $records.Count -eq 3 -and $recordsPassed -eq 0
-      Add-Check -Name 'Application process records' -Passed $recordsPassed -Detail (if ($recordsPassed) { 'API, Member, and Admin records are present' } else { 'process record does not contain exactly API, Member, and Admin' }) -Category 'application'
+      $requiredRecordNames = @('API', 'Member', 'Admin')
+      $missingRecordNames = @($requiredRecordNames | Where-Object { $recordNames -notcontains $_ })
+      $recordsPassed = $records.Count -eq 3 -and $missingRecordNames.Count -eq 0
+      $recordsDetail = if ($recordsPassed) { 'API, Member, and Admin records are present' } else { 'process record does not contain exactly API, Member, and Admin' }
+      Add-Check -Name 'Application process records' -Passed $recordsPassed -Detail $recordsDetail -Category 'application'
     } catch {
       Add-Check -Name 'Application process records' -Passed $false -Detail 'windows-processes.json could not be parsed' -Category 'application'
     }
@@ -245,12 +278,14 @@ try {
     }
     checks = @($Checks)
   }
+
   $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
   [IO.File]::WriteAllText($EvidencePath, ($report | ConvertTo-Json -Depth 6), $utf8NoBom)
 
   Write-Host ''
   Write-Host ("Evidence: {0}" -f $EvidencePath) -ForegroundColor Cyan
-  Write-Host ("Result: {0} passed, {1} failed" -f $report.summary.passed, $report.summary.failed) -ForegroundColor (if ($report.summary.success) { 'Green' } else { 'Red' })
+  $summaryColor = if ($report.summary.success) { 'Green' } else { 'Red' }
+  Write-Host ("Result: {0} passed, {1} failed" -f $report.summary.passed, $report.summary.failed) -ForegroundColor $summaryColor
 
   if (-not $report.summary.success) {
     exit 1
