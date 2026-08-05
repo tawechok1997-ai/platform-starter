@@ -1,0 +1,95 @@
+name: Inspect Railway Web Member
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/railway-web-member-inspect.yml'
+      - '.github/workflows/railway-web-member-recovery.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    container: ghcr.io/railwayapp/cli:latest
+    env:
+      RAILWAY_PROJECT_ID: 9a018c35-5d56-4541-a133-2ac7e1d6731c
+      RAILWAY_ENVIRONMENT_ID: d0874330-b90d-4e5e-b265-08411afa6945
+      RAILWAY_SERVICE_ID: bcd0f4e5-b68b-4b78-bd92-3f0400254f7c
+      PROJECT_TOKEN: ${{ secrets.RAILWAY_PROJECT_TOKEN }}
+      API_TOKEN: ${{ secrets.RAILWAY_API_TOKEN }}
+    steps:
+      - name: Select Railway authentication token
+        shell: sh
+        run: |
+          set -eu
+
+          if [ -n "${PROJECT_TOKEN:-}" ] && [ -n "${API_TOKEN:-}" ]; then
+            echo "Both Railway token secrets are configured; keep exactly one." >&2
+            exit 1
+          fi
+
+          if [ -n "${PROJECT_TOKEN:-}" ]; then
+            echo "RAILWAY_TOKEN=$PROJECT_TOKEN" >> "$GITHUB_ENV"
+            echo "auth=project-token" >> "$GITHUB_OUTPUT"
+          elif [ -n "${API_TOKEN:-}" ]; then
+            echo "RAILWAY_API_TOKEN=$API_TOKEN" >> "$GITHUB_ENV"
+            echo "auth=api-token" >> "$GITHUB_OUTPUT"
+          else
+            echo "No Railway token secret is available to GitHub Actions." >&2
+            echo "Add exactly one secret: RAILWAY_PROJECT_TOKEN or RAILWAY_API_TOKEN." >&2
+            exit 1
+          fi
+
+      - name: Link existing Railway Web Member service
+        shell: sh
+        run: |
+          set -eu
+          railway link \
+            --project "$RAILWAY_PROJECT_ID" \
+            --environment "$RAILWAY_ENVIRONMENT_ID" \
+            --service "$RAILWAY_SERVICE_ID" \
+            --json | tee railway-inspect-link.json
+
+      - name: Read service and deployment state
+        shell: sh
+        run: |
+          set -eu
+          railway service status \
+            --project "$RAILWAY_PROJECT_ID" \
+            --environment "$RAILWAY_ENVIRONMENT_ID" \
+            --service "$RAILWAY_SERVICE_ID" \
+            --json | tee railway-inspect-status.json
+
+          railway deployment list \
+            --environment "$RAILWAY_ENVIRONMENT_ID" \
+            --service "$RAILWAY_SERVICE_ID" \
+            --limit 10 \
+            --json | tee railway-inspect-deployments.json
+
+      - name: Write inspection summary
+        if: always()
+        shell: sh
+        run: |
+          {
+            echo "## Railway Web Member inspection"
+            echo
+            echo "- Project: \`$RAILWAY_PROJECT_ID\`"
+            echo "- Environment: \`$RAILWAY_ENVIRONMENT_ID\`"
+            echo "- Service: \`$RAILWAY_SERVICE_ID\`"
+            echo "- This workflow is read-only."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload inspection evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: railway-web-member-inspection-${{ github.run_id }}
+          path: railway-inspect-*.json
+          if-no-files-found: warn
+          retention-days: 14
