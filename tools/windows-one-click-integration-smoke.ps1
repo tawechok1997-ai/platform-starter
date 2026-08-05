@@ -11,6 +11,7 @@ $EnvironmentPath = Join-Path $RepoRoot '.env.windows.local'
 $LocalRoot = Join-Path $RepoRoot '.local'
 $ProcessFile = Join-Path $LocalRoot 'windows-processes.json'
 $MockBin = Join-Path $LocalRoot 'windows-smoke-bin'
+$OriginalMachinePath = [Environment]::GetEnvironmentVariable('Path', 'Machine')
 $OriginalUserPath = [Environment]::GetEnvironmentVariable('Path', 'User')
 $EnvironmentBackup = $null
 $EnvironmentExisted = Test-Path -LiteralPath $EnvironmentPath
@@ -124,9 +125,13 @@ try {
 
   $nodeExecutable = (Get-Command node.exe -ErrorAction Stop).Source
   $nodeDirectory = Split-Path -Parent $nodeExecutable
+  $newMachinePath = @($MockBin, $nodeDirectory, $OriginalMachinePath) |
+    Where-Object { -not [string]::IsNullOrWhiteSpace($_) } |
+    Select-Object -Unique
   $newUserPath = @($MockBin, $nodeDirectory, $OriginalUserPath) |
     Where-Object { -not [string]::IsNullOrWhiteSpace($_) } |
     Select-Object -Unique
+  [Environment]::SetEnvironmentVariable('Path', ($newMachinePath -join ';'), 'Machine')
   [Environment]::SetEnvironmentVariable('Path', ($newUserPath -join ';'), 'User')
   $env:Path = @($MockBin, $nodeDirectory, $env:Path) -join ';'
 
@@ -241,6 +246,7 @@ exit /b 2
   }
 
   Remove-LeftoverListeners
+  [Environment]::SetEnvironmentVariable('Path', $OriginalMachinePath, 'Machine')
   [Environment]::SetEnvironmentVariable('Path', $OriginalUserPath, 'User')
 
   if ($EnvironmentExisted) {
