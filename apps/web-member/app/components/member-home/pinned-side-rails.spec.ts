@@ -29,7 +29,10 @@ test('desktop jackpot remains in the original right rail and follows page scroll
   assert.match(desktop, /setProperty\('z-index', '20'/);
   assert.match(desktop, /addEventListener\('scroll', scheduleGeometry/);
   assert.match(desktop, /const followTop = Math\.max\(0, \(pinTop - bodyRect\.top\) \/ scale\)/);
-  assert.match(desktop, /scrollState = 'following'/);
+  assert.match(
+    desktop,
+    /sidebar\.dataset\.scrollState = top <= 0\.5[\s\S]*\? 'start'[\s\S]*\? 'end'[\s\S]*: 'following'/,
+  );
   assert.doesNotMatch(desktop, /desktopSidebarPlaceholder/);
   assert.doesNotMatch(desktop, /setProperty\('position', 'fixed'/);
 });
