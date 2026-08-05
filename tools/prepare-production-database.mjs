@@ -156,7 +156,7 @@ async function applyBootstrapSafeMigrations() {
     prisma.$transaction(
       async (tx) => {
         await tx.$queryRawUnsafe(
-          "SELECT pg_advisory_xact_lock(hashtext('platform-bootstrap-safe-migrations'))",
+          "SELECT pg_advisory_xact_lock(hashtext('platform-bootstrap-safe-migrations'))::text AS lock_result",
         );
 
         for (const migration of BOOTSTRAP_SAFE_MIGRATIONS) {
