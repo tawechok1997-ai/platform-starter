@@ -3,35 +3,45 @@
 import { useCallback, useEffect, useRef, useState, type SyntheticEvent } from 'react';
 import { createPortal } from 'react-dom';
 import { acquireMemberDocumentOverlayLock } from '../../lib/member-document-overlay-lock';
+import type { MemberAuthMode, MemberAuthRequestId } from '../../lib/member-auth-events';
 
-export type MemberAuthMode = 'login' | 'register';
+export type { MemberAuthMode } from '../../lib/member-auth-events';
 
 type MemberAuthOverlayProps = {
   mode: MemberAuthMode;
+  requestId?: MemberAuthRequestId;
   onModeChange?: (mode: MemberAuthMode) => void;
   onClose: () => void;
   onSuccess: () => void | Promise<void>;
 };
 
-const EXIT_DURATION_MS = 180;
 const REGISTER_LABELS = ['สมัครสมาชิก', 'ลงทะเบียน', 'register', 'sign up'];
 const LOGIN_LABELS = ['เข้าสู่ระบบ', 'ล็อกอิน', 'login', 'log in', 'sign in'];
 
-export default function MemberAuthOverlay({ mode, onModeChange, onClose, onSuccess }: MemberAuthOverlayProps) {
+export default function MemberAuthOverlay({
+  mode,
+  requestId = 'legacy',
+  onModeChange,
+  onClose,
+  onSuccess,
+}: MemberAuthOverlayProps) {
+  const initialPath = embeddedPath(mode, requestId);
   const [activeMode, setActiveMode] = useState<MemberAuthMode>(mode);
   const [frameReady, setFrameReady] = useState(false);
   const [visible, setVisible] = useState(false);
-  const [closing, setClosing] = useState(false);
   const [dismissed, setDismissed] = useState(false);
   const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null);
-  const exitTimerRef = useRef<number | null>(null);
   const closingRef = useRef(false);
   const authCompletionRef = useRef(false);
   const activeModeRef = useRef<MemberAuthMode>(mode);
-  const initialPathRef = useRef(mode === 'register' ? '/register?embed=1' : '/login?embed=1');
+  const requestedPathRef = useRef(initialPath);
   const frameRef = useRef<HTMLIFrameElement | null>(null);
   const releaseDocumentLockRef = useRef<(() => void) | null>(null);
   const onModeChangeRef = useRef(onModeChange);
+  const previousFocusRef = useRef<HTMLElement | null>(null);
+  const navigationAbortRef = useRef<AbortController | null>(null);
+  const framePollRef = useRef<number | null>(null);
+  const revealFrameRef = useRef<number | null>(null);
 
   useEffect(() => {
     onModeChangeRef.current = onModeChange;
@@ -39,9 +49,9 @@ export default function MemberAuthOverlay({ mode, onModeChange, onClose, onSucce
 
   useEffect(() => {
     activeModeRef.current = mode;
+    requestedPathRef.current = embeddedPath(mode, requestId);
     setActiveMode(mode);
-    setDismissed(false);
-  }, [mode]);
+  }, [mode, requestId]);
 
   const switchMode = useCallback((nextMode: MemberAuthMode) => {
     activeModeRef.current = nextMode;
@@ -49,42 +59,17 @@ export default function MemberAuthOverlay({ mode, onModeChange, onClose, onSucce
     onModeChangeRef.current?.(nextMode);
   }, []);
 
-  const navigateEmbeddedMode = useCallback((nextMode: MemberAuthMode) => {
-    if (closingRef.current) return;
+  const cancelFrameWork = useCallback(() => {
+    navigationAbortRef.current?.abort();
+    navigationAbortRef.current = null;
 
-    const nextPath = nextMode === 'register' ? '/register?embed=1' : '/login?embed=1';
-    const expectedPathname = nextMode === 'register' ? '/register' : '/login';
-    const frame = frameRef.current;
-
-    switchMode(nextMode);
-    if (!frame) return;
-
-    try {
-      const contentWindow = frame.contentWindow;
-      if (!contentWindow) {
-        frame.src = nextPath;
-        return;
-      }
-
-      const currentLocation = contentWindow.location;
-      const alreadyAtTarget = currentLocation.pathname === expectedPathname
-        && new URLSearchParams(currentLocation.search).get('embed') === '1';
-      if (alreadyAtTarget) return;
-
-      // Navigate the document inside the existing iframe. The popup shell and
-      // backdrop stay mounted, but the requested auth page is guaranteed to load.
-      contentWindow.location.replace(nextPath);
-    } catch {
-      // Same-origin access can briefly fail while the frame is replacing its
-      // document. Assigning src still reuses this exact iframe DOM node.
-      frame.src = nextPath;
+    if (framePollRef.current !== null) {
+      window.cancelAnimationFrame(framePollRef.current);
+      framePollRef.current = null;
     }
-  }, [switchMode]);
-
-  const clearExitTimer = useCallback(() => {
-    if (exitTimerRef.current !== null) {
-      window.clearTimeout(exitTimerRef.current);
-      exitTimerRef.current = null;
+    if (revealFrameRef.current !== null) {
+      window.cancelAnimationFrame(revealFrameRef.current);
+      revealFrameRef.current = null;
     }
   }, []);
 
@@ -94,34 +79,39 @@ export default function MemberAuthOverlay({ mode, onModeChange, onClose, onSucce
     release?.();
   }, []);
 
-  const beginClose = useCallback((afterClose: () => void | Promise<void>) => {
+  const restorePreviousFocus = useCallback(() => {
+    const previous = previousFocusRef.current;
+    previousFocusRef.current = null;
+    if (!previous?.isConnected) return;
+    window.requestAnimationFrame(() => previous.focus({ preventScroll: true }));
+  }, []);
+
+  const removeOverlayOwnership = useCallback(() => {
+    document.documentElement.removeAttribute('data-member-overlay-open');
+    document.querySelectorAll<HTMLElement>('[data-member-active-overlay="true"]')
+      .forEach((element) => element.removeAttribute('data-member-active-overlay'));
+  }, []);
+
+  const dismissImmediately = useCallback((afterClose: () => void | Promise<void>) => {
     if (closingRef.current) return;
     closingRef.current = true;
-    clearExitTimer();
-    setClosing(true);
+
+    // The dialog must stop owning input in the same event turn. Waiting for an
+    // animation or a router update is what previously left an invisible iframe
+    // above the page and made the next click disappear.
+    setDismissed(true);
     setVisible(false);
-
-    exitTimerRef.current = window.setTimeout(() => {
-      exitTimerRef.current = null;
-
-      // Remove the full-screen portal and restore the document before the URL
-      // transition. Mobile Safari can delay router updates, and leaving an
-      // invisible iframe mounted during that delay blocks every control below.
-      setDismissed(true);
-      releaseDocumentLockNow();
-      document.documentElement.removeAttribute('data-member-overlay-open');
-      document.querySelectorAll<HTMLElement>('[data-member-active-overlay="true"]')
-        .forEach((element) => element.removeAttribute('data-member-active-overlay'));
-
-      window.requestAnimationFrame(() => {
-        void afterClose();
-      });
-    }, EXIT_DURATION_MS);
-  }, [clearExitTimer, releaseDocumentLockNow]);
+    setFrameReady(false);
+    cancelFrameWork();
+    releaseDocumentLockNow();
+    removeOverlayOwnership();
+    restorePreviousFocus();
+    void afterClose();
+  }, [cancelFrameWork, releaseDocumentLockNow, removeOverlayOwnership, restorePreviousFocus]);
 
   const requestClose = useCallback(() => {
-    beginClose(onClose);
-  }, [beginClose, onClose]);
+    dismissImmediately(onClose);
+  }, [dismissImmediately, onClose]);
 
   const completeAuth = useCallback(async () => {
     if (closingRef.current || authCompletionRef.current) return;
@@ -133,62 +123,108 @@ export default function MemberAuthOverlay({ mode, onModeChange, onClose, onSucce
     }
   }, [onSuccess]);
 
+  const navigateEmbeddedMode = useCallback((nextMode: MemberAuthMode) => {
+    if (closingRef.current) return;
+
+    const nextPath = embeddedPath(nextMode, requestId);
+    const expectedPathname = nextMode === 'register' ? '/register' : '/login';
+    const frame = frameRef.current;
+
+    requestedPathRef.current = nextPath;
+    switchMode(nextMode);
+    setFrameReady(false);
+    if (!frame) return;
+
+    try {
+      const contentWindow = frame.contentWindow;
+      if (!contentWindow) {
+        frame.src = nextPath;
+        return;
+      }
+
+      const currentLocation = contentWindow.location;
+      const alreadyAtTarget = currentLocation.pathname === expectedPathname
+        && new URLSearchParams(currentLocation.search).get('embed') === '1'
+        && new URLSearchParams(currentLocation.search).get('request') === requestId;
+      if (alreadyAtTarget) return;
+
+      contentWindow.location.replace(nextPath);
+    } catch {
+      frame.src = nextPath;
+    }
+  }, [requestId, switchMode]);
+
   useEffect(() => {
+    previousFocusRef.current = document.activeElement instanceof HTMLElement
+      ? document.activeElement
+      : null;
     setPortalTarget(document.body);
   }, []);
 
   useEffect(() => {
-    clearExitTimer();
     closingRef.current = false;
     authCompletionRef.current = false;
-    setClosing(false);
-    setVisible(false);
     setDismissed(false);
+    setFrameReady(false);
+    setVisible(false);
 
-    let secondAnimationFrame = 0;
-    const firstAnimationFrame = window.requestAnimationFrame(() => {
-      secondAnimationFrame = window.requestAnimationFrame(() => {
+    const firstFrame = window.requestAnimationFrame(() => {
+      revealFrameRef.current = window.requestAnimationFrame(() => {
+        revealFrameRef.current = null;
         setVisible(true);
       });
     });
 
     return () => {
-      window.cancelAnimationFrame(firstAnimationFrame);
-      if (secondAnimationFrame) window.cancelAnimationFrame(secondAnimationFrame);
+      window.cancelAnimationFrame(firstFrame);
+      cancelFrameWork();
     };
-  }, [clearExitTimer]);
+  }, [cancelFrameWork, requestId]);
 
   useEffect(() => {
     const releaseDocumentLock = acquireMemberDocumentOverlayLock();
     releaseDocumentLockRef.current = releaseDocumentLock;
 
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') requestClose();
+      if (event.key !== 'Escape') return;
+      event.preventDefault();
+      requestClose();
     };
 
     const handleMessage = (event: MessageEvent) => {
-      if (event.origin !== window.location.origin || !event.data || typeof event.data !== 'object') return;
+      const frameWindow = frameRef.current?.contentWindow;
+      if (
+        event.origin !== window.location.origin
+        || !frameWindow
+        || event.source !== frameWindow
+        || !event.data
+        || typeof event.data !== 'object'
+      ) return;
+
       const payload = event.data as { type?: unknown; mode?: unknown };
       if (payload.type === 'member-auth-close') requestClose();
-      if (payload.type === 'member-auth-success') void completeAuth();
-      if (payload.type === 'member-auth-ready') setFrameReady(true);
-      if (payload.type === 'member-auth-switch' && (payload.mode === 'login' || payload.mode === 'register')) {
-        navigateEmbeddedMode(payload.mode);
-      }
+      else if (payload.type === 'member-auth-success') void completeAuth();
+      else if (payload.type === 'member-auth-ready') setFrameReady(true);
+      else if (
+        payload.type === 'member-auth-switch'
+        && (payload.mode === 'login' || payload.mode === 'register')
+      ) navigateEmbeddedMode(payload.mode);
     };
 
     window.addEventListener('keydown', handleKeyDown);
     window.addEventListener('message', handleMessage);
     return () => {
-      clearExitTimer();
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('message', handleMessage);
+      cancelFrameWork();
       if (releaseDocumentLockRef.current === releaseDocumentLock) {
         releaseDocumentLockRef.current = null;
       }
       releaseDocumentLock();
+      removeOverlayOwnership();
+      restorePreviousFocus();
     };
-  }, [clearExitTimer, completeAuth, navigateEmbeddedMode, requestClose]);
+  }, [cancelFrameWork, completeAuth, navigateEmbeddedMode, removeOverlayOwnership, requestClose, restorePreviousFocus]);
 
   function revealFrameWhenEmbedded(event: SyntheticEvent<HTMLIFrameElement>) {
     const frame = event.currentTarget;
@@ -201,6 +237,12 @@ export default function MemberAuthOverlay({ mode, onModeChange, onClose, onSucce
 
     try {
       const loadedPathname = frame.contentWindow?.location.pathname;
+      const expectedPathname = new URL(requestedPathRef.current, window.location.origin).pathname;
+      if (loadedPathname && loadedPathname !== expectedPathname) {
+        frame.contentWindow?.location.replace(requestedPathRef.current);
+        return;
+      }
+
       const loadedMode = loadedPathname === '/register'
         ? 'register'
         : loadedPathname === '/login'
@@ -208,15 +250,14 @@ export default function MemberAuthOverlay({ mode, onModeChange, onClose, onSucce
           : null;
       if (loadedMode && loadedMode !== activeModeRef.current) switchMode(loadedMode);
     } catch {
-      // The frame is expected to be same-origin; ignore a transient navigation gap.
+      // The frame is same-origin in production. Ignore the brief replacement gap.
     }
 
-    if (
-      embeddedDocument
-      && embeddedElement
-      && embeddedDocument.documentElement.dataset.memberAuthNavigationBound !== 'true'
-    ) {
-      embeddedDocument.documentElement.dataset.memberAuthNavigationBound = 'true';
+    navigationAbortRef.current?.abort();
+    const navigationAbort = new AbortController();
+    navigationAbortRef.current = navigationAbort;
+
+    if (embeddedDocument && embeddedElement) {
       embeddedDocument.addEventListener('click', (clickEvent) => {
         const target = clickEvent.target;
         if (!(target instanceof embeddedElement)) return;
@@ -233,32 +274,37 @@ export default function MemberAuthOverlay({ mode, onModeChange, onClose, onSucce
         const nextMode = embeddedAuthMode(control, activeModeRef.current);
         if (!nextMode || nextMode === activeModeRef.current) return;
 
-        // Own the switch at the iframe boundary. Relying on a nested Link event
-        // proved flaky on touch devices, especially when hydration was still busy.
         clickEvent.preventDefault();
         clickEvent.stopPropagation();
-        clickEvent.stopImmediatePropagation();
         navigateEmbeddedMode(nextMode);
-      }, true);
+      }, { capture: true, signal: navigationAbort.signal });
     }
 
+    if (framePollRef.current !== null) window.cancelAnimationFrame(framePollRef.current);
     let attempts = 0;
     const checkEmbeddedMode = () => {
+      if (closingRef.current) return;
       const embeddedPage = frame.contentDocument?.querySelector('[data-embedded="true"]');
       if (embeddedPage || attempts >= 120) {
-        window.requestAnimationFrame(() => setFrameReady(true));
+        framePollRef.current = window.requestAnimationFrame(() => {
+          framePollRef.current = null;
+          if (!closingRef.current) {
+            setFrameReady(true);
+            frame.focus({ preventScroll: true });
+          }
+        });
         return;
       }
       attempts += 1;
-      window.requestAnimationFrame(checkEmbeddedMode);
+      framePollRef.current = window.requestAnimationFrame(checkEmbeddedMode);
     };
 
-    window.requestAnimationFrame(checkEmbeddedMode);
+    framePollRef.current = window.requestAnimationFrame(checkEmbeddedMode);
   }
 
   if (dismissed) return null;
 
-  const motionState = closing ? 'closing' : visible ? 'open' : 'opening';
+  const motionState = visible ? 'open' : 'opening';
   const overlay = (
     <div
       className="member-auth-overlay"
@@ -268,12 +314,17 @@ export default function MemberAuthOverlay({ mode, onModeChange, onClose, onSucce
       aria-busy={!frameReady}
       data-state={motionState}
       data-frame-ready={frameReady ? 'true' : 'false'}
+      data-auth-request-id={requestId}
     >
-      <span className="member-auth-overlay__backdrop" aria-hidden="true" />
+      <span
+        className="member-auth-overlay__backdrop"
+        aria-hidden="true"
+        onClick={requestClose}
+      />
       <iframe
         ref={frameRef}
         className="member-auth-overlay__frame"
-        src={initialPathRef.current}
+        src={initialPath}
         title={activeMode === 'register' ? 'สมัครสมาชิก' : 'เข้าสู่ระบบ'}
         allow="clipboard-write"
         onLoad={revealFrameWhenEmbedded}
@@ -282,6 +333,11 @@ export default function MemberAuthOverlay({ mode, onModeChange, onClose, onSucce
   );
 
   return portalTarget ? createPortal(overlay, portalTarget) : null;
+}
+
+function embeddedPath(mode: MemberAuthMode, requestId: MemberAuthRequestId) {
+  const pathname = mode === 'register' ? '/register' : '/login';
+  return `${pathname}?embed=1&request=${encodeURIComponent(requestId)}`;
 }
 
 function embeddedAuthMode(control: HTMLElement, currentMode: MemberAuthMode): MemberAuthMode | null {
