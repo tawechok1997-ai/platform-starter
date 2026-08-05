@@ -2,20 +2,23 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
 
-const diagnosticsPage = readFileSync(new URL('./page.tsx', import.meta.url), 'utf8');
+const diagnosticsRoute = readFileSync(new URL('./route.ts', import.meta.url), 'utf8');
 const versionRoute = readFileSync(new URL('../api/version/route.ts', import.meta.url), 'utf8');
 const memberRoutes = readFileSync(new URL('../member-routes.ts', import.meta.url), 'utf8');
 
 test('diagnostics page and API expose the same build identity sources', () => {
-  for (const source of [diagnosticsPage, versionRoute]) {
+  for (const source of [diagnosticsRoute, versionRoute]) {
     assert.match(source, /process\.env\.APP_VERSION/);
     assert.match(source, /process\.env\.GIT_COMMIT_SHA/);
     assert.match(source, /process\.env\.RAILWAY_GIT_COMMIT_SHA/);
     assert.match(source, /process\.env\.BUILT_AT/);
   }
 
-  assert.match(diagnosticsPage, /data-build-commit=\{diagnostics\.commit\}/);
-  assert.match(diagnosticsPage, /data-build-time=\{diagnostics\.builtAt\}/);
+  assert.match(diagnosticsRoute, /data-build-commit=/);
+  assert.match(diagnosticsRoute, /data-build-time=/);
+  assert.match(diagnosticsRoute, /escapeHtml\(diagnostics\.commit\)/);
+  assert.match(diagnosticsRoute, /'content-type': 'text\/html; charset=utf-8'/);
+  assert.match(diagnosticsRoute, /'cache-control': 'no-store, max-age=0'/);
   assert.match(versionRoute, /'cache-control': 'no-store, max-age=0'/);
 });
 
