@@ -1,6 +1,6 @@
 # Member Route, API, Feature, and State Matrix
 
-Updated: 2026-08-02
+Updated: 2026-08-05
 
 Scope: every `page.tsx` route under `apps/web-member/app`
 
@@ -57,6 +57,7 @@ State vocabulary is fixed to: `loading`, `empty`, `partial-failure`, `error`, `o
 | `/promotions` | `apps/web-member/app/promotions/page.tsx` | P1 | Member Growth UX | Promotions and Top-up APIs / ready | M3 Growth | member session | claims, top-ups and public settings | promotions and campaigns | deposit | loading,empty,partial-failure,error,success,session-expired | offline,stale,maintenance,retry | — | [source](../apps/web-member/app/promotions/page.tsx) |
 | `/search` | `apps/web-member/app/search/page.tsx` | P1 | Member Games UX | Game search and launch / ready | M3 Games | public | game launch | catalog and platform filter | query and launch | loading,empty,error,success,retry,session-expired | partial-failure,offline,stale,maintenance | — | [source](../apps/web-member/app/search/page.tsx) |
 | `/session-expired` | `apps/web-member/app/session-expired/page.tsx` | P0 | Member Platform UX | No API / static | M2 Auth | public | — | session routing | safe `next` | session-expired,success | — | loading,empty,partial-failure,error,offline,stale,maintenance,retry | [source](../apps/web-member/app/session-expired/page.tsx) |
+| `/status` | `apps/web-member/app/status/page.tsx` | P2 | Member Platform UX | No API / static snapshot | M2 Public | public | — | public status presentation | `/` | success | partial-failure,error,offline,stale,maintenance,retry | loading,empty,session-expired | [source](../apps/web-member/app/status/page.tsx) |
 | `/support` | `apps/web-member/app/support/page.tsx` | P1 | Member Support UX | Support API / ready | M3 Support | member session | tickets and replies | support and CMS | ticket selection | loading,empty,error,stale,success,retry,session-expired | partial-failure,offline,maintenance | — | [source](../apps/web-member/app/support/support-page-client.tsx) |
 | `/transactions` | `apps/web-member/app/transactions/page.tsx` | P1 | Member Finance UX | Wallet API / ready | M3 Finance | member session | wallet ledger | Member shell | transaction rows | loading,empty,error,success,session-expired | partial-failure,offline,stale,maintenance,retry | — | [source](../apps/web-member/app/transactions/page.tsx) |
 | `/withdraw` | `apps/web-member/app/withdraw/page.tsx` | P0 | Member Finance UX | Withdrawal, Wallet, Banking and Bonus APIs / ready | M3 Finance | member session | wallet, withdrawals, bank accounts and bonus ledgers | withdraw | — | loading,empty,error,success,retry,session-expired | partial-failure,offline,stale,maintenance | — | [source](../apps/web-member/app/withdraw/page.tsx) |
