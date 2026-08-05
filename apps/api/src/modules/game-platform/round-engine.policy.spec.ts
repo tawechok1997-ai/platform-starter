@@ -30,6 +30,14 @@ describe('transitionGameRound', () => {
     expect(refunded.refundTransactionId).toBe('refund-1');
   });
 
+  it('rejects settlement after a bet has been refunded', () => {
+    const bet = transitionGameRound(created(), 'PLACE_BET', 'bet-1');
+    const refunded = transitionGameRound(bet, 'REFUND', 'refund-1');
+    expect(() => transitionGameRound(refunded, 'SETTLE', 'settle-1'))
+      .toThrow('Cannot settle a refunded round');
+    expect(transitionGameRound(refunded, 'PLACE_BET', 'bet-1')).toBe(refunded);
+  });
+
   it('records cancel separately from rollback', () => {
     const bet = transitionGameRound(created(), 'PLACE_BET', 'bet-1');
     const cancelled = transitionGameRound(bet, 'CANCEL', 'cancel-1');
