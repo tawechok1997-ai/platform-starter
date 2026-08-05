@@ -199,6 +199,17 @@ function New-ProcessRecord {
   }
 }
 
+function Test-HttpEndpoint {
+  param([Parameter(Mandatory = $true)][string]$Url)
+
+  try {
+    $response = Invoke-WebRequest -Uri $Url -UseBasicParsing -TimeoutSec 3
+    return [int]$response.StatusCode -ge 200 -and [int]$response.StatusCode -lt 500
+  } catch {
+    return $false
+  }
+}
+
 function Wait-HttpEndpoint {
   param(
     [Parameter(Mandatory = $true)][string]$Name,
@@ -207,14 +218,10 @@ function Wait-HttpEndpoint {
 
   Write-Step "Waiting for $Name"
   for ($attempt = 0; $attempt -lt 180; $attempt++) {
-    try {
-      $response = Invoke-WebRequest -Uri $Url -UseBasicParsing -TimeoutSec 3
-      if ([int]$response.StatusCode -ge 200 -and [int]$response.StatusCode -lt 500) {
-        return
-      }
-    } catch {
-      Start-Sleep -Seconds 1
+    if (Test-HttpEndpoint -Url $Url) {
+      return
     }
+    Start-Sleep -Seconds 1
   }
 
   throw "$Name did not respond at $Url. Check its PowerShell window for the actual error."
@@ -232,8 +239,15 @@ try {
     throw 'Docker infrastructure failed to start.'
   }
 
-  if (Test-AllRecordedProcessesAlive) {
-    Write-Step 'API, Member, and Admin are already running'
+  $recordedStackReady = Test-AllRecordedProcessesAlive
+  if ($recordedStackReady) {
+    $recordedStackReady = (Test-HttpEndpoint -Url 'http://localhost:4000/health') `
+      -and (Test-HttpEndpoint -Url 'http://localhost:3000') `
+      -and (Test-HttpEndpoint -Url 'http://localhost:3001')
+  }
+
+  if ($recordedStackReady) {
+    Write-Step 'API, Member, and Admin are already running and healthy'
   } else {
     Stop-RecordedProcesses
     Assert-PortAvailable -Port 4000
