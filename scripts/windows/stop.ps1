@@ -9,15 +9,43 @@ $EnvironmentPath = Join-Path $RepoRoot '.env.windows.local'
 $ComposePath = Join-Path $RepoRoot 'compose.windows.yml'
 $ProcessFile = Join-Path $LocalRoot 'windows-processes.json'
 
+function Get-RecordedProcess {
+  param([Parameter(Mandatory = $true)]$Record)
+
+  $process = Get-Process -Id ([int]$Record.pid) -ErrorAction SilentlyContinue
+  if (-not $process) {
+    return $null
+  }
+
+  $startedAt = [string]$Record.startedAt
+  if ([string]::IsNullOrWhiteSpace($startedAt)) {
+    return $null
+  }
+
+  try {
+    $expectedStart = [DateTimeOffset]::Parse($startedAt).UtcDateTime
+    $actualStart = $process.StartTime.ToUniversalTime()
+    if ([Math]::Abs(($actualStart - $expectedStart).TotalSeconds) -gt 1) {
+      return $null
+    }
+  } catch {
+    return $null
+  }
+
+  return $process
+}
+
 try {
   if (Test-Path -LiteralPath $ProcessFile) {
     try {
       $records = @(Get-Content -LiteralPath $ProcessFile -Raw | ConvertFrom-Json)
       foreach ($record in $records) {
-        $process = Get-Process -Id ([int]$record.pid) -ErrorAction SilentlyContinue
+        $process = Get-RecordedProcess -Record $record
         if ($process) {
           Write-Host "Stopping $($record.name)..." -ForegroundColor Cyan
           & taskkill.exe /PID $process.Id /T /F *> $null
+        } else {
+          Write-Host "Skipping stale process record for $($record.name)." -ForegroundColor Yellow
         }
       }
     } finally {
