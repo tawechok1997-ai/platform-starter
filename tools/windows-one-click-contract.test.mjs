@@ -119,6 +119,20 @@ test('process lifecycle refuses stale or reused Windows process ids', () => {
 });
 
 
+test('native process stop failures surface and partial startup is cleaned', () => {
+  assert.match(start, /function Stop-ProcessTree/);
+  assert.match(stop, /function Stop-ProcessTree/);
+  assert.match(start, /taskkill exited with code/);
+  assert.match(stop, /taskkill exited with code/);
+  assert.match(start, /\$LaunchedProcesses \+= \$apiProcess/);
+  assert.match(start, /\$LaunchedProcesses \+= \$memberProcess/);
+  assert.match(start, /\$LaunchedProcesses \+= \$adminProcess/);
+  assert.match(start, /Cleaning up partially started application terminals/);
+  assert.match(start, /Remove-Item -LiteralPath \$ProcessFile/);
+  assert.match(stop, /Remove-Item -LiteralPath \$ProcessFile[\s\S]*Stopping PostgreSQL and Redis containers/s);
+});
+
+
 test('recorded terminals are reused only while every application remains healthy', () => {
   assert.match(start, /function Test-HttpEndpoint/);
   assert.match(start, /\$recordedStackReady = Test-AllRecordedProcessesAlive/);
