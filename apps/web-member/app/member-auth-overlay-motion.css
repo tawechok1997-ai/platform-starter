@@ -30,14 +30,28 @@ html body div.member-auth-overlay[data-state='open'] .member-auth-overlay__backd
   animation: memberAuthBackdropEnter 260ms cubic-bezier(.22, 1, .36, 1) both;
 }
 
+html body div.member-auth-overlay[data-state='closing'] {
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
 html body div.member-auth-overlay[data-state='closing'] .member-auth-overlay__backdrop {
+  display: none !important;
   animation: none;
   opacity: 0;
-  transition: opacity 160ms ease-out;
+  pointer-events: none !important;
+  transition: none !important;
 }
 
 html body div.member-auth-overlay .member-auth-overlay__frame {
   z-index: 1 !important;
+}
+
+html body div.member-auth-overlay[data-state='closing'] .member-auth-overlay__frame {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+  transition: none !important;
 }
 
 @media (max-width: 900px) {
@@ -49,9 +63,5 @@ html body div.member-auth-overlay .member-auth-overlay__frame {
 @media (prefers-reduced-motion: reduce) {
   html body div.member-auth-overlay[data-state='open'] .member-auth-overlay__backdrop {
     animation-duration: 1ms;
-  }
-
-  html body div.member-auth-overlay[data-state='closing'] .member-auth-overlay__backdrop {
-    transition-duration: 1ms;
   }
 }
