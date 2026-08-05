@@ -97,3 +97,14 @@ test('process lifecycle refuses stale or reused Windows process ids', () => {
   assert.match(stop, /Skipping stale process record/);
   assert.match(stop, /actualStart - \$expectedStart/);
 });
+
+
+test('recorded terminals are reused only while every application remains healthy', () => {
+  assert.match(start, /function Test-HttpEndpoint/);
+  assert.match(start, /\$recordedStackReady = Test-AllRecordedProcessesAlive/);
+  assert.match(start, /Test-HttpEndpoint -Url 'http:\/\/localhost:4000\/health'/);
+  assert.match(start, /Test-HttpEndpoint -Url 'http:\/\/localhost:3000'/);
+  assert.match(start, /Test-HttpEndpoint -Url 'http:\/\/localhost:3001'/);
+  assert.match(start, /already running and healthy/);
+  assert.match(start, /else \{[\s\S]*Stop-RecordedProcesses[\s\S]*Opening application terminals/s);
+});
