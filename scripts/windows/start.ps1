@@ -86,6 +86,32 @@ function Start-DockerDesktopAndWait {
   throw 'Docker Desktop did not become ready.'
 }
 
+function Get-RecordedProcess {
+  param([Parameter(Mandatory = $true)]$Record)
+
+  $process = Get-Process -Id ([int]$Record.pid) -ErrorAction SilentlyContinue
+  if (-not $process) {
+    return $null
+  }
+
+  $startedAt = [string]$Record.startedAt
+  if ([string]::IsNullOrWhiteSpace($startedAt)) {
+    return $null
+  }
+
+  try {
+    $expectedStart = [DateTimeOffset]::Parse($startedAt).UtcDateTime
+    $actualStart = $process.StartTime.ToUniversalTime()
+    if ([Math]::Abs(($actualStart - $expectedStart).TotalSeconds) -gt 1) {
+      return $null
+    }
+  } catch {
+    return $null
+  }
+
+  return $process
+}
+
 function Stop-RecordedProcesses {
   if (-not (Test-Path -LiteralPath $ProcessFile)) {
     return
@@ -94,7 +120,7 @@ function Stop-RecordedProcesses {
   try {
     $records = Get-Content -LiteralPath $ProcessFile -Raw | ConvertFrom-Json
     foreach ($record in @($records)) {
-      $process = Get-Process -Id ([int]$record.pid) -ErrorAction SilentlyContinue
+      $process = Get-RecordedProcess -Record $record
       if ($process) {
         & taskkill.exe /PID $process.Id /T /F *> $null
       }
@@ -117,7 +143,7 @@ function Test-AllRecordedProcessesAlive {
       return $false
     }
     foreach ($record in $records) {
-      if (-not (Get-Process -Id ([int]$record.pid) -ErrorAction SilentlyContinue)) {
+      if (-not (Get-RecordedProcess -Record $record)) {
         return $false
       }
     }
@@ -158,6 +184,19 @@ if (`$LASTEXITCODE -ne 0) {
     '-NoExit',
     '-EncodedCommand', $encoded
   ) -WorkingDirectory $RepoRoot -PassThru
+}
+
+function New-ProcessRecord {
+  param(
+    [Parameter(Mandatory = $true)][string]$Name,
+    [Parameter(Mandatory = $true)][System.Diagnostics.Process]$Process
+  )
+
+  return [pscustomobject]@{
+    name = $Name
+    pid = $Process.Id
+    startedAt = $Process.StartTime.ToUniversalTime().ToString('o')
+  }
 }
 
 function Wait-HttpEndpoint {
@@ -202,19 +241,13 @@ try {
     Assert-PortAvailable -Port 3001
 
     Write-Step 'Opening application terminals'
+    $apiProcess = Start-ServiceWindow -Name 'API' -Command 'pnpm.cmd --filter @platform/api dev'
+    $memberProcess = Start-ServiceWindow -Name 'Member' -Command 'pnpm.cmd --filter @platform/web-member dev'
+    $adminProcess = Start-ServiceWindow -Name 'Admin' -Command 'pnpm.cmd --filter @platform/web-admin dev'
     $records = @(
-      [pscustomobject]@{
-        name = 'API'
-        pid = (Start-ServiceWindow -Name 'API' -Command 'pnpm.cmd --filter @platform/api dev').Id
-      },
-      [pscustomobject]@{
-        name = 'Member'
-        pid = (Start-ServiceWindow -Name 'Member' -Command 'pnpm.cmd --filter @platform/web-member dev').Id
-      },
-      [pscustomobject]@{
-        name = 'Admin'
-        pid = (Start-ServiceWindow -Name 'Admin' -Command 'pnpm.cmd --filter @platform/web-admin dev').Id
-      }
+      (New-ProcessRecord -Name 'API' -Process $apiProcess),
+      (New-ProcessRecord -Name 'Member' -Process $memberProcess),
+      (New-ProcessRecord -Name 'Admin' -Process $adminProcess)
     )
 
     New-Item -ItemType Directory -Force -Path $LocalRoot | Out-Null
