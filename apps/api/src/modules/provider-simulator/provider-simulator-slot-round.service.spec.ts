@@ -87,6 +87,24 @@ describe('ProviderSimulatorSlotRoundService', () => {
     expect(transactions.gameTransaction).not.toHaveBeenCalled();
   });
 
+  it('rejects rollback after the original bet was refunded', async () => {
+    const entries = [
+      ledger('REFUND', '50.00', 'refund-spin', '950.00', '1000.00'),
+      ledger('BET', '50.00', 'bet-spin', '1000.00', '950.00'),
+    ];
+    const repository = {
+      findOwnedSession: jest.fn().mockResolvedValue(SESSION),
+      listOwnedSessionLedgers: jest.fn().mockResolvedValue(entries),
+      metadata: (value: unknown) => value as Record<string, unknown>,
+    };
+    const transactions = { gameTransaction: jest.fn() };
+    const service = new ProviderSimulatorSlotRoundService(repository as any, transactions as any);
+
+    await expect(service.rollback('member-1', SESSION.id, ROUND_ID))
+      .rejects.toThrow('Refunded simulator rounds cannot be rolled back');
+    expect(transactions.gameTransaction).not.toHaveBeenCalled();
+  });
+
   it('returns ledger-backed round history rather than browser-only history', async () => {
     const repository = {
       findOwnedSession: jest.fn().mockResolvedValue(SESSION),
