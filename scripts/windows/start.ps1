@@ -87,10 +87,37 @@ function Start-DockerDesktopAndWait {
   throw 'Docker Desktop did not become ready.'
 }
 
+function Read-ProcessRecords {
+  param([Parameter(Mandatory = $true)][string]$Path)
+
+  $parsed = Get-Content -LiteralPath $Path -Raw | ConvertFrom-Json
+  $records = New-Object System.Collections.Generic.List[object]
+  foreach ($item in @($parsed)) {
+    if ($item -is [System.Array]) {
+      foreach ($nested in $item) {
+        [void]$records.Add($nested)
+      }
+    } else {
+      [void]$records.Add($item)
+    }
+  }
+  return $records.ToArray()
+}
+
 function Get-RecordedProcess {
   param([Parameter(Mandatory = $true)]$Record)
 
-  $process = Get-Process -Id ([int]$Record.pid) -ErrorAction SilentlyContinue
+  $pidValues = @($Record.pid)
+  if ($pidValues.Count -ne 1) {
+    return $null
+  }
+
+  $processId = 0
+  if (-not [int]::TryParse([string]$pidValues[0], [ref]$processId)) {
+    return $null
+  }
+
+  $process = Get-Process -Id $processId -ErrorAction SilentlyContinue
   if (-not $process) {
     return $null
   }
@@ -137,7 +164,7 @@ function Stop-RecordedProcesses {
   }
 
   try {
-    $records = @(Get-Content -LiteralPath $ProcessFile -Raw | ConvertFrom-Json)
+    $records = @(Read-ProcessRecords -Path $ProcessFile)
   } catch {
     Write-Host 'Removing an invalid Windows process record.' -ForegroundColor Yellow
     Remove-Item -LiteralPath $ProcessFile -Force -ErrorAction SilentlyContinue
@@ -160,7 +187,7 @@ function Test-AllRecordedProcessesAlive {
   }
 
   try {
-    $records = @(Get-Content -LiteralPath $ProcessFile -Raw | ConvertFrom-Json)
+    $records = @(Read-ProcessRecords -Path $ProcessFile)
     if ($records.Count -ne 3) {
       return $false
     }
