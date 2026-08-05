@@ -11,6 +11,7 @@ if "%EXIT_CODE%"=="0" (
   echo Setup completed successfully.
   echo Local Admin credentials are stored in .env.windows.local.
   echo See docs\windows-one-click.md for the password lookup command.
+  echo Run Verify-Windows.cmd to generate a redacted clean-machine evidence report.
 ) else (
   echo.
   echo Setup failed with exit code %EXIT_CODE%.
