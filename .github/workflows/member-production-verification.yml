@@ -1,0 +1,126 @@
+name: Member Production Verification
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/member-production-verification.yml'
+      - 'apps/web-member/**'
+  push:
+    branches:
+      - main
+    paths:
+      - 'apps/web-member/**'
+      - '.github/workflows/member-production-verification.yml'
+  workflow_dispatch:
+    inputs:
+      expected_sha:
+        description: Expected deployed commit SHA. Leave empty to use the workflow commit.
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: member-production-verification-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify-member-production:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      MEMBER_PRODUCTION_URL: https://platformweb-member-production.up.railway.app
+    steps:
+      - name: Resolve expected production commit
+        id: expected
+        shell: bash
+        env:
+          MANUAL_EXPECTED_SHA: ${{ inputs.expected_sha }}
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          EVENT_NAME: ${{ github.event_name }}
+          WORKFLOW_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          if [[ -n "${MANUAL_EXPECTED_SHA:-}" ]]; then
+            expected_sha="$MANUAL_EXPECTED_SHA"
+          elif [[ "$EVENT_NAME" == "pull_request" ]]; then
+            expected_sha="$PR_BASE_SHA"
+          else
+            expected_sha="$WORKFLOW_SHA"
+          fi
+          echo "sha=$expected_sha" >> "$GITHUB_OUTPUT"
+          echo "short_sha=${expected_sha:0:12}" >> "$GITHUB_OUTPUT"
+          echo "Expected production SHA: $expected_sha"
+
+      - name: Wait for production and verify deployed SHA
+        shell: bash
+        env:
+          EXPECTED_SHA: ${{ steps.expected.outputs.sha }}
+          EXPECTED_SHORT_SHA: ${{ steps.expected.outputs.short_sha }}
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/member-production-verification
+
+          home_url="${MEMBER_PRODUCTION_URL%/}/"
+          version_url="${MEMBER_PRODUCTION_URL%/}/api/version"
+          max_attempts=30
+          sleep_seconds=30
+
+          for attempt in $(seq 1 "$max_attempts"); do
+            echo "Attempt $attempt/$max_attempts"
+
+            home_code="$(curl --location --silent --show-error \
+              --connect-timeout 10 --max-time 30 \
+              --output artifacts/member-production-verification/home.html \
+              --write-out '%{http_code}' "$home_url" || true)"
+
+            version_code="$(curl --location --silent --show-error \
+              --connect-timeout 10 --max-time 30 \
+              --output artifacts/member-production-verification/version.json \
+              --write-out '%{http_code}' "$version_url" || true)"
+
+            echo "Home HTTP: ${home_code:-curl-error}"
+            echo "Version HTTP: ${version_code:-curl-error}"
+            cat artifacts/member-production-verification/version.json 2>/dev/null || true
+            echo
+
+            home_ok=false
+            version_ok=false
+            sha_ok=false
+
+            [[ "$home_code" =~ ^2[0-9][0-9]$ ]] && home_ok=true
+            [[ "$version_code" =~ ^2[0-9][0-9]$ ]] && version_ok=true
+
+            if grep -Fqi "$EXPECTED_SHA" artifacts/member-production-verification/version.json 2>/dev/null \
+              || grep -Fqi "$EXPECTED_SHORT_SHA" artifacts/member-production-verification/version.json 2>/dev/null; then
+              sha_ok=true
+            fi
+
+            printf '{"attempt":%s,"homeCode":"%s","versionCode":"%s","expectedSha":"%s","shaMatched":%s}\n' \
+              "$attempt" "${home_code:-curl-error}" "${version_code:-curl-error}" "$EXPECTED_SHA" "$sha_ok" \
+              > artifacts/member-production-verification/result.json
+
+            if [[ "$home_ok" == true && "$version_ok" == true && "$sha_ok" == true ]]; then
+              echo "Member Production matches $EXPECTED_SHA"
+              exit 0
+            fi
+
+            if [[ "$attempt" -lt "$max_attempts" ]]; then
+              sleep "$sleep_seconds"
+            fi
+          done
+
+          echo "Member Production did not expose expected SHA $EXPECTED_SHA within the verification window." >&2
+          exit 1
+
+      - name: Upload production verification evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: member-production-verification-${{ steps.expected.outputs.short_sha }}
+          path: artifacts/member-production-verification/**
+          if-no-files-found: warn
+          retention-days: 14
