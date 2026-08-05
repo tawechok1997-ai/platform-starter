@@ -1,0 +1,53 @@
+.member-activity-prediction-actions {
+  display: grid;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.member-activity-prediction-submit {
+  min-height: 44px;
+  width: 100%;
+  border: 1px solid rgba(225, 177, 241, 0.72);
+  border-radius: 8px;
+  background: linear-gradient(180deg, #bd3ad8 0%, #8300a3 100%);
+  color: #fff;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  transition: filter 160ms ease, opacity 160ms ease, transform 160ms ease;
+}
+
+.member-activity-prediction-submit:hover:not(:disabled) {
+  filter: brightness(1.08);
+}
+
+.member-activity-prediction-submit:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.member-activity-prediction-submit:focus-visible {
+  outline: 3px solid rgba(255, 255, 255, 0.92);
+  outline-offset: 2px;
+}
+
+.member-activity-prediction-submit:disabled {
+  cursor: not-allowed;
+  opacity: 0.58;
+}
+
+.member-activity-prediction-status {
+  min-height: 20px;
+  margin: 0;
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 13px;
+  line-height: 20px;
+  text-align: center;
+}
+
+.member-activity-prediction-status[data-state='success'] {
+  color: #78e4b2;
+}
+
+.member-activity-prediction-status[data-state='error'] {
+  color: #ff9ca8;
+}
