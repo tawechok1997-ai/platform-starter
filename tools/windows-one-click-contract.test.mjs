@@ -87,3 +87,13 @@ test('start and stop scripts own all three applications without deleting data', 
   assert.match(stop, /compose.*stop/s);
   assert.doesNotMatch(stop, /down\s+--volumes|volume\s+rm|prune/);
 });
+
+
+test('process lifecycle refuses stale or reused Windows process ids', () => {
+  assert.match(start, /startedAt = \$Process\.StartTime\.ToUniversalTime\(\)\.ToString\('o'\)/);
+  assert.match(start, /function Get-RecordedProcess/);
+  assert.match(start, /actualStart - \$expectedStart/);
+  assert.match(stop, /function Get-RecordedProcess/);
+  assert.match(stop, /Skipping stale process record/);
+  assert.match(stop, /actualStart - \$expectedStart/);
+});
