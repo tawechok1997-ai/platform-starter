@@ -11,6 +11,7 @@ $LocalRoot = Join-Path $RepoRoot '.local'
 $EnvironmentPath = Join-Path $RepoRoot '.env.windows.local'
 $ComposePath = Join-Path $RepoRoot 'compose.windows.yml'
 $ProcessFile = Join-Path $LocalRoot 'windows-processes.json'
+$LaunchedProcesses = @()
 
 function Write-Step {
   param([string]$Message)
@@ -112,24 +113,45 @@ function Get-RecordedProcess {
   return $process
 }
 
+function Stop-ProcessTree {
+  param(
+    [Parameter(Mandatory = $true)][System.Diagnostics.Process]$Process,
+    [Parameter(Mandatory = $true)][string]$Name
+  )
+
+  & taskkill.exe /PID $Process.Id /T /F *> $null
+  $exitCode = $LASTEXITCODE
+  if ($exitCode -eq 0) {
+    return
+  }
+
+  $remaining = Get-Process -Id $Process.Id -ErrorAction SilentlyContinue
+  if ($remaining) {
+    throw "taskkill exited with code $exitCode while stopping $Name (PID $($Process.Id))."
+  }
+}
+
 function Stop-RecordedProcesses {
   if (-not (Test-Path -LiteralPath $ProcessFile)) {
     return
   }
 
   try {
-    $records = Get-Content -LiteralPath $ProcessFile -Raw | ConvertFrom-Json
-    foreach ($record in @($records)) {
-      $process = Get-RecordedProcess -Record $record
-      if ($process) {
-        & taskkill.exe /PID $process.Id /T /F *> $null
-      }
-    }
+    $records = @(Get-Content -LiteralPath $ProcessFile -Raw | ConvertFrom-Json)
   } catch {
-    Write-Host 'Ignoring a stale Windows process file.' -ForegroundColor Yellow
-  } finally {
+    Write-Host 'Removing an invalid Windows process record.' -ForegroundColor Yellow
     Remove-Item -LiteralPath $ProcessFile -Force -ErrorAction SilentlyContinue
+    return
   }
+
+  foreach ($record in $records) {
+    $process = Get-RecordedProcess -Record $record
+    if ($process) {
+      Stop-ProcessTree -Process $process -Name ([string]$record.name)
+    }
+  }
+
+  Remove-Item -LiteralPath $ProcessFile -Force -ErrorAction SilentlyContinue
 }
 
 function Test-AllRecordedProcessesAlive {
@@ -256,8 +278,11 @@ try {
 
     Write-Step 'Opening application terminals'
     $apiProcess = Start-ServiceWindow -Name 'API' -Command 'pnpm.cmd --filter @platform/api dev'
+    $LaunchedProcesses += $apiProcess
     $memberProcess = Start-ServiceWindow -Name 'Member' -Command 'pnpm.cmd --filter @platform/web-member dev'
+    $LaunchedProcesses += $memberProcess
     $adminProcess = Start-ServiceWindow -Name 'Admin' -Command 'pnpm.cmd --filter @platform/web-admin dev'
+    $LaunchedProcesses += $adminProcess
     $records = @(
       (New-ProcessRecord -Name 'API' -Process $apiProcess),
       (New-ProcessRecord -Name 'Member' -Process $memberProcess),
@@ -285,7 +310,22 @@ try {
   }
   exit 0
 } catch {
+  $startupMessage = $_.Exception.Message
+  if ($LaunchedProcesses.Count -gt 0) {
+    Write-Host 'Cleaning up partially started application terminals...' -ForegroundColor Yellow
+    foreach ($launchedProcess in @($LaunchedProcesses)) {
+      try {
+        if (-not $launchedProcess.HasExited) {
+          Stop-ProcessTree -Process $launchedProcess -Name 'partially started application terminal'
+        }
+      } catch {
+        Write-Host "Cleanup warning: $($_.Exception.Message)" -ForegroundColor Yellow
+      }
+    }
+    Remove-Item -LiteralPath $ProcessFile -Force -ErrorAction SilentlyContinue
+  }
+
   Write-Host ''
-  Write-Host "STARTUP FAILED: $($_.Exception.Message)" -ForegroundColor Red
+  Write-Host "STARTUP FAILED: $startupMessage" -ForegroundColor Red
   exit 1
 }
