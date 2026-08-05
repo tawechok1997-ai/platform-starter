@@ -19,6 +19,10 @@ on:
         description: Expected deployed commit SHA. Leave empty to use the workflow commit.
         required: false
         type: string
+      production_url:
+        description: Optional Member Production URL override.
+        required: false
+        type: string
 
 permissions:
   contents: read
@@ -32,18 +36,22 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 25
     env:
-      MEMBER_PRODUCTION_URL: https://platformweb-member-production.up.railway.app
+      DEFAULT_MEMBER_PRODUCTION_URL: https://platformweb-member-production.up.railway.app
+      RAILWAY_MEMBER_SERVICE_URL: https://railway.com/project/9a018c35-5d56-4541-a133-2ac7e1d6731c/service/bcd0f4e5-b68b-4b78-bd92-3f0400254f7c?environmentId=d0874330-b90d-4e5e-b265-08411afa6945
     steps:
-      - name: Resolve expected production commit
-        id: expected
+      - name: Resolve verification target
+        id: target
         shell: bash
         env:
           MANUAL_EXPECTED_SHA: ${{ inputs.expected_sha }}
+          MANUAL_PRODUCTION_URL: ${{ inputs.production_url }}
+          REPOSITORY_PRODUCTION_URL: ${{ vars.MEMBER_PRODUCTION_URL }}
           PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
           EVENT_NAME: ${{ github.event_name }}
           WORKFLOW_SHA: ${{ github.sha }}
         run: |
           set -euo pipefail
+
           if [[ -n "${MANUAL_EXPECTED_SHA:-}" ]]; then
             expected_sha="$MANUAL_EXPECTED_SHA"
           elif [[ "$EVENT_NAME" == "pull_request" ]]; then
@@ -51,34 +59,57 @@ jobs:
           else
             expected_sha="$WORKFLOW_SHA"
           fi
+
+          if [[ -n "${MANUAL_PRODUCTION_URL:-}" ]]; then
+            production_url="$MANUAL_PRODUCTION_URL"
+          elif [[ -n "${REPOSITORY_PRODUCTION_URL:-}" ]]; then
+            production_url="$REPOSITORY_PRODUCTION_URL"
+          else
+            production_url="$DEFAULT_MEMBER_PRODUCTION_URL"
+          fi
+
+          production_url="${production_url%/}"
           echo "sha=$expected_sha" >> "$GITHUB_OUTPUT"
           echo "short_sha=${expected_sha:0:12}" >> "$GITHUB_OUTPUT"
+          echo "production_url=$production_url" >> "$GITHUB_OUTPUT"
+          echo "event_name=$EVENT_NAME" >> "$GITHUB_OUTPUT"
           echo "Expected production SHA: $expected_sha"
+          echo "Member Production URL: $production_url"
 
       - name: Wait for production and verify deployed SHA
         shell: bash
         env:
-          EXPECTED_SHA: ${{ steps.expected.outputs.sha }}
-          EXPECTED_SHORT_SHA: ${{ steps.expected.outputs.short_sha }}
+          EXPECTED_SHA: ${{ steps.target.outputs.sha }}
+          EXPECTED_SHORT_SHA: ${{ steps.target.outputs.short_sha }}
+          MEMBER_PRODUCTION_URL: ${{ steps.target.outputs.production_url }}
+          EVENT_NAME: ${{ steps.target.outputs.event_name }}
         run: |
           set -euo pipefail
           mkdir -p artifacts/member-production-verification
 
           home_url="${MEMBER_PRODUCTION_URL%/}/"
           version_url="${MEMBER_PRODUCTION_URL%/}/api/version"
-          max_attempts=30
-          sleep_seconds=30
+
+          if [[ "$EVENT_NAME" == "pull_request" ]]; then
+            max_attempts=3
+            sleep_seconds=15
+          else
+            max_attempts=30
+            sleep_seconds=30
+          fi
 
           for attempt in $(seq 1 "$max_attempts"); do
             echo "Attempt $attempt/$max_attempts"
 
             home_code="$(curl --location --silent --show-error \
               --connect-timeout 10 --max-time 30 \
+              --dump-header artifacts/member-production-verification/home-headers.txt \
               --output artifacts/member-production-verification/home.html \
               --write-out '%{http_code}' "$home_url" || true)"
 
             version_code="$(curl --location --silent --show-error \
               --connect-timeout 10 --max-time 30 \
+              --dump-header artifacts/member-production-verification/version-headers.txt \
               --output artifacts/member-production-verification/version.json \
               --write-out '%{http_code}' "$version_url" || true)"
 
@@ -87,10 +118,17 @@ jobs:
             cat artifacts/member-production-verification/version.json 2>/dev/null || true
             echo
 
+            railway_fallback=false
+            if grep -Eqi '^x-railway-fallback:[[:space:]]*true' artifacts/member-production-verification/home-headers.txt 2>/dev/null \
+              || grep -Eqi '^x-railway-fallback:[[:space:]]*true' artifacts/member-production-verification/version-headers.txt 2>/dev/null \
+              || grep -Fqi 'Application not found' artifacts/member-production-verification/home.html 2>/dev/null \
+              || grep -Fqi 'Application not found' artifacts/member-production-verification/version.json 2>/dev/null; then
+              railway_fallback=true
+            fi
+
             home_ok=false
             version_ok=false
             sha_ok=false
-
             [[ "$home_code" =~ ^2[0-9][0-9]$ ]] && home_ok=true
             [[ "$version_code" =~ ^2[0-9][0-9]$ ]] && version_ok=true
 
@@ -99,9 +137,15 @@ jobs:
               sha_ok=true
             fi
 
-            printf '{"attempt":%s,"homeCode":"%s","versionCode":"%s","expectedSha":"%s","shaMatched":%s}\n' \
-              "$attempt" "${home_code:-curl-error}" "${version_code:-curl-error}" "$EXPECTED_SHA" "$sha_ok" \
+            printf '{"attempt":%s,"homeCode":"%s","versionCode":"%s","productionUrl":"%s","expectedSha":"%s","shaMatched":%s,"railwayFallback":%s}\n' \
+              "$attempt" "${home_code:-curl-error}" "${version_code:-curl-error}" "$MEMBER_PRODUCTION_URL" "$EXPECTED_SHA" "$sha_ok" "$railway_fallback" \
               > artifacts/member-production-verification/result.json
+
+            if [[ "$railway_fallback" == true ]]; then
+              echo "Railway reports Application not found for $MEMBER_PRODUCTION_URL" >&2
+              echo "Restore or regenerate the Web Member domain in: $RAILWAY_MEMBER_SERVICE_URL" >&2
+              exit 1
+            fi
 
             if [[ "$home_ok" == true && "$version_ok" == true && "$sha_ok" == true ]]; then
               echo "Member Production matches $EXPECTED_SHA"
@@ -114,13 +158,14 @@ jobs:
           done
 
           echo "Member Production did not expose expected SHA $EXPECTED_SHA within the verification window." >&2
+          echo "Railway Web Member service: $RAILWAY_MEMBER_SERVICE_URL" >&2
           exit 1
 
       - name: Upload production verification evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: member-production-verification-${{ steps.expected.outputs.short_sha }}
+          name: member-production-verification-${{ steps.target.outputs.short_sha }}
           path: artifacts/member-production-verification/**
           if-no-files-found: warn
           retention-days: 14
