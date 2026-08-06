@@ -16,6 +16,7 @@ import {
   normalizeMemberWallet,
   type MemberWalletSummary,
 } from '../src/features/wallet/member-wallet';
+import MemberLoadingScreen from './components/member-loading-screen';
 import { clearMemberSession, hasMemberSessionTokens, memberApiFetch } from './member-api';
 
 type MemberSessionContextValue = {
@@ -174,7 +175,13 @@ export function MemberSessionProvider({ children }: { children: ReactNode }) {
     () => ({ ready, isLoggedIn, wallet, walletLoading, refreshWallet, verify, logout }),
     [ready, isLoggedIn, wallet, walletLoading, refreshWallet, verify, logout],
   );
-  return <MemberSessionContext.Provider value={value}>{children}</MemberSessionContext.Provider>;
+
+  return (
+    <MemberSessionContext.Provider value={value}>
+      {!ready ? <MemberLoadingScreen /> : null}
+      {children}
+    </MemberSessionContext.Provider>
+  );
 }
 
 export function useMemberSession() {
