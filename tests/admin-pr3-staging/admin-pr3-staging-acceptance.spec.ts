@@ -12,7 +12,7 @@ import {
 
 const baseUrl = process.env.PR3_ADMIN_URL?.trim() || 'http://127.0.0.1:3001';
 const personaPassword = process.env.PR3_PERSONA_PASSWORD?.trim();
-const manifestPath = process.env.PR3_PERSONA_MANIFEST?.trim() || 'test-results/admin-pr3/personas.json';
+const manifestPath = process.env.PR3_PERSONA_MANIFEST?.trim() || 'test-results/admin-pr3-personas.json';
 
 const EXPECTED_ROLES: Record<P8PersonaId, readonly string[]> = {
   finance: ['finance'],
@@ -92,7 +92,7 @@ async function login(page: Page, persona: P8PersonaId) {
   await password.fill(personaPassword);
   await page.locator('button[type="submit"], input[type="submit"]').first().click();
   await page.waitForURL((url) => !/\/login(?:[/?#]|$)/.test(url.pathname), { timeout: 30_000 });
-  await page.waitForLoadState('networkidle', { timeout: 10_000 }).catch(() => undefined);
+  await expect(page.locator('.admin-content-shell')).toBeVisible({ timeout: 15_000 });
   const token = await page.evaluate(() => window.sessionStorage.getItem('admin_access_token'));
   if (!token) throw new Error(`Admin access token was not stored for ${persona}`);
   return token;
@@ -130,8 +130,9 @@ async function auditRoute(
 
   try {
     await page.goto(new URL(matrixCase.route, baseUrl).toString(), { waitUntil: 'domcontentloaded' });
-    await page.waitForLoadState('networkidle', { timeout: 8_000 }).catch(() => undefined);
     await expect(page).not.toHaveURL(/\/login(?:[/?#]|$)/);
+    await expect(page.locator('.admin-content-shell')).toBeVisible({ timeout: 15_000 });
+    await page.waitForTimeout(250);
 
     const expectedAllowed = canAccessPath(matrixCase.route, permissions);
     const deniedState = page.locator('.admin-access-denied');
@@ -168,6 +169,7 @@ async function auditRoute(
     };
 
     if (runDeepAcceptance && expectedAllowed) {
+      await page.waitForLoadState('load', { timeout: 8_000 }).catch(() => undefined);
       const accessibility = await new AxeBuilder({ page }).analyze();
       const serious = accessibility.violations.filter((violation) =>
         violation.impact === 'serious' || violation.impact === 'critical',
@@ -192,6 +194,8 @@ async function auditRoute(
         };
       });
       evidence.performance = performance;
+      expect(performance.domContentLoadedMs).toBeGreaterThan(0);
+      expect(performance.loadMs).toBeGreaterThan(0);
       expect(performance.domContentLoadedMs).toBeLessThanOrEqual(5_000);
       expect(performance.loadMs).toBeLessThanOrEqual(8_000);
       expect(performance.scriptTransferBytes).toBeLessThanOrEqual(2_500_000);
