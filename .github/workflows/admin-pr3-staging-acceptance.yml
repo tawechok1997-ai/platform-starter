@@ -47,7 +47,7 @@ jobs:
       DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/platform_pr3?schema=public
       NODE_ENV: test
       PR3_ALLOW_DISPOSABLE_SEED: 'true'
-      PR3_PERSONA_MANIFEST: test-results/admin-pr3/personas.json
+      PR3_PERSONA_MANIFEST: test-results/admin-pr3-personas.json
       PR3_ADMIN_URL: http://127.0.0.1:3001
       API_PUBLIC_URL: http://127.0.0.1:4000
       ADMIN_WEB_URL: http://127.0.0.1:3001
@@ -188,16 +188,24 @@ jobs:
       - name: Run PR-3 authenticated staging acceptance
         run: pnpm exec playwright test -c playwright.admin-pr3.config.ts
 
+      - name: Collect runtime logs
+        if: always()
+        shell: bash
+        run: |
+          mkdir -p test-results/admin-pr3-runtime
+          cp /tmp/admin-pr3-api.log test-results/admin-pr3-runtime/api.log 2>/dev/null || true
+          cp /tmp/admin-pr3-web.log test-results/admin-pr3-runtime/web.log 2>/dev/null || true
+
       - name: Upload PR-3 acceptance evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: admin-pr3-staging-acceptance-${{ github.run_id }}
           path: |
+            test-results/admin-pr3-personas.json
             test-results/admin-pr3/**
+            test-results/admin-pr3-runtime/**
             playwright-report/admin-pr3/**
-            /tmp/admin-pr3-api.log
-            /tmp/admin-pr3-web.log
           if-no-files-found: error
           retention-days: 14
 
