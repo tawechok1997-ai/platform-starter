@@ -30,6 +30,8 @@ export function acquireMemberDocumentOverlayLock() {
   let released = false;
 
   if (activeLockCount === 0) {
+    repairAbandonedLockBeforeAcquire();
+
     const body = document.body;
     const html = document.documentElement;
     const measuredViewportWidth = Math.max(1, html.clientWidth || window.innerWidth || 1);
@@ -70,6 +72,7 @@ export function acquireMemberDocumentOverlayLock() {
     }
 
     restoreDocumentStyles();
+    schedulePostCloseRepair();
     scheduleDesktopViewportResync();
   };
 }
@@ -85,6 +88,19 @@ export function getMemberDesktopViewportWidth() {
   return Math.max(1, document.documentElement.clientWidth || window.innerWidth || 1);
 }
 
+function repairAbandonedLockBeforeAcquire() {
+  const html = document.documentElement;
+  if (html.dataset.memberOverlayLock !== 'true' && html.dataset.memberOverlayCount === undefined) return;
+
+  // A route replacement or an interrupted deployment can leave inline lock
+  // styles behind while the module-level counter is reset. Do not snapshot that
+  // stale state as the new baseline, otherwise every later close restores
+  // overflow:hidden forever.
+  styleSnapshot = null;
+  frozenViewportWidth = null;
+  clearOwnedDocumentStyles();
+}
+
 function restoreDocumentStyles() {
   const body = document.body;
   const html = document.documentElement;
@@ -96,6 +112,8 @@ function restoreDocumentStyles() {
     body.style.paddingRight = snapshot.bodyPaddingRight;
     html.style.overflow = snapshot.htmlOverflow;
     html.style.overscrollBehavior = snapshot.htmlOverscrollBehavior;
+  } else {
+    clearOwnedDocumentStyles();
   }
 
   delete html.dataset.memberOverlayLock;
@@ -103,6 +121,50 @@ function restoreDocumentStyles() {
   html.style.removeProperty('--member-overlay-viewport-width');
   styleSnapshot = null;
   frozenViewportWidth = null;
+}
+
+function clearOwnedDocumentStyles() {
+  const body = document.body;
+  const html = document.documentElement;
+  body.style.removeProperty('overflow');
+  body.style.removeProperty('overscroll-behavior');
+  body.style.removeProperty('padding-right');
+  html.style.removeProperty('overflow');
+  html.style.removeProperty('overscroll-behavior');
+  html.style.removeProperty('--member-overlay-viewport-width');
+  delete html.dataset.memberOverlayLock;
+  delete html.dataset.memberOverlayCount;
+}
+
+function schedulePostCloseRepair() {
+  window.requestAnimationFrame(() => {
+    window.requestAnimationFrame(() => {
+      if (activeLockCount !== 0 || hasVisibleMemberOverlay()) return;
+
+      const body = document.body;
+      const html = document.documentElement;
+      const staleInlineLock = body.style.overflow === 'hidden'
+        || html.style.overflow === 'hidden'
+        || body.style.overscrollBehavior === 'none'
+        || html.style.overscrollBehavior === 'none';
+
+      if (!staleInlineLock) return;
+      clearOwnedDocumentStyles();
+      window.dispatchEvent(new Event(MEMBER_DESKTOP_VIEWPORT_RESYNC_EVENT));
+    });
+  });
+}
+
+function hasVisibleMemberOverlay() {
+  const authOverlay = document.querySelector<HTMLElement>(
+    '.member-auth-overlay:not([data-state="dismissed"]):not([aria-hidden="true"])',
+  );
+  if (authOverlay && window.getComputedStyle(authOverlay).visibility !== 'hidden') return true;
+
+  const ownedOverlay = document.querySelector<HTMLElement>('[data-member-active-overlay="true"]');
+  if (ownedOverlay && window.getComputedStyle(ownedOverlay).visibility !== 'hidden') return true;
+
+  return Boolean(document.querySelector('dialog[open]'));
 }
 
 function scheduleDesktopViewportResync() {
