@@ -60,7 +60,7 @@ export function normalizeFinanceTrendResponse(
   if (!hasDaily && !hasItems) {
     return { data: null, issues: ['daily_missing'], partial: false };
   }
-  const rawRows = hasDaily ? root.daily : root.items;
+  const rawRows: unknown[] = hasDaily ? root.daily as unknown[] : root.items as unknown[];
 
   const daily = rawRows
     .map((row, index) => normalizeFinanceRow(row, index, issues))
