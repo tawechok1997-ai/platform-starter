@@ -81,8 +81,10 @@ test('Admin route and interaction inventory remains complete and free of placeho
     interactionCount += (source.match(/<(?:button|a)\b/g) ?? []).length;
     interactionCount += (source.match(/\bAdmin(?:Button|IconButton|LinkButton)\b/g) ?? []).length;
 
-    if (/href\s*=\s*["']#["']/.test(source)) unsafeActions.push(`${relative(file)}: href="#"`);
-    if (/javascript\s*:/i.test(source)) unsafeActions.push(`${relative(file)}: javascript URL`);
+    if (/\bhref\s*=\s*(?:{\s*)?["'`]#["'`]/.test(source)) unsafeActions.push(`${relative(file)}: href="#"`);
+    if (/\b(?:href|action|formAction)\s*=\s*(?:{\s*)?["'`]javascript\s*:/i.test(source)) {
+      unsafeActions.push(`${relative(file)}: javascript URL`);
+    }
   }
 
   assert.ok(interactionCount >= 100, `interaction inventory is unexpectedly small: ${interactionCount}`);
