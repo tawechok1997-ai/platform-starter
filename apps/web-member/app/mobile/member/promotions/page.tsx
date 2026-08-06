@@ -149,9 +149,13 @@ function dedupeCampaigns(campaigns: UnknownRecord[]) {
       .find((index): index is number => typeof index === 'number');
 
     if (typeof existingIndex === 'number') {
-      result[existingIndex] = mergeCampaign(result[existingIndex], campaign);
-      campaignKeys(result[existingIndex]).forEach((key) => keyToIndex.set(key, existingIndex));
-      return;
+      const existingCampaign = result[existingIndex];
+      if (existingCampaign) {
+        const mergedCampaign = mergeCampaign(existingCampaign, campaign);
+        result[existingIndex] = mergedCampaign;
+        campaignKeys(mergedCampaign).forEach((key) => keyToIndex.set(key, existingIndex));
+        return;
+      }
     }
 
     const index = result.length;
