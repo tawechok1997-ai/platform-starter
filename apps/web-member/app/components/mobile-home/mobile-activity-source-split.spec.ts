@@ -35,3 +35,9 @@ test('the standalone Activity page keeps live API data and source unavailable st
   assert.match(activityCss, /background:\s*rgb\(219 1 1 \/ 71%\)/);
   assert.match(activityCss, /border-radius:\s*16px/);
 });
+
+test('disabled activity cards avoid unsupported ARIA on the article role', () => {
+  assert.match(activityPage, /data-activity-disabled=\{activity\.disabled \? 'true' : undefined\}/);
+  assert.doesNotMatch(activityPage, /<article[\s\S]{0,220}aria-disabled=/);
+  assert.match(activityPage, /<button[\s\S]{0,180}disabled=\{activity\.disabled \|\| !activity\.href\}/);
+});
