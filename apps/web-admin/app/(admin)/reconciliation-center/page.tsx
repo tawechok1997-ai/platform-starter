@@ -54,8 +54,8 @@ export default function ReconciliationCenterPage() {
     setMessageTone(tone);
   }
 
-  async function load() {
-    if (busy) return;
+  async function load(force = false) {
+    if (busy && !force) return;
     setBusy(true);
     setLoadState((current) => current === 'error' || current === 'empty' ? 'loading' : current);
     setLoadReference('');
@@ -115,7 +115,7 @@ export default function ReconciliationCenterPage() {
       const difference = safeMoneyValue(snapshot?.difference);
       showMessage(ok ? copy.matched : `${copy.mismatch} · ${copy.difference} ${formatMoney(difference)}`, ok ? 'success' : 'danger');
       setSessionId('');
-      await load();
+      await load(true);
     } catch (caught) {
       const incidentId = createAdminIncidentId('REC-RUN');
       console.error('Admin reconciliation command crashed', { incidentId, error: caught });
@@ -183,7 +183,7 @@ export default function ReconciliationCenterPage() {
       showMessage(reviewRequest.status === 'RESOLVED' ? copy.caseClosed : copy.reviewStarted, 'success');
       setReviewRequest(null);
       setReviewNote('');
-      await load();
+      await load(true);
     } catch (caught) {
       const incidentId = createAdminIncidentId('REC-REVIEW');
       console.error('Admin reconciliation review crashed', { incidentId, error: caught });
