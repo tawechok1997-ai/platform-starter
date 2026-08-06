@@ -1,0 +1,66 @@
+/* Mobile Hero carousel indicator geometry.
+ * Keep the visible dots equal in size and leave the button hit targets large
+ * enough for touch. The active state changes colour only; it must never become
+ * a pill or make a neighbouring indicator appear to disappear.
+ */
+@media (max-width: 900px) {
+  [data-mobile-home-root='true'] [data-mobile-section-owner='hero'] > div[aria-label] {
+    display: flex !important;
+    box-sizing: border-box !important;
+    width: 100% !important;
+    min-height: 18px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 0 !important;
+    overflow: visible !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+  }
+
+  [data-mobile-home-root='true'] [data-mobile-section-owner='hero'] > div[aria-label] > button {
+    position: relative !important;
+    display: grid !important;
+    box-sizing: border-box !important;
+    width: 18px !important;
+    min-width: 18px !important;
+    height: 18px !important;
+    min-height: 18px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    place-items: center !important;
+    overflow: visible !important;
+    border: 0 !important;
+    border-radius: 999px !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    transform: none !important;
+    pointer-events: auto !important;
+  }
+
+  [data-mobile-home-root='true'] [data-mobile-section-owner='hero'] > div[aria-label] > button::before {
+    display: block !important;
+    width: 6px !important;
+    height: 6px !important;
+    border: 0 !important;
+    border-radius: 999px !important;
+    background: rgb(255 255 255 / 38%) !important;
+    box-shadow: 0 0 0 1px rgb(0 0 0 / 18%) !important;
+    content: '' !important;
+  }
+
+  [data-mobile-home-root='true'] [data-mobile-section-owner='hero'] > div[aria-label] > button[aria-current='true']::before {
+    width: 6px !important;
+    height: 6px !important;
+    background: #bb5bea !important;
+    box-shadow: 0 0 5px rgb(187 91 234 / 70%) !important;
+  }
+
+  [data-mobile-home-root='true'] [data-mobile-section-owner='hero'] > div[aria-label] > button:focus-visible {
+    outline: 2px solid #dca8f3 !important;
+    outline-offset: -2px !important;
+  }
+}
