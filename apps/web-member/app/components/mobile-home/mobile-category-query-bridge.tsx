@@ -20,8 +20,7 @@ export default function MobileCategoryQueryBridge() {
     let attempts = 0;
 
     const applyCategoryFromLocation = () => {
-      const category = normalizeCategory(new URLSearchParams(window.location.search).get('category'));
-      if (!category || category === 'home') return;
+      const category = normalizeCategory(new URLSearchParams(window.location.search).get('category')) ?? 'home';
 
       const activate = () => {
         const button = document.querySelector<HTMLButtonElement>(
@@ -29,13 +28,7 @@ export default function MobileCategoryQueryBridge() {
         );
         if (button) {
           button.click();
-          button.focus({ preventScroll: true });
-          window.requestAnimationFrame(() => {
-            document.getElementById('mobile-games')?.scrollIntoView({
-              block: 'start',
-              behavior: 'auto',
-            });
-          });
+          if (category !== 'home') button.focus({ preventScroll: true });
           return;
         }
 
@@ -57,11 +50,14 @@ export default function MobileCategoryQueryBridge() {
       const category = normalizeCategory(button.dataset.mobileCategoryId ?? null);
       if (!category) return;
 
+      const current = normalizeCategory(new URLSearchParams(window.location.search).get('category')) ?? 'home';
+      if (current === category) return;
+
       const next = new URL(window.location.href);
       if (category === 'home') next.searchParams.delete('category');
       else next.searchParams.set('category', category);
-      next.hash = category === 'home' ? '' : 'mobile-games';
-      window.history.pushState({}, '', `${next.pathname}${next.search}${next.hash}`);
+      next.hash = '';
+      window.history.pushState({}, '', `${next.pathname}${next.search}`);
     };
 
     applyCategoryFromLocation();
