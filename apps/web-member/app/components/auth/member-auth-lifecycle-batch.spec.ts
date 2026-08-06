@@ -44,8 +44,8 @@ test('closing auth removes every click owner in the same event turn', () => {
 
 test('iframe is revealed only after the embedded auth dialog exists', () => {
   assert.match(overlay, /function embeddedAuthShellReady\(document: Document \| null\)/);
-  assert.match(overlay, /\[data-embedded=\\"true\\"\]/);
-  assert.match(overlay, /\[role=\\"dialog\\"\], \.source-login-modal, \.source-register-modal/);
+  assert.match(overlay, /\[data-embedded="true"\]/);
+  assert.match(overlay, /\[role="dialog"\], \.source-login-modal, \.source-register-modal/);
   assert.match(overlay, /payload\.type === 'member-auth-ready'[\s\S]*revealFrameOnlyWhenRendered\(frame\)/);
   assert.match(overlay, /if \(revealFrameOnlyWhenRendered\(frame\)\) return/);
   assert.doesNotMatch(overlay, /payload\.type === 'member-auth-ready'\) setFrameReady\(true\)/);
