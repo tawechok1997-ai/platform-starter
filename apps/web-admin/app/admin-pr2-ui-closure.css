@@ -1,0 +1,320 @@
+/*
+ * Admin PR-2 final UI authority.
+ *
+ * This layer intentionally loads after every earlier Admin stylesheet. It does
+ * not change permissions, data loading, mutations, or route ownership. It
+ * closes the remaining shell, topbar, metric, table, access-state, theme, and
+ * focus behavior so the same surfaces remain usable from 360px to wide desktop.
+ */
+
+:root {
+  --admin-pr2-page-max: 1440px;
+  --admin-pr2-content-max: 1360px;
+  --admin-pr2-touch-target: 44px;
+  --admin-pr2-focus-ring: 0 0 0 3px color-mix(in srgb, var(--brand) 34%, transparent);
+}
+
+body[data-app-surface='admin'] .admin-shell,
+body[data-app-surface='admin'] .admin-main-shell,
+body[data-app-surface='admin'] .admin-content-shell,
+body[data-app-surface='admin'] .admin-content-shell > main,
+body[data-app-surface='admin'] .admin-ui-page,
+body[data-app-surface='admin'] .admin-ui-page > * {
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+body[data-app-surface='admin'] .admin-main-shell {
+  width: 100%;
+  min-height: 100dvh;
+}
+
+body[data-app-surface='admin'] .admin-content-shell {
+  width: 100%;
+  max-width: none !important;
+  margin-inline: auto;
+}
+
+body[data-app-surface='admin'] .admin-content-shell > main,
+body[data-app-surface='admin'] .admin-content-shell > .admin-ui-page {
+  width: min(100%, var(--admin-pr2-page-max)) !important;
+  max-width: var(--admin-pr2-page-max) !important;
+  margin-inline: auto !important;
+}
+
+/* Shell and topbar ------------------------------------------------------- */
+body[data-app-surface='admin'] .admin-topbar {
+  min-width: 0;
+  width: 100%;
+  column-gap: clamp(10px, 1.5vw, 20px);
+}
+
+body[data-app-surface='admin'] .admin-topbar-context {
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: 100%;
+}
+
+body[data-app-surface='admin'] .admin-topbar-context > div {
+  min-width: 0;
+}
+
+body[data-app-surface='admin'] .admin-topbar-context strong,
+body[data-app-surface='admin'] .admin-topbar-context span {
+  display: block;
+  max-width: min(48vw, 560px);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+body[data-app-surface='admin'] .admin-topbar-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 100%;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+body[data-app-surface='admin'] .admin-command-trigger,
+body[data-app-surface='admin'] .admin-notification-trigger,
+body[data-app-surface='admin'] .admin-menu-button,
+body[data-app-surface='admin'] .admin-sidebar-profile__trigger,
+body[data-app-surface='admin'] .admin-nav-group__trigger,
+body[data-app-surface='admin'] .admin-ui-button {
+  min-height: var(--admin-pr2-touch-target);
+}
+
+body[data-app-surface='admin'] .admin-drawer-nav,
+body[data-app-surface='admin'] .admin-nav-submenu,
+body[data-app-surface='admin'] .admin-sidebar-footer {
+  min-width: 0;
+}
+
+body[data-app-surface='admin'] .admin-nav-submenu a,
+body[data-app-surface='admin'] .admin-quick-nav a,
+body[data-app-surface='admin'] .admin-profile-menu button,
+body[data-app-surface='admin'] .admin-notification-popover button {
+  min-height: var(--admin-pr2-touch-target);
+}
+
+/* Dashboard and metric density ----------------------------------------- */
+body[data-app-surface='admin'] .admin-ui-metric-grid {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr)) !important;
+  align-items: stretch;
+  gap: clamp(10px, 1.4vw, 16px) !important;
+  min-width: 0;
+  width: 100%;
+}
+
+body[data-app-surface='admin'] .admin-ui-metric {
+  min-width: 0;
+  min-height: 132px;
+  align-content: start;
+}
+
+body[data-app-surface='admin'] .admin-ui-metric > strong {
+  font-variant-numeric: tabular-nums;
+  line-height: 1.08;
+}
+
+html[data-admin-density='compact'] body[data-app-surface='admin'] .admin-ui-metric {
+  min-height: 112px;
+}
+
+/* Tables ---------------------------------------------------------------- */
+body[data-app-surface='admin'] .admin-data-table,
+body[data-app-surface='admin'] .admin-data-table__toolbar,
+body[data-app-surface='admin'] .admin-data-table__scroll,
+body[data-app-surface='admin'] .admin-data-table__footer {
+  min-width: 0;
+  max-width: 100%;
+}
+
+body[data-app-surface='admin'] .admin-data-table__scroll {
+  width: 100%;
+  overflow: auto;
+  overscroll-behavior-inline: contain;
+  scrollbar-gutter: stable;
+  -webkit-overflow-scrolling: touch;
+}
+
+body[data-app-surface='admin'] .admin-data-table table {
+  display: table !important;
+  width: max(100%, 720px) !important;
+  max-width: none !important;
+  table-layout: auto;
+}
+
+body[data-app-surface='admin'] .admin-data-table :where(th, td) {
+  min-width: 0;
+  vertical-align: top;
+}
+
+body[data-app-surface='admin'] .admin-data-table :where(th, td) :where(
+  a,
+  button,
+  span,
+  strong,
+  small,
+  code
+) {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+body[data-app-surface='admin'] .admin-data-table__footer {
+  flex-wrap: wrap;
+}
+
+/* Access and system states --------------------------------------------- */
+body[data-app-surface='admin'] .admin-access-denied {
+  min-height: min(620px, calc(100dvh - 104px));
+  display: grid;
+  place-items: center;
+  padding: clamp(20px, 5vw, 56px);
+}
+
+body[data-app-surface='admin'] .admin-access-denied__state,
+body[data-app-surface='admin'] .admin-loading-screen,
+body[data-app-surface='admin'] .admin-error-boundary {
+  width: min(100%, 680px);
+  margin-inline: auto;
+}
+
+/* Theme and contrast ---------------------------------------------------- */
+html[data-admin-theme='light'] body[data-app-surface='admin'] .admin-topbar {
+  background: color-mix(in srgb, var(--admin-bg-canvas, #f3f6fb) 92%, transparent);
+}
+
+html[data-admin-contrast='high'] body[data-app-surface='admin'] :where(
+  .admin-ui-card,
+  .admin-ui-metric,
+  .admin-data-table__scroll,
+  .admin-topbar,
+  .admin-drawer
+) {
+  border-color: currentColor !important;
+}
+
+/* Keyboard and pointer acceptance -------------------------------------- */
+body[data-app-surface='admin'] :where(
+  a,
+  button,
+  input,
+  select,
+  textarea,
+  [tabindex]:not([tabindex='-1'])
+):focus-visible {
+  outline: 2px solid var(--brand) !important;
+  outline-offset: 3px !important;
+  box-shadow: var(--admin-pr2-focus-ring) !important;
+}
+
+body[data-app-surface='admin'] :where(button, [role='button'])[disabled],
+body[data-app-surface='admin'] :where(button, [role='button'])[aria-disabled='true'] {
+  cursor: not-allowed;
+}
+
+@media (max-width: 1099px) {
+  body[data-app-surface='admin'] .admin-topbar-status {
+    display: none !important;
+  }
+
+  body[data-app-surface='admin'] .admin-command-trigger span,
+  body[data-app-surface='admin'] .admin-command-trigger kbd {
+    display: none !important;
+  }
+
+  body[data-app-surface='admin'] .admin-command-trigger {
+    width: var(--admin-pr2-touch-target);
+    padding-inline: 0 !important;
+  }
+}
+
+@media (max-width: 760px) {
+  body[data-app-surface='admin'] .admin-topbar {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+  }
+
+  body[data-app-surface='admin'] .admin-topbar-context strong,
+  body[data-app-surface='admin'] .admin-topbar-context span {
+    max-width: min(52vw, 360px);
+  }
+
+  body[data-app-surface='admin'] .admin-topbar-actions {
+    flex-wrap: nowrap;
+  }
+
+  body[data-app-surface='admin'] .admin-environment-badge {
+    display: none !important;
+  }
+
+  body[data-app-surface='admin'] .admin-ui-page__head,
+  body[data-app-surface='admin'] .admin-ui-card__head {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  body[data-app-surface='admin'] .admin-ui-page__actions,
+  body[data-app-surface='admin'] .admin-ui-card__action {
+    justify-content: flex-start;
+    width: 100%;
+  }
+
+  body[data-app-surface='admin'] .admin-data-table__toolbar {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+  }
+
+  body[data-app-surface='admin'] .admin-data-table__toolbar > :first-child {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 430px) {
+  body[data-app-surface='admin'] .admin-ui-metric-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  body[data-app-surface='admin'] .admin-ui-metric {
+    min-height: 120px;
+  }
+
+  body[data-app-surface='admin'] .admin-ui-metric > strong {
+    font-size: clamp(20px, 7vw, 30px) !important;
+  }
+
+  body[data-app-surface='admin'] .admin-language-toggle {
+    display: none !important;
+  }
+
+  body[data-app-surface='admin'] .admin-data-table__toolbar {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  body[data-app-surface='admin'] .admin-data-table__toolbar > * {
+    grid-column: auto !important;
+  }
+}
+
+@media (max-width: 339px) {
+  body[data-app-surface='admin'] .admin-ui-metric-grid {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body[data-app-surface='admin'] .admin-ui-metric,
+  body[data-app-surface='admin'] .admin-data-table__scroll,
+  body[data-app-surface='admin'] .admin-access-denied__state {
+    scroll-behavior: auto !important;
+    transition: none !important;
+    animation: none !important;
+  }
+}
