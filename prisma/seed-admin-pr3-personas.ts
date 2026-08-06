@@ -135,7 +135,7 @@ async function main() {
   const accounts = [];
   for (const persona of PERSONAS) accounts.push(await seedPersona(persona, passwordHash));
 
-  const manifestPath = resolve(process.env.PR3_PERSONA_MANIFEST ?? 'test-results/admin-pr3/personas.json');
+  const manifestPath = resolve(process.env.PR3_PERSONA_MANIFEST ?? 'test-results/admin-pr3-personas.json');
   await mkdir(dirname(manifestPath), { recursive: true });
   await writeFile(
     manifestPath,
