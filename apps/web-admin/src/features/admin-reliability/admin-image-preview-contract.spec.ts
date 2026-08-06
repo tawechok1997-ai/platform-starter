@@ -53,7 +53,7 @@ test('future image-style settings keys cannot silently skip asset preview', () =
     'app/(admin)/settings/seo/page.tsx',
   ].filter((path) => existsSync(join(ROOT, path)));
 
-  const imageKey = /key:\s*['"]([^'"]*(?:image|logo|icon|banner|avatar|thumbnail|favicon|background)[^'"]*)['"][\s\S]{0,320?}/gi;
+  const imageKey = /key:\s*['"]([^'"]*(?:image|logo|icon|banner|avatar|thumbnail|favicon|background)[^'"]*)['"][\s\S]{0,320}/gi;
   const violations: string[] = [];
   for (const path of settingsFiles) {
     const contents = source(path);
