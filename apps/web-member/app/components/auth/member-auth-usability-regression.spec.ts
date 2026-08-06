@@ -54,10 +54,15 @@ test('member login sends the API contract and verifies persisted session tokens'
 });
 
 test('registration phone step does not mount CAPTCHA or block the next button', () => {
-  const phoneStep = registerView.match(/\{step === 1[\s\S]*?\{step === 2/)?.[0] ?? '';
-  const reviewStep = registerView.match(/\{step === 3[\s\S]*?<\/div>\}/)?.[0] ?? '';
-  assert.doesNotMatch(phoneStep, /AntiBotWidget/);
-  assert.match(reviewStep, /AntiBotWidget endpoint="member-register"/);
+  const phoneStepIndex = registerView.indexOf('{step === 1');
+  const detailsStepIndex = registerView.indexOf('{step === 2');
+  const reviewStepIndex = registerView.indexOf('{step === 3');
+  const captchaIndex = registerView.indexOf('<AntiBotWidget endpoint="member-register"');
+  assert.ok(phoneStepIndex >= 0);
+  assert.ok(detailsStepIndex > phoneStepIndex);
+  assert.ok(reviewStepIndex > detailsStepIndex);
+  assert.ok(captchaIndex > reviewStepIndex);
+  assert.equal(registerView.slice(phoneStepIndex, detailsStepIndex).includes('AntiBotWidget'), false);
   assert.match(register, /const disabled = !flags\.registration \|\| maintenanceEnabled \|\| loading/);
   assert.doesNotMatch(register, /disabled = [^\n]*captchaRequired[^\n]*captchaReady/);
 });
