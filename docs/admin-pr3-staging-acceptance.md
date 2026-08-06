@@ -60,7 +60,7 @@ Mutation acceptance ใช้ `dashboard-widget-layout-v1` ซึ่งเป็
 4. PATCH คืนค่า Baseline
 5. อ่านกลับและยืนยัน Restoration
 
-Mutation ทำเฉพาะ Disposable Staging และ Session ถูก Logout หลังจบ Persona ทุกตัว
+Mutation ทำเฉพาะ Disposable Staging และ Session ถูก Logout หลังจบ Personaทุกตัว
 
 ### Accessibility
 
@@ -104,6 +104,10 @@ Bundle gzip budget เดิมจาก Admin Verification ยังคงท�
 - ไม่มี Schema model ใหม่
 - ไม่มีเงินจริง, Wallet, Ledger, Deposit, Withdrawal หรือ Provider transfer mutation
 - Production smoke เดิมยัง Read-only และตรวจ Health/Commit identity แยกจาก Workflow นี้
+
+## CI recovery rerun
+
+หลัง GitHub Actions กลับมา Operational จากเหตุขัดข้องวันที่ 6 สิงหาคม 2026 ให้สร้าง Head ใหม่ที่มีเนื้อหาจริง แล้วรัน Required workflows ใหม่ทั้งหมดบน Head เดียวกัน ห้ามอ้างผล `queued`, `pending`, `cancelled` หรือผลจาก Commit ก่อนหน้าเป็น Acceptance evidence และห้าม Merge จนกว่า Workflow ชุดใหม่จะจบสถานะ `success`
 
 ## Definition of Done
 
