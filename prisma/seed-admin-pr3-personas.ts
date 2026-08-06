@@ -6,7 +6,13 @@ import { dirname, resolve } from 'node:path';
 
 const prisma = new PrismaClient();
 
-const PERSONAS = [
+type PersonaDefinition = {
+  id: 'finance' | 'deposit-withdrawal' | 'marketing' | 'manager' | 'system-admin' | 'multi-role' | 'explicit-deny';
+  roleCodes: readonly string[];
+  denyAll?: boolean;
+};
+
+const PERSONAS: readonly PersonaDefinition[] = [
   { id: 'finance', roleCodes: ['finance'] },
   { id: 'deposit-withdrawal', roleCodes: ['deposit_withdrawal'] },
   { id: 'marketing', roleCodes: ['marketing'] },
@@ -14,7 +20,7 @@ const PERSONAS = [
   { id: 'system-admin', roleCodes: ['system_admin'] },
   { id: 'multi-role', roleCodes: ['finance', 'marketing'] },
   { id: 'explicit-deny', roleCodes: ['system_admin'], denyAll: true },
-] as const;
+];
 
 function required(name: string) {
   const value = process.env[name]?.trim();
@@ -50,11 +56,7 @@ async function ensureWildcardPermission() {
   });
 }
 
-async function seedPersona(
-  persona: (typeof PERSONAS)[number],
-  passwordHash: string,
-  password: string,
-) {
+async function seedPersona(persona: PersonaDefinition, passwordHash: string) {
   const slug = persona.id.replace(/[^a-z0-9]+/g, '-');
   const username = `pr3-${slug}`;
   const email = `${username}@example.test`;
@@ -119,7 +121,6 @@ async function seedPersona(
     persona: persona.id,
     username,
     email,
-    password,
     roleCodes: persona.roleCodes,
     denyAll: persona.denyAll === true,
   };
@@ -132,7 +133,7 @@ async function main() {
   if (password.length < 16) throw new Error('PR3_PERSONA_PASSWORD must contain at least 16 characters');
   const passwordHash = await argon2.hash(password);
   const accounts = [];
-  for (const persona of PERSONAS) accounts.push(await seedPersona(persona, passwordHash, password));
+  for (const persona of PERSONAS) accounts.push(await seedPersona(persona, passwordHash));
 
   const manifestPath = resolve(process.env.PR3_PERSONA_MANIFEST ?? 'test-results/admin-pr3/personas.json');
   await mkdir(dirname(manifestPath), { recursive: true });
