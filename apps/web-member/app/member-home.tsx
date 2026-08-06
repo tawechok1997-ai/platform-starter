@@ -27,6 +27,7 @@ import MobileP7P9ClosureRuntime from './components/mobile-home/mobile-p7-p9-clos
 import MobileScrollComfortGuard from './components/mobile-home/mobile-scroll-comfort-guard';
 import { openMemberSharedPopup } from './components/member-shared-popup-runtime';
 import { useMemberHomeData } from './hooks/use-member-home-data';
+import './components/mobile-home/mobile-hero-carousel.css';
 
 type MemberHomeProps = {
   siteName: string;
