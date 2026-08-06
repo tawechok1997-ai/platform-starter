@@ -23,6 +23,7 @@ import MobileHomeImageRecoveryRuntime from './components/mobile-home/mobile-home
 import MobileHomeMotionRuntime from './components/mobile-home/mobile-home-motion-runtime';
 import MobileHomeRoot from './components/mobile-home/mobile-home-root';
 import MobileMemberMenuSourceBridge from './components/mobile-home/mobile-member-menu-source-bridge';
+import MobileNewsStandaloneNavigation from './components/mobile-home/mobile-news-standalone-navigation';
 import MobileP4P6ClosureRuntime from './components/mobile-home/mobile-p4-p6-closure-runtime';
 import MobileP7P9ClosureRuntime from './components/mobile-home/mobile-p7-p9-closure-runtime';
 import MobilePromotionStandaloneNavigation from './components/mobile-home/mobile-promotion-standalone-navigation';
@@ -82,6 +83,7 @@ export default function MemberHome(props: MemberHomeProps) {
       <>
         <MobileHomeRoot content={props.cmsContent} showPromotion={props.showPromotion} />
         <MobilePromotionStandaloneNavigation />
+        <MobileNewsStandaloneNavigation />
         <MobileCategoryQueryBridge />
         <MobileCanonicalGameLaunchCapture />
         <MobileP4P6ClosureRuntime />
