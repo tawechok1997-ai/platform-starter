@@ -4,7 +4,7 @@ import test from 'node:test';
 
 const home = readFileSync(new URL('../../member-home.tsx', import.meta.url), 'utf8');
 const route = readFileSync(new URL('../../mobile/member/news/page.tsx', import.meta.url), 'utf8');
-const navigation = readFileSync(new URL('./mobile-news-standalone-navigation.tsx', import.meta.url), 'utf8');
+const navigation = readFileSync(new URL('./mobile-member-standalone-navigation.tsx', import.meta.url), 'utf8');
 const newsPage = readFileSync(new URL('./mobile-member-news-live-page.tsx', import.meta.url), 'utf8');
 const newsCss = readFileSync(new URL('./mobile-member-news-page.module.css', import.meta.url), 'utf8');
 const highlight = readFileSync(new URL('./mobile-highlight-tab-content.tsx', import.meta.url), 'utf8');
@@ -22,12 +22,13 @@ test('Home and standalone News consume the same source hook', () => {
   assert.equal((source.match(/export function useMobileNewsSource/g) ?? []).length, 1);
 });
 
-test('the member News button opens the dedicated route', () => {
-  assert.match(home, /import MobileNewsStandaloneNavigation/);
-  assert.match(home, /<MobileNewsStandaloneNavigation \/>/);
-  assert.match(navigation, /data-source-member-menu-item=\\"news\\"/);
-  assert.match(navigation, /window\.location\.assign\(NEWS_ROUTE\)/);
-  assert.match(navigation, /useLayoutEffect/);
+test('one member navigation owner opens the dedicated News route', () => {
+  assert.match(home, /import MobileMemberStandaloneNavigation/);
+  assert.match(home, /<MobileMemberStandaloneNavigation \/>/);
+  assert.doesNotMatch(home, /MobileNewsStandaloneNavigation/);
+  assert.match(navigation, /news: '\/mobile\/member\/news'/);
+  assert.match(navigation, /data-source-member-menu-item/);
+  assert.match(navigation, /router\.push\(route\)/);
 });
 
 test('the shared News source uses live CMS announcements and source empty state geometry', () => {
