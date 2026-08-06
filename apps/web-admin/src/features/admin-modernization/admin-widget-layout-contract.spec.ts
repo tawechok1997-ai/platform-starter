@@ -18,6 +18,13 @@ test('widget headers stack tools before Thai headings collapse vertically', () =
   assert.match(widgetCss, /grid-template-columns:\s*minmax\(0,\s*1fr\)/);
   assert.match(widgetCss, /overflow-wrap:\s*normal/);
   assert.match(widgetCss, /word-break:\s*normal/);
+  assert.match(widgetCss, /\.toolButton\s*\{[\s\S]*min-width:\s*34px\s*!important/);
+});
+
+test('widget body content keeps its natural height instead of stretching grid tracks', () => {
+  assert.match(widgetCss, /grid-auto-rows:\s*max-content/);
+  assert.match(widgetCss, /align-content:\s*start/);
+  assert.match(widgetCss, /align-items:\s*start/);
 });
 
 test('empty and error widgets stay compact instead of stretching the dashboard', () => {
