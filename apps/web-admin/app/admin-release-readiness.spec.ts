@@ -33,6 +33,7 @@ const smartAccordionImport = "import './admin-sidebar-smart-accordion.css'";
 const dataPageImport = "import './admin-data-page-layout.css'";
 const universalFullWidthImport = "import './admin-universal-full-width.css'";
 const contentInsetsImport = "import './admin-content-insets.css'";
+const pr2ClosureImport = "import './admin-pr2-ui-closure.css'";
 
 test('loads Admin presentation authorities in stable override order', () => {
   const controlsIndex = layout.indexOf(controlsImport);
@@ -48,6 +49,7 @@ test('loads Admin presentation authorities in stable override order', () => {
   const dataPageIndex = layout.indexOf(dataPageImport);
   const universalFullWidthIndex = layout.indexOf(universalFullWidthImport);
   const contentInsetsIndex = layout.indexOf(contentInsetsImport);
+  const pr2ClosureIndex = layout.indexOf(pr2ClosureImport);
 
   assert.ok(controlsIndex >= 0);
   assert.ok(shellIndex > controlsIndex);
@@ -62,7 +64,8 @@ test('loads Admin presentation authorities in stable override order', () => {
   assert.ok(dataPageIndex > smartAccordionIndex);
   assert.ok(universalFullWidthIndex > dataPageIndex);
   assert.ok(contentInsetsIndex > universalFullWidthIndex);
-  assert.equal(layout.slice(contentInsetsIndex + contentInsetsImport.length).includes("import './admin-"), false);
+  assert.ok(pr2ClosureIndex > contentInsetsIndex);
+  assert.equal(layout.slice(pr2ClosureIndex + pr2ClosureImport.length).includes("import './admin-"), false);
 });
 
 test('standardizes professional page headers and safe text spacing', () => {
