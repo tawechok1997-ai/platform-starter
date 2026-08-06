@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import AuthFieldRuntime from '../components/auth/auth-field-runtime';
 import '../components/auth/auth.css';
 import '../components/auth/auth-source-login.css';
 import '../components/auth/auth-source-register.css';
@@ -10,7 +11,13 @@ import '../components/auth/auth-popup-polish.css';
 import '../components/auth/auth-register-desktop-field-fix.css';
 import '../components/auth/auth-popup-source-set1-final.css';
 import '../components/auth/auth-popup-original-mobile-final.css';
+import '../components/auth/auth-field-ux-final.css';
 
 export default function MemberAuthLayout({ children }: { children: ReactNode }) {
-  return <div className="auth-reference-scope">{children}</div>;
+  return (
+    <div className="auth-reference-scope">
+      {children}
+      <AuthFieldRuntime />
+    </div>
+  );
 }

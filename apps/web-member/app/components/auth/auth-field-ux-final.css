@@ -1,0 +1,179 @@
+/* Final auth field usability owner.
+ * Source-parity geometry remains in the earlier stylesheets; this file only
+ * restores the information and controls users need to complete the forms.
+ */
+.auth-reference-scope .source-login-card .public-auth-field,
+.auth-reference-scope .source-register-card .public-auth-field {
+  position: relative !important;
+  display: grid !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  gap: 6px !important;
+  overflow: visible !important;
+}
+
+.auth-reference-scope .source-login-card .public-auth-field-label,
+.auth-reference-scope .source-register-card .public-auth-field-label {
+  position: static !important;
+  inset: auto !important;
+  z-index: auto !important;
+  display: block !important;
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 2px !important;
+  overflow: visible !important;
+  opacity: 1 !important;
+  color: #eee9f2 !important;
+  background: transparent !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  line-height: 18px !important;
+  text-overflow: clip !important;
+  white-space: normal !important;
+  transform: none !important;
+  pointer-events: none !important;
+}
+
+.auth-reference-scope .source-login-card .public-auth-field:focus-within .public-auth-field-label,
+.auth-reference-scope .source-register-card .public-auth-field:focus-within .public-auth-field-label,
+.auth-reference-scope .source-login-card .public-auth-field:has(input:not(:placeholder-shown)) .public-auth-field-label,
+.auth-reference-scope .source-register-card .public-auth-field:has(input:not(:placeholder-shown)) .public-auth-field-label,
+.auth-reference-scope .source-login-card .public-auth-field.is-verified .public-auth-field-label,
+.auth-reference-scope .source-register-card .public-auth-field.is-verified .public-auth-field-label {
+  opacity: 1 !important;
+}
+
+.auth-reference-scope .source-login-card .public-auth-input-wrap,
+.auth-reference-scope .source-register-card .public-auth-input-wrap {
+  position: relative !important;
+  display: block !important;
+  width: 100% !important;
+  min-width: 0 !important;
+}
+
+.auth-reference-scope .source-login-card .public-auth-input,
+.auth-reference-scope .source-register-card .public-auth-input {
+  box-sizing: border-box !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  height: 48px !important;
+  min-height: 48px !important;
+  padding: 0 14px !important;
+  color: #fff !important;
+  caret-color: #d65cff !important;
+  background: #15131a !important;
+  border: 1px solid #696371 !important;
+  border-radius: 6px !important;
+  font-size: 14px !important;
+  line-height: 20px !important;
+}
+
+.auth-reference-scope .source-login-card .public-auth-input-wrap > .public-auth-input,
+.auth-reference-scope .source-register-card .public-auth-input-wrap > .public-auth-input,
+.auth-reference-scope .source-register-card .public-auth-field > input[type='password'],
+.auth-reference-scope .source-register-card .public-auth-field > input[data-auth-password-enhanced='true'] {
+  padding-right: 50px !important;
+}
+
+.auth-reference-scope .source-login-card .public-auth-input::placeholder,
+.auth-reference-scope .source-register-card .public-auth-input::placeholder {
+  color: #8f8996 !important;
+  opacity: 1 !important;
+}
+
+.auth-reference-scope .source-login-card .public-auth-input:focus,
+.auth-reference-scope .source-register-card .public-auth-input:focus {
+  border-color: #ba39e7 !important;
+  outline: 2px solid rgb(186 57 231 / 22%) !important;
+  outline-offset: 0 !important;
+  box-shadow: none !important;
+}
+
+.auth-reference-scope .source-login-card .public-auth-eye,
+.auth-reference-scope .source-register-card .public-auth-eye,
+.auth-reference-scope .auth-runtime-password-eye {
+  position: absolute !important;
+  top: 50% !important;
+  right: 6px !important;
+  bottom: auto !important;
+  left: auto !important;
+  z-index: 10 !important;
+  display: grid !important;
+  box-sizing: border-box !important;
+  width: 38px !important;
+  min-width: 38px !important;
+  height: 38px !important;
+  min-height: 38px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  place-items: center !important;
+  border: 0 !important;
+  border-radius: 6px !important;
+  color: #d9d2df !important;
+  background: transparent !important;
+  transform: translateY(-50%) !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  cursor: pointer !important;
+  pointer-events: auto !important;
+}
+
+.auth-reference-scope .source-register-card .public-auth-field > .auth-runtime-password-eye {
+  top: auto !important;
+  bottom: 5px !important;
+  transform: none !important;
+}
+
+.auth-reference-scope :is(.public-auth-eye, .auth-runtime-password-eye):hover,
+.auth-reference-scope :is(.public-auth-eye, .auth-runtime-password-eye):focus-visible {
+  color: #fff !important;
+  background: rgb(255 255 255 / 8%) !important;
+  outline: 2px solid rgb(214 92 255 / 45%) !important;
+  outline-offset: -2px !important;
+}
+
+.auth-reference-scope :is(.public-auth-eye, .auth-runtime-password-eye) svg {
+  display: block !important;
+  width: 20px !important;
+  height: 20px !important;
+  pointer-events: none !important;
+}
+
+.auth-reference-scope .source-register-step {
+  display: grid !important;
+  width: 100% !important;
+  gap: 12px !important;
+}
+
+.auth-reference-scope .source-login-card,
+.auth-reference-scope .source-register-card {
+  scrollbar-gutter: stable !important;
+  -webkit-overflow-scrolling: touch !important;
+}
+
+@media (max-width: 900px) {
+  .auth-reference-scope .source-login-card,
+  .auth-reference-scope .source-register-card {
+    gap: 12px !important;
+    padding: 18px !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+  }
+
+  .auth-reference-scope .source-login-card .public-auth-field-label,
+  .auth-reference-scope .source-register-card .public-auth-field-label {
+    font-size: 11px !important;
+    line-height: 16px !important;
+  }
+
+  .auth-reference-scope .source-login-card .public-auth-input,
+  .auth-reference-scope .source-register-card .public-auth-input {
+    height: 46px !important;
+    min-height: 46px !important;
+    font-size: 14px !important;
+  }
+}
