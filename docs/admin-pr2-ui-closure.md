@@ -1,90 +1,112 @@
-# Admin PR-2 — UI Authority & Interaction Closure
+# Admin Professional UX/UI System Pass
 
 ## เป้าหมาย
 
-ปิดงาน UI/UX รอบสุดท้ายของ Admin หลัง PR-1 Core Reliability โดยทำให้ Dashboard, Shell, Sidebar, Topbar, Access state, Theme และ Table ใช้พฤติกรรม Responsive และ Accessibility ชุดเดียวกัน โดยไม่สร้าง owner ใหม่ทับระบบ Role, Route, Theme, Table หรือ Settings ที่มีอยู่แล้ว
+ยกระดับหน้าฝั่ง Admin ทั้งระบบให้มีลำดับข้อมูล น้ำหนักภาพ ระยะห่าง ขนาด Control และพฤติกรรม Responsive ที่สม่ำเสมอ โดยใช้ Owner เดิม `admin-pr2-ui-closure.css` ซึ่งโหลดเป็น Stylesheet ตัวสุดท้าย แทนการเพิ่ม Patch CSS อีกชั้น
 
-## ขอบเขตที่ปิดใน PR นี้
+งานนี้จำกัดขอบเขตเฉพาะ `apps/web-admin` เท่านั้น ไม่แก้และไม่โหลด Style เข้าฝั่ง Member
 
-### Shell และ Topbar
+## ระบบภาพกลาง
 
-- ทำให้ Shell, Main shell และ Content shell มี `min-width: 0` และไม่สร้าง Horizontal overflow
-- ให้ Content owner รองรับหน้าเต็มความกว้างสูงสุด 1440px
-- ทำให้ Topbar context ตัดข้อความยาวอย่างปลอดภัย
-- ให้ Topbar actions หดและจัดวางได้โดยไม่ชนกัน
-- ลดข้อมูลรองบน Tablet/Mobile โดยยังคง Menu, Search และ Notification actions
-- Touch target หลักไม่ต่ำกว่า 44px
+### Geometry และ spacing
 
-### Dashboard และ Metric
+- กำหนด Control สูงมาตรฐาน 44px และ Compact 38px
+- ใช้ Spacing scale 4, 8, 12, 16, 20, 24 และ 32px
+- ใช้ Radius 8, 12, 16 และ 20px ตามระดับ Component
+- จำกัด Content สูงสุด 1440px โดยทุก Owner มี `min-width: 0`
+- ใช้ Shadow สองระดับสำหรับ Card และ Overlay โดยไม่ให้ทุกส่วนลอยเท่ากัน
 
-- ใช้ Metric grid กลางแบบ Auto-fit บน Desktop
-- Tablet และ Mobile ใช้ Density ที่คงลำดับข้อมูล
-- Mobile 340–430px แสดง Metric 2 คอลัมน์
-- ลดเป็น 1 คอลัมน์เฉพาะจอแคบกว่า 340px
-- ตัวเลขใช้ Tabular numerals และไม่ล้น Card
-- Compact density ลดความสูงโดยไม่ลด Touch target
+### Typography
 
-### Table และ Data pages
+- ลดหัวหน้า Admin ที่ใหญ่และหนักเกินไปให้ใช้ Scale เดียวกัน
+- แยกน้ำหนัก Page title, Card title, Label, Description และ Numeric metric
+- ตัวเลขใช้ Tabular numerals
+- ข้อความยาวใช้ Ellipsis หรือ Wrap ตามชนิดข้อมูล ไม่ดัน Layout
 
-- Table scroll อยู่ใน `.admin-data-table__scroll` เท่านั้น
-- Page ไม่รับ Horizontal overflow จากตาราง
-- Table กลับเป็น Table layout จริง ไม่ถูก Global rule เปลี่ยนเป็น Block
-- Toolbar และ Footer Wrap ได้บน Tablet/Mobile
-- ข้อความ, Code และ Action ใน Cell ตัดบรรทัดอย่างปลอดภัย
-- รองรับ Touch scrolling และ Stable scrollbar gutter
+## Shell, Sidebar และ Topbar
 
-### Access, Theme และ Accessibility
+- Shell และ Content ไม่มี Horizontal overflow
+- Topbar สูงและ Padding คงที่ พร้อม Context ที่ตัดข้อความยาวได้
+- Topbar actions ไม่ชนกันบน Laptop และ Tablet
+- Sidebar item ใช้ความสูง ไอคอน Gap และ Active indicator ชุดเดียวกัน
+- Sidebar Navigation และ Footer แยก Scroll owner ชัดเจน
+- Mobile ซ่อนข้อมูลรอง แต่คง Menu, Command และ Notification actions
 
-- Access denied state อยู่กึ่งกลางและมีพื้นที่อ่านเพียงพอทุก Viewport
-- Light theme ใช้ Topbar surface ตาม Canvas owner
-- High contrast บังคับ Border ที่มองเห็นได้บน Surface สำคัญ
+## Page hierarchy
+
+- Page header ใช้ Surface เดียวกับระบบ ไม่ใช้ Glow ขนาดใหญ่ที่แย่งสายตา
+- Page title, Description และ Actions จัดสมดุลแบบสองคอลัมน์บน Desktop
+- Tablet/Mobile เปลี่ยนเป็นหนึ่งคอลัมน์และ Action อยู่ใต้เนื้อหา
+- Legacy page title ได้ Scale เดียวกับ `AdminPage`
+
+## Card, Metric และ Chart
+
+- Card ใช้ Border, Radius, Padding และ Shadow มาตรฐานเดียวกัน
+- Card header แยก Copy กับ Action อย่างชัดเจน
+- Metric grid ใช้ Auto-fit บน Desktop
+- Mobile 340–560px คง 2 คอลัมน์ และลดเป็น 1 คอลัมน์เมื่อแคบกว่า 340px
+- Metric number ลดขนาดตาม Viewport โดยไม่ล้น Card
+- Chart, SVG และ Canvas ถูกจำกัดภายใน Owner ของตน
+
+## Form และ Control
+
+- Button ใช้ความสูง Padding Radius และ Font weight ชุดเดียวกัน
+- Primary, Secondary, Ghost และ Danger มี Visual hierarchy ต่างกัน
+- Input, Select และ Textarea ใช้ Border, Surface, Focus และ Error state ชุดเดียวกัน
+- Label, Help text และ Error text ใช้ Scale สม่ำเสมอ
+- Form grid สองคอลัมน์บน Desktop และหนึ่งคอลัมน์บน Mobile
+- Form actions Wrap และขยายตามพื้นที่ได้
+- Disabled control มี Cursor, Opacity และ Motion ที่ถูกต้อง
+
+## Table และ Data pages
+
+- Toolbar ใช้ Search owner แบบยืดได้และ Action ขนาดคงที่
+- Tablet เปลี่ยน Toolbar เป็นสองคอลัมน์ และ Mobile เป็นหนึ่งคอลัมน์
+- Horizontal scroll อยู่ใน Table owner เท่านั้น
+- Header Sticky มี Surface และ Contrast ที่อ่านง่าย
+- Cell spacing, Numeric alignment, Row hover และ Footer ใช้ชุดเดียวกัน
+- Footer และ Pagination Wrap ได้โดยไม่ดัน Page กว้างเกิน Viewport
+
+## System states และ Overlay
+
+- Notice, Empty, Loading, Error และ Access denied ใช้ Alignment และพื้นที่ว่างชุดเดียวกัน
+- Empty state มีความสูงขั้นต่ำและข้อความอยู่กึ่งกลาง ไม่ดูเหมือน Component หาย
+- Confirm dialog, Command dialog, Notification, Profile และ Appearance panel ไม่เกิน Viewport
+- Overlay รองรับ Scroll ภายใน, Overscroll containment และ Mobile bottom alignment
+
+## Theme และ Accessibility
+
+- Dark และ Light theme ใช้ Surface กับ Shadow ตาม Theme owner
+- High contrast เพิ่ม Border ที่มองเห็นได้บน Surface สำคัญ
 - Focus visible ใช้ Ring กลางกับ Link, Button, Form control และ Tab target
-- Disabled control ใช้ Cursor และ State ที่ชัดเจน
-- Reduced motion ปิด Animation/Transition ใน Surface ที่เพิ่มใน PR นี้
+- Touch target สำคัญไม่น้อยกว่า 44px
+- Reduced motion ปิด Transition และ Animation ของ Admin ทั้งระบบ
 
-### Route และ Interaction inventory
+## Regression contracts
 
-- กวาด Route ภายใต้ `app/(admin)` ทั้งหมด
-- บังคับ Critical routes: Dashboard, Operations, Access, Accounts, Roles, Finance queues, Risk, Support, Settings, Theme และ Security
-- กวาด Button, Link และ Shared Admin action primitives
-- ห้าม Placeholder link `href="#"`
-- ห้าม `javascript:` URL
-- ล็อก Import order ให้ PR-2 authority เป็น Stylesheet ตัวสุดท้าย
-
-## Owner ที่ใช้ต่อจาก `main`
-
-- Route registry และ Direct-route permission guard
-- Workspace-aware Sidebar, Favorites, Recent และ Command Palette
-- Admin Appearance runtime: Theme, Density, Contrast และ Motion
-- Shared Admin Metric, Table, Drawer, Confirm dialog และ Empty state
-- Role, Team, Explicit DENY, Scope และ Approval limits จาก Admin Redesign P2 เดิม
-- Browser Matrix, Visual Regression และ Full-System workflows
+- `admin-pr2-ui-closure.css` ต้องเป็น Stylesheet ตัวสุดท้าย
+- Selector ทั้งหมดต้อง Scope ด้วย `body[data-app-surface='admin']` สำหรับ Runtime surface
+- ห้ามมี Selector `member-`, `data-member-` หรือ `#member-`
+- ล็อก Shell, Sidebar, Topbar, Page, Card, Metric, Form, Table, State และ Dialog contracts
+- ล็อก Responsive breakpoints 1099, 760, 560, 430 และ 339px
+- กวาด Critical routes และ Interaction inventory
+- ห้าม `href="#"` และ `javascript:` URL
 
 ## Safety boundary
 
 - ไม่เปลี่ยน API, Prisma schema หรือ Migration
-- ไม่เปลี่ยน Permission code หรือ RBAC resolution
+- ไม่เปลี่ยน Permission/RBAC
 - ไม่เปลี่ยน Wallet, Ledger, Deposit, Withdrawal หรือ Provider mutation
-- ไม่เปลี่ยน Settings data keys หรือ CMS payload
-- ไม่เพิ่ม Runtime state owner ใหม่
-- เป็น CSS authority, interaction inventory และ regression contracts เท่านั้น
+- ไม่เปลี่ยน Settings keys หรือ CMS payload
+- ไม่เพิ่ม Runtime state owner
+- ไม่แตะ `apps/web-member`
 
 ## Definition of Done
 
-- Admin tests, Typecheck และ Build ผ่าน
-- Required repository workflows ผ่านบน Head เดียวกัน
-- Browser Matrix ไม่พบ Horizontal overflow
-- Dashboard Metrics ใช้ 2 คอลัมน์บน Mobile 340–430px
-- Topbar, Sidebar, Access state และ Data table ใช้งานได้บน Desktop, Tablet และ Mobile
-- Light, Dark, High contrast และ Reduced motion contracts ผ่าน
-- Route/Interaction inventory ครบ Critical routes
-- ไม่มี Placeholder action หรือ Unsafe URL
+- Admin source-contract tests ผ่าน
+- Typecheck และ Production build ผ่าน
+- ไม่มี Horizontal overflow ที่ Shell หรือ Page level
+- Dashboard, Form, Table, Settings และ System state สมดุลบน 360, 390, 430, 768, 1024, 1366, 1440 และ 1920px
+- Light, Dark, High contrast และ Reduced motion ใช้งานได้
+- Keyboard focus และ Touch target ผ่าน
 - PR mergeable และไม่มี Review thread ค้าง
-
-## งานที่ส่งต่อ PR-3
-
-- Authenticated Mutation tests บน Staging
-- Persona/RBAC matrix รอบเต็มด้วยบัญชีจริง
-- Production deployment identity
-- Performance acceptance จาก Deployed bundle/runtime
-- Accessibility acceptance ด้วย Authenticated routes และข้อมูลจริง
