@@ -5,6 +5,8 @@ import test from 'node:test';
 const layout = readFileSync(new URL('../../(auth)/layout.tsx', import.meta.url), 'utf8');
 const login = readFileSync(new URL('../../(auth)/login/page.tsx', import.meta.url), 'utf8');
 const register = readFileSync(new URL('../../(auth)/register/page.tsx', import.meta.url), 'utf8');
+const registerView = readFileSync(new URL('../../../src/features/auth/register-view.tsx', import.meta.url), 'utf8');
+const antiBot = readFileSync(new URL('../../(auth)/anti-bot-widget.tsx', import.meta.url), 'utf8');
 const runtime = readFileSync(new URL('./auth-field-runtime.tsx', import.meta.url), 'utf8');
 const css = readFileSync(new URL('./auth-field-ux-final.css', import.meta.url), 'utf8');
 const desktopCss = readFileSync(new URL('./auth-popup-reference-desktop-final.css', import.meta.url), 'utf8');
@@ -31,12 +33,16 @@ test('login and registration fields keep visible labels and usable password cont
   assert.match(runtime, /MutationObserver/);
 });
 
-test('desktop embedded Auth matches the source two-column modal geometry', () => {
+test('desktop embedded Auth matches the source geometry and remains usable on short screens', () => {
   assert.match(desktopCss, /width:\s*min\(1060px,\s*calc\(100vw - 40px\)\)/);
   assert.match(desktopCss, /grid-template-columns:\s*minmax\(0,\s*588px\)\s+minmax\(360px,\s*1fr\)/);
-  assert.match(desktopCss, /height:\s*min\(620px,\s*calc\(100dvh - 32px\)\)/);
+  assert.match(desktopCss, /min-height:\s*min\(560px,\s*calc\(100dvh - 32px\)\)/);
+  assert.match(desktopCss, /overflow-y:\s*auto\s*!important/);
+  assert.match(desktopCss, /position:\s*absolute\s*!important/);
+  assert.match(desktopCss, /@media \(min-width: 901px\) and \(max-height: 620px\)/);
   assert.match(desktopCss, /source-login-tabs a\[aria-current='page'\]/);
   assert.match(desktopCss, /clip-path:\s*polygon/);
+  assert.doesNotMatch(desktopCss, /public-auth-close[\s\S]{0,220}position:\s*fixed/);
 });
 
 test('member login sends the API contract and verifies persisted session tokens', () => {
@@ -47,9 +53,28 @@ test('member login sends the API contract and verifies persisted session tokens'
   assert.match(login, /hasMemberSessionTokens\(\)/);
 });
 
-test('registration steps remain clickable and release local blockers after transitions and errors', () => {
+test('registration phone step does not mount CAPTCHA or block the next button', () => {
+  const phoneStepIndex = registerView.indexOf('{step === 1');
+  const detailsStepIndex = registerView.indexOf('{step === 2');
+  const reviewStepIndex = registerView.indexOf('{step === 3');
+  const captchaIndex = registerView.indexOf('<AntiBotWidget endpoint="member-register"');
+  assert.ok(phoneStepIndex >= 0);
+  assert.ok(detailsStepIndex > phoneStepIndex);
+  assert.ok(reviewStepIndex > detailsStepIndex);
+  assert.ok(captchaIndex > reviewStepIndex);
+  assert.equal(registerView.slice(phoneStepIndex, detailsStepIndex).includes('AntiBotWidget'), false);
   assert.match(register, /const disabled = !flags\.registration \|\| maintenanceEnabled \|\| loading/);
   assert.doesNotMatch(register, /disabled = [^\n]*captchaRequired[^\n]*captchaReady/);
+});
+
+test('CAPTCHA provider failures warn without freezing Login or Register', () => {
+  assert.match(antiBot, /warnWithoutFreezing/);
+  assert.match(antiBot, /onRequiredChange\(false, true\)/);
+  assert.match(antiBot, /The API remains authoritative/);
+  assert.doesNotMatch(antiBot, /const block =/);
+});
+
+test('registration transitions and request completion release local blockers', () => {
   assert.match(register, /function goNext\(\)/);
   assert.match(register, /setStep\(nextStep\)/);
   assert.match(register, /releaseLocalInteractionLock\(\)/);

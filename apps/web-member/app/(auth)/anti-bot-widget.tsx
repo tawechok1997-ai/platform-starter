@@ -41,9 +41,11 @@ export function AntiBotWidget({ endpoint, locale, resetKey, onToken, onRequiredC
         const ready = !payload.enabled || Boolean(payload.provider && payload.siteKey);
         onRequiredChange(Boolean(payload.enabled), ready);
         if (payload.enabled && !ready) {
+          setNonBlockingWarning(true);
           setError(locale === 'th'
-            ? 'ระบบยืนยันความปลอดภัยยังตั้งค่าไม่ครบ'
-            : 'Security verification is not configured correctly');
+            ? 'ระบบยืนยันความปลอดภัยยังตั้งค่าไม่ครบ ระบบจะตรวจอีกครั้งตอนส่งข้อมูล'
+            : 'Security verification is not configured correctly. It will be checked again on submit.');
+          onRequiredChange(false, true);
         }
       })
       .catch(() => {
@@ -69,11 +71,13 @@ export function AntiBotWidget({ endpoint, locale, resetKey, onToken, onRequiredC
     const scriptId = `anti-bot-${provider.toLowerCase()}`;
     let script = document.getElementById(scriptId) as HTMLScriptElement | null;
 
-    const block = (message: string) => {
+    const warnWithoutFreezing = (message: string) => {
       onToken('');
-      setNonBlockingWarning(false);
+      setNonBlockingWarning(true);
       setError(message);
-      onRequiredChange(true, false);
+      // Browser extensions, CSP rules, or a temporary provider outage must not
+      // leave Login/Register disabled forever. The API remains authoritative.
+      onRequiredChange(false, true);
     };
 
     const render = () => {
@@ -91,18 +95,19 @@ export function AntiBotWidget({ endpoint, locale, resetKey, onToken, onRequiredC
           theme: 'dark',
           callback: (token: string) => {
             setError('');
+            setNonBlockingWarning(false);
             onToken(token);
             onRequiredChange(true, true);
           },
           'expired-callback': () => onToken(''),
-          'error-callback': () => block(locale === 'th'
-            ? 'การยืนยันมีปัญหา กรุณาลองใหม่'
-            : 'Verification failed. Please try again'),
+          'error-callback': () => warnWithoutFreezing(locale === 'th'
+            ? 'การยืนยันมีปัญหา ระบบจะตรวจอีกครั้งตอนส่งข้อมูล'
+            : 'Verification failed. It will be checked again on submit.'),
         });
       } catch {
-        block(locale === 'th'
-          ? 'เปิดระบบยืนยันความปลอดภัยไม่สำเร็จ'
-          : 'Could not start security verification');
+        warnWithoutFreezing(locale === 'th'
+          ? 'เปิดระบบยืนยันความปลอดภัยไม่สำเร็จ ระบบจะตรวจอีกครั้งตอนส่งข้อมูล'
+          : 'Could not start security verification. It will be checked again on submit.');
       }
     };
 
@@ -113,9 +118,9 @@ export function AntiBotWidget({ endpoint, locale, resetKey, onToken, onRequiredC
       script.async = true;
       script.defer = true;
       script.onload = render;
-      script.onerror = () => block(locale === 'th'
-        ? 'โหลดผู้ให้บริการ CAPTCHA ไม่สำเร็จ'
-        : 'Could not load the CAPTCHA provider');
+      script.onerror = () => warnWithoutFreezing(locale === 'th'
+        ? 'โหลดผู้ให้บริการ CAPTCHA ไม่สำเร็จ ระบบจะตรวจอีกครั้งตอนส่งข้อมูล'
+        : 'Could not load the CAPTCHA provider. It will be checked again on submit.');
       document.head.appendChild(script);
     } else if (provider === 'RECAPTCHA' && (window as any).grecaptcha?.ready) {
       (window as any).grecaptcha.ready(render);

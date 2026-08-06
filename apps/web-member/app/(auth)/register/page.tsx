@@ -175,11 +175,6 @@ export default function MemberRegisterPage() {
 
   function goNext() {
     if (loading || !validateStep(step)) return;
-    if (step === 1 && captchaRequired && (!captchaReady || !captchaToken)) {
-      setStatus('error');
-      setMessage(t.captchaRequired);
-      return;
-    }
     const nextStep = Math.min(3, step + 1) as RegisterStep;
     setStep(nextStep);
     window.requestAnimationFrame(() => {
@@ -335,17 +330,38 @@ function releaseLocalInteractionLock() {
 }
 
 function safeStorageGet(key: string) {
-  try { return window.localStorage.getItem(key) ?? window.sessionStorage.getItem(key); } catch { return null; }
+  try {
+    return window.localStorage.getItem(key) ?? window.sessionStorage.getItem(key);
+  } catch {
+    return null;
+  }
 }
 
 function safeStorageSet(key: string, value: string) {
-  try { window.localStorage.setItem(key, value); return; } catch {}
-  try { window.sessionStorage.setItem(key, value); } catch {}
+  try {
+    window.localStorage.setItem(key, value);
+    return;
+  } catch {
+    // Privacy or embedded browser settings may block localStorage.
+  }
+  try {
+    window.sessionStorage.setItem(key, value);
+  } catch {
+    // The form remains usable even when both browser storage areas are blocked.
+  }
 }
 
 function safeStorageRemove(key: string) {
-  try { window.localStorage.removeItem(key); } catch {}
-  try { window.sessionStorage.removeItem(key); } catch {}
+  try {
+    window.localStorage.removeItem(key);
+  } catch {
+    // Ignore unavailable localStorage during optional referral cleanup.
+  }
+  try {
+    window.sessionStorage.removeItem(key);
+  } catch {
+    // Ignore unavailable sessionStorage during optional referral cleanup.
+  }
 }
 
 function normalizeReferralCode(value: string) {

@@ -27,11 +27,12 @@
   #mobile-home-drawer {
     display: flex !important;
     box-sizing: border-box !important;
-    width: min(246px, calc(100vw - 24px)) !important;
-    max-width: 246px !important;
-    height: min(100dvh, 620px) !important;
+    width: min(80vw, 280px) !important;
+    min-width: min(224px, 80vw) !important;
+    max-width: 280px !important;
+    height: 100dvh !important;
     max-height: 100dvh !important;
-    padding: 10px 10px max(10px, env(safe-area-inset-bottom)) !important;
+    padding: max(8px, env(safe-area-inset-top)) 10px max(10px, env(safe-area-inset-bottom)) !important;
     flex-direction: column !important;
     overflow: hidden !important;
     overscroll-behavior: none !important;
@@ -84,15 +85,15 @@
   #mobile-home-drawer > nav:first-of-type {
     display: grid !important;
     box-sizing: border-box !important;
-    padding: 6px 7px !important;
-    gap: 2px !important;
+    padding: clamp(4px, 0.9dvh, 7px) 7px !important;
+    gap: clamp(0px, 0.25dvh, 2px) !important;
     flex: 0 0 auto !important;
     border-radius: 8px !important;
     background: linear-gradient(180deg, rgb(57 24 74 / 96%), rgb(42 20 55 / 96%)) !important;
   }
 
   #mobile-home-drawer > nav:first-of-type > a {
-    min-height: clamp(30px, 4.8dvh, 34px) !important;
+    min-height: clamp(27px, 4.7dvh, 34px) !important;
     padding-inline: 2px !important;
     grid-template-columns: 24px minmax(0, 1fr) 18px !important;
     gap: 7px !important;
@@ -105,8 +106,12 @@
   }
 
   #mobile-home-drawer > nav:first-of-type strong {
+    min-width: 0 !important;
+    overflow: hidden !important;
     font-size: clamp(10px, 2.65vw, 11px) !important;
     line-height: 1.2 !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
   }
 
   #mobile-home-drawer > nav:first-of-type > a > span:last-child {
@@ -117,10 +122,10 @@
   #mobile-home-drawer > nav:nth-of-type(2) {
     display: grid !important;
     box-sizing: border-box !important;
-    margin-top: 9px !important;
-    padding: 9px 7px 8px !important;
+    margin-top: clamp(5px, 1.2dvh, 9px) !important;
+    padding: clamp(5px, 1.2dvh, 9px) 7px clamp(5px, 1dvh, 8px) !important;
     grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
-    gap: 8px 5px !important;
+    gap: clamp(3px, 0.8dvh, 8px) 5px !important;
     flex: 0 0 auto !important;
     border-radius: 8px !important;
     background: linear-gradient(180deg, rgb(48 23 61 / 98%), rgb(39 19 50 / 98%)) !important;
@@ -128,7 +133,7 @@
 
   #mobile-home-drawer > nav:nth-of-type(2) > a,
   #mobile-home-drawer > nav:nth-of-type(2) > button {
-    min-height: 39px !important;
+    min-height: clamp(32px, 5.4dvh, 39px) !important;
     padding: 0 !important;
     justify-content: center !important;
     gap: 3px !important;
@@ -147,67 +152,81 @@
 
   #mobile-home-drawer > nav:nth-of-type(2) strong {
     max-width: 100% !important;
+    overflow: hidden !important;
     font-size: clamp(8px, 2.2vw, 9px) !important;
     line-height: 1.15 !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
   }
 
   #mobile-home-drawer > div:last-child {
     display: grid !important;
     box-sizing: border-box !important;
-    margin-top: 10px !important;
+    margin-top: clamp(5px, 1.25dvh, 10px) !important;
     padding: 5px !important;
-    gap: 6px !important;
+    gap: clamp(4px, 0.8dvh, 6px) !important;
     flex: 0 0 auto !important;
     border-radius: 7px !important;
     background: rgb(37 18 47 / 92%) !important;
   }
 
   #mobile-home-drawer > div:last-child > a {
-    min-height: 30px !important;
+    min-height: clamp(28px, 4.4dvh, 32px) !important;
     border-radius: 6px !important;
     font-size: 11px !important;
     line-height: 15px !important;
   }
 }
 
-@media (max-width: 900px) and (max-height: 620px) {
+@media (max-width: 900px) and (max-height: 540px) {
   #mobile-home-drawer {
-    padding-top: 6px !important;
-    padding-bottom: 6px !important;
-  }
-
-  #mobile-home-drawer > div:nth-child(2) {
-    min-height: 32px !important;
+    padding-top: 4px !important;
     padding-bottom: 4px !important;
   }
 
-  #mobile-home-drawer > nav:first-of-type {
-    padding-block: 4px !important;
-    gap: 0 !important;
+  #mobile-home-drawer > div:nth-child(2) {
+    min-height: 30px !important;
+    padding-bottom: 2px !important;
+  }
+
+  #mobile-home-drawer > div:nth-child(2) > img {
+    height: 20px !important;
   }
 
   #mobile-home-drawer > nav:first-of-type > a {
-    min-height: 27px !important;
+    min-height: 25px !important;
+  }
+
+  #mobile-home-drawer > nav:first-of-type > a > span:first-child {
+    width: 20px !important;
+    height: 20px !important;
   }
 
   #mobile-home-drawer > nav:nth-of-type(2) {
-    margin-top: 5px !important;
-    padding-block: 5px !important;
-    gap: 3px 5px !important;
+    margin-top: 3px !important;
+    padding-block: 3px !important;
+    gap: 2px 5px !important;
   }
 
   #mobile-home-drawer > nav:nth-of-type(2) > a,
   #mobile-home-drawer > nav:nth-of-type(2) > button {
-    min-height: 33px !important;
+    min-height: 29px !important;
   }
 
   #mobile-home-drawer > div:last-child {
-    margin-top: 5px !important;
-    padding: 4px !important;
-    gap: 4px !important;
+    margin-top: 3px !important;
+    padding: 3px !important;
+    gap: 3px !important;
   }
 
   #mobile-home-drawer > div:last-child > a {
-    min-height: 28px !important;
+    min-height: 26px !important;
+  }
+}
+
+@media (max-width: 319px) {
+  #mobile-home-drawer {
+    width: calc(100vw - 12px) !important;
+    min-width: 0 !important;
   }
 }

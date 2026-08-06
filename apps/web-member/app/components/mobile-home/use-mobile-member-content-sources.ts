@@ -27,97 +27,98 @@ export type MobileActivitySourceItem = {
   disabledLabel?: string;
 };
 
+type PromotionSnapshot = {
+  payload: unknown;
+  status: MobileContentStatus;
+  error: string;
+  updatedAt: number;
+};
+
+type ActivitySnapshot = {
+  items: MobileActivitySourceItem[];
+  status: MobileContentStatus;
+  error: string;
+  updatedAt: number;
+};
+
+const CONTENT_CACHE_TTL_MS = 60_000;
+const EMPTY_PROMOTION_SNAPSHOT: PromotionSnapshot = {
+  payload: null,
+  status: 'loading',
+  error: '',
+  updatedAt: 0,
+};
+const EMPTY_ACTIVITY_SNAPSHOT: ActivitySnapshot = {
+  items: [],
+  status: 'loading',
+  error: '',
+  updatedAt: 0,
+};
+
+let promotionSnapshot: PromotionSnapshot | null = null;
+let promotionRequest: Promise<PromotionSnapshot> | null = null;
+let activitySnapshot: ActivitySnapshot | null = null;
+let activityRequest: Promise<ActivitySnapshot> | null = null;
+
 export function useMobilePromotionsSource() {
-  const [payload, setPayload] = useState<unknown>(null);
-  const [status, setStatus] = useState<MobileContentStatus>('loading');
-  const [error, setError] = useState('');
+  const [snapshot, setSnapshot] = useState<PromotionSnapshot>(() => promotionSnapshot ?? EMPTY_PROMOTION_SNAPSHOT);
 
   useEffect(() => {
-    const controller = new AbortController();
-    setStatus('loading');
-    setError('');
-
-    void Promise.allSettled([
-      loadJson('/public/promotions', controller.signal),
-      loadJson('/public/site-settings', controller.signal),
-    ]).then(([promotionsResult, settingsResult]) => {
-      if (controller.signal.aborted) return;
-      const promotionsPayload = promotionsResult.status === 'fulfilled' ? asRecord(promotionsResult.value) : {};
-      const settingsPayload = settingsResult.status === 'fulfilled' ? asRecord(settingsResult.value) : {};
-      const settingsFeatures = asRecord(settingsPayload.features);
-      const liveItems = asArray(promotionsPayload.items).map(mapPublicPromotion);
-      const cmsCampaigns = firstArray(settingsFeatures.promotion_campaigns, settingsFeatures.promotionCampaigns).map(asRecord);
-      const campaigns = dedupeCampaigns([...liveItems, ...cmsCampaigns]);
-
-      setPayload({
-        ...settingsPayload,
-        features: {
-          ...settingsFeatures,
-          promotion_campaigns: campaigns,
-          promotionCampaigns: campaigns,
-        },
-        promotionSource: {
-          publicPromotions: liveItems.length,
-          siteSettings: cmsCampaigns.length,
-          rendered: campaigns.length,
-        },
-      });
-      if (promotionsResult.status === 'rejected' && settingsResult.status === 'rejected') {
-        setError('โหลดโปรโมชั่นไม่สำเร็จ');
-        setStatus('error');
-      } else {
-        setStatus('ready');
-      }
-    }).catch((reason) => {
-      if (controller.signal.aborted) return;
-      setPayload({ features: { promotion_campaigns: [], promotionCampaigns: [] } });
-      setError(reason instanceof Error ? reason.message : 'โหลดโปรโมชั่นไม่สำเร็จ');
-      setStatus('error');
+    let active = true;
+    void resolvePromotionSnapshot().then((next) => {
+      if (active) setSnapshot(next);
     });
-
-    return () => controller.abort();
+    return () => { active = false; };
   }, []);
 
-  const items = useMemo(() => promotionSummaryItems(payload), [payload]);
-  return { payload, items, status, loading: status === 'loading', error };
+  const items = useMemo(() => promotionSummaryItems(snapshot.payload), [snapshot.payload]);
+  const refresh = () => resolvePromotionSnapshot(true).then((next) => {
+    setSnapshot(next);
+    return next;
+  });
+
+  return {
+    payload: snapshot.payload,
+    items,
+    status: snapshot.status,
+    loading: snapshot.status === 'loading',
+    error: snapshot.error,
+    refresh,
+  };
 }
 
 export function useMobileActivitiesSource() {
-  const [items, setItems] = useState<MobileActivitySourceItem[]>([]);
-  const [status, setStatus] = useState<MobileContentStatus>('loading');
-  const [error, setError] = useState('');
+  const [snapshot, setSnapshot] = useState<ActivitySnapshot>(() => activitySnapshot ?? EMPTY_ACTIVITY_SNAPSHOT);
 
   useEffect(() => {
-    const controller = new AbortController();
-    setStatus('loading');
-    setError('');
-
-    void loadJson('/public/activities', controller.signal)
-      .then((payload) => {
-        if (controller.signal.aborted) return;
-        setItems(extractActivities(payload));
-        setStatus('ready');
-      })
-      .catch((reason) => {
-        if (controller.signal.aborted) return;
-        setItems([]);
-        setError(reason instanceof Error ? reason.message : 'โหลดกิจกรรมไม่สำเร็จ');
-        setStatus('error');
-      });
-
-    return () => controller.abort();
+    let active = true;
+    void resolveActivitySnapshot().then((next) => {
+      if (active) setSnapshot(next);
+    });
+    return () => { active = false; };
   }, []);
 
-  const summaries = useMemo<MobileMemberContentItem[]>(() => items.map((item) => ({
+  const summaries = useMemo<MobileMemberContentItem[]>(() => snapshot.items.map((item) => ({
     id: item.id,
     title: item.title,
     summary: item.disabledLabel ?? '',
     image: item.image,
-    href: item.href ?? '/mobile/member/activity',
+    href: item.disabled === true || !item.href ? '/mobile/member/activity' : item.href,
     ...(item.date ? { endsAt: item.date } : {}),
-  })), [items]);
+  })), [snapshot.items]);
+  const refresh = () => resolveActivitySnapshot(true).then((next) => {
+    setSnapshot(next);
+    return next;
+  });
 
-  return { items, summaries, status, loading: status === 'loading', error };
+  return {
+    items: snapshot.items,
+    summaries,
+    status: snapshot.status,
+    loading: snapshot.status === 'loading',
+    error: snapshot.error,
+    refresh,
+  };
 }
 
 export function useMobileNewsSource() {
@@ -142,12 +143,92 @@ export function useMobileNewsSource() {
   return { items, status: ready ? 'ready' as const : 'loading' as const, loading: !ready, error: '' };
 }
 
-async function loadJson(path: string, signal: AbortSignal) {
+async function resolvePromotionSnapshot(force = false) {
+  if (!force && isFresh(promotionSnapshot)) return promotionSnapshot;
+  if (!force && promotionRequest) return promotionRequest;
+
+  promotionRequest = loadPromotionSnapshot().finally(() => {
+    promotionRequest = null;
+  });
+  const next = await promotionRequest;
+  promotionSnapshot = next;
+  return next;
+}
+
+async function loadPromotionSnapshot(): Promise<PromotionSnapshot> {
+  const [promotionsResult, settingsResult] = await Promise.allSettled([
+    loadJson('/public/promotions'),
+    loadJson('/public/site-settings'),
+  ]);
+  const promotionsPayload = promotionsResult.status === 'fulfilled' ? asRecord(promotionsResult.value) : {};
+  const settingsPayload = settingsResult.status === 'fulfilled' ? asRecord(settingsResult.value) : {};
+  const settingsFeatures = asRecord(settingsPayload.features);
+  const liveItems = asArray(promotionsPayload.items).map(mapPublicPromotion);
+  const cmsCampaigns = firstArray(settingsFeatures.promotion_campaigns, settingsFeatures.promotionCampaigns).map(asRecord);
+  const campaigns = dedupeCampaigns([...liveItems, ...cmsCampaigns]);
+  const bothFailed = promotionsResult.status === 'rejected' && settingsResult.status === 'rejected';
+
+  return {
+    payload: {
+      ...settingsPayload,
+      features: {
+        ...settingsFeatures,
+        promotion_campaigns: campaigns,
+        promotionCampaigns: campaigns,
+      },
+      promotionSource: {
+        publicPromotions: liveItems.length,
+        siteSettings: cmsCampaigns.length,
+        rendered: campaigns.length,
+      },
+    },
+    status: bothFailed ? 'error' : 'ready',
+    error: bothFailed ? 'โหลดโปรโมชั่นไม่สำเร็จ' : '',
+    updatedAt: Date.now(),
+  };
+}
+
+async function resolveActivitySnapshot(force = false) {
+  if (!force && isFresh(activitySnapshot)) return activitySnapshot;
+  if (!force && activityRequest) return activityRequest;
+
+  activityRequest = loadActivitySnapshot().finally(() => {
+    activityRequest = null;
+  });
+  const next = await activityRequest;
+  activitySnapshot = next;
+  return next;
+}
+
+async function loadActivitySnapshot(): Promise<ActivitySnapshot> {
+  try {
+    const payload = await loadJson('/public/activities');
+    return {
+      items: extractActivities(payload),
+      status: 'ready',
+      error: '',
+      updatedAt: Date.now(),
+    };
+  } catch (reason) {
+    return {
+      items: [],
+      status: 'error',
+      error: reason instanceof Error ? reason.message : 'โหลดกิจกรรมไม่สำเร็จ',
+      updatedAt: Date.now(),
+    };
+  }
+}
+
+function isFresh<T extends { updatedAt: number }>(snapshot: T | null): snapshot is T {
+  return Boolean(snapshot && Date.now() - snapshot.updatedAt < CONTENT_CACHE_TTL_MS);
+}
+
+async function loadJson(path: string, signal?: AbortSignal) {
   const response = await memberApiFetch(path, {
     cache: 'no-store',
     credentials: 'omit',
     headers: { accept: 'application/json' },
-    signal,
+    ...(signal ? { signal } : {}),
     skipAuth: true,
     suppressSessionExpiryRedirect: true,
   });
@@ -174,7 +255,7 @@ function promotionSummaryItems(payload: unknown): MobileMemberContentItem[] {
       title,
       summary: firstString(item.description, item.summary, item.message, item.details),
       image,
-      href: `/browse/promotions/${encodeURIComponent(id)}`,
+      href: '/mobile/member/promotions',
       ...(endsAt ? { endsAt } : {}),
     }];
   });

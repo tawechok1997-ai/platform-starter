@@ -4,7 +4,7 @@ import test from 'node:test';
 
 const home = readFileSync(new URL('../../member-home.tsx', import.meta.url), 'utf8');
 const route = readFileSync(new URL('../../mobile/member/activity/page.tsx', import.meta.url), 'utf8');
-const navigation = readFileSync(new URL('./mobile-activity-standalone-navigation.tsx', import.meta.url), 'utf8');
+const navigation = readFileSync(new URL('./mobile-member-standalone-navigation.tsx', import.meta.url), 'utf8');
 const activityPage = readFileSync(new URL('./mobile-member-activity-page.tsx', import.meta.url), 'utf8');
 const activityCss = readFileSync(new URL('./mobile-member-activity-page.module.css', import.meta.url), 'utf8');
 const highlight = readFileSync(new URL('./mobile-highlight-tab-content.tsx', import.meta.url), 'utf8');
@@ -16,18 +16,20 @@ test('Home Activity summary and the full Activity route stay separate', () => {
   assert.match(activityPage, /data-activity-owner="standalone"/);
 });
 
-test('Home and standalone Activity consume the same source hook', () => {
+test('Home and standalone Activity consume one cached source owner', () => {
   assert.match(highlight, /useMobileActivitiesSource\(\)/);
   assert.match(route, /useMobileActivitiesSource\(\)/);
   assert.equal((source.match(/export function useMobileActivitiesSource/g) ?? []).length, 1);
+  assert.match(source, /let activityRequest:/);
+  assert.match(source, /resolveActivitySnapshot/);
 });
 
-test('the member Activity button opens the dedicated route', () => {
-  assert.match(home, /import MobileActivityStandaloneNavigation/);
-  assert.match(home, /<MobileActivityStandaloneNavigation \/>/);
-  assert.match(navigation, /data-source-member-menu-item="activity"/);
-  assert.match(navigation, /window\.location\.assign\(ACTIVITY_ROUTE\)/);
-  assert.match(navigation, /useLayoutEffect/);
+test('one member navigation owner opens the dedicated Activity route', () => {
+  assert.match(home, /import MobileMemberStandaloneNavigation/);
+  assert.match(home, /<MobileMemberStandaloneNavigation \/>/);
+  assert.doesNotMatch(home, /MobileActivityStandaloneNavigation/);
+  assert.match(navigation, /activity: '\/mobile\/member\/activity'/);
+  assert.match(navigation, /router\.push\(route\)/);
 });
 
 test('the shared Activity source keeps live API data and unavailable states', () => {
