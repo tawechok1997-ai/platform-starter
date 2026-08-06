@@ -55,12 +55,12 @@ export function normalizeFinanceTrendResponse(
   const root = unwrapData(input);
   if (!isRecord(root)) return { data: null, issues: ['payload_not_object'], partial: false };
 
-  const rawRows = Array.isArray(root.daily)
-    ? root.daily
-    : Array.isArray(root.items)
-      ? root.items
-      : [];
-  if (!Array.isArray(root.daily) && !Array.isArray(root.items)) issues.push('daily_missing');
+  const hasDaily = Array.isArray(root.daily);
+  const hasItems = Array.isArray(root.items);
+  if (!hasDaily && !hasItems) {
+    return { data: null, issues: ['daily_missing'], partial: false };
+  }
+  const rawRows = hasDaily ? root.daily : root.items;
 
   const daily = rawRows
     .map((row, index) => normalizeFinanceRow(row, index, issues))
