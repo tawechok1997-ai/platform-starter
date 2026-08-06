@@ -1,29 +1,69 @@
 /*
- * Admin PR-2 final UI authority.
+ * Admin PR-2 professional UX/UI authority.
  *
- * This layer intentionally loads after every earlier Admin stylesheet. It does
- * not change permissions, data loading, mutations, or route ownership. It
- * closes the remaining shell, topbar, metric, table, access-state, theme, and
- * focus behavior so the same surfaces remain usable from 360px to wide desktop.
+ * This file is the final Admin stylesheet import. It normalizes the existing
+ * shell and component owners without changing routes, permissions, data,
+ * mutations, or production behavior. Keep all refinements scoped to the Admin
+ * app so Member remains untouched.
  */
 
 :root {
   --admin-pr2-page-max: 1440px;
   --admin-pr2-content-max: 1360px;
   --admin-pr2-touch-target: 44px;
-  --admin-pr2-focus-ring: 0 0 0 3px color-mix(in srgb, var(--brand) 34%, transparent);
+  --admin-pr2-control-height: 44px;
+  --admin-pr2-control-height-compact: 38px;
+  --admin-pr2-space-1: 4px;
+  --admin-pr2-space-2: 8px;
+  --admin-pr2-space-3: 12px;
+  --admin-pr2-space-4: 16px;
+  --admin-pr2-space-5: 20px;
+  --admin-pr2-space-6: 24px;
+  --admin-pr2-space-8: 32px;
+  --admin-pr2-radius-sm: 8px;
+  --admin-pr2-radius-md: 12px;
+  --admin-pr2-radius-lg: 16px;
+  --admin-pr2-radius-xl: 20px;
+  --admin-pr2-focus-ring: 0 0 0 3px color-mix(in srgb, var(--brand) 30%, transparent);
+  --admin-pr2-card-shadow: 0 12px 32px rgb(0 0 0 / 14%);
+  --admin-pr2-overlay-shadow: 0 28px 80px rgb(0 0 0 / 32%);
+  --admin-pr2-transition: 160ms ease;
 }
 
-body[data-app-surface='admin'] .admin-shell,
-body[data-app-surface='admin'] .admin-main-shell,
-body[data-app-surface='admin'] .admin-content-shell,
-body[data-app-surface='admin'] .admin-content-shell > main,
-body[data-app-surface='admin'] .admin-ui-page,
-body[data-app-surface='admin'] .admin-ui-page > * {
-  min-width: 0;
-  max-width: 100%;
+body[data-app-surface='admin'],
+body[data-app-surface='admin'] * {
   box-sizing: border-box;
 }
+
+body[data-app-surface='admin'] {
+  min-width: 320px;
+  color: var(--text);
+  font-feature-settings: 'kern' 1, 'liga' 1;
+  font-kerning: normal;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: clip;
+}
+
+body[data-app-surface='admin'] :where(
+  .admin-shell,
+  .admin-main-shell,
+  .admin-content-shell,
+  .admin-content-shell > main,
+  .admin-ui-page,
+  .admin-ui-page > *,
+  .admin-ui-card,
+  .admin-ui-card > *,
+  .admin-ui-grid,
+  .admin-ui-grid > *,
+  .admin-data-table,
+  .admin-data-table > *
+) {
+  min-width: 0;
+  max-width: 100%;
+}
+
+/* Shell, sidebar, and topbar -------------------------------------------- */
 
 body[data-app-surface='admin'] .admin-main-shell {
   width: 100%;
@@ -34,20 +74,29 @@ body[data-app-surface='admin'] .admin-content-shell {
   width: 100%;
   max-width: none !important;
   margin-inline: auto;
+  padding: clamp(16px, 2vw, 30px) !important;
 }
 
 body[data-app-surface='admin'] .admin-content-shell > main,
-body[data-app-surface='admin'] .admin-content-shell > .admin-ui-page {
+body[data-app-surface='admin'] .admin-content-shell > .admin-ui-page,
+body[data-app-surface='admin'] .admin-content-shell > div > .admin-ui-page {
   width: min(100%, var(--admin-pr2-page-max)) !important;
   max-width: var(--admin-pr2-page-max) !important;
   margin-inline: auto !important;
 }
 
-/* Shell and topbar ------------------------------------------------------- */
 body[data-app-surface='admin'] .admin-topbar {
   min-width: 0;
   width: 100%;
-  column-gap: clamp(10px, 1.5vw, 20px);
+  min-height: 64px;
+  display: flex;
+  align-items: center;
+  column-gap: clamp(10px, 1.4vw, 18px);
+  padding-inline: clamp(12px, 1.6vw, 22px);
+  border-bottom: 1px solid var(--line);
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  box-shadow: 0 1px 0 rgb(255 255 255 / 2%);
+  backdrop-filter: blur(18px);
 }
 
 body[data-app-surface='admin'] .admin-topbar-context {
@@ -63,7 +112,7 @@ body[data-app-surface='admin'] .admin-topbar-context > div {
 body[data-app-surface='admin'] .admin-topbar-context strong,
 body[data-app-surface='admin'] .admin-topbar-context span {
   display: block;
-  max-width: min(48vw, 560px);
+  max-width: min(48vw, 620px);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -76,133 +125,804 @@ body[data-app-surface='admin'] .admin-topbar-actions {
   flex: 0 1 auto;
   min-width: 0;
   max-width: 100%;
-  gap: 8px;
-  flex-wrap: wrap;
+  gap: var(--admin-pr2-space-2);
+  flex-wrap: nowrap;
 }
 
-body[data-app-surface='admin'] .admin-command-trigger,
-body[data-app-surface='admin'] .admin-notification-trigger,
-body[data-app-surface='admin'] .admin-menu-button,
-body[data-app-surface='admin'] .admin-sidebar-profile__trigger,
-body[data-app-surface='admin'] .admin-nav-group__trigger,
-body[data-app-surface='admin'] .admin-ui-button {
+body[data-app-surface='admin'] :where(
+  .admin-command-trigger,
+  .admin-notification-trigger,
+  .admin-menu-button,
+  .admin-appearance-trigger,
+  .admin-sidebar-profile__trigger,
+  .admin-nav-group__trigger,
+  .admin-collapse-button
+) {
   min-height: var(--admin-pr2-touch-target);
+  border-radius: var(--admin-pr2-radius-md);
 }
 
-body[data-app-surface='admin'] .admin-drawer-nav,
-body[data-app-surface='admin'] .admin-nav-submenu,
+body[data-app-surface='admin'] .admin-drawer {
+  border-right: 1px solid var(--line);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--surface) 96%, transparent), var(--bg)),
+    var(--surface);
+}
+
+body[data-app-surface='admin'] .admin-drawer-head {
+  min-height: 64px;
+  padding: var(--admin-pr2-space-3);
+}
+
+body[data-app-surface='admin'] .admin-drawer-nav {
+  min-width: 0;
+  padding: var(--admin-pr2-space-2);
+  overscroll-behavior-y: contain;
+  scrollbar-gutter: stable;
+}
+
+body[data-app-surface='admin'] :where(
+  .admin-nav-group__trigger,
+  .admin-nav-submenu a,
+  .admin-quick-nav a,
+  .admin-sidebar-profile__trigger
+) {
+  min-height: 42px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-radius: 10px;
+}
+
+body[data-app-surface='admin'] :where(
+  .admin-nav-group__trigger,
+  .admin-nav-submenu a,
+  .admin-quick-nav a
+):hover {
+  background: color-mix(in srgb, var(--brand) 8%, transparent);
+}
+
+body[data-app-surface='admin'] :where(
+  .admin-nav-group__trigger[aria-expanded='true'],
+  .admin-nav-submenu a[aria-current='page'],
+  .admin-quick-nav a[aria-current='page']
+) {
+  background: color-mix(in srgb, var(--brand) 14%, var(--surface));
+  color: var(--text);
+  box-shadow: inset 3px 0 0 var(--brand);
+}
+
 body[data-app-surface='admin'] .admin-sidebar-footer {
+  border-top: 1px solid var(--line);
+}
+
+/* Page hierarchy --------------------------------------------------------- */
+
+body[data-app-surface='admin'] .admin-ui-page {
+  display: grid;
+  gap: clamp(14px, 1.5vw, 22px);
+}
+
+body[data-app-surface='admin'] .admin-ui-page__head {
+  position: relative;
+  min-height: 108px;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  align-items: center !important;
+  gap: var(--admin-pr2-space-5) !important;
+  margin: 0 !important;
+  padding: clamp(18px, 2vw, 26px) !important;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--admin-pr2-radius-lg);
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--surface2) 96%, transparent), color-mix(in srgb, var(--surface) 96%, transparent)),
+    var(--surface);
+  box-shadow: var(--admin-pr2-card-shadow);
+}
+
+body[data-app-surface='admin'] .admin-ui-page__head::after {
+  display: none !important;
+}
+
+body[data-app-surface='admin'] .admin-ui-page__copy,
+body[data-app-surface='admin'] .admin-ui-page__actions {
+  position: relative;
+  z-index: 1;
   min-width: 0;
 }
 
-body[data-app-surface='admin'] .admin-nav-submenu a,
-body[data-app-surface='admin'] .admin-quick-nav a,
-body[data-app-surface='admin'] .admin-profile-menu button,
-body[data-app-surface='admin'] .admin-notification-popover button {
-  min-height: var(--admin-pr2-touch-target);
+body[data-app-surface='admin'] .admin-ui-page__copy {
+  display: grid;
+  align-content: center;
+  gap: 5px;
 }
 
-/* Dashboard and metric density ----------------------------------------- */
+body[data-app-surface='admin'] .admin-ui-eyebrow {
+  width: fit-content;
+  margin: 0 !important;
+  color: color-mix(in srgb, var(--brand) 78%, var(--text)) !important;
+  font-size: 0.6875rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.075em !important;
+  line-height: 1.3 !important;
+  text-transform: uppercase;
+}
+
+body[data-app-surface='admin'] .admin-ui-page__head h1,
+body[data-app-surface='admin'] .admin-content-shell > main:not(.admin-ui-page) > h1:first-of-type,
+body[data-app-surface='admin'] .admin-content-shell > div > main:not(.admin-ui-page) > h1:first-of-type {
+  max-width: 32ch;
+  margin: 0 !important;
+  color: var(--text);
+  font-size: clamp(1.65rem, 1.4rem + 0.8vw, 2.2rem) !important;
+  font-weight: 760 !important;
+  letter-spacing: -0.028em !important;
+  line-height: 1.16 !important;
+  text-wrap: balance;
+}
+
+body[data-app-surface='admin'] .admin-ui-page__description {
+  max-width: 76ch;
+  margin: 0 !important;
+  color: var(--muted) !important;
+  font-size: 0.875rem !important;
+  line-height: 1.62 !important;
+  text-wrap: pretty;
+}
+
+body[data-app-surface='admin'] .admin-ui-page__actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--admin-pr2-space-2);
+  flex-wrap: wrap;
+}
+
+/* Cards, panels, and grids ---------------------------------------------- */
+
+body[data-app-surface='admin'] :where(
+  .admin-ui-card,
+  .admin-ui-notice,
+  .admin-ui-empty,
+  .admin-ui-toolbar,
+  .admin-ui-filter-bar,
+  .admin-ui-command-panel,
+  .admin-ui-action-strip,
+  .admin-data-table__columns
+) {
+  border-color: var(--line);
+}
+
+body[data-app-surface='admin'] .admin-ui-card {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: var(--admin-pr2-radius-lg);
+  padding: clamp(16px, 1.8vw, 22px) !important;
+  background: color-mix(in srgb, var(--surface) 96%, transparent);
+  box-shadow: var(--admin-pr2-card-shadow);
+}
+
+body[data-app-surface='admin'] .admin-ui-card--elevated {
+  box-shadow: var(--admin-pr2-card-shadow);
+}
+
+body[data-app-surface='admin'] .admin-ui-card__head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: var(--admin-pr2-space-4) !important;
+  padding-bottom: var(--admin-pr2-space-3);
+  border-bottom: 1px solid var(--line);
+}
+
+body[data-app-surface='admin'] .admin-ui-card__copy {
+  display: grid;
+  gap: var(--admin-pr2-space-1);
+}
+
+body[data-app-surface='admin'] .admin-ui-card__copy h2,
+body[data-app-surface='admin'] .admin-ui-card__copy h3 {
+  margin: 0;
+  color: var(--text);
+  font-weight: 720 !important;
+  letter-spacing: -0.016em;
+  line-height: 1.3;
+}
+
+body[data-app-surface='admin'] .admin-ui-card__copy p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.8125rem;
+  line-height: 1.55;
+}
+
+body[data-app-surface='admin'] .admin-ui-card__action {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--admin-pr2-space-2);
+  flex-wrap: wrap;
+}
+
+body[data-app-surface='admin'] :where(.admin-ui-grid, .admin-dashboard__sections, .admin-dashboard__quick) {
+  min-width: 0;
+  gap: clamp(12px, 1.35vw, 18px) !important;
+}
+
+body[data-app-surface='admin'] .admin-ui-grid {
+  grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr)) !important;
+}
+
+body[data-app-surface='admin'] :where(.admin-ui-row, .admin-ui-section-row) {
+  min-width: 0;
+  padding: 10px;
+  border-radius: var(--admin-pr2-radius-sm);
+  transition: background-color var(--admin-pr2-transition);
+}
+
+body[data-app-surface='admin'] :where(.admin-ui-row, .admin-ui-section-row):hover {
+  background: color-mix(in srgb, var(--brand) 5%, transparent);
+}
+
+/* Metrics and charts ----------------------------------------------------- */
+
 body[data-app-surface='admin'] .admin-ui-metric-grid {
   display: grid !important;
-  grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr)) !important;
+  grid-template-columns: repeat(auto-fit, minmax(min(210px, 100%), 1fr)) !important;
   align-items: stretch;
-  gap: clamp(10px, 1.4vw, 16px) !important;
+  gap: clamp(10px, 1.25vw, 16px) !important;
   min-width: 0;
   width: 100%;
 }
 
 body[data-app-surface='admin'] .admin-ui-metric {
   min-width: 0;
-  min-height: 132px;
+  min-height: 124px;
+  display: grid;
   align-content: start;
+  gap: var(--admin-pr2-space-2);
+  padding: clamp(15px, 1.5vw, 19px) !important;
+  overflow: clip;
+  border: 1px solid var(--line);
+  border-radius: var(--admin-pr2-radius-md);
+  background:
+    linear-gradient(150deg, color-mix(in srgb, var(--surface2) 96%, transparent), color-mix(in srgb, var(--surface) 96%, transparent)),
+    var(--surface2);
+  box-shadow: 0 8px 22px rgb(0 0 0 / 10%);
+}
+
+body[data-app-surface='admin'] .admin-ui-metric :where(span, small, p) {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.75rem;
+  line-height: 1.4;
 }
 
 body[data-app-surface='admin'] .admin-ui-metric > strong {
-  font-variant-numeric: tabular-nums;
+  margin-top: auto;
+  color: var(--text);
+  font-size: clamp(1.45rem, 1.24rem + 0.7vw, 2rem) !important;
+  font-weight: 760 !important;
+  font-variant-numeric: tabular-nums lining-nums;
+  letter-spacing: -0.025em;
   line-height: 1.08;
 }
 
-html[data-admin-density='compact'] body[data-app-surface='admin'] .admin-ui-metric {
-  min-height: 112px;
-}
-
-/* Tables ---------------------------------------------------------------- */
-body[data-app-surface='admin'] .admin-data-table,
-body[data-app-surface='admin'] .admin-data-table__toolbar,
-body[data-app-surface='admin'] .admin-data-table__scroll,
-body[data-app-surface='admin'] .admin-data-table__footer {
+body[data-app-surface='admin'] :where(
+  .admin-risk-chart,
+  .admin-finance-chart,
+  .admin-finance-chart__plot,
+  [class*='chart']
+) {
   min-width: 0;
   max-width: 100%;
 }
 
-body[data-app-surface='admin'] .admin-data-table__scroll {
+body[data-app-surface='admin'] :where(
+  .admin-risk-chart,
+  .admin-finance-chart,
+  [class*='chart']
+) :where(svg, canvas) {
+  display: block;
+  max-width: 100%;
+}
+
+html[data-admin-density='compact'] body[data-app-surface='admin'] .admin-ui-metric {
+  min-height: 108px;
+  padding: 13px !important;
+}
+
+/* Buttons and controls --------------------------------------------------- */
+
+body[data-app-surface='admin'] .admin-ui-button {
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--admin-pr2-space-2);
+  padding: 8px 14px !important;
+  border-radius: 10px !important;
+  font-size: 0.8125rem;
+  font-weight: 680 !important;
+  line-height: 1.2;
+  text-align: center;
+  white-space: nowrap;
+  transition:
+    transform var(--admin-pr2-transition),
+    border-color var(--admin-pr2-transition),
+    background-color var(--admin-pr2-transition),
+    color var(--admin-pr2-transition),
+    box-shadow var(--admin-pr2-transition),
+    opacity var(--admin-pr2-transition);
+}
+
+body[data-app-surface='admin'] .admin-ui-button:hover:not(:disabled):not([aria-disabled='true']) {
+  transform: translateY(-1px);
+}
+
+body[data-app-surface='admin'] .admin-ui-button:active:not(:disabled):not([aria-disabled='true']) {
+  transform: translateY(0);
+}
+
+body[data-app-surface='admin'] :where(
+  .admin-ui-button--primary,
+  .admin-ui-button--brand
+) {
+  border-color: color-mix(in srgb, var(--brand) 82%, transparent);
+  background: var(--brand);
+  color: var(--color-text-inverse, #fff);
+  box-shadow: 0 8px 18px color-mix(in srgb, var(--brand) 20%, transparent);
+}
+
+body[data-app-surface='admin'] :where(
+  .admin-ui-button--secondary,
+  .admin-ui-button--ghost
+) {
+  border-color: var(--line);
+  background: color-mix(in srgb, var(--surface2) 88%, transparent);
+  color: var(--text);
+}
+
+body[data-app-surface='admin'] .admin-ui-button--danger {
+  border-color: color-mix(in srgb, var(--bad) 46%, var(--line));
+  background: color-mix(in srgb, var(--bad) 12%, var(--surface));
+  color: color-mix(in srgb, var(--bad) 74%, var(--text));
+}
+
+body[data-app-surface='admin'] :where(
+  .admin-ui-icon-button,
+  .admin-icon-button,
+  button[aria-label]:not(.admin-ui-button)
+) {
+  min-width: 40px;
+  min-height: 40px;
+}
+
+body[data-app-surface='admin'] :where(button, [role='button'])[disabled],
+body[data-app-surface='admin'] :where(button, [role='button'])[aria-disabled='true'] {
+  cursor: not-allowed;
+  opacity: 0.52;
+  transform: none !important;
+}
+
+/* Forms ------------------------------------------------------------------ */
+
+body[data-app-surface='admin'] :where(
+  .field,
+  .form-field,
+  .admin-field,
+  .admin-ui-field
+) {
+  display: grid;
+  align-content: start;
+  gap: 7px;
+  min-width: 0;
+}
+
+body[data-app-surface='admin'] :where(
+  label,
+  .field-label,
+  .form-label
+) {
+  color: var(--text);
+  font-size: 0.8125rem;
+  font-weight: 650;
+  line-height: 1.4;
+}
+
+body[data-app-surface='admin'] :where(
+  .hint,
+  .help-text,
+  .description,
+  .field-error,
+  small
+) {
+  font-size: 0.75rem;
+  line-height: 1.5;
+}
+
+body[data-app-surface='admin'] :where(
+  input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='color']):not([type='file']),
+  select,
+  textarea
+) {
   width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--surface2) 94%, transparent);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.9375rem;
+  line-height: 1.45;
+  transition:
+    border-color var(--admin-pr2-transition),
+    box-shadow var(--admin-pr2-transition),
+    background-color var(--admin-pr2-transition);
+}
+
+body[data-app-surface='admin'] :where(
+  input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='color']):not([type='file']),
+  select
+) {
+  min-height: var(--admin-pr2-control-height);
+  padding: 9px 12px;
+}
+
+body[data-app-surface='admin'] textarea {
+  min-height: 116px;
+  padding: 11px 12px;
+  resize: vertical;
+}
+
+body[data-app-surface='admin'] :where(input, textarea)::placeholder {
+  color: var(--muted);
+  opacity: 0.76;
+}
+
+body[data-app-surface='admin'] :where(input, select, textarea):hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--brand) 34%, var(--line));
+}
+
+body[data-app-surface='admin'] :where(input, select, textarea):focus-visible {
+  outline: none;
+  border-color: var(--brand);
+  box-shadow: var(--admin-pr2-focus-ring);
+}
+
+body[data-app-surface='admin'] :where(input, select, textarea)[aria-invalid='true'],
+body[data-app-surface='admin'] :where(input, select, textarea).is-invalid {
+  border-color: var(--bad);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--bad) 16%, transparent);
+}
+
+body[data-app-surface='admin'] :where(
+  .form-grid,
+  .admin-form-grid
+) {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: var(--admin-pr2-space-4);
+  min-width: 0;
+}
+
+body[data-app-surface='admin'] :where(
+  .form-grid,
+  .admin-form-grid
+) > * {
+  grid-column: span 6;
+  min-width: 0;
+}
+
+body[data-app-surface='admin'] :where(
+  .form-actions,
+  .admin-form-actions
+) {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--admin-pr2-space-2);
+  padding-top: var(--admin-pr2-space-2);
+}
+
+/* Tables ----------------------------------------------------------------- */
+
+body[data-app-surface='admin'] .admin-data-table {
+  display: grid;
+  gap: var(--admin-pr2-space-3);
+  min-width: 0;
+  max-width: 100%;
+}
+
+body[data-app-surface='admin'] .admin-data-table__toolbar {
+  display: grid !important;
+  grid-template-columns: minmax(240px, 1fr) repeat(4, auto) !important;
+  align-items: center;
+  gap: var(--admin-pr2-space-2);
+  min-width: 0;
+  max-width: 100%;
+}
+
+body[data-app-surface='admin'] .admin-data-table__toolbar :where(input, select, button) {
+  min-width: 0;
+}
+
+body[data-app-surface='admin'] .admin-data-table__columns {
+  border: 1px solid var(--line);
+  border-radius: var(--admin-pr2-radius-md);
+  padding: 10px 12px;
+  background: color-mix(in srgb, var(--surface2) 82%, transparent);
+}
+
+body[data-app-surface='admin'] .admin-data-table__scroll,
+body[data-app-surface='admin'] :where(
+  .table-wrap,
+  .table-container,
+  .admin-table-wrap,
+  .admin-ui-table-wrap
+) {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
   overflow: auto;
   overscroll-behavior-inline: contain;
   scrollbar-gutter: stable;
   -webkit-overflow-scrolling: touch;
+  border: 1px solid var(--line);
+  border-radius: var(--admin-pr2-radius-md);
+  background: var(--surface);
 }
 
-body[data-app-surface='admin'] .admin-data-table table {
+body[data-app-surface='admin'] .admin-data-table table,
+body[data-app-surface='admin'] :where(
+  .table-wrap,
+  .table-container,
+  .admin-table-wrap,
+  .admin-ui-table-wrap
+) table {
   display: table !important;
   width: max(100%, 720px) !important;
   max-width: none !important;
+  min-width: 720px;
+  border-collapse: separate;
+  border-spacing: 0;
   table-layout: auto;
+  color: var(--text);
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  font-variant-numeric: tabular-nums lining-nums;
 }
 
-body[data-app-surface='admin'] .admin-data-table :where(th, td) {
+body[data-app-surface='admin'] .admin-data-table :where(th, td),
+body[data-app-surface='admin'] :where(
+  .table-wrap,
+  .table-container,
+  .admin-table-wrap,
+  .admin-ui-table-wrap
+) :where(th, td) {
   min-width: 0;
-  vertical-align: top;
-}
-
-body[data-app-surface='admin'] .admin-data-table :where(th, td) :where(
-  a,
-  button,
-  span,
-  strong,
-  small,
-  code
-) {
-  max-width: 100%;
+  padding: 12px 14px !important;
+  border-bottom: 1px solid var(--line);
+  text-align: start;
+  vertical-align: middle;
   overflow-wrap: anywhere;
 }
 
+body[data-app-surface='admin'] .admin-data-table th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: color-mix(in srgb, var(--surface2) 97%, transparent);
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 720;
+  letter-spacing: 0.035em;
+  white-space: nowrap;
+  backdrop-filter: blur(12px);
+}
+
+body[data-app-surface='admin'] .admin-data-table th button {
+  min-height: 40px;
+  padding: 0;
+  color: inherit;
+  font: inherit;
+  font-weight: inherit;
+}
+
+body[data-app-surface='admin'] .admin-data-table tbody tr {
+  transition: background-color var(--admin-pr2-transition);
+}
+
+body[data-app-surface='admin'] .admin-data-table tbody tr:hover {
+  background: color-mix(in srgb, var(--brand) 5%, transparent);
+}
+
+body[data-app-surface='admin'] .admin-data-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
 body[data-app-surface='admin'] .admin-data-table__footer {
+  min-width: 0;
+  max-width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--admin-pr2-space-3);
+  color: var(--muted);
   flex-wrap: wrap;
 }
 
-/* Access and system states --------------------------------------------- */
-body[data-app-surface='admin'] .admin-access-denied {
+body[data-app-surface='admin'] .admin-data-table__footer > div {
+  display: flex;
+  align-items: center;
+  gap: var(--admin-pr2-space-2);
+  flex-wrap: wrap;
+}
+
+/* Notices, empty, loading, error, and access states --------------------- */
+
+body[data-app-surface='admin'] .admin-ui-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--admin-pr2-space-3);
+  padding: 13px 15px !important;
+  border: 1px solid var(--line);
+  border-radius: var(--admin-pr2-radius-md);
+  background: color-mix(in srgb, var(--surface2) 90%, transparent);
+  color: var(--text);
+  line-height: 1.55;
+}
+
+body[data-app-surface='admin'] .admin-ui-empty {
+  min-height: 160px;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: var(--admin-pr2-space-3);
+  padding: clamp(20px, 3vw, 34px) !important;
+  border: 1px dashed color-mix(in srgb, var(--line2) 82%, transparent);
+  border-radius: var(--admin-pr2-radius-md);
+  background: color-mix(in srgb, var(--surface2) 64%, transparent);
+  text-align: center;
+}
+
+body[data-app-surface='admin'] .admin-ui-empty--compact {
+  min-height: 112px;
+  padding: 18px !important;
+}
+
+body[data-app-surface='admin'] .admin-ui-empty :where(h2, h3, p) {
+  margin: 0;
+}
+
+body[data-app-surface='admin'] .admin-ui-empty p {
+  max-width: 58ch;
+  color: var(--muted);
+}
+
+body[data-app-surface='admin'] .admin-ui-skeleton {
+  gap: 10px;
+  padding: 4px 0;
+}
+
+body[data-app-surface='admin'] .admin-ui-skeleton__block,
+body[data-app-surface='admin'] .admin-ui-skeleton__line {
+  border-radius: 8px;
+}
+
+body[data-app-surface='admin'] :where(
+  .admin-access-denied,
+  .admin-loading-screen,
+  .admin-error-boundary
+) {
   min-height: min(620px, calc(100dvh - 104px));
   display: grid;
   place-items: center;
   padding: clamp(20px, 5vw, 56px);
 }
 
-body[data-app-surface='admin'] .admin-access-denied__state,
-body[data-app-surface='admin'] .admin-loading-screen,
-body[data-app-surface='admin'] .admin-error-boundary {
+body[data-app-surface='admin'] :where(
+  .admin-access-denied__state,
+  .admin-loading-screen > *,
+  .admin-error-boundary > *,
+  .admin-app-state__panel
+) {
   width: min(100%, 680px);
   margin-inline: auto;
+  border-radius: var(--admin-pr2-radius-lg);
+}
+
+body[data-app-surface='admin'] .admin-app-state__panel {
+  gap: var(--admin-pr2-space-5);
+  padding: clamp(22px, 3vw, 34px);
+  border: 1px solid var(--line);
+  background: var(--surface);
+  box-shadow: var(--admin-pr2-overlay-shadow);
+}
+
+/* Dialogs, popovers, and overlays --------------------------------------- */
+
+body[data-app-surface='admin'] :where(
+  .admin-confirm-layer,
+  .admin-command-layer,
+  .admin-overlay
+) {
+  padding: clamp(12px, 2.5vw, 24px);
+  background: color-mix(in srgb, var(--color-backdrop, #02060c) 92%, transparent);
+  backdrop-filter: blur(10px);
+}
+
+body[data-app-surface='admin'] :where(
+  .admin-confirm-dialog,
+  .admin-command-dialog,
+  .admin-notification-popover,
+  .admin-profile-menu,
+  .admin-appearance-panel
+) {
+  max-width: calc(100vw - 24px);
+  max-height: calc(100dvh - 24px);
+  overflow: auto;
+  border: 1px solid var(--line);
+  border-radius: var(--admin-pr2-radius-lg);
+  background: color-mix(in srgb, var(--surface) 97%, transparent);
+  box-shadow: var(--admin-pr2-overlay-shadow);
+  overscroll-behavior: contain;
+}
+
+body[data-app-surface='admin'] .admin-confirm-dialog {
+  width: min(520px, 100%);
+  gap: var(--admin-pr2-space-4);
+  padding: clamp(18px, 3vw, 24px);
+}
+
+body[data-app-surface='admin'] .admin-confirm-dialog__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--admin-pr2-space-2);
+  flex-wrap: wrap;
+}
+
+body[data-app-surface='admin'] .admin-confirm-dialog__actions .admin-ui-button {
+  min-width: 120px;
 }
 
 /* Theme and contrast ---------------------------------------------------- */
+
 html[data-admin-theme='light'] body[data-app-surface='admin'] .admin-topbar {
-  background: color-mix(in srgb, var(--admin-bg-canvas, #f3f6fb) 92%, transparent);
+  background: color-mix(in srgb, var(--color-canvas, #f3f6fb) 92%, transparent);
+}
+
+html[data-admin-theme='light'] body[data-app-surface='admin'] :where(
+  .admin-ui-page__head,
+  .admin-ui-card,
+  .admin-ui-metric,
+  .admin-data-table__scroll,
+  .admin-confirm-dialog,
+  .admin-command-dialog,
+  .admin-notification-popover,
+  .admin-profile-menu,
+  .admin-appearance-panel
+) {
+  box-shadow: 0 12px 32px rgb(30 45 70 / 8%);
 }
 
 html[data-admin-contrast='high'] body[data-app-surface='admin'] :where(
+  .admin-ui-page__head,
   .admin-ui-card,
   .admin-ui-metric,
   .admin-data-table__scroll,
   .admin-topbar,
-  .admin-drawer
+  .admin-drawer,
+  .admin-confirm-dialog
 ) {
   border-color: currentColor !important;
 }
 
 /* Keyboard and pointer acceptance -------------------------------------- */
+
 body[data-app-surface='admin'] :where(
   a,
   button,
@@ -216,13 +936,11 @@ body[data-app-surface='admin'] :where(
   box-shadow: var(--admin-pr2-focus-ring) !important;
 }
 
-body[data-app-surface='admin'] :where(button, [role='button'])[disabled],
-body[data-app-surface='admin'] :where(button, [role='button'])[aria-disabled='true'] {
-  cursor: not-allowed;
-}
+/* Responsive behavior -------------------------------------------------- */
 
 @media (max-width: 1099px) {
-  body[data-app-surface='admin'] .admin-topbar-status {
+  body[data-app-surface='admin'] .admin-topbar-status,
+  body[data-app-surface='admin'] .admin-environment-badge {
     display: none !important;
   }
 
@@ -233,39 +951,8 @@ body[data-app-surface='admin'] :where(button, [role='button'])[aria-disabled='tr
 
   body[data-app-surface='admin'] .admin-command-trigger {
     width: var(--admin-pr2-touch-target);
+    min-width: var(--admin-pr2-touch-target);
     padding-inline: 0 !important;
-  }
-}
-
-@media (max-width: 760px) {
-  body[data-app-surface='admin'] .admin-topbar {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    align-items: center;
-  }
-
-  body[data-app-surface='admin'] .admin-topbar-context strong,
-  body[data-app-surface='admin'] .admin-topbar-context span {
-    max-width: min(52vw, 360px);
-  }
-
-  body[data-app-surface='admin'] .admin-topbar-actions {
-    flex-wrap: nowrap;
-  }
-
-  body[data-app-surface='admin'] .admin-environment-badge {
-    display: none !important;
-  }
-
-  body[data-app-surface='admin'] .admin-ui-page__head,
-  body[data-app-surface='admin'] .admin-ui-card__head {
-    grid-template-columns: minmax(0, 1fr) !important;
-  }
-
-  body[data-app-surface='admin'] .admin-ui-page__actions,
-  body[data-app-surface='admin'] .admin-ui-card__action {
-    justify-content: flex-start;
-    width: 100%;
   }
 
   body[data-app-surface='admin'] .admin-data-table__toolbar {
@@ -277,21 +964,115 @@ body[data-app-surface='admin'] :where(button, [role='button'])[aria-disabled='tr
   }
 }
 
-@media (max-width: 430px) {
+@media (max-width: 760px) {
+  body[data-app-surface='admin'] .admin-content-shell {
+    padding: 14px 12px calc(22px + env(safe-area-inset-bottom)) !important;
+  }
+
+  body[data-app-surface='admin'] .admin-topbar {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    min-height: 60px;
+    padding-inline: 10px;
+  }
+
+  body[data-app-surface='admin'] .admin-topbar-context strong,
+  body[data-app-surface='admin'] .admin-topbar-context span {
+    max-width: min(52vw, 360px);
+  }
+
+  body[data-app-surface='admin'] .admin-topbar-actions {
+    flex-wrap: nowrap;
+  }
+
+  body[data-app-surface='admin'] .admin-language-toggle {
+    display: none !important;
+  }
+
+  body[data-app-surface='admin'] .admin-ui-page__head {
+    min-height: 0;
+    grid-template-columns: minmax(0, 1fr) !important;
+    align-items: start !important;
+    gap: var(--admin-pr2-space-3) !important;
+    padding: 17px 15px !important;
+  }
+
+  body[data-app-surface='admin'] .admin-ui-page__head h1 {
+    max-width: none;
+    font-size: clamp(1.5rem, 6.8vw, 1.95rem) !important;
+  }
+
+  body[data-app-surface='admin'] .admin-ui-page__actions,
+  body[data-app-surface='admin'] .admin-ui-card__action {
+    justify-content: flex-start;
+    width: 100%;
+  }
+
+  body[data-app-surface='admin'] .admin-ui-card__head {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  body[data-app-surface='admin'] :where(
+    .form-grid,
+    .admin-form-grid
+  ) > * {
+    grid-column: 1 / -1;
+  }
+
+  body[data-app-surface='admin'] :where(
+    .form-actions,
+    .admin-form-actions
+  ) {
+    align-items: stretch;
+  }
+
+  body[data-app-surface='admin'] :where(
+    .form-actions,
+    .admin-form-actions
+  ) > * {
+    flex: 1 1 auto;
+  }
+
+  body[data-app-surface='admin'] .admin-data-table__footer {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  body[data-app-surface='admin'] .admin-confirm-layer {
+    align-items: end;
+  }
+
+  body[data-app-surface='admin'] .admin-confirm-dialog {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 560px) {
+  body[data-app-surface='admin'] .admin-ui-card {
+    padding: 14px !important;
+    border-radius: 14px;
+  }
+
   body[data-app-surface='admin'] .admin-ui-metric-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
   }
 
   body[data-app-surface='admin'] .admin-ui-metric {
-    min-height: 120px;
+    min-height: 116px;
+    padding: 13px !important;
   }
 
   body[data-app-surface='admin'] .admin-ui-metric > strong {
-    font-size: clamp(20px, 7vw, 30px) !important;
+    font-size: clamp(1.25rem, 6.4vw, 1.75rem) !important;
   }
 
-  body[data-app-surface='admin'] .admin-language-toggle {
-    display: none !important;
+  body[data-app-surface='admin'] :where(
+    input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='color']):not([type='file']),
+    select
+  ) {
+    min-height: var(--admin-pr2-touch-target);
+    font-size: 1rem;
   }
 
   body[data-app-surface='admin'] .admin-data-table__toolbar {
@@ -300,6 +1081,38 @@ body[data-app-surface='admin'] :where(button, [role='button'])[aria-disabled='tr
 
   body[data-app-surface='admin'] .admin-data-table__toolbar > * {
     grid-column: auto !important;
+  }
+
+  body[data-app-surface='admin'] .admin-data-table__footer > div {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  body[data-app-surface='admin'] .admin-confirm-dialog__actions {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  body[data-app-surface='admin'] .admin-confirm-dialog__actions .admin-ui-button {
+    width: 100%;
+  }
+}
+
+@media (max-width: 430px) {
+  body[data-app-surface='admin'] .admin-ui-page__actions .admin-ui-button {
+    width: 100%;
+  }
+
+  body[data-app-surface='admin'] .admin-ui-metric-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  body[data-app-surface='admin'] .admin-ui-metric {
+    min-height: 112px;
+  }
+
+  body[data-app-surface='admin'] .admin-ui-metric > strong {
+    font-size: clamp(1.15rem, 6.2vw, 1.55rem) !important;
   }
 }
 
@@ -310,6 +1123,15 @@ body[data-app-surface='admin'] :where(button, [role='button'])[aria-disabled='tr
 }
 
 @media (prefers-reduced-motion: reduce) {
+  body[data-app-surface='admin'] *,
+  body[data-app-surface='admin'] *::before,
+  body[data-app-surface='admin'] *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.001ms !important;
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+  }
+
   body[data-app-surface='admin'] .admin-ui-metric,
   body[data-app-surface='admin'] .admin-data-table__scroll,
   body[data-app-surface='admin'] .admin-access-denied__state {
