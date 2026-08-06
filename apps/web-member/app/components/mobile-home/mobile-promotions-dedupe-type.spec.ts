@@ -2,18 +2,18 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
 
-const route = readFileSync(new URL('../../mobile/member/promotions/page.tsx', import.meta.url), 'utf8');
+const source = readFileSync(new URL('./use-mobile-member-content-sources.ts', import.meta.url), 'utf8');
 
 test('promotion dedupe guards indexed array access before merging', () => {
-  assert.match(route, /const existingCampaign = result\[existingIndex\]/);
-  assert.match(route, /if \(existingCampaign\) \{/);
-  assert.match(route, /const mergedCampaign = mergeCampaign\(existingCampaign, campaign\)/);
-  assert.match(route, /campaignKeys\(mergedCampaign\)/);
-  assert.doesNotMatch(route, /mergeCampaign\(result\[existingIndex\], campaign\)/);
+  assert.match(source, /const existing = typeof existingIndex === 'number' \? result\[existingIndex\] : undefined/);
+  assert.match(source, /if \(existing && typeof existingIndex === 'number'\) \{/);
+  assert.match(source, /const merged = mergeCampaign\(existing, campaign\)/);
+  assert.match(source, /campaignKeys\(merged\)/);
+  assert.doesNotMatch(source, /mergeCampaign\(result\[existingIndex\], campaign\)/);
 });
 
 test('promotion asset normalization guards the first split segment', () => {
-  assert.match(route, /const pathWithoutQuery = value\.split/);
-  assert.match(route, /pathWithoutQuery\.trim\(\)\.toLowerCase\(\)/);
-  assert.doesNotMatch(route, /return value\.split/);
+  assert.match(source, /const pathWithoutQuery = value\.split/);
+  assert.match(source, /pathWithoutQuery\.trim\(\)\.toLowerCase\(\)/);
+  assert.doesNotMatch(source, /return value\.split/);
 });
