@@ -5,18 +5,19 @@ import test from 'node:test';
 const home = readFileSync(new URL('../../member-home.tsx', import.meta.url), 'utf8');
 const css = readFileSync(new URL('./mobile-drawer-source-fit.css', import.meta.url), 'utf8');
 
-test('Mobile Home loads the drawer source-fit stylesheet last', () => {
+test('Mobile Home loads the drawer source-fit stylesheet after the hero owner', () => {
   assert.match(home, /import '\.\/components\/mobile-home\/mobile-hero-carousel\.css';\s*import '\.\/components\/mobile-home\/mobile-drawer-source-fit\.css';/);
 });
 
-test('the member drawer is a bounded single-screen surface without nested scrolling', () => {
+test('the member drawer is a full-height bounded surface without nested scrolling', () => {
   assert.match(css, /#mobile-home-drawer\s*\{/);
-  assert.match(css, /width:\s*min\(246px,\s*calc\(100vw - 24px\)\)\s*!important/);
-  assert.match(css, /height:\s*min\(100dvh,\s*620px\)\s*!important/);
+  assert.match(css, /width:\s*min\(80vw,\s*280px\)\s*!important/);
+  assert.match(css, /height:\s*100dvh\s*!important/);
   assert.match(css, /max-height:\s*100dvh\s*!important/);
   assert.match(css, /overflow:\s*hidden\s*!important/);
   assert.match(css, /overscroll-behavior:\s*none\s*!important/);
-  assert.doesNotMatch(css, /#mobile-home-drawer[\s\S]{0,420}overflow-y:\s*auto/);
+  assert.doesNotMatch(css, /#mobile-home-drawer[\s\S]{0,520}overflow-y:\s*auto/);
+  assert.doesNotMatch(css, /height:\s*min\(100dvh,\s*620px\)/);
 });
 
 test('the source drawer restores its logo header and compact menu proportions', () => {
@@ -24,7 +25,7 @@ test('the source drawer restores its logo header and compact menu proportions', 
   assert.match(css, /#mobile-home-drawer > div:nth-child\(2\) > img/);
   assert.match(css, /#mobile-home-drawer > div:nth-child\(2\) > button/);
   assert.match(css, /grid-template-columns:\s*repeat\(3,\s*minmax\(0,\s*1fr\)\)/);
-  assert.match(css, /max-height:\s*620px/);
+  assert.match(css, /@media \(max-width: 900px\) and \(max-height: 540px\)/);
 });
 
 test('header and drawer language flags stay at source sizes', () => {
