@@ -25,7 +25,6 @@ import MobileHomeRoot from './components/mobile-home/mobile-home-root';
 import MobileMemberMenuSourceBridge from './components/mobile-home/mobile-member-menu-source-bridge';
 import MobileP4P6ClosureRuntime from './components/mobile-home/mobile-p4-p6-closure-runtime';
 import MobileP7P9ClosureRuntime from './components/mobile-home/mobile-p7-p9-closure-runtime';
-import MobilePromotionSingleOwnerRuntime from './components/mobile-home/mobile-promotion-single-owner-runtime';
 import MobileScrollComfortGuard from './components/mobile-home/mobile-scroll-comfort-guard';
 import { openMemberSharedPopup } from './components/member-shared-popup-runtime';
 import { useMemberHomeData } from './hooks/use-member-home-data';
@@ -55,9 +54,6 @@ const NARROW_HOME_QUERY = '(max-width: 900px)';
 const MOBILE_INPUT_QUERY = '(hover: none), (pointer: coarse)';
 
 export default function MemberHome(props: MemberHomeProps) {
-  // Keep the server and first client render intentionally lightweight. Rendering
-  // the complete Mobile tree first on every Desktop visit caused both viewport
-  // owners, their observers and their image work to run during hydration.
   const [viewportMode, setViewportMode] = useState<ViewportMode | null>(null);
 
   useLayoutEffect(() => {
@@ -85,7 +81,6 @@ export default function MemberHome(props: MemberHomeProps) {
       <>
         <MobileHomeRoot content={props.cmsContent} showPromotion={props.showPromotion} />
         <MobileCategoryQueryBridge />
-        <MobilePromotionSingleOwnerRuntime />
         <MobileCanonicalGameLaunchCapture />
         <MobileP4P6ClosureRuntime />
         <MobileP7P9ClosureRuntime phase="p7" route="/" />
@@ -156,11 +151,6 @@ function DesktopMemberHome(props: MemberHomeProps) {
 function isMobileHomeViewport(narrow: MediaQueryList, mobileInput: MediaQueryList) {
   if (!narrow.matches) return false;
   if (mobileInput.matches) return true;
-
-  // Browser page zoom changes CSS viewport width on desktop and previously
-  // caused the Mobile tree to render inside a desktop browser. Physical screen
-  // size keeps zoomed desktop sessions on the Desktop owner while real compact
-  // devices continue to use the Mobile owner.
   return Math.min(window.screen.width, window.screen.height) <= 900;
 }
 
