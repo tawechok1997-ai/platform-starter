@@ -8,14 +8,11 @@ export default defineConfig({
   expect: { timeout: 15_000 },
   retries: process.env.CI ? 1 : 0,
   workers: 1,
-  reporter: [
-    ['list'],
-    ['html', { outputFolder: 'playwright-report/admin-pr3', open: 'never' }],
-  ],
+  reporter: [['list']],
   outputDir: 'test-results/admin-pr3',
   use: {
     baseURL,
-    trace: 'retain-on-failure',
+    trace: 'off',
     screenshot: 'only-on-failure',
     video: 'off',
     actionTimeout: 15_000,
