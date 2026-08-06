@@ -3,16 +3,21 @@ import { readFileSync } from 'node:fs';
 import test from 'node:test';
 
 const layout = readFileSync(new URL('../../(auth)/layout.tsx', import.meta.url), 'utf8');
+const login = readFileSync(new URL('../../(auth)/login/page.tsx', import.meta.url), 'utf8');
+const register = readFileSync(new URL('../../(auth)/register/page.tsx', import.meta.url), 'utf8');
 const runtime = readFileSync(new URL('./auth-field-runtime.tsx', import.meta.url), 'utf8');
 const css = readFileSync(new URL('./auth-field-ux-final.css', import.meta.url), 'utf8');
+const desktopCss = readFileSync(new URL('./auth-popup-reference-desktop-final.css', import.meta.url), 'utf8');
 const lock = readFileSync(new URL('../../lib/member-document-overlay-lock.ts', import.meta.url), 'utf8');
 const home = readFileSync(new URL('../../member-home.tsx', import.meta.url), 'utf8');
 
-test('auth layout loads the final usability owner after source-parity styles', () => {
-  const sourceParityIndex = layout.indexOf("auth-popup-original-mobile-final.css");
-  const usabilityIndex = layout.indexOf("auth-field-ux-final.css");
+test('auth layout loads usability and final desktop source owners in order', () => {
+  const sourceParityIndex = layout.indexOf('auth-popup-original-mobile-final.css');
+  const usabilityIndex = layout.indexOf('auth-field-ux-final.css');
+  const desktopSourceIndex = layout.indexOf('auth-popup-reference-desktop-final.css');
   assert.ok(sourceParityIndex >= 0);
   assert.ok(usabilityIndex > sourceParityIndex);
+  assert.ok(desktopSourceIndex > usabilityIndex);
   assert.match(layout, /<AuthFieldRuntime \/>/);
 });
 
@@ -24,6 +29,33 @@ test('login and registration fields keep visible labels and usable password cont
   assert.match(runtime, /control\.placeholder = label/);
   assert.match(runtime, /control\.type = reveal \? 'text' : 'password'/);
   assert.match(runtime, /MutationObserver/);
+});
+
+test('desktop embedded Auth matches the source two-column modal geometry', () => {
+  assert.match(desktopCss, /width:\s*min\(1060px,\s*calc\(100vw - 40px\)\)/);
+  assert.match(desktopCss, /grid-template-columns:\s*minmax\(0,\s*588px\)\s+minmax\(360px,\s*1fr\)/);
+  assert.match(desktopCss, /height:\s*min\(620px,\s*calc\(100dvh - 32px\)\)/);
+  assert.match(desktopCss, /source-login-tabs a\[aria-current='page'\]/);
+  assert.match(desktopCss, /clip-path:\s*polygon/);
+});
+
+test('member login sends the API contract and verifies persisted session tokens', () => {
+  assert.match(login, /memberApiFetch\('\/member\/auth\/login'/);
+  assert.match(login, /skipAuth:\s*true/);
+  assert.match(login, /identifier:\s*identifier\.trim\(\)/);
+  assert.match(login, /\bsecret\b/);
+  assert.match(login, /hasMemberSessionTokens\(\)/);
+});
+
+test('registration steps remain clickable and release local blockers after transitions and errors', () => {
+  assert.match(register, /const disabled = !flags\.registration \|\| maintenanceEnabled \|\| loading/);
+  assert.doesNotMatch(register, /disabled = [^\n]*captchaRequired[^\n]*captchaReady/);
+  assert.match(register, /function goNext\(\)/);
+  assert.match(register, /setStep\(nextStep\)/);
+  assert.match(register, /releaseLocalInteractionLock\(\)/);
+  assert.match(register, /finally \{[\s\S]*setLoading\(false\);[\s\S]*releaseLocalInteractionLock\(\)/);
+  assert.match(register, /memberApiFetch\('\/member\/auth\/register'/);
+  assert.match(register, /skipAuth:\s*true/);
 });
 
 test('closing the final overlay repairs an abandoned document scroll lock', () => {
