@@ -1,0 +1,157 @@
+/* Final desktop source geometry for the embedded Login/Register owner. */
+@media (min-width: 901px) {
+  .auth-reference-scope,
+  .public-auth-page[data-embedded='true'] {
+    width: 100% !important;
+    min-height: 100dvh !important;
+    overflow: hidden !important;
+    background: transparent !important;
+  }
+
+  .public-auth-page[data-embedded='true'] .public-auth-backdrop,
+  .public-auth-page[data-embedded='true'] .public-auth-ambient {
+    display: none !important;
+  }
+
+  .public-auth-page[data-embedded='true'] .public-auth-shell.source-login-modal {
+    position: relative !important;
+    display: grid !important;
+    box-sizing: border-box !important;
+    width: min(1060px, calc(100vw - 40px)) !important;
+    height: min(620px, calc(100dvh - 32px)) !important;
+    min-height: 560px !important;
+    margin: 16px auto !important;
+    padding: 16px 18px 16px 20px !important;
+    grid-template-columns: minmax(0, 588px) minmax(360px, 1fr) !important;
+    gap: 18px !important;
+    overflow: visible !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: #1d1a2a !important;
+    box-shadow: none !important;
+  }
+
+  .public-auth-page[data-embedded='true'] .source-login-visual {
+    box-sizing: border-box !important;
+    width: 100% !important;
+    height: 100% !important;
+    min-height: 0 !important;
+    padding: 16px !important;
+    overflow: hidden !important;
+    border-radius: 12px !important;
+    background: #2f2b3d !important;
+  }
+
+  .public-auth-page[data-embedded='true'] .source-login-visual img {
+    display: block !important;
+    width: 100% !important;
+    height: 100% !important;
+    min-height: 0 !important;
+    border-radius: 0 !important;
+    object-fit: cover !important;
+    object-position: center !important;
+  }
+
+  .public-auth-page[data-embedded='true'] .source-login-form-shell {
+    position: relative !important;
+    display: flex !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+    border-radius: 12px !important;
+    background: #302c3e !important;
+  }
+
+  .public-auth-page[data-embedded='true'] .source-login-tabs {
+    display: grid !important;
+    width: 100% !important;
+    height: 48px !important;
+    grid-template-columns: 1fr 1fr !important;
+    flex: 0 0 48px !important;
+    border: 0 !important;
+    background: transparent !important;
+  }
+
+  .public-auth-page[data-embedded='true'] .source-login-tabs a {
+    display: grid !important;
+    min-width: 0 !important;
+    height: 48px !important;
+    padding: 0 20px !important;
+    place-items: center !important;
+    clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 100%, 14px 100%) !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    color: #fff !important;
+    background: #17141f !important;
+    font-size: 16px !important;
+    font-weight: 700 !important;
+    line-height: 20px !important;
+    pointer-events: auto !important;
+  }
+
+  .public-auth-page[data-embedded='true'] .source-login-tabs a[aria-current='page'] {
+    background: #403b4e !important;
+  }
+
+  .public-auth-page[data-embedded='true'] .source-login-card {
+    box-sizing: border-box !important;
+    width: 100% !important;
+    min-height: 0 !important;
+    padding: 28px 24px 22px !important;
+    flex: 1 1 auto !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: #302c3e !important;
+    box-shadow: none !important;
+    scrollbar-width: thin !important;
+  }
+
+  .public-auth-page[data-embedded='true'] .source-login-heading {
+    margin: 0 0 24px !important;
+    text-align: center !important;
+  }
+
+  .public-auth-page[data-embedded='true'] .source-login-heading h1 {
+    margin: 0 !important;
+    font-size: 18px !important;
+    line-height: 24px !important;
+  }
+
+  .public-auth-page[data-embedded='true'] .source-login-field {
+    margin-bottom: 14px !important;
+  }
+
+  .public-auth-page[data-embedded='true'] .public-auth-input {
+    box-sizing: border-box !important;
+    height: 54px !important;
+    border: 1px solid #817b8d !important;
+    border-radius: 6px !important;
+    background: #17141d !important;
+  }
+
+  .public-auth-page[data-embedded='true'] .public-auth-close {
+    position: fixed !important;
+    z-index: 20 !important;
+    top: 4px !important;
+    right: 10px !important;
+    display: inline-flex !important;
+    min-width: 32px !important;
+    min-height: 32px !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 4px !important;
+    color: #fff !important;
+    pointer-events: auto !important;
+  }
+
+  .public-auth-page[data-embedded='true'] .public-auth-close span {
+    font-size: 11px !important;
+  }
+
+  .public-auth-page[data-embedded='true'] :is(form, input, select, button, a) {
+    pointer-events: auto !important;
+  }
+}
