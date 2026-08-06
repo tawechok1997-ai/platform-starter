@@ -28,15 +28,27 @@ test('MemberChrome is the single auth request owner', () => {
   assert.match(controller, /openMemberAuth\('login'/);
 });
 
-test('closing auth removes the iframe owner in the same event turn', () => {
+test('closing auth removes every click owner in the same event turn', () => {
+  const inputRelease = overlay.indexOf('dropInputOwnershipNow()');
   const dismissStart = overlay.indexOf('setDismissed(true)');
   const callback = overlay.indexOf('void afterClose()');
-  assert.ok(dismissStart >= 0 && callback > dismissStart);
+  assert.ok(inputRelease >= 0 && dismissStart > inputRelease && callback > dismissStart);
   assert.doesNotMatch(overlay, /EXIT_DURATION_MS|setTimeout\(/);
+  assert.match(overlay, /overlay\.style\.setProperty\('pointer-events', 'none', 'important'\)/);
+  assert.match(overlay, /frame\.style\.setProperty\('pointer-events', 'none', 'important'\)/);
   assert.match(overlay, /releaseDocumentLockNow\(\)/);
   assert.match(overlay, /removeOverlayOwnership\(\)/);
   assert.match(overlay, /restorePreviousFocus\(\)/);
   assert.match(overlay, /if \(dismissed\) return null/);
+});
+
+test('iframe is revealed only after the embedded auth dialog exists', () => {
+  assert.match(overlay, /function embeddedAuthShellReady\(document: Document \| null\)/);
+  assert.match(overlay, /\[data-embedded=\\"true\\"\]/);
+  assert.match(overlay, /\[role=\\"dialog\\"\], \.source-login-modal, \.source-register-modal/);
+  assert.match(overlay, /payload\.type === 'member-auth-ready'[\s\S]*revealFrameOnlyWhenRendered\(frame\)/);
+  assert.match(overlay, /if \(revealFrameOnlyWhenRendered\(frame\)\) return/);
+  assert.doesNotMatch(overlay, /payload\.type === 'member-auth-ready'\) setFrameReady\(true\)/);
 });
 
 test('iframe messages and listeners are bounded to the current request', () => {
