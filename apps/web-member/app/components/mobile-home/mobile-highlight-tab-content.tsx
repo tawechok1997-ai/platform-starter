@@ -1,10 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useMemo, useState } from 'react';
-import { memberApiFetch } from '../../member-api';
+import { useEffect, useState } from 'react';
 import { useMemberLocale } from '../../member-locale-provider';
-import { useMemberRuntime } from '../../member-runtime-provider';
 import { resolveLocalAssetOrSource } from '../../lib/local-asset-by-basename';
 import MobileCardProviderPage from './mobile-card-provider-page';
 import MobileCasinoProviderPage from './mobile-casino-provider-page';
@@ -13,23 +11,16 @@ import MobileLotteryProviderPage from './mobile-lottery-provider-page';
 import MobileSlotProviderPage from './mobile-slot-provider-page';
 import MobileSourceContent from './mobile-source-content';
 import MobileSportProviderPage from './mobile-sport-provider-page';
+import {
+  useMobileActivitiesSource,
+  useMobileNewsSource,
+  useMobilePromotionsSource,
+  type MobileMemberContentItem,
+} from './use-mobile-member-content-sources';
 import styles from './mobile-highlight-tab-content.module.css';
 
 export type MobileHighlightTab = 'highlights' | 'promotions' | 'activities' | 'news';
 type MobileCategoryId = 'home' | 'casino' | 'slot' | 'fishing' | 'sport' | 'card' | 'lottery';
-
-type HighlightItem = {
-  id: string;
-  title: string;
-  summary: string;
-  image: string;
-  href: string;
-  endsAt?: string;
-};
-
-type PublicPromotionPayload = {
-  items?: unknown[];
-};
 
 type MobileHighlightTabContentProps = {
   activeTab: MobileHighlightTab;
@@ -67,23 +58,11 @@ const TOP_CHROME_SELECTOR = [
 
 export default function MobileHighlightTabContent({ activeTab }: MobileHighlightTabContentProps) {
   const { locale } = useMemberLocale();
-  const { home } = useMemberRuntime();
   const [activeCategory, setActiveCategory] = useState<MobileCategoryId>('home');
-  const [apiPromotions, setApiPromotions] = useState<HighlightItem[]>([]);
-  const [promotionStatus, setPromotionStatus] = useState<'loading' | 'ready' | 'error'>('loading');
-
-  useEffect(() => {
-    const controller = new AbortController();
-    void loadPublicPromotions(controller.signal)
-      .then((items) => {
-        setApiPromotions(items);
-        setPromotionStatus('ready');
-      })
-      .catch(() => {
-        if (!controller.signal.aborted) setPromotionStatus('error');
-      });
-    return () => controller.abort();
-  }, []);
+  const promotionSource = useMobilePromotionsSource();
+  const activitySource = useMobileActivitiesSource();
+  const newsSource = useMobileNewsSource();
+  const copy = COPY[locale];
 
   useEffect(() => {
     let scrollFrame = 0;
@@ -145,15 +124,12 @@ export default function MobileHighlightTabContent({ activeTab }: MobileHighlight
       const inlineTab = MOBILE_INLINE_MEMBER_TABS[normalizedPath];
       if (!inlineTab) return;
 
-      const tabButton = document.getElementById(
-        `mobile-highlight-tab-${MOBILE_HIGHLIGHT_TAB_INDEX[inlineTab]}`,
-      );
+      const tabButton = document.getElementById(`mobile-highlight-tab-${MOBILE_HIGHLIGHT_TAB_INDEX[inlineTab]}`);
       if (!(tabButton instanceof HTMLButtonElement)) return;
 
       event.preventDefault();
       tabButton.click();
       tabButton.focus({ preventScroll: true });
-
       window.requestAnimationFrame(() => {
         document.querySelector<HTMLElement>('[data-mobile-section-owner="highlight-tabs"]')
           ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -164,61 +140,23 @@ export default function MobileHighlightTabContent({ activeTab }: MobileHighlight
     return () => window.removeEventListener('click', keepMemberContentInline, true);
   }, []);
 
-  const promotions = useMemo(
-    () => dedupeItems([
-      ...apiPromotions,
-      ...home.promotions.map((item) => ({
-        id: item.id,
-        title: item.title,
-        summary: item.summary,
-        image: item.image,
-        href: `/browse/promotions/${encodeURIComponent(item.id)}`,
-        ...(item.endsAt ? { endsAt: item.endsAt } : {}),
-      })),
-    ]),
-    [apiPromotions, home.promotions],
-  );
-  const activities = useMemo(() => home.activities.map(runtimeItem), [home.activities]);
-  const news = useMemo(() => home.news.map(runtimeItem), [home.news]);
-  const copy = COPY[locale];
-
-  if (activeCategory === 'casino') {
-    return <MobileCasinoProviderPage />;
-  }
-
-  if (activeCategory === 'slot') {
-    return <MobileSlotProviderPage />;
-  }
-
-  if (activeCategory === 'fishing') {
-    return <MobileFishingProviderPage />;
-  }
-
-  if (activeCategory === 'sport') {
-    return <MobileSportProviderPage />;
-  }
-
-  if (activeCategory === 'card') {
-    return <MobileCardProviderPage />;
-  }
-
-  if (activeCategory === 'lottery') {
-    return <MobileLotteryProviderPage />;
-  }
-
-  if (activeCategory !== 'home') {
-    return <MobileSourceContent />;
-  }
+  if (activeCategory === 'casino') return <MobileCasinoProviderPage />;
+  if (activeCategory === 'slot') return <MobileSlotProviderPage />;
+  if (activeCategory === 'fishing') return <MobileFishingProviderPage />;
+  if (activeCategory === 'sport') return <MobileSportProviderPage />;
+  if (activeCategory === 'card') return <MobileCardProviderPage />;
+  if (activeCategory === 'lottery') return <MobileLotteryProviderPage />;
+  if (activeCategory !== 'home') return <MobileSourceContent />;
 
   if (activeTab === 'promotions') {
     return (
-      <section className={styles.panel} data-mobile-highlight-panel="promotions" aria-label={copy.promotions}>
-        {promotionStatus === 'loading' && promotions.length === 0 ? <ContentState message={copy.loading} /> : null}
-        {promotionStatus === 'error' && promotions.length === 0 ? <ContentState message={copy.loadError} /> : null}
-        {promotionStatus === 'ready' && promotions.length === 0 ? <ContentState message={copy.noPromotions} /> : null}
-        {promotions.length > 0 ? (
+      <section className={styles.panel} data-mobile-highlight-panel="promotions" data-content-source="shared-promotions" aria-label={copy.promotions}>
+        {promotionSource.loading && promotionSource.items.length === 0 ? <ContentState message={copy.loading} /> : null}
+        {promotionSource.status === 'error' && promotionSource.items.length === 0 ? <ContentState message={copy.loadError} /> : null}
+        {promotionSource.status === 'ready' && promotionSource.items.length === 0 ? <ContentState message={copy.noPromotions} /> : null}
+        {promotionSource.items.length > 0 ? (
           <div className={styles.promotionList}>
-            {promotions.map((item) => (
+            {promotionSource.items.map((item) => (
               <Link key={item.id} href={item.href} className={styles.promotionCard} aria-label={item.title}>
                 <AssetImage source={item.image} alt={item.title} />
               </Link>
@@ -230,11 +168,31 @@ export default function MobileHighlightTabContent({ activeTab }: MobileHighlight
   }
 
   if (activeTab === 'activities') {
-    return <ContentList kind="activities" items={activities} emptyMessage={copy.noActivities} actionLabel={copy.join} locale={locale} />;
+    return (
+      <ContentList
+        kind="activities"
+        items={activitySource.summaries}
+        loading={activitySource.loading}
+        error={activitySource.error}
+        emptyMessage={copy.noActivities}
+        actionLabel={copy.join}
+        locale={locale}
+      />
+    );
   }
 
   if (activeTab === 'news') {
-    return <ContentList kind="news" items={news} emptyMessage={copy.noNews} actionLabel={copy.readMore} locale={locale} />;
+    return (
+      <ContentList
+        kind="news"
+        items={newsSource.items}
+        loading={newsSource.loading}
+        error={newsSource.error}
+        emptyMessage={copy.noNews}
+        actionLabel={copy.readMore}
+        locale={locale}
+      />
+    );
   }
 
   return <MobileSourceContent />;
@@ -253,16 +211,26 @@ function restoreTopChrome(root: HTMLElement) {
 function ContentList({
   kind,
   items,
+  loading,
+  error,
   emptyMessage,
   actionLabel,
   locale,
 }: {
   kind: 'activities' | 'news';
-  items: HighlightItem[];
+  items: MobileMemberContentItem[];
+  loading: boolean;
+  error: string;
   emptyMessage: string;
   actionLabel: string;
   locale: 'th' | 'en';
 }) {
+  if (loading && items.length === 0) {
+    return <section className={styles.panel} data-mobile-highlight-panel={kind}><ContentState message={COPY[locale].loading} /></section>;
+  }
+  if (error && items.length === 0) {
+    return <section className={styles.panel} data-mobile-highlight-panel={kind}><ContentState message={error} /></section>;
+  }
   if (items.length === 0) {
     return (
       <section className={`${styles.panel} ${styles.newsPanel}`} data-mobile-highlight-panel={kind}>
@@ -272,7 +240,7 @@ function ContentList({
   }
 
   return (
-    <section className={styles.panel} data-mobile-highlight-panel={kind}>
+    <section className={styles.panel} data-mobile-highlight-panel={kind} data-content-source="shared-content">
       <div className={styles.activityList}>
         {items.map((item) => (
           <article key={item.id} className={styles.activityCard}>
@@ -301,67 +269,9 @@ function ContentState({ message }: { message: string }) {
   );
 }
 
-async function loadPublicPromotions(signal: AbortSignal): Promise<HighlightItem[]> {
-  const response = await memberApiFetch('/public/promotions', {
-    signal,
-    cache: 'no-store',
-    credentials: 'omit',
-    skipAuth: true,
-    suppressSessionExpiryRedirect: true,
-  });
-  if (!response.ok) throw new Error(`public promotions: ${response.status}`);
-  const payload = await response.json().catch(() => null) as PublicPromotionPayload | null;
-  if (!Array.isArray(payload?.items)) return [];
-
-  return payload.items.map((raw, index) => {
-    const item = record(raw);
-    const id = text(item.id, `promotion-${index + 1}`);
-    const endsAt = optionalText(item.endsAt);
-    return {
-      id,
-      title: text(item.title, `Promotion ${index + 1}`),
-      summary: text(item.description, ''),
-      image: firstText(item.mobileImageUrl, item.imageUrl, item.sourceImageUrl, item.desktopImageUrl),
-      href: `/browse/promotions/${encodeURIComponent(id)}`,
-      ...(endsAt ? { endsAt } : {}),
-    };
-  }).filter((item) => item.title && item.image);
-}
-
-function runtimeItem(item: ReturnType<typeof useMemberRuntime>['home']['activities'][number]): HighlightItem {
-  return {
-    id: item.id,
-    title: item.title,
-    summary: item.summary,
-    image: item.image,
-    href: `/browse/promotions/${encodeURIComponent(item.id)}`,
-    ...(item.endsAt ? { endsAt: item.endsAt } : {}),
-  };
-}
-
-function dedupeItems(items: HighlightItem[]) {
-  return Array.from(new Map(items.map((item) => [item.id, item] as const)).values());
-}
-
 function formatDate(value: string, locale: 'th' | 'en') {
   const date = new Date(value);
   return Number.isNaN(date.getTime()) ? value : date.toLocaleDateString(locale === 'th' ? 'th-TH' : 'en-US');
-}
-
-function record(value: unknown): Record<string, unknown> {
-  return value && typeof value === 'object' && !Array.isArray(value) ? value as Record<string, unknown> : {};
-}
-
-function optionalText(value: unknown) {
-  return typeof value === 'string' && value.trim() ? value.trim() : undefined;
-}
-
-function text(value: unknown, fallback: string) {
-  return typeof value === 'string' && value.trim() ? value.trim() : fallback;
-}
-
-function firstText(...values: unknown[]) {
-  return values.find((value): value is string => typeof value === 'string' && value.trim().length > 0)?.trim() ?? '';
 }
 
 function isMobileCategoryId(value: unknown): value is MobileCategoryId {
