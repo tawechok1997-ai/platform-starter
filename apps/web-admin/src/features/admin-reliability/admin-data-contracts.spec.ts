@@ -42,8 +42,9 @@ test('finance contract preserves valid rows when optional fields are incomplete'
   assert.ok(result.issues.includes('daily_1_date_invalid'));
 });
 
-test('finance contract rejects a payload without an object or usable range', () => {
+test('finance contract rejects a payload without an object, series, or usable range', () => {
   assert.equal(normalizeFinanceTrendResponse(null).data, null);
+  assert.equal(normalizeFinanceTrendResponse({}, { start: '2026-08-01', end: '2026-08-01' }).data, null);
   assert.equal(normalizeFinanceTrendResponse({ daily: [] }).data, null);
 });
 
