@@ -5,6 +5,30 @@ const LOGIN_NAME = /เข้าสู่ระบบ|ล็อกอิน|log 
 const REGISTER_NAME = /สมัครสมาชิก|ลงทะเบียน|register|sign up/i;
 
 test.describe('Member auth lifecycle regression', () => {
+  test('refresh never exposes a blank auth iframe on Mobile or Desktop', async ({ page }, testInfo) => {
+    test.skip(
+      testInfo.project.name !== '390x844' && testInfo.project.name !== '1024x768',
+      'Run the hard-refresh regression at one phone and one desktop viewport',
+    );
+    test.setTimeout(90_000);
+
+    await installBlankFrameProbe(page);
+    const target = new URL('/?auth=login&authRequest=refresh-regression', BASE_URL).toString();
+    await page.goto(target, { waitUntil: 'domcontentloaded', timeout: 45_000 });
+    await assertRenderedAuthFrame(page);
+
+    await page.reload({ waitUntil: 'domcontentloaded', timeout: 45_000 });
+    await assertRenderedAuthFrame(page);
+
+    const blankExposureCount = await page.evaluate(() => (
+      (window as Window & { __memberAuthBlankExposureCount?: number }).__memberAuthBlankExposureCount ?? 0
+    ));
+    expect(blankExposureCount, 'The full-screen iframe must remain hidden until its real dialog exists').toBe(0);
+
+    await closeAuth(page, 'escape');
+    await assertReleased(page);
+  });
+
   test('Mobile opens and closes Login/Register twenty times without a click blocker', async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== '390x844', 'Run the lifecycle loop once at the reference phone viewport');
     test.setTimeout(180_000);
@@ -49,6 +73,43 @@ test.describe('Member auth lifecycle regression', () => {
     }
   });
 });
+
+async function installBlankFrameProbe(page: Page) {
+  await page.addInitScript(() => {
+    if (window.top !== window) return;
+    const root = window as Window & { __memberAuthBlankExposureCount?: number };
+    root.__memberAuthBlankExposureCount = 0;
+
+    const sample = () => {
+      const overlay = document.querySelector<HTMLElement>('.member-auth-overlay');
+      const frame = overlay?.querySelector<HTMLIFrameElement>('iframe.member-auth-overlay__frame');
+      if (frame) {
+        const style = getComputedStyle(frame);
+        const exposed = style.visibility !== 'hidden'
+          && style.display !== 'none'
+          && Number.parseFloat(style.opacity || '0') > 0.01;
+        const dialog = frame.contentDocument?.querySelector(
+          '[data-embedded="true"] [role="dialog"], [data-embedded="true"] .source-login-modal, [data-embedded="true"] .source-register-modal',
+        );
+        if (exposed && !dialog) root.__memberAuthBlankExposureCount = (root.__memberAuthBlankExposureCount ?? 0) + 1;
+      }
+      window.requestAnimationFrame(sample);
+    };
+
+    window.requestAnimationFrame(sample);
+  });
+}
+
+async function assertRenderedAuthFrame(page: Page) {
+  const overlay = page.locator('.member-auth-overlay');
+  await expect(overlay).toBeVisible({ timeout: 15_000 });
+  await expect(overlay).toHaveAttribute('data-frame-ready', 'true', { timeout: 15_000 });
+
+  const frame = page.frameLocator('iframe.member-auth-overlay__frame');
+  await expect(frame.locator(
+    '[data-embedded="true"] [role="dialog"], [data-embedded="true"] .source-login-modal, [data-embedded="true"] .source-register-modal',
+  ).first()).toBeVisible({ timeout: 15_000 });
+}
 
 async function openAuth(page: Page, mode: 'login' | 'register', requestId: string) {
   const accessibleName = mode === 'login' ? LOGIN_NAME : REGISTER_NAME;
