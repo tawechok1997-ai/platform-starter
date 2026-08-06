@@ -1,0 +1,63 @@
+/* Final Mobile Home source-parity corrections.
+ * Keep this stylesheet imported after the Mobile Home component styles.
+ */
+@media (max-width: 900px) {
+  /* The source carousel uses equal circular purple indicators. The previous
+   * active 16px pill and grey 6px dots visibly belonged to a different UI. */
+  [data-mobile-home-root='true'] [data-mobile-section-owner='hero'] {
+    gap: 0 !important;
+  }
+
+  [data-mobile-home-root='true'] [data-mobile-section-owner='hero'] > div[aria-label] {
+    display: flex !important;
+    min-height: 20px !important;
+    margin: 0 !important;
+    padding: 5px 0 4px !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 6px !important;
+  }
+
+  [data-mobile-home-root='true'] [data-mobile-section-owner='hero'] > div[aria-label] > button {
+    box-sizing: border-box !important;
+    width: 9px !important;
+    min-width: 9px !important;
+    height: 9px !important;
+    min-height: 9px !important;
+    padding: 0 !important;
+    border: 1px solid #9d35c3 !important;
+    border-radius: 999px !important;
+    opacity: 1 !important;
+    background: #241b2e !important;
+    box-shadow:
+      inset 0 0 2px rgb(0 0 0 / 48%),
+      0 0 3px rgb(187 91 234 / 28%) !important;
+    transform: none !important;
+  }
+
+  [data-mobile-home-root='true'] [data-mobile-section-owner='hero'] > div[aria-label] > button[aria-current='true'] {
+    width: 9px !important;
+    min-width: 9px !important;
+    border-color: #e1a4f8 !important;
+    background: #b83bdd !important;
+    box-shadow:
+      inset 0 0 0 1px rgb(255 255 255 / 18%),
+      0 0 6px rgb(190 62 231 / 78%) !important;
+  }
+
+  /* Contact remains available in the drawer and contact popup. It must not be
+   * duplicated in either guest or authenticated bottom navigation. */
+  nav[data-mobile-member-bottom-navigation='true'] button:has([data-bottom-navigation-canvas='contact']),
+  .mobile-p6-guest-nav__inner > button[aria-label='ติดต่อ'],
+  .mobile-p6-guest-nav__inner > button[aria-label='Contact'] {
+    display: none !important;
+  }
+
+  nav[data-mobile-member-bottom-navigation='true'] > div > div:has(> button [data-bottom-navigation-canvas]) {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+
+  .mobile-p6-guest-nav__inner {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+}
