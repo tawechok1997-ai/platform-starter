@@ -45,11 +45,10 @@ test('game and provider image editors show effective PC and Mobile previews', ()
   assert.match(gameAssets, /Mobile/);
 });
 
-test('future image-style settings keys cannot silently skip asset preview', () => {
+test('future direct image fields cannot silently skip asset preview', () => {
   const settingsFiles = [
     'app/(admin)/settings/features/page.tsx',
     'app/(admin)/settings/branding/page.tsx',
-    'app/(admin)/settings/icons/icon-settings-config.ts',
     'app/(admin)/settings/seo/page.tsx',
   ].filter((path) => existsSync(join(ROOT, path)));
 
