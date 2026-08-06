@@ -93,7 +93,7 @@ export default function MobileMemberActivityPage({
                 <article
                   className={`${styles.card} ${activity.disabled ? styles.cardDisabled : ''}`}
                   key={activity.id}
-                  aria-disabled={activity.disabled}
+                  data-activity-disabled={activity.disabled ? 'true' : undefined}
                 >
                   <div className={styles.media}>
                     <img
