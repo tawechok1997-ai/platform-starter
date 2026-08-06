@@ -41,3 +41,9 @@ test('disabled activity cards avoid unsupported ARIA on the article role', () =>
   assert.doesNotMatch(activityPage, /<article[\s\S]{0,220}aria-disabled=/);
   assert.match(activityPage, /<button[\s\S]{0,180}disabled=\{activity\.disabled \|\| !activity\.href\}/);
 });
+
+test('legacy activity items without disabled remain enabled by default', () => {
+  assert.match(activityPage, /disabled\?: boolean/);
+  assert.match(activityPage, /disabled: item\.disabled === true/);
+  assert.match(activityPage, /activity\.disabled === true \|\| !activity\.href/);
+});
