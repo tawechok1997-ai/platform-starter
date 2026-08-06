@@ -8,11 +8,18 @@ const navigation = readFileSync(new URL('./mobile-activity-standalone-navigation
 const activityPage = readFileSync(new URL('./mobile-member-activity-page.tsx', import.meta.url), 'utf8');
 const activityCss = readFileSync(new URL('./mobile-member-activity-page.module.css', import.meta.url), 'utf8');
 const highlight = readFileSync(new URL('./mobile-highlight-tab-content.tsx', import.meta.url), 'utf8');
+const source = readFileSync(new URL('./use-mobile-member-content-sources.ts', import.meta.url), 'utf8');
 
 test('Home Activity summary and the full Activity route stay separate', () => {
   assert.match(highlight, /activeTab === 'activities'/);
   assert.match(route, /MobileMemberActivityPage/);
   assert.match(activityPage, /data-activity-owner="standalone"/);
+});
+
+test('Home and standalone Activity consume the same source hook', () => {
+  assert.match(highlight, /useMobileActivitiesSource\(\)/);
+  assert.match(route, /useMobileActivitiesSource\(\)/);
+  assert.equal((source.match(/export function useMobileActivitiesSource/g) ?? []).length, 1);
 });
 
 test('the member Activity button opens the dedicated route', () => {
@@ -23,14 +30,14 @@ test('the member Activity button opens the dedicated route', () => {
   assert.match(navigation, /useLayoutEffect/);
 });
 
-test('the standalone Activity page keeps live API data and source unavailable states', () => {
-  assert.match(route, /memberApiFetch\('\/public\/activities'/);
-  assert.match(route, /credentials: 'omit'/);
-  assert.match(route, /cache: 'no-store'/);
-  assert.match(route, /isActivityDisabled/);
-  assert.match(route, /formatActivityDate/);
+test('the shared Activity source keeps live API data and unavailable states', () => {
+  assert.match(source, /loadJson\('\/public\/activities'/);
+  assert.match(source, /credentials: 'omit'/);
+  assert.match(source, /cache: 'no-store'/);
+  assert.match(source, /const disabled = item\.disabled === true/);
+  assert.match(source, /formatActivityDate/);
   assert.match(activityPage, /unavailableOverlay/);
-  assert.match(activityPage, /disabled=\{activity\.disabled \|\| !activity\.href\}/);
+  assert.match(activityPage, /activity\.disabled === true \|\| !activity\.href/);
   assert.match(activityCss, /filter:\s*grayscale\(1\)/);
   assert.match(activityCss, /background:\s*rgb\(219 1 1 \/ 71%\)/);
   assert.match(activityCss, /border-radius:\s*16px/);
@@ -39,7 +46,7 @@ test('the standalone Activity page keeps live API data and source unavailable st
 test('disabled activity cards avoid unsupported ARIA on the article role', () => {
   assert.match(activityPage, /data-activity-disabled=\{activity\.disabled \? 'true' : undefined\}/);
   assert.doesNotMatch(activityPage, /<article[\s\S]{0,220}aria-disabled=/);
-  assert.match(activityPage, /<button[\s\S]{0,180}disabled=\{activity\.disabled \|\| !activity\.href\}/);
+  assert.match(activityPage, /<button[\s\S]{0,220}disabled=\{activity\.disabled === true \|\| !activity\.href\}/);
 });
 
 test('legacy activity items without disabled remain enabled by default', () => {
