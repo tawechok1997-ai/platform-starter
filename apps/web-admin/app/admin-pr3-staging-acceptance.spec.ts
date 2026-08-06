@@ -84,9 +84,12 @@ test('Admin profile response preserves guard-resolved DENY permissions', () => {
   assert.match(profileTest, /expect\(result\.permissions\)\.toEqual\(\[\]\)/);
 });
 
-test('PR-3 documentation keeps mutation and production safety boundaries explicit', () => {
+test('PR-3 documentation keeps mutation, production, and CI evidence boundaries explicit', () => {
   assert.match(documentation, /Mutation ทำเฉพาะ Disposable Staging/);
   assert.match(documentation, /Workflow ไม่ใช้ Railway หรือ Production URL/);
   assert.match(documentation, /Evidence manifest ไม่บันทึก Password, JWT หรือ Secret/);
   assert.match(documentation, /รวมทั้งหมด 225 cases/);
+  assert.match(documentation, /สร้าง Head ใหม่ที่มีเนื้อหาจริง/);
+  assert.match(documentation, /ห้ามอ้างผล `queued`, `pending`, `cancelled`/);
+  assert.match(documentation, /Workflow ชุดใหม่จะจบสถานะ `success`/);
 });
