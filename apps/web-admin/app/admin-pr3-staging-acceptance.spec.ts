@@ -58,9 +58,10 @@ test('PR-3 browser acceptance uses the canonical 225-case matrix and real authen
   assert.match(acceptance, /domContentLoadedMs/);
   assert.match(acceptance, /totalTransferBytes/);
   assert.match(acceptance, /logout\(context, token\)/);
+  assert.equal(acceptance.includes("waitForLoadState('networkidle'"), false);
 });
 
-test('PR-3 runs five browser and viewport acceptance projects', () => {
+test('PR-3 runs five browser and viewport acceptance projects without credential-bearing traces', () => {
   for (const project of [
     'chromium-desktop',
     'chromium-tablet',
@@ -71,6 +72,9 @@ test('PR-3 runs five browser and viewport acceptance projects', () => {
     assert.match(config, new RegExp(`name: '${project}'`));
   }
   assert.match(config, /workers: 1/);
+  assert.match(config, /trace: 'off'/);
+  assert.match(config, /video: 'off'/);
+  assert.equal(config.includes("['html'"), false);
 });
 
 test('Admin profile response preserves guard-resolved DENY permissions', () => {
