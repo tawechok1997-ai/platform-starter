@@ -103,7 +103,9 @@ export default function MobileMemberActivityPage({
                       onError={(event) => recoverActivityImage(event.currentTarget, activity.image)}
                     />
                     {activity.disabled && activity.disabledLabel ? (
-                      <span className={styles.unavailableLabel}>{activity.disabledLabel}</span>
+                      <span className={styles.unavailableOverlay}>
+                        <span className={styles.unavailableLabel}>{activity.disabledLabel}</span>
+                      </span>
                     ) : null}
                   </div>
                   <div className={styles.copy}>
