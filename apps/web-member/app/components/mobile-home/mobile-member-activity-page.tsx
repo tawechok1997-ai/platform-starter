@@ -13,7 +13,7 @@ export type MobileActivityContentItem = {
   image: string;
   href?: string;
   date?: string;
-  disabled: boolean;
+  disabled?: boolean;
   disabledLabel?: string;
 };
 
@@ -37,11 +37,12 @@ export default function MobileMemberActivityPage({
   const { ready, isLoggedIn } = useMemberSession();
   const activities = useMemo(() => items.map((item) => ({
     ...item,
+    disabled: item.disabled === true,
     imageUrl: resolveLocalAssetOrSource(item.image, 'mobile') || item.image,
   })), [items]);
 
   const joinActivity = (activity: MobileActivityContentItem) => {
-    if (activity.disabled || !activity.href) return;
+    if (activity.disabled === true || !activity.href) return;
 
     if (!ready || !isLoggedIn) {
       window.dispatchEvent(new CustomEvent(MEMBER_AUTH_OPEN_EVENT, {
