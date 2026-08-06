@@ -29,9 +29,9 @@ export type ReconciliationSnapshot = {
   providerBalance: string;
   difference: string;
   checkedAt: string;
-  user?: { username?: string | null; phone?: string | null } | null;
-  provider?: { name?: string | null; code?: string | null } | null;
-  rawPayload?: unknown;
+  user: { username: string | null; phone: string | null } | null;
+  provider: { name: string | null; code: string | null } | null;
+  rawPayload: unknown;
 };
 
 export type ReconciliationPayload = {
