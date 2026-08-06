@@ -4,6 +4,13 @@ import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 import { adminApiFetch } from '../../../app/admin-api';
+import {
+  createAdminIncidentId,
+  normalizeFinanceTrendResponse,
+  readAdminLocale,
+  type FinanceTrendResponse,
+  type FinanceTrendRow,
+} from '../admin-reliability/admin-data-contracts';
 import { AdminChart, type AdminChartPoint, type AdminChartSeries } from './admin-chart';
 import { AdminWidget } from './admin-widget';
 import { createAdminChartCsvBlob, createAdminChartPngBlob, normalizeAdminExportFileName } from './chart-export';
@@ -15,28 +22,6 @@ import type {
   AdminWidgetLayoutItem,
 } from './chart-widget-contracts';
 import styles from './admin-dashboard-finance-trends.module.css';
-
-type TrendRow = {
-  date: string;
-  topUpAmount: string;
-  topUpCount: number;
-  withdrawalAmount: string;
-  withdrawalCount: number;
-  netFlow: string;
-};
-
-type TrendResponse = {
-  range: { days: number; from: string; to: string };
-  totals: {
-    topUpAmount: string;
-    topUpCount: number;
-    withdrawalAmount: string;
-    withdrawalCount: number;
-    netFlow: string;
-  };
-  daily: TrendRow[];
-  generatedAt: string;
-};
 
 type Props = {
   definition: AdminWidgetDefinition;
@@ -62,60 +47,100 @@ export function AdminDashboardFinanceTrends({
 }: Props) {
   const router = useRouter();
   const [locale, setLocale] = useState<'th' | 'en'>('th');
-  const [primary, setPrimary] = useState<TrendResponse | null>(null);
-  const [comparison, setComparison] = useState<TrendResponse | null>(null);
+  const [primary, setPrimary] = useState<FinanceTrendResponse | null>(null);
+  const [comparison, setComparison] = useState<FinanceTrendResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [partialMessage, setPartialMessage] = useState('');
   const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
-    setLocale(window.localStorage.getItem('admin_locale') === 'en' ? 'en' : 'th');
+    setLocale(readAdminLocale());
   }, []);
 
   useEffect(() => {
     const controller = new AbortController();
+    const activeCopy = locale === 'en' ? EN_COPY : TH_COPY;
     setLoading(true);
     setError('');
+    setPartialMessage('');
 
     void (async () => {
       try {
-        const ranges = [dateRange, compareRange].filter((range): range is AdminDateRange => Boolean(range));
-        const responses = await Promise.all(ranges.map((range) =>
-          adminApiFetch(`/admin/dashboard/finance-trends?from=${encodeURIComponent(range.start)}&to=${encodeURIComponent(range.end)}`, {
-            signal: controller.signal,
-          }),
-        ));
-        const payloads = await Promise.all(responses.map((response) => response.json().catch(() => null)));
-        const failedIndex = responses.findIndex((response) => !response.ok);
-        if (failedIndex >= 0) {
-          throw new Error(readApiMessage(payloads[failedIndex]) ?? 'Unable to load finance trends');
+        const primaryPromise = loadTrendRange(dateRange, controller.signal);
+        const comparisonPromise = compareRange
+          ? loadTrendRange(compareRange, controller.signal)
+          : Promise.resolve(null);
+        const [primaryResult, comparisonResult] = await Promise.all([primaryPromise, comparisonPromise]);
+        if (controller.signal.aborted) return;
+
+        if (!primaryResult.response.ok || !primaryResult.contract.data) {
+          const incidentId = createAdminIncidentId('FIN');
+          console.error('Admin finance trend primary request failed', {
+            incidentId,
+            status: primaryResult.response.status,
+            apiMessage: readApiMessage(primaryResult.payload),
+            contractIssues: primaryResult.contract.issues,
+            range: dateRange,
+          });
+          setPrimary(null);
+          setComparison(null);
+          setError(`${activeCopy.error} · ${activeCopy.reference} ${incidentId}`);
+          return;
         }
 
-        const primaryPayload = parseTrendResponse(payloads[0]);
-        const comparisonPayload = compareRange ? parseTrendResponse(payloads[1]) : null;
-        if (!primaryPayload || (compareRange && !comparisonPayload)) {
-          throw new Error('Finance trend response is incomplete');
+        setPrimary(primaryResult.contract.data);
+        const warnings: string[] = [];
+        if (primaryResult.contract.partial) warnings.push(activeCopy.partialPrimary);
+
+        if (compareRange && comparisonResult) {
+          if (comparisonResult.response.ok && comparisonResult.contract.data) {
+            setComparison(comparisonResult.contract.data);
+            if (comparisonResult.contract.partial) warnings.push(activeCopy.partialComparison);
+          } else {
+            const incidentId = createAdminIncidentId('FIN-CMP');
+            console.warn('Admin finance trend comparison request is unavailable', {
+              incidentId,
+              status: comparisonResult.response.status,
+              apiMessage: readApiMessage(comparisonResult.payload),
+              contractIssues: comparisonResult.contract.issues,
+              range: compareRange,
+            });
+            setComparison(null);
+            warnings.push(`${activeCopy.comparisonUnavailable} · ${activeCopy.reference} ${incidentId}`);
+          }
+        } else {
+          setComparison(null);
         }
-        if (controller.signal.aborted) return;
-        setPrimary(primaryPayload);
-        setComparison(comparisonPayload);
+
+        setPartialMessage(warnings.join(' · '));
       } catch (caught) {
         if (controller.signal.aborted) return;
+        const incidentId = createAdminIncidentId('FIN');
+        console.error('Admin finance trend request crashed', { incidentId, error: caught });
         setPrimary(null);
         setComparison(null);
-        setError(caught instanceof Error ? caught.message : 'Unable to load finance trends');
+        setError(`${activeCopy.error} · ${activeCopy.reference} ${incidentId}`);
       } finally {
         if (!controller.signal.aborted) setLoading(false);
       }
     })();
 
     return () => controller.abort();
-  }, [compareRange, dateRange, reloadKey]);
+  }, [compareRange, dateRange, locale, reloadKey]);
 
   const copy = locale === 'en' ? EN_COPY : TH_COPY;
   const dailyPoints = useMemo(() => toDailyPoints(primary?.daily ?? [], locale), [locale, primary]);
   const chartPoints = useMemo(() => aggregateTrendPoints(primary?.daily ?? [], locale), [locale, primary]);
-  const state = loading && !primary ? 'loading' : error ? 'error' : chartPoints.length === 0 ? 'empty' : 'ready';
+  const state = loading && !primary
+    ? 'loading'
+    : error
+      ? 'error'
+      : chartPoints.length === 0
+        ? 'empty'
+        : partialMessage
+          ? 'partial'
+          : 'ready';
   const money = useMemo(() => new Intl.NumberFormat(locale === 'en' ? 'en-US' : 'th-TH', {
     style: 'currency',
     currency: 'THB',
@@ -152,6 +177,7 @@ export function AdminDashboardFinanceTrends({
     pinned={layout.pinned}
     emptyMessage={copy.empty}
     errorMessage={error || copy.error}
+    partialMessage={partialMessage || copy.widgetLabels.partial}
     exportFormats={definition.exportFormats}
     allowFullscreen={definition.allowFullscreen}
     allowDrillDown={definition.allowDrillDown}
@@ -166,8 +192,8 @@ export function AdminDashboardFinanceTrends({
   >
     {primary ? <>
       <div className={styles.summary}>
-        <Metric label={copy.deposits} value={money.format(Number(primary.totals.topUpAmount))} detail={`${primary.totals.topUpCount.toLocaleString()} ${copy.items}`} />
-        <Metric label={copy.withdrawals} value={money.format(Number(primary.totals.withdrawalAmount))} detail={`${primary.totals.withdrawalCount.toLocaleString()} ${copy.items}`} />
+        <Metric label={copy.deposits} value={money.format(Number(primary.totals.topUpAmount))} detail={`${primary.totals.topUpCount.toLocaleString(locale === 'en' ? 'en-US' : 'th-TH')} ${copy.items}`} />
+        <Metric label={copy.withdrawals} value={money.format(Number(primary.totals.withdrawalAmount))} detail={`${primary.totals.withdrawalCount.toLocaleString(locale === 'en' ? 'en-US' : 'th-TH')} ${copy.items}`} />
         <Metric label={copy.net} value={money.format(Number(primary.totals.netFlow))} detail={comparison ? comparisonDelta(primary.totals.netFlow, comparison.totals.netFlow, locale) : copy.noComparison} />
       </div>
       {comparison ? <div className={styles.comparison} role="status">
@@ -190,40 +216,18 @@ export function AdminDashboardFinanceTrends({
   </AdminWidget>;
 }
 
+async function loadTrendRange(range: AdminDateRange, signal: AbortSignal) {
+  const response = await adminApiFetch(`/admin/dashboard/finance-trends?from=${encodeURIComponent(range.start)}&to=${encodeURIComponent(range.end)}`, { signal });
+  const payload = await response.json().catch(() => null);
+  return {
+    response,
+    payload,
+    contract: normalizeFinanceTrendResponse(payload, range),
+  };
+}
+
 function Metric({ label, value, detail }: { label: string; value: string; detail: string }) {
   return <article className={styles.metric}><span>{label}</span><strong>{value}</strong><small>{detail}</small></article>;
-}
-
-function parseTrendResponse(value: unknown): TrendResponse | null {
-  if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
-  const candidate = value as Partial<TrendResponse>;
-  if (!candidate.range || !candidate.totals || !Array.isArray(candidate.daily) || typeof candidate.generatedAt !== 'string') return null;
-  if (!isFiniteNumber(candidate.range.days) || typeof candidate.range.from !== 'string' || typeof candidate.range.to !== 'string') return null;
-  const totals = candidate.totals;
-  if (
-    typeof totals.topUpAmount !== 'string'
-    || !isFiniteNumber(totals.topUpCount)
-    || typeof totals.withdrawalAmount !== 'string'
-    || !isFiniteNumber(totals.withdrawalCount)
-    || typeof totals.netFlow !== 'string'
-  ) return null;
-  if (!candidate.daily.every(isTrendRow)) return null;
-  return candidate as TrendResponse;
-}
-
-function isTrendRow(value: unknown): value is TrendRow {
-  if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
-  const row = value as Partial<TrendRow>;
-  return typeof row.date === 'string'
-    && typeof row.topUpAmount === 'string'
-    && isFiniteNumber(row.topUpCount)
-    && typeof row.withdrawalAmount === 'string'
-    && isFiniteNumber(row.withdrawalCount)
-    && typeof row.netFlow === 'string';
-}
-
-function isFiniteNumber(value: unknown): value is number {
-  return typeof value === 'number' && Number.isFinite(value);
 }
 
 function readApiMessage(value: unknown) {
@@ -232,7 +236,7 @@ function readApiMessage(value: unknown) {
   return typeof message === 'string' && message.trim() ? message : null;
 }
 
-function toDailyPoints(rows: readonly TrendRow[], locale: 'th' | 'en'): AdminChartPoint[] {
+function toDailyPoints(rows: readonly FinanceTrendRow[], locale: 'th' | 'en'): AdminChartPoint[] {
   return rows.map((row) => ({
     id: row.date,
     label: new Date(`${row.date}T00:00:00.000Z`).toLocaleDateString(locale === 'en' ? 'en-US' : 'th-TH'),
@@ -240,7 +244,7 @@ function toDailyPoints(rows: readonly TrendRow[], locale: 'th' | 'en'): AdminCha
   }));
 }
 
-function aggregateTrendPoints(rows: readonly TrendRow[], locale: 'th' | 'en'): AdminChartPoint[] {
+function aggregateTrendPoints(rows: readonly FinanceTrendRow[], locale: 'th' | 'en'): AdminChartPoint[] {
   if (rows.length <= 31) return toDailyPoints(rows, locale);
   const mode = rows.length <= 120 ? 'week' : 'month';
   const buckets = new Map<string, { start: string; end: string; topUp: number; withdrawal: number }>();
@@ -312,6 +316,10 @@ const TH_COPY = {
   legend: 'คำอธิบายกราฟกระแสเงิน',
   empty: 'ยังไม่มีรายการในช่วงวันที่นี้',
   error: 'โหลดกระแสเงินไม่สำเร็จ',
+  reference: 'รหัสอ้างอิง',
+  partialPrimary: 'ข้อมูลหลักบางช่องถูกปรับให้อยู่ในรูปแบบที่ปลอดภัย',
+  partialComparison: 'ข้อมูลช่วงเปรียบเทียบบางช่องไม่สมบูรณ์',
+  comparisonUnavailable: 'แสดงข้อมูลหลักได้ แต่โหลดช่วงเปรียบเทียบไม่สำเร็จ',
   noComparison: 'ไม่ได้เลือกช่วงเปรียบเทียบ',
   compareLabel: {
     none: '',
@@ -335,6 +343,10 @@ const EN_COPY = {
   legend: 'Cash-flow chart legend',
   empty: 'No transactions in this period',
   error: 'Unable to load cash flow',
+  reference: 'Reference',
+  partialPrimary: 'Some primary fields were normalized to a safe format',
+  partialComparison: 'Some comparison fields are incomplete',
+  comparisonUnavailable: 'Primary data is available, but the comparison range could not be loaded',
   noComparison: 'No comparison selected',
   compareLabel: {
     none: '',

@@ -13,7 +13,11 @@ test('cash-flow widget uses the real historical runtime owner', () => {
   assert.match(workspace, /AdminDashboardFinanceTrends/);
   assert.match(workspace, /definition\.id === 'finance\.cash-flow'/);
   assert.match(finance, /\/admin\/dashboard\/finance-trends\?from=/);
-  assert.match(finance, /Promise\.all\(ranges\.map/);
+  assert.match(finance, /const primaryPromise = loadTrendRange/);
+  assert.match(finance, /const comparisonPromise = compareRange/);
+  assert.match(finance, /Promise\.all\(\[primaryPromise, comparisonPromise\]\)/);
+  assert.match(finance, /comparisonUnavailable/);
+  assert.match(finance, /normalizeFinanceTrendResponse/);
   assert.match(finance, /aggregateTrendPoints/);
   assert.match(finance, /createAdminChartCsvBlob/);
   assert.match(finance, /createAdminChartPngBlob/);

@@ -163,7 +163,9 @@ test('malformed historical payload is isolated to the cash-flow widget', async (
   await expect(page.locator('main.admin-shell')).toBeVisible();
   await expect(page.locator('[data-widget-id]')).toHaveCount(6);
   const cashFlow = page.locator('[data-widget-id="finance.cash-flow"]');
-  await expect(cashFlow.getByText('Finance trend response is incomplete')).toBeVisible();
+  await expect(cashFlow.getByText('โหลดกระแสเงินไม่สำเร็จ', { exact: false })).toBeVisible();
+  await expect(cashFlow.getByText(/รหัสอ้างอิง FIN-/)).toBeVisible();
+  await expect(cashFlow.getByText('Finance trend response is incomplete')).toHaveCount(0);
   await expect(page.getByRole('heading', { name: 'โหลดหน้านี้ไม่สำเร็จ' })).toHaveCount(0);
 });
 

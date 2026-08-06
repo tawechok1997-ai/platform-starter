@@ -54,8 +54,10 @@ test('/admin-invitations paginates the shared table and restores focus after can
 
   const trigger = page.getByRole('button', { name: 'ออกลิงก์ใหม่' }).first();
   await expect(trigger).toBeVisible();
+  await expect(trigger).toBeEnabled();
   await trigger.focus();
-  await trigger.click();
+  await expect(trigger).toBeFocused();
+  await trigger.press('Enter');
 
   const dialog = page.getByRole('alertdialog', { name: 'ออกลิงก์ใหม่' });
   await expect(dialog).toBeVisible();

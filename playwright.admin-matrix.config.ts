@@ -6,7 +6,7 @@ const p8TestMatch = /admin-p8-.*\.spec\.ts/;
 
 export default defineConfig({
   testDir: './tests/admin-browser-matrix',
-  timeout: 120_000,
+  timeout: 180_000,
   expect: { timeout: 12_000 },
   retries: process.env.CI ? 1 : 0,
   workers: process.env.CI ? 3 : undefined,

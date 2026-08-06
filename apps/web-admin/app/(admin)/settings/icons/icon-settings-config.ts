@@ -54,8 +54,18 @@ const LEGACY_TEXT_ICONS: TextIconSettingsDefinition[] = [
   { key: 'profile', label: 'เมนูโปรไฟล์', defaultValue: '👤' },
   { key: 'vip', label: 'เมนู VIP', defaultValue: '♛' },
   { key: 'wallet', label: 'เมนูยอดเงิน', defaultValue: '฿' },
-  { key: 'close', label: 'ปุ่มปิด Modal', defaultValue: '/images/close.svg' },
 ];
+
+const CLOSE_ICON_FIELD = {
+  key: 'close',
+  label: 'ปุ่มปิด Modal',
+  section: 'ไอคอนระบบ',
+  placeholder: '/images/close.svg',
+  helper: 'แสดงตัวอย่างรูปปัจจุบันและรูปใหม่ก่อนบันทึก รองรับ URL หรืออัปโหลดไฟล์',
+  type: 'url' as const,
+  asset: true,
+  defaultValue: '/images/close.svg',
+};
 
 export const GAME_CATEGORY_ICON_DEFINITIONS: IconSettingsDefinition[] = [
   { key: 'game_category_home_icon', label: 'หมวดเกม: หน้าหลัก', outputFile: 'home.png', sourceFile: 'หน้าเเรก.png' },
@@ -77,6 +87,7 @@ const ALL_IMAGE_DEFINITIONS = [...PRIMARY_MENU_ICONS, ...SHARED_RUNTIME_ICONS, .
 export const ICON_SETTINGS_DEFAULTS: Record<string, string> = {
   ...Object.fromEntries(ALL_IMAGE_DEFINITIONS.map((item) => [item.key, `${MENU_ROOT}/${item.outputFile}`])),
   ...Object.fromEntries(LEGACY_TEXT_ICONS.map((item) => [item.key, item.defaultValue])),
+  close: CLOSE_ICON_FIELD.defaultValue,
 };
 
 export const ICON_SETTINGS_FIELDS = [
@@ -87,9 +98,10 @@ export const ICON_SETTINGS_FIELDS = [
     label: item.label,
     section: 'ไอคอนข้อความและ URL สำรอง',
     placeholder: item.defaultValue,
-    helper: 'รองรับ URL, อักขระ หรือ Emoji ตามจุดใช้งาน',
+    helper: 'รองรับอักขระหรือ Emoji ตามจุดใช้งาน',
     defaultValue: item.defaultValue,
   })),
+  CLOSE_ICON_FIELD,
   ...GAME_CATEGORY_ICON_DEFINITIONS.map((item) => imageField(item, 'หมวดเกม')),
 ];
 
@@ -104,6 +116,7 @@ function imageField(item: IconSettingsDefinition, section: string) {
     section,
     placeholder: `${MENU_ROOT}/${item.outputFile}`,
     helper: `ไฟล์ต้นแบบ ${item.sourceFile} · ค่าเริ่มต้น ${item.outputFile}`,
+    type: 'url' as const,
     asset: true,
     defaultValue: `${MENU_ROOT}/${item.outputFile}`,
   };
