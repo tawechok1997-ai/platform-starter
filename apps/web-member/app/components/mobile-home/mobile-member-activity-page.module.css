@@ -1,20 +1,25 @@
 .page {
-  width: 100%;
-  max-width: 428px;
+  display: flex;
+  width: min(100%, 428px);
   min-height: 100dvh;
   margin: 0 auto;
+  flex-direction: column;
   color: #fff;
   background: #141019;
+  box-shadow: 0 0 24px rgb(255 255 255 / 14%);
 }
 
 .header {
   position: sticky;
-  top: 0;
   z-index: 51;
+  top: 0;
   display: grid;
+  box-sizing: border-box;
   width: 100%;
   height: 50px;
+  min-height: 50px;
   padding: 0 8px;
+  flex: 0 0 50px;
   grid-template-columns: 40px minmax(0, 1fr) 40px;
   align-items: center;
   background: #171422;
@@ -34,6 +39,12 @@
   -webkit-tap-highlight-color: transparent;
 }
 
+.header button svg {
+  display: block;
+  width: 24px;
+  height: 24px;
+}
+
 .header h1 {
   margin: 0;
   grid-column: 2;
@@ -47,15 +58,18 @@
 }
 
 .body {
+  box-sizing: border-box;
   width: 100%;
   min-height: calc(100dvh - 50px);
-  padding: 16px 16px calc(48px + env(safe-area-inset-bottom));
+  padding: 16px;
   background: #141019;
 }
 
 .panel {
   display: flex;
+  box-sizing: border-box;
   width: 100%;
+  min-height: 220px;
   padding: 16px;
   flex-direction: column;
   gap: 12px;
@@ -69,21 +83,32 @@
   display: flex;
   width: 100%;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
 }
 
-.card {
-  display: grid;
+.card,
+.skeletonCard {
   width: 100%;
   min-width: 0;
   min-height: 100px;
-  grid-template-columns: 100px minmax(0, 1fr);
-  gap: 16px;
   overflow: hidden;
   border: 0;
   border-radius: 8px;
   background: #15131a;
   filter: drop-shadow(0 0 1px rgb(255 255 255 / 16%));
+}
+
+.card {
+  display: grid;
+  grid-template-columns: 100px minmax(0, 1fr);
+  gap: 16px;
+}
+
+.skeletonCard {
+  display: block;
+  background: linear-gradient(90deg, #211d27, #332d3d, #211d27);
+  background-size: 220% 100%;
+  animation: activitySkeleton 1.2s linear infinite;
 }
 
 .media {
@@ -100,6 +125,35 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
+  transition: filter 160ms ease, opacity 160ms ease;
+}
+
+.cardDisabled .media img {
+  opacity: .5;
+  filter: grayscale(1);
+}
+
+.unavailableOverlay {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  display: flex;
+  padding: 8px;
+  align-items: center;
+  justify-content: center;
+  background: rgb(0 0 0 / 50%);
+}
+
+.unavailableLabel {
+  display: block;
+  width: 80%;
+  padding: 4px 6px;
+  border-radius: 16px;
+  color: #fff;
+  background: rgb(219 1 1 / 71%);
+  font-size: 8px;
+  line-height: 12px;
+  text-align: center;
 }
 
 .copy {
@@ -122,7 +176,12 @@
   -webkit-line-clamp: 2;
 }
 
-.copy span {
+.cardDisabled .copy strong {
+  color: #757575;
+}
+
+.date {
+  display: block;
   min-height: 12px;
   color: #fff;
   font-size: 8px;
@@ -150,8 +209,20 @@
   -webkit-tap-highlight-color: transparent;
 }
 
-.copy button:active {
+.copy button:active:not(:disabled) {
   transform: translateY(1px);
+}
+
+.copy button:disabled {
+  background: #757575;
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
+@keyframes activitySkeleton {
+  to {
+    background-position: -120% 0;
+  }
 }
 
 @media (min-width: 360px) {
@@ -159,8 +230,12 @@
     font-size: 18px;
   }
 
-  .card {
+  .card,
+  .skeletonCard {
     min-height: 120px;
+  }
+
+  .card {
     grid-template-columns: 120px minmax(0, 1fr);
   }
 
@@ -174,13 +249,18 @@
     line-height: 20px;
   }
 
-  .copy span {
+  .date {
     font-size: 10px;
     line-height: 12px;
   }
 
   .copy button {
     font-size: 14px;
+  }
+
+  .unavailableLabel {
+    font-size: 12px;
+    line-height: 14px;
   }
 }
 
@@ -189,8 +269,12 @@
     font-size: 20px;
   }
 
-  .card {
+  .card,
+  .skeletonCard {
     min-height: 140px;
+  }
+
+  .card {
     grid-template-columns: 140px minmax(0, 1fr);
   }
 
@@ -204,7 +288,7 @@
     line-height: 22px;
   }
 
-  .copy span {
+  .date {
     font-size: 12px;
     line-height: 14px;
   }
@@ -216,7 +300,7 @@
 
 @media (max-width: 359px) {
   .body {
-    padding: 12px 8px calc(40px + env(safe-area-inset-bottom));
+    padding: 12px 8px;
   }
 
   .panel {
@@ -230,5 +314,15 @@
 
   .copy button {
     padding-inline: 16px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeletonCard {
+    animation: none;
+  }
+
+  .media img {
+    transition: none;
   }
 }
