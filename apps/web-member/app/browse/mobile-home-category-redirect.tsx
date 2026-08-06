@@ -17,7 +17,6 @@ export default function MobileHomeCategoryRedirect({ slug }: { slug: MobileBrows
   useEffect(() => {
     const destination = new URL('/', window.location.origin);
     destination.searchParams.set('category', HOME_CATEGORY[slug]);
-    destination.hash = 'mobile-games';
     window.location.replace(destination.toString());
   }, [slug]);
 
