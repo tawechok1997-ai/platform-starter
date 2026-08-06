@@ -35,6 +35,7 @@ export default function MemberAuthOverlay({
   const authCompletionRef = useRef(false);
   const activeModeRef = useRef<MemberAuthMode>(mode);
   const requestedPathRef = useRef(initialPath);
+  const overlayRef = useRef<HTMLDivElement | null>(null);
   const frameRef = useRef<HTMLIFrameElement | null>(null);
   const releaseDocumentLockRef = useRef<(() => void) | null>(null);
   const onModeChangeRef = useRef(onModeChange);
@@ -102,13 +103,43 @@ export default function MemberAuthOverlay({
       .forEach((element) => element.removeAttribute('data-member-active-overlay'));
   }, []);
 
+  const dropInputOwnershipNow = useCallback(() => {
+    const overlay = overlayRef.current;
+    if (overlay) {
+      overlay.dataset.state = 'dismissed';
+      overlay.setAttribute('aria-hidden', 'true');
+      overlay.style.setProperty('pointer-events', 'none', 'important');
+      overlay.style.setProperty('visibility', 'hidden', 'important');
+    }
+
+    const frame = frameRef.current;
+    if (frame) {
+      frame.blur();
+      frame.style.setProperty('pointer-events', 'none', 'important');
+      frame.style.setProperty('visibility', 'hidden', 'important');
+    }
+  }, []);
+
+  const revealFrameOnlyWhenRendered = useCallback((frame: HTMLIFrameElement) => {
+    if (closingRef.current || !embeddedAuthShellReady(frame.contentDocument)) return false;
+
+    framePollRef.current = window.requestAnimationFrame(() => {
+      framePollRef.current = null;
+      if (closingRef.current || !embeddedAuthShellReady(frame.contentDocument)) return;
+      setFrameReady(true);
+      frame.focus({ preventScroll: true });
+    });
+    return true;
+  }, []);
+
   const dismissImmediately = useCallback((afterClose: () => void | Promise<void>) => {
     if (closingRef.current) return;
     closingRef.current = true;
 
-    // The dialog must stop owning input in the same event turn. Waiting for an
-    // animation or a router update is what previously left an invisible iframe
-    // above the page and made the next click disappear.
+    // Stop owning input before React state or URL updates get a chance to lag.
+    // This is the safety boundary that prevents a transparent iframe from
+    // swallowing every click after the dialog appears to have closed.
+    dropInputOwnershipNow();
     setDismissed(true);
     setVisible(false);
     setFrameReady(false);
@@ -117,7 +148,7 @@ export default function MemberAuthOverlay({
     removeOverlayOwnership();
     restorePreviousFocus();
     void afterClose();
-  }, [cancelFrameWork, releaseDocumentLockNow, removeOverlayOwnership, restorePreviousFocus]);
+  }, [cancelFrameWork, dropInputOwnershipNow, releaseDocumentLockNow, removeOverlayOwnership, restorePreviousFocus]);
 
   const requestClose = useCallback(() => {
     dismissImmediately(onCloseRef.current);
@@ -204,9 +235,11 @@ export default function MemberAuthOverlay({
     };
 
     const handleMessage = (event: MessageEvent) => {
-      const frameWindow = frameRef.current?.contentWindow;
+      const frame = frameRef.current;
+      const frameWindow = frame?.contentWindow;
       if (
         event.origin !== window.location.origin
+        || !frame
         || !frameWindow
         || event.source !== frameWindow
         || !event.data
@@ -216,8 +249,12 @@ export default function MemberAuthOverlay({
       const payload = event.data as { type?: unknown; mode?: unknown };
       if (payload.type === 'member-auth-close') requestClose();
       else if (payload.type === 'member-auth-success') void completeAuth();
-      else if (payload.type === 'member-auth-ready') setFrameReady(true);
-      else if (
+      else if (payload.type === 'member-auth-ready') {
+        // The child can post ready in the same tick that it updates React state.
+        // Verify that the actual embedded page and dialog exist before revealing
+        // the iframe, otherwise a refresh briefly exposes a black/blank document.
+        revealFrameOnlyWhenRendered(frame);
+      } else if (
         payload.type === 'member-auth-switch'
         && (payload.mode === 'login' || payload.mode === 'register')
       ) navigateEmbeddedMode(payload.mode);
@@ -229,6 +266,7 @@ export default function MemberAuthOverlay({
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('message', handleMessage);
       cancelFrameWork();
+      dropInputOwnershipNow();
       if (releaseDocumentLockRef.current === releaseDocumentLock) {
         releaseDocumentLockRef.current = null;
       }
@@ -236,7 +274,7 @@ export default function MemberAuthOverlay({
       removeOverlayOwnership();
       restorePreviousFocus();
     };
-  }, [cancelFrameWork, completeAuth, navigateEmbeddedMode, removeOverlayOwnership, requestClose, restorePreviousFocus]);
+  }, [cancelFrameWork, completeAuth, dropInputOwnershipNow, navigateEmbeddedMode, removeOverlayOwnership, requestClose, restorePreviousFocus, revealFrameOnlyWhenRendered]);
 
   function revealFrameWhenEmbedded(event: SyntheticEvent<HTMLIFrameElement>) {
     const frame = event.currentTarget;
@@ -296,18 +334,12 @@ export default function MemberAuthOverlay({
     let attempts = 0;
     const checkEmbeddedMode = () => {
       if (closingRef.current) return;
-      const embeddedPage = frame.contentDocument?.querySelector('[data-embedded="true"]');
-      if (embeddedPage || attempts >= 120) {
-        framePollRef.current = window.requestAnimationFrame(() => {
-          framePollRef.current = null;
-          if (!closingRef.current) {
-            setFrameReady(true);
-            frame.focus({ preventScroll: true });
-          }
-        });
+      if (revealFrameOnlyWhenRendered(frame)) return;
+      attempts += 1;
+      if (attempts >= 240) {
+        framePollRef.current = null;
         return;
       }
-      attempts += 1;
       framePollRef.current = window.requestAnimationFrame(checkEmbeddedMode);
     };
 
@@ -319,6 +351,7 @@ export default function MemberAuthOverlay({
   const motionState = visible ? 'open' : 'opening';
   const overlay = (
     <div
+      ref={overlayRef}
       className="member-auth-overlay"
       role="dialog"
       aria-modal="true"
@@ -350,6 +383,13 @@ export default function MemberAuthOverlay({
 function embeddedPath(mode: MemberAuthMode, requestId: MemberAuthRequestId) {
   const pathname = mode === 'register' ? '/register' : '/login';
   return `${pathname}?embed=1&request=${encodeURIComponent(requestId)}`;
+}
+
+function embeddedAuthShellReady(document: Document | null) {
+  if (!document) return false;
+  const page = document.querySelector<HTMLElement>('[data-embedded="true"]');
+  if (!page) return false;
+  return Boolean(page.querySelector('[role="dialog"], .source-login-modal, .source-register-modal'));
 }
 
 function embeddedAuthMode(control: HTMLElement, currentMode: MemberAuthMode): MemberAuthMode | null {
