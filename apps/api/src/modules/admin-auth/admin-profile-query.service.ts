@@ -5,7 +5,7 @@ import { PrismaService } from '../../database/prisma.service';
 export class AdminProfileQueryService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async getProfile(adminUserId: string, sessionPermissions: readonly string[] = []) {
+  async getProfile(adminUserId: string, sessionPermissions?: readonly string[]) {
     const admin = await this.prisma.adminUser.findUnique({
       where: { id: adminUserId },
       select: {
@@ -58,7 +58,11 @@ export class AdminProfileQueryService {
     const rolePermissions = sortedAdminRoles.flatMap(({ role }) =>
       role.permissions.map(({ permission }) => permission.code),
     );
-    const permissions = [...new Set([...sessionPermissions, ...rolePermissions])].sort();
+    // The guard passes effective permissions after role, delegation, ALLOW and
+    // DENY resolution. An explicitly supplied empty array is authoritative and
+    // must not be repopulated from role permissions, otherwise the UI could
+    // expose navigation that the API correctly rejects.
+    const permissions = [...new Set(sessionPermissions === undefined ? rolePermissions : sessionPermissions)].sort();
     const primaryRole = roles[0];
 
     return {
