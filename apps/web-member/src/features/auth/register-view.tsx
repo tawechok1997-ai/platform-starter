@@ -116,7 +116,6 @@ export function RegisterView(props: RegisterViewProps) {
 
           {step === 1 && <div className="source-register-step source-register-step--phone">
             <Field label={t.phone} id="register-phone" value={phone} onChange={(value) => onFieldChange('phone', value)} error={errors.phone} disabled={disabled} autoComplete="tel" inputMode="tel" />
-            <AntiBotWidget endpoint="member-register" locale={locale} resetKey={captchaResetKey} onToken={onCaptchaToken} onRequiredChange={onCaptchaState} />
           </div>}
 
           {step === 2 && <div className="source-register-step source-register-step--details">
@@ -137,6 +136,7 @@ export function RegisterView(props: RegisterViewProps) {
             <div className="public-auth-review source-register-review"><ReviewRow label={t.phone} value={phone} /><ReviewRow label={t.fullName} value={fullName} /><ReviewRow label={t.bankName} value={selectedBankLabel} /><ReviewRow label={t.bankAccountNumber} value={maskAccount(bankAccountNumber)} /></div>
             <label className="public-auth-terms source-register-terms"><input type="checkbox" checked={acceptedTerms} onChange={(event) => onAcceptedTermsChange(event.target.checked)} disabled={disabled} /><span>{t.terms}</span></label>
             {errors.terms && <span className="public-auth-field-error">{errors.terms}</span>}
+            <AntiBotWidget endpoint="member-register" locale={locale} resetKey={captchaResetKey} onToken={onCaptchaToken} onRequiredChange={onCaptchaState} />
           </div>}
 
           <div className={`public-auth-form-actions source-register-actions${step > 1 ? ' has-back' : ''}`}>
