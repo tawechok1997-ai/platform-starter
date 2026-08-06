@@ -13,6 +13,7 @@ import { CmsPopup } from './components/member-home-sections';
 import { DesktopHomeScaffold } from './components/member-home/desktop-home-scaffold';
 import { DesktopGameFeedProvider } from './components/member-home/member-source-feed-sections';
 import HomeSidebarScrollController from './components/member-home/home-sidebar-scroll-controller';
+import MobileActivityStandaloneNavigation from './components/mobile-home/mobile-activity-standalone-navigation';
 import MobileAuthenticatedAvatarRuntime from './components/mobile-home/mobile-authenticated-avatar-runtime';
 import MobileAuthenticatedHomeRuntime from './components/mobile-home/mobile-authenticated-home-runtime';
 import MobileCanonicalGameLaunchCapture from './components/mobile-home/mobile-canonical-game-launch-capture';
@@ -84,6 +85,7 @@ export default function MemberHome(props: MemberHomeProps) {
         <MobileHomeRoot content={props.cmsContent} showPromotion={props.showPromotion} />
         <MobilePromotionStandaloneNavigation />
         <MobileNewsStandaloneNavigation />
+        <MobileActivityStandaloneNavigation />
         <MobileCategoryQueryBridge />
         <MobileCanonicalGameLaunchCapture />
         <MobileP4P6ClosureRuntime />
