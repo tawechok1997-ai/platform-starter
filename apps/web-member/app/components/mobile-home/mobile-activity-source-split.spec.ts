@@ -18,7 +18,7 @@ test('Home Activity summary and the full Activity route stay separate', () => {
 test('the member Activity button opens the dedicated route', () => {
   assert.match(home, /import MobileActivityStandaloneNavigation/);
   assert.match(home, /<MobileActivityStandaloneNavigation \/>/);
-  assert.match(navigation, /data-source-member-menu-item=\\"activity\\"/);
+  assert.match(navigation, /data-source-member-menu-item="activity"/);
   assert.match(navigation, /window\.location\.assign\(ACTIVITY_ROUTE\)/);
   assert.match(navigation, /useLayoutEffect/);
 });
