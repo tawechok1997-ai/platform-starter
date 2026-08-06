@@ -16,6 +16,7 @@ import HomeSidebarScrollController from './components/member-home/home-sidebar-s
 import MobileAuthenticatedAvatarRuntime from './components/mobile-home/mobile-authenticated-avatar-runtime';
 import MobileAuthenticatedHomeRuntime from './components/mobile-home/mobile-authenticated-home-runtime';
 import MobileCanonicalGameLaunchCapture from './components/mobile-home/mobile-canonical-game-launch-capture';
+import MobileCategoryQueryBridge from './components/mobile-home/mobile-category-query-bridge';
 import MobileCouponPopupBridge from './components/mobile-home/mobile-coupon-popup-bridge';
 import MobileHomeGuidePreview from './components/mobile-home/mobile-home-guide-preview';
 import MobileHomeImageRecoveryRuntime from './components/mobile-home/mobile-home-image-recovery-runtime';
@@ -82,6 +83,7 @@ export default function MemberHome(props: MemberHomeProps) {
     return (
       <>
         <MobileHomeRoot content={props.cmsContent} showPromotion={props.showPromotion} />
+        <MobileCategoryQueryBridge />
         <MobileCanonicalGameLaunchCapture />
         <MobileP4P6ClosureRuntime />
         <MobileP7P9ClosureRuntime phase="p7" route="/" />
