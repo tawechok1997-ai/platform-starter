@@ -32,6 +32,7 @@ import MobileScrollComfortGuard from './components/mobile-home/mobile-scroll-com
 import { openMemberSharedPopup } from './components/member-shared-popup-runtime';
 import { useMemberHomeData } from './hooks/use-member-home-data';
 import './components/mobile-home/mobile-hero-carousel.css';
+import './components/mobile-home/mobile-drawer-source-fit.css';
 
 type MemberHomeProps = {
   siteName: string;
