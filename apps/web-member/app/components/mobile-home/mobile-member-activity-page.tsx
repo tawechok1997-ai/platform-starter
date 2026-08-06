@@ -11,7 +11,10 @@ export type MobileActivityContentItem = {
   id: string;
   title: string;
   image: string;
-  href: string;
+  href?: string;
+  date?: string;
+  disabled: boolean;
+  disabledLabel?: string;
 };
 
 type MobileMemberActivityPageProps = {
@@ -38,6 +41,8 @@ export default function MobileMemberActivityPage({
   })), [items]);
 
   const joinActivity = (activity: MobileActivityContentItem) => {
+    if (activity.disabled || !activity.href) return;
+
     if (!ready || !isLoggedIn) {
       window.dispatchEvent(new CustomEvent(MEMBER_AUTH_OPEN_EVENT, {
         detail: { mode: 'login', next: activity.href },
@@ -56,19 +61,21 @@ export default function MobileMemberActivityPage({
     <main
       className={styles.page}
       data-mobile-member-page="activity"
+      data-activity-owner="standalone"
       data-content-source="api"
       aria-busy={loading}
     >
       <header className={styles.header}>
         <button type="button" aria-label="ย้อนกลับ" onClick={onBack}><BackIcon /></button>
         <h1>กิจกรรม</h1>
+        <span aria-hidden="true" />
       </header>
 
       <div className={styles.body}>
         <section className={styles.panel} aria-label="รายการกิจกรรม" aria-live="polite">
           {loading ? (
             <div className={styles.list} aria-label="กำลังโหลดกิจกรรม">
-              {[0, 1, 2].map((index) => <span className={styles.card} aria-hidden="true" key={index} />)}
+              {[0, 1, 2].map((index) => <span className={styles.skeletonCard} aria-hidden="true" key={index} />)}
             </div>
           ) : null}
 
@@ -83,7 +90,11 @@ export default function MobileMemberActivityPage({
           {!loading && !error && activities.length > 0 ? (
             <div className={styles.list}>
               {activities.map((activity, index) => (
-                <article className={styles.card} key={activity.id}>
+                <article
+                  className={`${styles.card} ${activity.disabled ? styles.cardDisabled : ''}`}
+                  key={activity.id}
+                  aria-disabled={activity.disabled}
+                >
                   <div className={styles.media}>
                     <img
                       src={activity.imageUrl || FALLBACK_ACTIVITY_IMAGE}
@@ -91,10 +102,22 @@ export default function MobileMemberActivityPage({
                       loading={index === 0 ? 'eager' : 'lazy'}
                       onError={(event) => recoverActivityImage(event.currentTarget, activity.image)}
                     />
+                    {activity.disabled && activity.disabledLabel ? (
+                      <span className={styles.unavailableOverlay}>
+                        <span className={styles.unavailableLabel}>{activity.disabledLabel}</span>
+                      </span>
+                    ) : null}
                   </div>
                   <div className={styles.copy}>
                     <strong>{activity.title}</strong>
-                    <button type="button" onClick={() => joinActivity(activity)}>เข้าร่วม</button>
+                    <span className={styles.date}>{activity.date ?? ''}</span>
+                    <button
+                      type="button"
+                      disabled={activity.disabled || !activity.href}
+                      onClick={() => joinActivity(activity)}
+                    >
+                      เข้าร่วม
+                    </button>
                   </div>
                 </article>
               ))}
