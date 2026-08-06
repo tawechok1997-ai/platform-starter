@@ -1,11 +1,10 @@
 'use client';
 
-import { useCallback, useEffect } from 'react';
+import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useMemberRuntime } from '../member-runtime-provider';
-import type { MemberAuthMode } from './auth/member-auth-overlay';
+import { openMemberAuth } from '../lib/member-auth-events';
 
-const MEMBER_AUTH_OPEN_EVENT = 'member:auth-open';
 const NAVIGATION_SELECTOR = [
   '.member-desktop-nav a[href]',
   '.member-mobile-runtime-navigation a[href]',
@@ -124,43 +123,9 @@ const CANONICAL_HREF_TARGETS: Readonly<Record<string, string>> = {
   '/mobile/member/guide': '/mobile/member/guide',
 };
 
-type AuthOpenDetail = {
-  mode?: unknown;
-  next?: unknown;
-};
-
 export default function MemberNavigationAuthController() {
   const router = useRouter();
   const { navigation, summary } = useMemberRuntime();
-
-  const openAuth = useCallback((mode: MemberAuthMode, next?: string) => {
-    const url = new URL(window.location.href);
-    url.searchParams.set('auth', mode);
-
-    const safeNext = safeNextTarget(next);
-    if (safeNext) url.searchParams.set('next', safeNext);
-    else url.searchParams.delete('next');
-
-    // A protected link may already have started capture-phase route motion.
-    // Auth opens an in-place overlay, so cancel that false leaving state before
-    // updating the canonical query string.
-    document.documentElement.dataset.memberRouteMotion = 'idle';
-
-    // MemberChrome is the sole pre-login overlay owner. This controller only
-    // updates the canonical request state and never mounts a second dialog.
-    router.replace(`${url.pathname}${url.search}${url.hash}`, { scroll: false });
-  }, [router]);
-
-  useEffect(() => {
-    const handleAuthOpen = (event: Event) => {
-      const detail = (event as CustomEvent<AuthOpenDetail>).detail;
-      if (!detail || (detail.mode !== 'login' && detail.mode !== 'register')) return;
-      openAuth(detail.mode, typeof detail.next === 'string' ? detail.next : undefined);
-    };
-
-    window.addEventListener(MEMBER_AUTH_OPEN_EVENT, handleAuthOpen);
-    return () => window.removeEventListener(MEMBER_AUTH_OPEN_EVENT, handleAuthOpen);
-  }, [openAuth]);
 
   useEffect(() => {
     const protectedTargets = new Map(
@@ -211,7 +176,7 @@ export default function MemberNavigationAuthController() {
         event.preventDefault();
         event.stopPropagation();
         event.stopImmediatePropagation();
-        openAuth('login', intended);
+        openMemberAuth('login', intended);
         return;
       }
 
@@ -230,7 +195,7 @@ export default function MemberNavigationAuthController() {
           event.preventDefault();
           event.stopPropagation();
           event.stopImmediatePropagation();
-          openAuth(authMode, nextTargetFor(rawHref));
+          openMemberAuth(authMode, nextTargetFor(rawHref));
           return;
         }
       }
@@ -256,7 +221,7 @@ export default function MemberNavigationAuthController() {
           event.preventDefault();
           event.stopPropagation();
           event.stopImmediatePropagation();
-          openAuth('login', intended);
+          openMemberAuth('login', intended);
           return;
         }
       }
@@ -272,7 +237,7 @@ export default function MemberNavigationAuthController() {
 
     document.addEventListener('click', guard, true);
     return () => document.removeEventListener('click', guard, true);
-  }, [navigation, openAuth, router, summary.isLoggedIn]);
+  }, [navigation, router, summary.isLoggedIn]);
 
   return null;
 }
@@ -343,7 +308,7 @@ function actionLabel(action: HTMLAnchorElement) {
   return action.textContent?.replace(/\s+/g, ' ').trim().toLowerCase() ?? '';
 }
 
-function authModeForTarget(value: string): MemberAuthMode | null {
+function authModeForTarget(value: string): 'login' | 'register' | null {
   try {
     const url = new URL(value, 'https://member.local');
     const auth = url.searchParams.get('auth');

@@ -19,6 +19,7 @@ const PUBLIC_MOBILE_MEMBER_ROUTES = new Set([
 
 const memberRouteRules: MemberRouteRule[] = [
   { prefix: '/clone-preview', label: 'Frontend Clone Preview', public: true },
+  { prefix: '/diagnostics', label: 'Web Member Diagnostics', public: true },
   { prefix: '/login', label: 'เข้าสู่ระบบ', public: true, authRedirectHome: true },
   { prefix: '/register', label: 'สมัครสมาชิก', public: true, authRedirectHome: true },
   { prefix: '/contact', label: 'ติดต่อเรา', public: true },
