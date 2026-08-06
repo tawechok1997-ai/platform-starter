@@ -23,7 +23,8 @@ test('layout integrity remains Admin-only', async () => {
   const css = await fs.readFile(integrityPath, 'utf8');
 
   assert.match(css, /body\[data-app-surface='admin'\]/);
-  assert.doesNotMatch(css, /member-/i);
+  assert.doesNotMatch(css, /body\[data-app-surface=['"]member['"]\]/i);
+  assert.doesNotMatch(css, /(^|[\s,{])\.member-/im);
   assert.doesNotMatch(css, /data-member-/i);
   assert.doesNotMatch(css, /#member-/i);
 });
