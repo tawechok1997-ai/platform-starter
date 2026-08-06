@@ -1,0 +1,132 @@
+/* Keep the Mobile Home leaderboard inside the viewport.
+ * The source implementation used a 400px minimum table and a nested horizontal
+ * scroller, which makes compact phones pan sideways. The table now compresses
+ * its text columns and truncates long values instead.
+ */
+@media (max-width: 900px) {
+  [data-mobile-source-leaderboard='true'] {
+    box-sizing: border-box !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    overflow-x: hidden !important;
+  }
+
+  [data-mobile-source-leaderboard='true'] > div {
+    box-sizing: border-box !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    overflow-x: hidden !important;
+    overflow-y: hidden !important;
+    overscroll-behavior-x: none !important;
+    touch-action: pan-y !important;
+  }
+
+  [data-mobile-source-leaderboard='true'] > div > div {
+    box-sizing: border-box !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    overflow-x: hidden !important;
+  }
+
+  [data-mobile-source-leaderboard='true'] > div > div > div {
+    box-sizing: border-box !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    padding-inline: 4px !important;
+    grid-template-columns:
+      30px
+      minmax(58px, 0.85fr)
+      minmax(0, 1.55fr)
+      minmax(44px, 0.62fr)
+      22px !important;
+    column-gap: 3px !important;
+  }
+
+  [data-mobile-source-leaderboard='true'] > div > div > div > * {
+    box-sizing: border-box !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+  }
+
+  [data-mobile-source-leaderboard='true'] > div > div > div > span,
+  [data-mobile-source-leaderboard='true'] > div > div > div > strong {
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+
+  [data-mobile-source-leaderboard='true'] > div > div > div > span:nth-child(3) {
+    display: flex !important;
+    min-width: 0 !important;
+    overflow: hidden !important;
+    gap: 4px !important;
+  }
+
+  [data-mobile-source-leaderboard='true'] > div > div > div > span:nth-child(3) > img {
+    width: 30px !important;
+    min-width: 30px !important;
+    max-width: 30px !important;
+    height: 38px !important;
+    flex: 0 0 30px !important;
+    object-fit: cover !important;
+  }
+
+  [data-mobile-source-leaderboard='true'] > div > div > div > span:nth-child(3) > span {
+    min-width: 0 !important;
+    overflow: hidden !important;
+  }
+
+  [data-mobile-source-leaderboard='true'] > div > div > div > span:nth-child(3) b,
+  [data-mobile-source-leaderboard='true'] > div > div > div > span:nth-child(3) small {
+    display: block !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+
+  [data-mobile-source-leaderboard='true'] > div > div > div > strong {
+    justify-self: end !important;
+    font-variant-numeric: tabular-nums !important;
+    text-align: right !important;
+  }
+
+  [data-mobile-source-leaderboard='true'] > div > div > div > button {
+    width: 22px !important;
+    min-width: 22px !important;
+    max-width: 22px !important;
+    height: 20px !important;
+    justify-self: end !important;
+  }
+}
+
+@media (max-width: 359px) {
+  [data-mobile-source-leaderboard='true'] > div > div > div {
+    grid-template-columns:
+      27px
+      minmax(52px, 0.8fr)
+      minmax(0, 1.45fr)
+      minmax(40px, 0.58fr)
+      20px !important;
+    column-gap: 2px !important;
+  }
+
+  [data-mobile-source-leaderboard='true'] > div > div > div > span:nth-child(3) > img {
+    width: 27px !important;
+    min-width: 27px !important;
+    max-width: 27px !important;
+    height: 34px !important;
+    flex-basis: 27px !important;
+  }
+
+  [data-mobile-source-leaderboard='true'] > div > div > div > button {
+    width: 20px !important;
+    min-width: 20px !important;
+    max-width: 20px !important;
+  }
+}
