@@ -244,7 +244,8 @@ function normalizeAsset(value: string) {
     const pathname = decodeURIComponent(url.pathname).replace(/\/+$/, '').toLowerCase();
     return pathname.split('/').pop() ?? pathname;
   } catch {
-    return value.split(/[?#]/, 1)[0].trim().toLowerCase().split('/').pop() ?? '';
+    const pathWithoutQuery = value.split(/[?#]/, 1)[0] ?? '';
+    return pathWithoutQuery.trim().toLowerCase().split('/').pop() ?? '';
   }
 }
 

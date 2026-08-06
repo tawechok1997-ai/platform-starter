@@ -11,3 +11,9 @@ test('promotion dedupe guards indexed array access before merging', () => {
   assert.match(route, /campaignKeys\(mergedCampaign\)/);
   assert.doesNotMatch(route, /mergeCampaign\(result\[existingIndex\], campaign\)/);
 });
+
+test('promotion asset normalization guards the first split segment', () => {
+  assert.match(route, /const pathWithoutQuery = value\.split/);
+  assert.match(route, /pathWithoutQuery\.trim\(\)\.toLowerCase\(\)/);
+  assert.doesNotMatch(route, /return value\.split/);
+});
