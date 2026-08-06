@@ -16,7 +16,7 @@ test('Home summary and the full promotions page stay as separate owners', () => 
 test('the member promotion menu opens the standalone source route', () => {
   assert.match(home, /import MobilePromotionStandaloneNavigation/);
   assert.match(home, /<MobilePromotionStandaloneNavigation \/>/);
-  assert.match(navigation, /data-source-member-menu-item=\\"promotions\\"/);
+  assert.match(navigation, /data-source-member-menu-item="promotions"/);
   assert.match(navigation, /window\.location\.assign\(PROMOTION_ROUTE\)/);
   assert.match(navigation, /useLayoutEffect/);
 });
