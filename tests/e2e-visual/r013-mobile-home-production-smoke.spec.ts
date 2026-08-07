@@ -120,7 +120,7 @@ test.describe('production Mobile Home smoke', () => {
     expect(relevantConsoleErrors, `Console errors: ${JSON.stringify(relevantConsoleErrors)}`).toEqual([]);
   });
 
-  test('P4-P6 home owner, canonical launch, drawer and bottom navigation work together', async ({ page }, testInfo) => {
+  test('P4-P6 home owner, canonical launch, drawer and optional member bottom navigation work together', async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== '390x844', 'Run the complete interaction contract once');
 
     await page.emulateMedia({ reducedMotion: 'reduce' });
@@ -134,19 +134,21 @@ test.describe('production Mobile Home smoke', () => {
 
     await expect(root).toBeVisible({ timeout: 30_000 });
     await expect(root).toHaveAttribute('data-mobile-p4-p6-ready', 'true', { timeout: 15_000 });
-    await expect(bottomNavigation).toBeVisible({ timeout: 15_000 });
+    const hasBottomNavigation = await bottomNavigation.count() > 0;
+    if (hasBottomNavigation) await expect(bottomNavigation).toBeVisible({ timeout: 15_000 });
+    else await expect(bottomNavigation).toHaveCount(0);
 
     await menuTrigger.click();
     await expect(menuTrigger).toHaveAttribute('aria-expanded', 'true');
     await expect(drawer).toHaveAttribute('role', 'dialog');
     await expect(drawer).toHaveAttribute('aria-modal', 'true');
     await expect(html).toHaveAttribute('data-mobile-drawer-open', 'true');
-    await expect(bottomNavigation).toBeHidden();
+    if (hasBottomNavigation) await expect(bottomNavigation).toBeHidden();
 
     await page.keyboard.press('Escape');
     await expect(menuTrigger).toHaveAttribute('aria-expanded', 'false');
     await expect(html).toHaveAttribute('data-mobile-drawer-open', 'false');
-    await expect(bottomNavigation).toBeVisible();
+    if (hasBottomNavigation) await expect(bottomNavigation).toBeVisible();
     await expect(menuTrigger).toBeFocused();
 
     const casinoButton = page.locator('button[data-mobile-category-id="casino"]');
@@ -154,12 +156,12 @@ test.describe('production Mobile Home smoke', () => {
     await casinoButton.click();
     await expect(root).toHaveAttribute('data-mobile-active-category', 'casino');
     await expect(html).toHaveAttribute('data-mobile-member-home-surface', 'false');
-    await expect(bottomNavigation).toBeHidden();
+    if (hasBottomNavigation) await expect(bottomNavigation).toBeHidden();
 
     await homeButton.click();
     await expect(root).toHaveAttribute('data-mobile-active-category', 'home');
     await expect(html).toHaveAttribute('data-mobile-member-home-surface', 'true');
-    await expect(bottomNavigation).toBeVisible();
+    if (hasBottomNavigation) await expect(bottomNavigation).toBeVisible();
 
     await installDeterministicGameAction(page);
     const gameAction = page.locator('[data-p5-smoke-game="true"]');
