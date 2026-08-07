@@ -16,6 +16,7 @@ import HomeSidebarScrollController from './components/member-home/home-sidebar-s
 import MobileAuthenticatedAvatarRuntime from './components/mobile-home/mobile-authenticated-avatar-runtime';
 import MobileAuthenticatedHomeRuntime from './components/mobile-home/mobile-authenticated-home-runtime';
 import MobileCanonicalGameLaunchCapture from './components/mobile-home/mobile-canonical-game-launch-capture';
+import MobileCategoryChromeGuard from './components/mobile-home/mobile-category-chrome-guard';
 import MobileCategoryQueryBridge from './components/mobile-home/mobile-category-query-bridge';
 import MobileCouponPopupBridge from './components/mobile-home/mobile-coupon-popup-bridge';
 import MobileHomeGuidePreview from './components/mobile-home/mobile-home-guide-preview';
@@ -31,6 +32,7 @@ import { openMemberSharedPopup } from './components/member-shared-popup-runtime'
 import { useMemberHomeData } from './hooks/use-member-home-data';
 import './components/mobile-home/mobile-hero-carousel.css';
 import './components/mobile-home/mobile-drawer-source-fit.css';
+import './components/mobile-home/mobile-drawer-reference-parity.css';
 import './components/mobile-home/mobile-leaderboard-fit.css';
 
 type MemberHomeProps = {
@@ -85,6 +87,7 @@ export default function MemberHome(props: MemberHomeProps) {
         <MobileHomeRoot content={props.cmsContent} showPromotion={props.showPromotion} />
         <MobileMemberStandaloneNavigation />
         <MobileCategoryQueryBridge />
+        <MobileCategoryChromeGuard />
         <MobileCanonicalGameLaunchCapture />
         <MobileP4P6ClosureRuntime />
         <MobileP7P9ClosureRuntime phase="p7" route="/" />
