@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import AuthFieldRuntime from '../components/auth/auth-field-runtime';
+import RegisterInteractionGuard from '../components/auth/register-interaction-guard';
 import '../components/auth/auth.css';
 import '../components/auth/auth-source-login.css';
 import '../components/auth/auth-source-register.css';
@@ -19,6 +20,7 @@ export default function MemberAuthLayout({ children }: { children: ReactNode }) 
     <div className="auth-reference-scope">
       {children}
       <AuthFieldRuntime />
+      <RegisterInteractionGuard />
     </div>
   );
 }
