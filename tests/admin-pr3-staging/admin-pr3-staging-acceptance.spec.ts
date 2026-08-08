@@ -1,5 +1,5 @@
 import AxeBuilder from '@axe-core/playwright';
-import { expect, test, type BrowserContext, type Page, type TestInfo } from '@playwright/test';
+import { expect, test, type BrowserContext, type Page, type Request, type TestInfo } from '@playwright/test';
 import { readFile, writeFile } from 'node:fs/promises';
 import { canAccessPath } from '../../apps/web-admin/app/(admin)/admin-nav';
 import {
@@ -13,6 +13,7 @@ import {
 const baseUrl = process.env.PR3_ADMIN_URL?.trim() || 'http://127.0.0.1:3001';
 const personaPassword = process.env.PR3_PERSONA_PASSWORD?.trim();
 const manifestPath = process.env.PR3_PERSONA_MANIFEST?.trim() || 'test-results/admin-pr3-personas.json';
+const baseOrigin = new URL(baseUrl).origin;
 
 const EXPECTED_ROLES: Record<P8PersonaId, readonly string[]> = {
   finance: ['finance'],
@@ -130,6 +131,35 @@ async function logout(context: BrowserContext, token: string) {
   expect([200, 201, 204]).toContain(response.status());
 }
 
+function isFirstPartyApiRequest(request: Request) {
+  try {
+    const url = new URL(request.url());
+    return url.origin === baseOrigin && url.pathname.startsWith('/api/');
+  } catch {
+    return false;
+  }
+}
+
+async function waitForFirstPartyApiIdle(page: Page, pending: Set<Request>, route: string) {
+  const deadline = Date.now() + 5_000;
+  let idleSince = pending.size === 0 ? Date.now() : 0;
+
+  while (Date.now() < deadline) {
+    if (pending.size === 0) {
+      if (!idleSince) idleSince = Date.now();
+      if (Date.now() - idleSince >= 150) return;
+    } else {
+      idleSince = 0;
+    }
+    await page.waitForTimeout(50);
+  }
+
+  expect(
+    [...pending].map((request) => request.url()),
+    `${route} must settle first-party API work before navigating to the next acceptance route`,
+  ).toEqual([]);
+}
+
 async function auditRoute(
   page: Page,
   matrixCase: P8MatrixCase,
@@ -138,18 +168,27 @@ async function auditRoute(
 ): Promise<RouteEvidence> {
   const pageErrors: string[] = [];
   const serverErrors: Array<{ url: string; status: number }> = [];
+  const pendingApiRequests = new Set<Request>();
   const onPageError = (error: Error) => pageErrors.push(error.message);
   const onResponse = (response: { status(): number; url(): string }) => {
     if (response.status() >= 500) serverErrors.push({ url: response.url(), status: response.status() });
   };
+  const onRequest = (request: Request) => {
+    if (isFirstPartyApiRequest(request)) pendingApiRequests.add(request);
+  };
+  const onRequestDone = (request: Request) => pendingApiRequests.delete(request);
   page.on('pageerror', onPageError);
   page.on('response', onResponse);
+  page.on('request', onRequest);
+  page.on('requestfinished', onRequestDone);
+  page.on('requestfailed', onRequestDone);
 
   try {
     await page.goto(new URL(matrixCase.route, baseUrl).toString(), { waitUntil: 'domcontentloaded' });
     await expect(page).not.toHaveURL(/\/login(?:[/?#]|$)/);
     await expect(page.locator('.admin-content-shell')).toBeVisible({ timeout: 15_000 });
     await page.waitForTimeout(250);
+    await waitForFirstPartyApiIdle(page, pendingApiRequests, matrixCase.route);
 
     const expectedAllowed = canAccessPath(matrixCase.route, permissions);
     const deniedState = page.locator('.admin-access-denied');
@@ -230,6 +269,9 @@ async function auditRoute(
   } finally {
     page.off('pageerror', onPageError);
     page.off('response', onResponse);
+    page.off('request', onRequest);
+    page.off('requestfinished', onRequestDone);
+    page.off('requestfailed', onRequestDone);
   }
 }
 
