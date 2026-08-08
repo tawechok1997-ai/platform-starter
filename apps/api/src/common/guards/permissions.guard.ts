@@ -109,6 +109,13 @@ export class PermissionsGuard implements CanActivate {
       return true;
     }
 
+    if (
+      permission === 'game.providers.manage'
+      && /^\/admin\/game-transfers\/[^/]+\/retry$/.test(path)
+    ) {
+      return true;
+    }
+
     if (this.header(headers, 'x-admin-settings-impact') === 'sensitive') return true;
     if (path.startsWith('/admin/settings/')) {
       return permission.startsWith('settings.') && (permission.endsWith('.update') || permission.endsWith('.publish'));
@@ -126,6 +133,7 @@ export class PermissionsGuard implements CanActivate {
   }
 
   private requiresReason(method: string, path: string) {
+    if (method === 'POST' && /^\/admin\/game-transfers\/[^/]+\/retry$/.test(path)) return true;
     if (path.endsWith('/ownership-transfer')) return true;
     if (method === 'PATCH' && path.endsWith('/permission-overrides')) return true;
     if (path.endsWith('/access-profile')) return true;

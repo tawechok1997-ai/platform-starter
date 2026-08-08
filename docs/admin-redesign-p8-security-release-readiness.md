@@ -1,16 +1,15 @@
 # Admin Redesign P8 — Security, Accessibility และ Release Readiness
 
-PR: `#554`
+## สถานะปัจจุบัน
 
-Branch: `rebuild/admin-phase-8-release-readiness-20260805`
+- PR: `#554`
+- Final branch: `rebuild/admin-phase-8-release-readiness-20260805`
+- สถานะ: **Merged**
+- Main merge commit: `c6084dc1e24fe36169d393b02b3954cb98ca359f`
 
-Base: `main` หลัง P2, P4 และ P5–P7 Merge ครบ
-
-สถานะ: **Draft / Final verification** — Merge เมื่อ Required CI ผ่านบน Head เดียวกัน
+P8 เป็น Release gate และไม่สร้าง Owner ซ้ำกับ P1–P7
 
 ## Ownership boundary
-
-P8 เป็น Release gate และไม่สร้าง Owner ซ้ำ:
 
 - P2: Role, Team, Effective access, Scope, Limit และ DENY
 - P3: Workspace selection และ Navigation visibility
@@ -22,7 +21,7 @@ P8 เป็น Release gate และไม่สร้าง Owner ซ้ำ:
 
 ## Route closure
 
-- Route inventory มี Permission และ Workspace owner ครบ
+- Route inventory มี Permission และ Workspace owner
 - `/system-settings` และ nested routes ใช้ Settings workspace
 - `/settings/activities` ใช้ `settings.features.view`
 - Specific nested route ชนะ Parent route ด้วย longest-prefix ordering
@@ -47,10 +46,9 @@ Policy กลางรองรับ:
 
 Runtime integration:
 
-- `PermissionsGuard` เรียก P8 policy สำหรับ P2/P6 sensitive mutations
+- `PermissionsGuard` เรียก P8 policy สำหรับ sensitive P2/P6 mutations
 - P2 permission override, access profile, role/status/delegation และ session mutations ใช้ Actor, Session, Target และ Reason จาก request จริง
 - Settings และ System Settings sensitive mutations ใช้ permission และ session evidence โดยไม่พึ่ง client header เพียงอย่างเดียว
-- Endpoint ที่ DTO ไม่มี Reason ไม่ถูกบังคับให้ส่ง field ปลอม
 - Ownership Transfer เรียก `AdminAuthService.assertStepUp()` ก่อน transaction
 - Ownership Step-up รองรับ TOTP และ Recovery code
 - Ownership evidence ผูก `actorAdminUserId` และ `actorSessionId` เดียวกับ request
@@ -63,12 +61,13 @@ Sensitive audit evidence:
 - เก็บเฉพาะชื่อ Field ที่เปิดเผยและเวลา Expiry
 - ไม่รับหรือบันทึก Secret value
 
-Files:
+Canonical files:
 
 - `apps/api/src/common/admin-sensitive-action-policy.ts`
 - `apps/api/src/common/admin-sensitive-action-enforcement.ts`
 - `apps/api/src/common/guards/permissions.guard.ts`
 - `apps/api/src/modules/admin-access/admin-ownership-command.service.ts`
+- `apps/api/src/modules/admin-access/admin-access-session.service.ts`
 
 ## Accessibility และ interaction
 
@@ -120,6 +119,8 @@ Required matrix:
 - Multi-role ใช้ Permission union
 - Explicit DENY ชนะแบบ fail-closed
 
+PR #622 เพิ่ม authenticated disposable-staging acceptance บน matrix นี้และเป็น canonical final acceptance owner หลัง PR #608 ถูก supersede
+
 ## Session และ Network resilience
 
 - 401 refresh ได้หนึ่งครั้ง
@@ -128,7 +129,7 @@ Required matrix:
 - 2FA-required ไม่วน Redirect
 - Request timeout 15 วินาที
 - Read-only request retry ได้หนึ่งครั้งเฉพาะ Network/Timeout และ 408/425/429/502/503/504
-- `Retry-After` ถูกจำกัดไม่เกิน 1 วินาที
+- `Retry-After` ถูกจำกัด
 - Mutation, 401, 403 และ Caller cancellation ไม่ถูก retry อัตโนมัติ
 - Offline Security data ถูกล้างแบบ fail-closed ไม่แสดงข้อมูล stale
 - Reconnect แล้ว Refresh โหลดข้อมูลใหม่โดยไม่สร้าง Login loop
@@ -138,8 +139,8 @@ Required matrix:
 - Chromium Desktop 1440×900
 - Chromium Tablet 834×1112
 - Chromium Mobile 390×844
-- Firefox Desktop สำหรับ P8 suites
-- WebKit Desktop สำหรับ P8 suites
+- Firefox Desktop
+- WebKit Desktop
 - Route, Persona, Reflow, Data resilience และ Owner interaction evidence
 
 ## Performance gate
@@ -151,14 +152,18 @@ Production bundle gate อ่าน Build manifest และวัด gzip จ�
 - `pnpm analyze` รัน production build แล้วบังคับ budget
 - Admin Verification เก็บ bundle evidence เป็น Artifact
 
+PR #622 เพิ่ม runtime performance budgets ใน authenticated staging เพื่อให้ bundle budget และ runtime transfer budgetตรวจคนละชั้น
+
 ## Definition of Done
 
-- Route inventory มี Permission และ Workspace owner ครบ
-- Unknown routes fail closed
-- Sensitive P2/P6 mutations เรียก P8 policy จริง
-- Ownership Transfer ใช้ fresh Step-up และ session binding จริง
-- `/security` ใช้ Owner เดิมสำหรับ Session, 2FA, Recovery และ Step-up
-- Tier 0 ผ่าน Security, Accessibility และ Browser coverage ตาม Persona และ Viewport
-- Performance budget ผ่านจาก production assets จริง
-- Required CI ผ่านบน Head เดียวกัน
-- Merge เข้า `main` และยืนยัน commit หลัง Merge
+- [x] Route inventory มี Permission และ Workspace owner
+- [x] Unknown routes fail closed
+- [x] Sensitive P2/P6 mutations เรียก P8 policyจริง
+- [x] Ownership Transfer ใช้ fresh Step-up และ session binding
+- [x] `/security` ใช้ Owner เดิมสำหรับ Session, 2FA, Recovery และ Step-up
+- [x] Tier 0 ผ่าน Security, Accessibility และ Browser coverage ตาม Persona และ Viewport
+- [x] Performance budget ผ่านจาก production assets
+- [x] Required CI ผ่านบน Head เดียวกัน
+- [x] Merge เข้า `main` และยืนยัน commit `c6084dc1e24fe36169d393b02b3954cb98ca359f`
+
+Canonical cross-domain handoff: `docs/admin-operations-handoff.md`.
