@@ -1,0 +1,166 @@
+/*
+ * Final Admin appearance authority.
+ *
+ * Legacy Admin modules still consume the older --admin-modern-* / --admin-* token
+ * families. Those aliases used to stay on their original dark palette even when
+ * AdminAppearanceRuntime switched data-admin-theme. Keep geometry with the
+ * legacy owners, but make every color family resolve from the current appearance
+ * tokens so light/dark changes propagate through the whole Admin shell.
+ */
+
+:root[data-admin-theme='dark'],
+:root[data-admin-theme='light'] {
+  /* Modern-era aliases used by normalization/workspace/module styles. */
+  --admin-modern-bg: var(--color-canvas);
+  --admin-modern-bg-soft: var(--color-surface);
+  --admin-modern-surface: var(--color-surface);
+  --admin-modern-surface-raised: var(--color-surface-raised);
+  --admin-modern-border: var(--color-border-subtle);
+  --admin-modern-border-strong: var(--color-border-strong);
+  --admin-modern-text: var(--color-text-primary);
+  --admin-modern-muted: var(--color-text-secondary);
+  --admin-modern-brand: var(--color-brand-primary);
+  --admin-modern-success: var(--color-success);
+  --admin-modern-warning: var(--color-warning);
+  --admin-modern-danger: var(--color-danger);
+
+  /* Older Admin aliases still referenced by route-owned styles. */
+  --admin-bg: var(--color-canvas);
+  --admin-sidebar: var(--color-surface);
+  --admin-surface: var(--color-surface);
+  --admin-surface-raised: var(--color-surface-raised);
+  --admin-surface-strong: var(--color-surface-raised);
+  --admin-surface-soft: color-mix(in srgb, var(--color-text-primary) 5%, transparent);
+  --admin-border: var(--color-border-subtle);
+  --admin-border-strong: var(--color-border-strong);
+  --admin-text: var(--color-text-primary);
+  --admin-text-secondary: var(--color-text-secondary);
+  --admin-text-muted: var(--color-text-secondary);
+  --admin-muted: var(--color-text-secondary);
+  --admin-brand: var(--color-brand-primary);
+  --admin-brand-strong: var(--color-brand-strong);
+  --admin-success: var(--color-success);
+  --admin-warning: var(--color-warning);
+  --admin-danger: var(--color-danger);
+
+  /* Generic aliases shared by the canonical Admin primitives. */
+  --background: var(--color-canvas);
+  --surface: var(--color-surface);
+  --surface-raised: var(--color-surface-raised);
+  --bg: var(--color-canvas);
+  --surface2: var(--color-surface-raised);
+  --card: var(--color-surface-raised);
+  --card2: var(--color-surface-overlay);
+  --border: var(--color-border-subtle);
+  --line: var(--color-border-subtle);
+  --line2: var(--color-border-strong);
+  --text: var(--color-text-primary);
+  --muted: var(--color-text-secondary);
+  --brand: var(--color-brand-primary);
+  --brand2: var(--color-brand-strong);
+  --success: var(--color-success);
+  --warning: var(--color-warning);
+  --danger: var(--color-danger);
+  --good: var(--color-success);
+  --bad: var(--color-danger);
+}
+
+body[data-app-surface='admin'] {
+  background-color: var(--color-canvas) !important;
+  color: var(--color-text-primary);
+}
+
+/* Shell and overlay surfaces. These selectors intentionally come after every
+ * older Admin stylesheet so literal legacy backgrounds cannot leave islands of
+ * the previous theme behind. */
+body[data-app-surface='admin'] :where(
+  .admin-topbar,
+  .admin-drawer,
+  .admin-profile-menu,
+  .admin-notification-popover,
+  .admin-command-dialog,
+  .admin-confirm-dialog,
+  .admin-app-state__panel,
+  .admin-workspace-dashboard,
+  .admin-profile-workspaces
+) {
+  background-color: color-mix(in srgb, var(--color-surface-raised) 96%, transparent) !important;
+  border-color: var(--color-border-subtle) !important;
+  color: var(--color-text-primary);
+}
+
+/* Canonical data/content surfaces. Keep status/tone components out of this
+ * list so success/warning/danger semantics retain their own backgrounds. */
+body[data-app-surface='admin'] :where(
+  .admin-ui-card,
+  .admin-card,
+  .ui-card,
+  .admin-data-table,
+  .admin-data-table__scroll,
+  .admin-ui-toolbar,
+  .admin-ui-filter-bar,
+  .admin-ui-command-panel,
+  .admin-ui-action-strip
+) {
+  background-color: var(--color-surface-raised) !important;
+  border-color: var(--color-border-subtle) !important;
+  color: var(--color-text-primary);
+}
+
+body[data-app-surface='admin'] :where(
+  .admin-ui-row,
+  .admin-ui-section-row
+) {
+  border-bottom-color: var(--color-border-subtle) !important;
+  color: var(--color-text-primary);
+}
+
+body[data-app-surface='admin'] :where(
+  input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='color']):not([type='file']),
+  select,
+  textarea
+) {
+  background-color: var(--color-surface-overlay) !important;
+  border-color: var(--color-border-subtle) !important;
+  color: var(--color-text-primary) !important;
+}
+
+body[data-app-surface='admin'] :where(input, textarea)::placeholder {
+  color: var(--color-text-secondary) !important;
+}
+
+body[data-app-surface='admin'] :where(
+  pre,
+  .admin-ui-code,
+  .admin-ui-payload,
+  [data-mono='true']
+) {
+  background-color: var(--color-surface-overlay) !important;
+  border-color: var(--color-border-subtle) !important;
+  color: var(--color-text-primary) !important;
+}
+
+body[data-app-surface='admin'] .admin-data-table :where(th) {
+  background-color: color-mix(in srgb, var(--color-surface-overlay) 88%, transparent) !important;
+  border-color: var(--color-border-subtle) !important;
+  color: var(--color-text-secondary) !important;
+}
+
+body[data-app-surface='admin'] .admin-data-table :where(td) {
+  border-color: var(--color-border-subtle) !important;
+  color: var(--color-text-primary);
+}
+
+/* Module CSS frequently uses generic panel/metric class fragments. Only fix
+ * palette ownership here, never geometry, visibility, or interaction. */
+body[data-app-surface='admin'] :where([class*='panel'], [class*='metric']) {
+  border-color: var(--color-border-subtle);
+  color: var(--color-text-primary);
+}
+
+html[data-admin-theme='light'] body[data-app-surface='admin'] :where(
+  [class*='panel'],
+  [class*='metric']
+) {
+  background-color: var(--color-surface-raised);
+}
