@@ -2,7 +2,7 @@ import { ForbiddenException } from '@nestjs/common';
 import { PermissionsGuard } from './permissions.guard';
 
 function createContext(permissions: string[], requestOverrides: Record<string, unknown> = {}) {
-  const request = {
+  const request: any = {
     method: 'GET',
     originalUrl: '/admin/example',
     body: {},
