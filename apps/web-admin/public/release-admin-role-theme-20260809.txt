@@ -1,0 +1,9 @@
+Admin role/theme propagation release marker
+
+Runtime fixes verified on main and PR #627:
+- live RBAC roles/effective permissions override stale position/department navigation metadata
+- explicit empty effective permissions fail closed
+- legacy inline neutral palette values normalize to live Admin appearance tokens
+
+Verified merge commit: c9cec86e6f9a54a3d4c33317a91c4522f3734c22
+Generated: 2026-08-09 Asia/Bangkok
