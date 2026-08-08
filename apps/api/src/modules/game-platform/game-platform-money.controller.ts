@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Headers, Param, Patch, Post, Query, Req, UseGuards } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Get, Headers, Param, Patch, Post, Query, Req, UseGuards } from '@nestjs/common';
 import type { AuthenticatedAdminActor, HttpRequestContext, MemberActor, MemberRequestContext } from '../../common/actors';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { RequirePermission } from '../../common/decorators/require-permission.decorator';
@@ -6,7 +6,7 @@ import { AdminAuthGuard } from '../../common/guards/admin-auth.guard';
 import { MemberAuthGuard } from '../../common/guards/member-auth.guard';
 import { PermissionsGuard } from '../../common/guards/permissions.guard';
 import { ProviderWebhookPayloadDto } from './dto/game-platform-mutation.dto';
-import { ReviewDto, normalizeReviewNote, normalizeSnapshotReview } from './dto/game-review.dto';
+import { ReviewDto, normalizeActionReason, normalizeReviewNote, normalizeSnapshotReview } from './dto/game-review.dto';
 import { CreateGameTransferDto, normalizeTransferAmount } from './dto/game-transfer.dto';
 import { ProviderGatesDto, normalizeProviderGatesDto } from './dto/provider-gates.dto';
 import { WebhookLogQueryDto } from './dto/webhook-log-query.dto';
@@ -46,7 +46,10 @@ export class AdminGameMoneyController {
   @RequirePermission('game.providers.view') @Get('game-transfers') listTransfers() { return this.moneyService.listTransfers(); }
   @RequirePermission('game.providers.view') @Get('game-transfers/:id') getTransfer(@Param('id') id: string) { return this.moneyService.getTransfer(id); }
   @RequirePermission('game.providers.manage') @Patch('game-transfers/:id/review') reviewTransfer(@Param('id') id: string, @Body() body: ReviewDto, @CurrentUser() user: AuthenticatedAdminActor) { return this.moneyService.reviewTransfer(id, user, normalizeReviewNote(body)); }
-  @RequirePermission('game.providers.manage') @Post('game-transfers/:id/retry-dry-run') retryDryRunTransfer(@Param('id') id: string, @Body() body: ReviewDto, @CurrentUser() user: AuthenticatedAdminActor) { return this.transferCommands.retry(id, user, normalizeReviewNote(body)); }
+  @RequirePermission('game.providers.manage') @Post('game-transfers/:id/retry') retryTransfer(@Param('id') id: string, @Body() body: ReviewDto, @CurrentUser() user: AuthenticatedAdminActor) { return this.transferCommands.retry(id, user, normalizeActionReason(body)); }
+  @RequirePermission('game.providers.manage') @Post('game-transfers/:id/retry-dry-run') retryDryRunTransfer() {
+    throw new BadRequestException('retry-dry-run is disabled because provider retry can mutate wallet/provider balances; use /retry with explicit confirmation and reason');
+  }
   @RequirePermission('game.providers.manage') @Post('game-sessions/:sessionId/reconcile') reconcileSession(@Param('sessionId') sessionId: string, @CurrentUser() user: AuthenticatedAdminActor) { return this.reconciliationCommands.reconcileSession(sessionId, user); }
   @RequirePermission('game.providers.manage') @Post('game-sessions/reconcile-active') reconcileActiveSessions(@CurrentUser() user: AuthenticatedAdminActor) { return this.reconciliationCommands.reconcileActiveSessions(user); }
   @RequirePermission('game.providers.view') @Get('provider-wallet-snapshots') listSnapshots() { return this.reconciliationQueries.listSnapshots(); }
