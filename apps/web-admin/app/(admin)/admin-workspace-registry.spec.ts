@@ -52,6 +52,33 @@ test('P2-compatible roles map into P3 workspace assignments without importing da
   );
 });
 
+test('live RBAC ignores stale profile position and department after a role change', () => {
+  const assignments = inferAdminWorkspaceAssignments({
+    roles: [{ code: 'marketing', name: 'Marketing' }],
+    permissions: ['promotion.view'],
+    position: 'Finance',
+    department: 'Platform Administration',
+  });
+
+  assert.deepEqual(
+    resolveAssignedAdminWorkspaces(assignments).map((workspace) => workspace.id),
+    ['growth'],
+  );
+});
+
+test('explicit empty effective permissions fail closed instead of reviving stale profile workspaces', () => {
+  const assignments = inferAdminWorkspaceAssignments({
+    roles: [],
+    permissions: [],
+    position: 'Finance',
+    department: 'System Administrator',
+  });
+
+  assert.deepEqual(assignments, []);
+  assert.deepEqual(resolveAssignedAdminWorkspaces(assignments), []);
+  assert.deepEqual([...resolveVisibleNavGroupIds(assignments, 'all')], []);
+});
+
 test('permission fallback gives super administrators manager and system workspaces', () => {
   const assignments = inferAdminWorkspaceAssignments({ permissions: ['*'] });
   const workspaceIds = resolveAssignedAdminWorkspaces(assignments).map((workspace) => workspace.id);
