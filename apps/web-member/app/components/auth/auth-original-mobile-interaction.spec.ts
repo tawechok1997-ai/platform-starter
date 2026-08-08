@@ -7,9 +7,13 @@ const original = readFileSync(new URL('./auth-popup-original-mobile-final.css', 
 const overlay = readFileSync(new URL('./member-auth-overlay.tsx', import.meta.url), 'utf8');
 const overlayCss = readFileSync(new URL('../../member-auth-overlay.css', import.meta.url), 'utf8');
 
-test('the supplied original Mobile auth style is the final stylesheet owner', () => {
+test('the supplied original Mobile auth style remains before the final desktop owner', () => {
   const imports = [...layout.matchAll(/import ['"]([^'"]+\.css)['"]/g)].map((match) => match[1]);
-  assert.equal(imports.at(-1), '../components/auth/auth-popup-original-mobile-final.css');
+  const mobileIndex = imports.indexOf('../components/auth/auth-popup-original-mobile-final.css');
+  const desktopIndex = imports.indexOf('../components/auth/auth-popup-reference-desktop-final.css');
+  assert.ok(mobileIndex >= 0);
+  assert.ok(desktopIndex > mobileIndex);
+  assert.equal(imports.at(-1), '../components/auth/auth-popup-reference-desktop-final.css');
   assert.match(original, /grid-template-columns:\s*repeat\(2, minmax\(0, 1fr\)\)/);
   assert.match(original, /clip-path:\s*none\s*!important/);
   assert.match(original, /a\[aria-current='page'\][\s\S]*background:\s*#3e3a49\s*!important/);
