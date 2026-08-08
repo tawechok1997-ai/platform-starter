@@ -1,17 +1,15 @@
 name: Refresh Nanoid Lockfile Once
 
 on:
-  push:
-    branches:
-      - feat/ui-professional-system-pass
-    paths:
-      - pnpm-workspace.yaml
+  pull_request:
+    types: [synchronize]
 
 permissions:
   contents: write
 
 jobs:
   refresh-lockfile:
+    if: github.event.pull_request.number == 615
     runs-on: ubuntu-latest
     steps:
       - name: Check out PR branch
