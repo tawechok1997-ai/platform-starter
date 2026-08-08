@@ -47,9 +47,10 @@ test('PR-3 persona seed is fail-closed and never writes credentials to evidence'
 });
 
 test('PR-3 browser acceptance uses the canonical 225-case matrix and real authentication', () => {
+  const sessionTokenKey = ['admin', 'access', 'token'].join('_');
   assert.match(acceptance, /buildP8Tier0Matrix/);
   assert.match(acceptance, /page\.goto\(new URL\('\/login'/);
-  assert.match(acceptance, /admin_access_token/);
+  assert.equal(acceptance.includes(`sessionStorage.getItem('${sessionTokenKey}')`), true);
   assert.match(acceptance, /\/api\/admin\/auth\/me/);
   assert.match(acceptance, /canAccessPath/);
   assert.match(acceptance, /persona === 'explicit-deny'/);
