@@ -1,0 +1,54 @@
+name: Refresh Nanoid Lockfile Once
+
+on:
+  push:
+    branches:
+      - feat/ui-professional-system-pass
+    paths:
+      - pnpm-workspace.yaml
+
+permissions:
+  contents: write
+
+jobs:
+  refresh-lockfile:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out PR branch
+        uses: actions/checkout@v4
+        with:
+          ref: feat/ui-professional-system-pass
+          fetch-depth: 1
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.18.0
+          run_install: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Regenerate lockfile
+        run: pnpm install --lockfile-only --no-frozen-lockfile
+
+      - name: Verify frozen install
+        run: pnpm install --frozen-lockfile --prefer-offline
+
+      - name: Verify production dependency audit
+        run: pnpm audit:production-dependencies
+
+      - name: Commit generated lockfile
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add pnpm-lock.yaml
+          if git diff --cached --quiet; then
+            echo "Lockfile already current."
+            exit 0
+          fi
+          git commit -m "fix(deps): refresh lockfile for nanoid advisory"
+          git push origin HEAD:feat/ui-professional-system-pass
