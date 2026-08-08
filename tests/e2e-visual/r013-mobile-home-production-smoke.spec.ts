@@ -120,7 +120,7 @@ test.describe('production Mobile Home smoke', () => {
     expect(relevantConsoleErrors, `Console errors: ${JSON.stringify(relevantConsoleErrors)}`).toEqual([]);
   });
 
-  test('P4-P6 guest home owner, canonical launch and drawer work without member bottom navigation', async ({ page }, testInfo) => {
+  test('P4-P6 home owner, canonical launch and drawer work without guest member bottom navigation', async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== '390x844', 'Run the complete interaction contract once');
 
     await page.emulateMedia({ reducedMotion: 'reduce' });

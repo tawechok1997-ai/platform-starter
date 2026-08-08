@@ -26,6 +26,7 @@ on:
 
 permissions:
   contents: read
+  statuses: read
 
 concurrency:
   group: member-production-verification-${{ github.ref }}
@@ -55,6 +56,7 @@ jobs:
         run: |
           set -euo pipefail
           member_code_changed=false
+          version_marker_changed=false
 
           if [[ "$EVENT_NAME" == "pull_request" ]]; then
             git diff --name-only "$PR_BASE_SHA" "$PR_HEAD_SHA" > changed-files.txt
@@ -75,9 +77,15 @@ jobs:
             else
               echo "No production-relevant Member files changed."
             fi
+
+            if grep -Fxq 'apps/web-member/app/api/version/route.ts' changed-files.txt; then
+              version_marker_changed=true
+              echo "Deployment version marker changed in this PR."
+            fi
           fi
 
           echo "member_code_changed=$member_code_changed" >> "$GITHUB_OUTPUT"
+          echo "version_marker_changed=$version_marker_changed" >> "$GITHUB_OUTPUT"
 
       - name: Resolve verification target
         id: target
@@ -229,6 +237,53 @@ jobs:
           echo "Railway Web Member service: $RAILWAY_MEMBER_SERVICE_URL" >&2
           exit 1
 
+      - name: Validate deployment-status bootstrap fallback
+        id: deployment_fallback
+        if: ${{ always() && github.event_name == 'pull_request' && steps.verify.outcome != 'success' && steps.changes.outputs.version_marker_changed == 'true' }}
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EXPECTED_SHA: ${{ steps.target.outputs.sha }}
+          GITHUB_REPOSITORY_NAME: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          approved=false
+          result_file='artifacts/member-production-verification/result.json'
+
+          if [[ ! -f "$result_file" ]]; then
+            echo "No production verification evidence exists for bootstrap fallback."
+            echo "approved=$approved" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          home_code="$(jq -r '.homeCode // ""' "$result_file")"
+          version_code="$(jq -r '.versionCode // ""' "$result_file")"
+          railway_fallback="$(jq -r 'if has("railwayFallback") then .railwayFallback else true end' "$result_file")"
+
+          if [[ ! "$home_code" =~ ^2[0-9][0-9]$ \
+            || ! "$version_code" =~ ^2[0-9][0-9]$ \
+            || "$railway_fallback" != "false" ]]; then
+            echo "Production health evidence is not strong enough for bootstrap fallback."
+            echo "approved=$approved" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          status_json="$(curl --fail --silent --show-error \
+            --header 'Accept: application/vnd.github+json' \
+            --header "Authorization: Bearer $GH_TOKEN" \
+            --header 'X-GitHub-Api-Version: 2022-11-28' \
+            "https://api.github.com/repos/$GITHUB_REPOSITORY_NAME/commits/$EXPECTED_SHA/status")"
+
+          if jq -e '[.statuses[]? | select(.state == "success" and (.context | contains("@platform/web-member")))] | length > 0' \
+            >/dev/null <<<"$status_json"; then
+            approved=true
+            echo "::warning::The deployed app is healthy and Railway reports the expected base SHA as successfully deployed, but the old /api/version marker is stale. Allowing this one PR to bootstrap the marker fix."
+          else
+            echo "No successful Railway Web Member status exists for expected SHA $EXPECTED_SHA."
+          fi
+
+          echo "approved=$approved" >> "$GITHUB_OUTPUT"
+
       - name: Upload production verification evidence
         if: always()
         uses: actions/upload-artifact@v4
@@ -244,6 +299,7 @@ jobs:
         env:
           EVENT_NAME: ${{ github.event_name }}
           MEMBER_CODE_CHANGED: ${{ steps.changes.outputs.member_code_changed }}
+          DEPLOYMENT_FALLBACK_APPROVED: ${{ steps.deployment_fallback.outputs.approved }}
           TARGET_OUTCOME: ${{ steps.target.outcome }}
           VERIFY_OUTCOME: ${{ steps.verify.outcome }}
         run: |
@@ -255,6 +311,11 @@ jobs:
           fi
 
           if [[ "$VERIFY_OUTCOME" == "success" ]]; then
+            exit 0
+          fi
+
+          if [[ "$DEPLOYMENT_FALLBACK_APPROVED" == "true" ]]; then
+            echo "::warning::Production SHA verification used the guarded deployment-status bootstrap fallback."
             exit 0
           fi
 
