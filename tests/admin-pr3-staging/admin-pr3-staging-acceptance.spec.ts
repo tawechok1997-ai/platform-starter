@@ -98,9 +98,11 @@ async function login(page: Page, persona: P8PersonaId) {
   const password = page.locator('input[autocomplete="current-password"]');
   await expect(identity).toBeVisible();
   await expect(password).toBeVisible();
-  await identity.fill(username);
+  await identity.click();
+  await identity.pressSequentially(username, { delay: 12 });
   await expect(identity).toHaveValue(username);
-  await password.fill(personaPassword);
+  await password.click();
+  await password.pressSequentially(personaPassword, { delay: 4 });
   await expect(password).toHaveValue(personaPassword);
   const submit = page.locator('button[type="submit"], input[type="submit"]').first();
   await Promise.all([
