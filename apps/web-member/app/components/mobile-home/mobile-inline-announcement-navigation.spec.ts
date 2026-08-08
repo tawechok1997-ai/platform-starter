@@ -27,9 +27,13 @@ test('inline tabs cannot be reinterpreted as member page labels', () => {
 });
 
 test('existing mobile content stays in the home content slot', () => {
-  assert.match(content, /MOBILE_INLINE_MEMBER_TABS/);
-  assert.match(content, /tabButton\.click\(\)/);
+  assert.match(content, /activeTab === 'promotions'/);
+  assert.match(content, /activeTab === 'activities'/);
+  assert.match(content, /activeTab === 'news'/);
   assert.match(content, /data-mobile-highlight-panel="promotions"/);
   assert.match(content, /kind="activities"/);
   assert.match(content, /kind="news"/);
+  assert.match(content, /useMobilePromotionsSource\(\)/);
+  assert.match(content, /useMobileActivitiesSource\(\)/);
+  assert.match(content, /useMobileNewsSource\(\)/);
 });
