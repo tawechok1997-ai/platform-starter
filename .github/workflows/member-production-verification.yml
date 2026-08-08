@@ -45,7 +45,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Detect whether Member application code changed
+      - name: Detect whether production-relevant Member code changed
         id: changes
         shell: bash
         env:
@@ -59,8 +59,21 @@ jobs:
           if [[ "$EVENT_NAME" == "pull_request" ]]; then
             git diff --name-only "$PR_BASE_SHA" "$PR_HEAD_SHA" > changed-files.txt
             cat changed-files.txt
-            if grep -Eq '^apps/web-member/' changed-files.txt; then
+
+            # Production verification should be required only when deployable
+            # Member runtime/build inputs change. Test-only contracts and the
+            # focused CI diagnostic runner do not alter the deployed app.
+            grep '^apps/web-member/' changed-files.txt \
+              | grep -Ev '\.(spec|test)\.(ts|tsx|js|jsx)$' \
+              | grep -Ev '^apps/web-member/tools/run-member-tests\.mjs$' \
+              > member-production-files.txt || true
+
+            if [[ -s member-production-files.txt ]]; then
+              echo "Production-relevant Member files:"
+              cat member-production-files.txt
               member_code_changed=true
+            else
+              echo "No production-relevant Member files changed."
             fi
           fi
 
@@ -246,7 +259,7 @@ jobs:
           fi
 
           if [[ "$EVENT_NAME" == "pull_request" && "$MEMBER_CODE_CHANGED" != "true" ]]; then
-            echo "::warning::Production is unhealthy, but this PR changes only verification/recovery tooling. The outage remains visible without deadlocking adoption of the recovery workflow."
+            echo "::warning::Production does not match the expected SHA, but this PR changes no production-relevant Member files. Test-only Member changes do not require a production deployment."
             exit 0
           fi
 
