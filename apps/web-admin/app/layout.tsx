@@ -80,6 +80,7 @@ import './admin-layout-integrity.css';
 import './admin-theme-completeness.css';
 import { AdminMobileDrawerController } from './admin-mobile-drawer-controller';
 import { AdminAppearanceRuntime } from './admin-appearance-runtime';
+import { AdminLegacyThemeNormalizer } from './admin-legacy-theme-normalizer';
 import { AdminWorkspaceRuntime } from './admin-workspace-runtime';
 import { AdminShellAccessibilityRuntime } from './admin-shell-accessibility-runtime';
 
@@ -157,6 +158,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body data-app-surface="admin">
         {children}
         <AdminAppearanceRuntime />
+        <AdminLegacyThemeNormalizer />
         <AdminWorkspaceRuntime />
         <AdminShellAccessibilityRuntime />
         <AdminMobileDrawerController />
