@@ -6,8 +6,8 @@ const home = readFileSync(new URL('../../member-home.tsx', import.meta.url), 'ut
 const css = readFileSync(new URL('./mobile-leaderboard-fit.css', import.meta.url), 'utf8');
 const source = readFileSync(new URL('./mobile-source-content.tsx', import.meta.url), 'utf8');
 
-test('Mobile Home loads the leaderboard fit owner last', () => {
-  assert.match(home, /mobile-drawer-source-fit\.css';\s*import '\.\/components\/mobile-home\/mobile-leaderboard-fit\.css';/);
+test('Mobile Home loads the leaderboard fit owner after drawer reference parity', () => {
+  assert.match(home, /mobile-drawer-reference-parity\.css';\s*import '\.\/components\/mobile-home\/mobile-leaderboard-fit\.css';/);
 });
 
 test('the leaderboard source remains identified for the scoped layout fix', () => {
