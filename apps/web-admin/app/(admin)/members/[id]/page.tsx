@@ -15,33 +15,39 @@ type MemberDetail = {
   activity: ActivityItem[];
   sessions: MemberSession[];
   loginHistory: LoginHistoryItem[];
-  riskAlerts: RiskAlert[];
-  dataSources?: { kyc?: string | null; vip?: string | null; vipReason?: string | null };
+  dataSources?: { kyc?: string | null; risk?: string | null; vip?: string | null; vipReason?: string | null };
   generatedAt: string;
 };
 
-type BankAccount = { id: string; bankName: string; accountName: string; accountNumberMasked?: string | null; status: string; flags?: string[]; createdAt: string; updatedAt: string };
+type BankAccount = { id: string; bankName: string; accountName: string; accountNumberMasked?: string | null; status: string; createdAt: string; updatedAt: string };
 type MoneyItem = { id: string; amount: string; currency: string; status: string; method?: string | null; accountNumberMasked?: string | null; createdAt: string; reviewedAt?: string | null };
 type LedgerItem = { id: string; type: string; direction: string; amount: string; balanceBefore: string; balanceAfter: string; referenceType?: string | null; referenceId?: string | null; createdAt: string; createdByAdmin?: { username?: string | null } | null };
 type ActivityItem = { id: string; action: string; module: string; targetId?: string | null; createdAt: string; adminUser?: { username?: string | null } | null };
 type MemberSession = { id: string; ipAddress?: string | null; userAgent?: string | null; deviceId?: string | null; expiresAt: string; revokedAt?: string | null; createdAt: string; updatedAt: string };
 type LoginHistoryItem = { id: string; success: boolean; ipAddress?: string | null; userAgent?: string | null; reason?: string | null; createdAt: string };
 type RiskAlert = { id: string; type: string; severity: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL'; status: string; title: string; description?: string | null; createdAt: string; resolvedAt?: string | null };
+type KycDocument = { id: string; documentType: string; status: string; originalName: string; reviewNote?: string | null; version: number; createdAt: string };
+type KycSnapshot = { item: { id: string; memberId: string; status: string; riskLevel?: string | null; reviewNote?: string | null; version: number; submittedAt?: string | null; reviewedAt?: string | null; createdAt: string; updatedAt: string } | null; documents: KycDocument[] };
 
 export default function MemberDetailPage() {
   const params = useParams<{ id: string }>();
   const id = params?.id;
   const [data, setData] = useState<MemberDetail | null>(null);
   const [permissions, setPermissions] = useState<string[]>([]);
+  const [riskAlerts, setRiskAlerts] = useState<RiskAlert[]>([]);
+  const [kyc, setKyc] = useState<KycSnapshot | null>(null);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState('');
+  const [restrictedMessage, setRestrictedMessage] = useState('');
 
-  useEffect(() => { if (id) load(); }, [id]);
+  useEffect(() => { if (id) void load(); }, [id]);
 
   const canManageStatus = permissions.includes('*') || permissions.includes('users.suspend');
+  const canViewRisk = permissions.includes('*') || permissions.includes('risk.view');
 
   async function load() {
     setLoading(true);
+    setRestrictedMessage('');
     const [memberRes, meRes] = await Promise.all([
       adminApiFetch(`/admin/members/${id}`),
       adminApiFetch('/admin/auth/me'),
@@ -50,13 +56,37 @@ export default function MemberDetailPage() {
       memberRes.json().catch(() => null),
       meRes.json().catch(() => null),
     ]);
+
     if (memberRes.ok) {
       setData(payload);
       setMessage('');
     } else {
+      setData(null);
       setMessage(payload?.message ?? 'โหลดข้อมูลสมาชิกไม่สำเร็จ');
     }
-    setPermissions(meRes.ok && Array.isArray(mePayload?.permissions) ? mePayload.permissions : []);
+
+    const effectivePermissions = meRes.ok && Array.isArray(mePayload?.permissions) ? mePayload.permissions as string[] : [];
+    setPermissions(effectivePermissions);
+    const riskAllowed = effectivePermissions.includes('*') || effectivePermissions.includes('risk.view');
+
+    if (memberRes.ok && riskAllowed && id) {
+      const [riskRes, kycRes] = await Promise.all([
+        adminApiFetch(`/admin/risk-alerts?memberId=${encodeURIComponent(id)}&take=20`),
+        adminApiFetch(`/admin/kyc/members/${encodeURIComponent(id)}`),
+      ]);
+      const [riskPayload, kycPayload] = await Promise.all([
+        riskRes.json().catch(() => null),
+        kycRes.json().catch(() => null),
+      ]);
+      setRiskAlerts(riskRes.ok && Array.isArray(riskPayload?.items) ? riskPayload.items : []);
+      setKyc(kycRes.ok && kycPayload && typeof kycPayload === 'object' ? kycPayload as KycSnapshot : null);
+      if (!riskRes.ok || !kycRes.ok) setRestrictedMessage('โหลด Risk/KYC บางส่วนไม่สำเร็จ แต่ข้อมูล Member หลักยังใช้งานได้');
+    } else {
+      setRiskAlerts([]);
+      setKyc(null);
+      if (memberRes.ok && !riskAllowed) setRestrictedMessage('Risk และ KYC ถูกซ่อนเพราะบัญชีนี้ไม่มีสิทธิ์ risk.view');
+    }
+
     setLoading(false);
   }
 
@@ -72,15 +102,19 @@ export default function MemberDetailPage() {
     await load();
   }
 
-  return <AdminPage eyebrow="Members" title="Member Detail" description="ข้อมูลสมาชิก Wallet ธุรกรรม Risk Session Login history และ Audit evidence จาก owner จริง" actions={<><AdminLinkButton href="/members">Back</AdminLinkButton><AdminButton tone="secondary" onClick={load}>Reload</AdminButton></>}>
-    {message && <AdminNotice>{message}</AdminNotice>}
+  const activeSessions = data?.sessions.filter((item) => !item.revokedAt && new Date(item.expiresAt).getTime() > Date.now()).length ?? 0;
+  const openRiskAlerts = riskAlerts.filter((item) => item.status === 'OPEN' || item.status === 'REVIEWING').length;
+
+  return <AdminPage eyebrow="Members" title="Member Detail" description="ข้อมูลสมาชิก Wallet ธุรกรรม KYC Risk Session Login history และ Audit evidence จาก owner จริง" actions={<><AdminLinkButton href="/members">Back</AdminLinkButton><AdminButton tone="secondary" onClick={() => void load()}>Reload</AdminButton></>}>
+    {message && <AdminNotice tone={message.includes('ไม่สำเร็จ') ? 'danger' : 'neutral'}>{message}</AdminNotice>}
+    {restrictedMessage && <AdminNotice tone="warning">{restrictedMessage}</AdminNotice>}
     {loading && !data && <AdminEmpty>กำลังโหลดข้อมูลสมาชิก...</AdminEmpty>}
     {data && <>
       <AdminMetricGrid>
         <AdminMetric title="Status" value={data.user.status} helper={data.user.shortId} />
         <AdminMetric title="Available" value={formatMoney(data.wallet?.availableBalance ?? '0')} helper={data.wallet?.currency ?? 'THB'} />
-        <AdminMetric title="Active sessions" value={String(data.sessions.filter((item) => !item.revokedAt && new Date(item.expiresAt).getTime() > Date.now()).length)} helper={`${data.sessions.length} recent`} />
-        <AdminMetric title="Risk alerts" value={String(data.riskAlerts.filter((item) => item.status === 'OPEN' || item.status === 'REVIEWING').length)} helper={`${data.riskAlerts.length} recent`} />
+        <AdminMetric title="Active sessions" value={String(activeSessions)} helper={`${data.sessions.length} recent`} />
+        {canViewRisk && <AdminMetric title="Risk alerts" value={String(openRiskAlerts)} helper={`${riskAlerts.length} recent`} tone={openRiskAlerts ? 'warning' : 'success'} />}
       </AdminMetricGrid>
 
       <AdminGrid>
@@ -107,11 +141,16 @@ export default function MemberDetailPage() {
       </AdminGrid>
 
       <AdminGrid>
-        <AdminCard title="KYC" description="KYC ใช้ owner กลาง ไม่ทำ review mutation ซ้ำใน Member Detail" action={<AdminLinkButton href="/kyc-center">KYC Center</AdminLinkButton>}>
-          <AdminStack>
-            <AdminRow><strong>Canonical source</strong><span>{data.dataSources?.kyc ?? '/admin/kyc/cases'}</span></AdminRow>
-            <AdminNotice>เปิด KYC Center เพื่อดูเอกสาร, risk level, review note, version guard และ approve/reject workflow จาก owner เดียว</AdminNotice>
-          </AdminStack>
+        <AdminCard title="KYC" description="Read-only snapshot จาก KYC owner กลาง" action={canViewRisk ? <AdminLinkButton href="/kyc-center">KYC Center</AdminLinkButton> : undefined}>
+          {!canViewRisk ? <AdminNotice tone="warning">ต้องมี risk.view เพื่อดู KYC</AdminNotice> : !kyc?.item ? <AdminEmpty>สมาชิกยังไม่มี KYC case</AdminEmpty> : <AdminStack>
+            <AdminRow><strong>Status</strong><AdminBadge tone={kycTone(kyc.item.status)}>{kyc.item.status}</AdminBadge></AdminRow>
+            <AdminRow><strong>Risk level</strong><span>{kyc.item.riskLevel ?? '-'}</span></AdminRow>
+            <AdminRow><strong>Documents</strong><span>{kyc.documents.length}</span></AdminRow>
+            <AdminRow><strong>Version</strong><span>{kyc.item.version}</span></AdminRow>
+            <AdminRow><strong>Submitted</strong><span>{kyc.item.submittedAt ? new Date(kyc.item.submittedAt).toLocaleString('th-TH') : '-'}</span></AdminRow>
+            <AdminRow><strong>Reviewed</strong><span>{kyc.item.reviewedAt ? new Date(kyc.item.reviewedAt).toLocaleString('th-TH') : '-'}</span></AdminRow>
+            {kyc.item.reviewNote && <AdminNotice>{kyc.item.reviewNote}</AdminNotice>}
+          </AdminStack>}
         </AdminCard>
         <AdminCard title="VIP" description="สถานะ backend owner">
           {data.dataSources?.vip ? <AdminRow><strong>Source</strong><span>{data.dataSources.vip}</span></AdminRow> : <AdminNotice tone="warning">{data.dataSources?.vipReason ?? 'ยังไม่มี persistent VIP owner ใน Admin data model ห้ามสร้างระดับ VIP จากค่า UI fallback'}</AdminNotice>}
@@ -131,9 +170,9 @@ export default function MemberDetailPage() {
         <AdminStack>{data.bankAccounts.map((item) => <AdminRow key={item.id}><div><strong>{item.bankName}</strong><p>{item.accountName} · {item.accountNumberMasked ?? '-'}</p></div><AdminBadge tone={item.status === 'ACTIVE' ? 'success' : 'warning'}>{item.status}</AdminBadge></AdminRow>)}{data.bankAccounts.length === 0 && <AdminEmpty>ยังไม่มีบัญชีธนาคาร</AdminEmpty>}</AdminStack>
       </AdminCard>
 
-      <AdminCard title="Risk alerts" description="Risk history ที่ query ด้วย memberId โดยตรง" action={<AdminLinkButton href="/risk-alerts">Risk queue</AdminLinkButton>}>
-        <AdminStack>{data.riskAlerts.map((item) => <AdminRow key={item.id}><div><div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}><AdminBadge tone={riskTone(item.severity)}>{item.severity}</AdminBadge><AdminBadge>{item.status}</AdminBadge><AdminBadge>{item.type}</AdminBadge></div><strong>{item.title}</strong><p>{new Date(item.createdAt).toLocaleString('th-TH')}</p></div><AdminLinkButton href={`/risk-alerts/${item.id}`}>Detail</AdminLinkButton></AdminRow>)}{data.riskAlerts.length === 0 && <AdminEmpty>ไม่มี Risk alert ของสมาชิกนี้</AdminEmpty>}</AdminStack>
-      </AdminCard>
+      {canViewRisk && <AdminCard title="Risk alerts" description="Risk history โหลดผ่าน /admin/risk-alerts และยังคงบังคับ risk.view" action={<AdminLinkButton href={`/risk-alerts?memberId=${encodeURIComponent(data.user.id)}`}>Risk queue</AdminLinkButton>}>
+        <AdminStack>{riskAlerts.map((item) => <AdminRow key={item.id}><div><div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}><AdminBadge tone={riskTone(item.severity)}>{item.severity}</AdminBadge><AdminBadge>{item.status}</AdminBadge><AdminBadge>{item.type}</AdminBadge></div><strong>{item.title}</strong><p>{new Date(item.createdAt).toLocaleString('th-TH')}</p></div><AdminLinkButton href={`/risk-alerts/${item.id}`}>Detail</AdminLinkButton></AdminRow>)}{riskAlerts.length === 0 && <AdminEmpty>ไม่มี Risk alert ของสมาชิกนี้</AdminEmpty>}</AdminStack>
+      </AdminCard>}
 
       <AdminGrid>
         <MoneyCard title="Top-ups" items={data.topUps} />
@@ -179,6 +218,13 @@ function statusTone(status: string) {
 function riskTone(severity: RiskAlert['severity']) {
   if (severity === 'CRITICAL' || severity === 'HIGH') return 'danger';
   if (severity === 'MEDIUM') return 'warning';
+  return 'neutral';
+}
+
+function kycTone(status: string) {
+  if (status === 'APPROVED') return 'success';
+  if (status === 'REJECTED' || status === 'EXPIRED') return 'danger';
+  if (status === 'SUBMITTED' || status === 'REVIEWING') return 'warning';
   return 'neutral';
 }
 
