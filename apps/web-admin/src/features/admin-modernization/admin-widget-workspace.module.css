@@ -1,12 +1,14 @@
 .workspace {
+  container-type: inline-size;
   display: grid;
   gap: var(--admin-page-gap, 20px);
+  min-width: 0;
 }
 
 .controls {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: end;
-  justify-content: space-between;
   gap: 16px;
   padding: 14px;
   border: 1px solid var(--color-border-subtle);
@@ -16,10 +18,15 @@
 
 .rangeControls,
 .layoutActions {
+  min-width: 0;
   display: flex;
   align-items: end;
   gap: 10px;
   flex-wrap: wrap;
+}
+
+.layoutActions {
+  justify-content: flex-end;
 }
 
 .syncStatus {
@@ -55,9 +62,10 @@
 }
 
 .rangeControls label {
-  min-width: 148px;
+  min-width: 168px;
   display: grid;
   gap: 6px;
+  flex: 0 1 220px;
 }
 
 .rangeControls span {
@@ -77,6 +85,12 @@
   background: var(--color-surface-raised);
   color: var(--color-text-primary);
   font: inherit;
+}
+
+.rangeControls select,
+.rangeControls input {
+  width: 100%;
+  min-width: 0;
 }
 
 .layoutActions button,
@@ -107,21 +121,35 @@
   font-size: 13px;
 }
 
+/*
+ * Dashboard widgets contain charts, toolbars and long Thai labels. Two desktop
+ * columns keep every widget readable after the permanent sidebar consumes part
+ * of the viewport. The previous four-column grid measured the browser width,
+ * not the actual workspace width, and could collapse headings to one character
+ * per line.
+ */
 .grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  grid-auto-rows: minmax(240px, auto);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-auto-rows: auto;
+  grid-auto-flow: row;
+  align-items: stretch;
   gap: 16px;
+  min-width: 0;
 }
 
 .gridItem {
+  container-type: inline-size;
   position: relative;
   min-width: 0;
-  grid-column: span var(--admin-widget-columns, 1);
+  max-width: 100%;
+  grid-column: span min(var(--admin-widget-columns, 1), 2);
   grid-row: span var(--admin-widget-rows, 1);
 }
 
 .gridItem > :not(.editToolbar) {
+  width: 100%;
+  min-width: 0;
   height: 100%;
 }
 
@@ -229,42 +257,18 @@
   border-width: 2px;
 }
 
-@media (max-width: 1100px) {
-  .grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .gridItem {
-    grid-column: span min(var(--admin-widget-columns, 1), 2);
-  }
-}
-
-@media (max-width: 760px) {
+@container (max-width: 860px) {
   .controls {
+    grid-template-columns: minmax(0, 1fr);
     align-items: stretch;
-    flex-direction: column;
   }
 
-  .rangeControls,
   .layoutActions {
-    align-items: stretch;
-  }
-
-  .rangeControls label {
-    min-width: min(100%, 190px);
-    flex: 1 1 150px;
-  }
-
-  .layoutActions button {
-    flex: 1 1 auto;
-  }
-
-  .syncStatus {
-    justify-content: center;
+    justify-content: flex-start;
   }
 }
 
-@media (max-width: 640px) {
+@container (max-width: 680px) {
   .grid {
     grid-template-columns: minmax(0, 1fr);
     grid-auto-rows: auto;
@@ -282,6 +286,52 @@
   .editToolbar {
     right: auto;
     max-width: 100%;
+  }
+}
+
+@media (max-width: 760px) {
+  .controls {
+    grid-template-columns: minmax(0, 1fr);
+    align-items: stretch;
+  }
+
+  .rangeControls,
+  .layoutActions {
+    align-items: stretch;
+  }
+
+  .rangeControls label {
+    min-width: min(100%, 190px);
+    flex: 1 1 150px;
+  }
+
+  .layoutActions {
+    justify-content: flex-start;
+  }
+
+  .layoutActions button {
+    flex: 1 1 auto;
+  }
+
+  .syncStatus {
+    justify-content: center;
+  }
+}
+
+@media (max-width: 520px) {
+  .rangeControls {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .rangeControls label {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .layoutActions {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 

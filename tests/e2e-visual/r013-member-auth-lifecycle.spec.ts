@@ -1,8 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 
 const BASE_URL = process.env.MEMBER_HOME_URL ?? 'http://127.0.0.1:3101/';
-const LOGIN_NAME = /เข้าสู่ระบบ|ล็อกอิน|log in|login/i;
-const REGISTER_NAME = /สมัครสมาชิก|ลงทะเบียน|register|sign up/i;
 
 test.describe('Member auth lifecycle regression', () => {
   test('refresh never exposes a blank auth iframe on Mobile or Desktop', async ({ page }, testInfo) => {
@@ -29,21 +27,22 @@ test.describe('Member auth lifecycle regression', () => {
     await assertReleased(page);
   });
 
-  test('Mobile opens and closes Login/Register twenty times without a click blocker', async ({ page }, testInfo) => {
+  test('Mobile handles twenty Login/Register auth requests without stale input ownership', async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== '390x844', 'Run the lifecycle loop once at the reference phone viewport');
     test.setTimeout(180_000);
 
     await page.goto(BASE_URL, { waitUntil: 'domcontentloaded', timeout: 45_000 });
     await page.locator('body').waitFor({ state: 'visible' });
+    await waitForAuthOwner(page, 'mobile');
 
     for (let index = 0; index < 20; index += 1) {
       await openAuth(page, 'login', `mobile-login-${index}`);
       await closeAuth(page, index % 2 === 0 ? 'escape' : 'message');
       await assertReleased(page);
 
-      // Open the opposite mode immediately. There is deliberately no 180 ms
-      // courtesy pause here; the old implementation required one and therefore
-      // ate the next human click like a tiny invisible bureaucrat.
+      // Open the opposite mode immediately. There is deliberately no courtesy
+      // pause here: the previous overlay must release input ownership before
+      // the next canonical auth request arrives.
       await openAuth(page, 'register', `mobile-register-${index}`);
       await closeAuth(page, index % 2 === 0 ? 'message' : 'escape');
       await assertReleased(page);
@@ -63,6 +62,7 @@ test.describe('Member auth lifecycle regression', () => {
       await page.setViewportSize(viewport);
       await page.goto(BASE_URL, { waitUntil: 'domcontentloaded', timeout: 45_000 });
       await page.locator('body').waitFor({ state: 'visible' });
+      await waitForAuthOwner(page, `desktop-${viewport.width}`);
 
       for (let index = 0; index < 20; index += 1) {
         const mode = index % 2 === 0 ? 'login' : 'register';
@@ -111,19 +111,30 @@ async function assertRenderedAuthFrame(page: Page) {
   ).first()).toBeVisible({ timeout: 15_000 });
 }
 
-async function openAuth(page: Page, mode: 'login' | 'register', requestId: string) {
-  const accessibleName = mode === 'login' ? LOGIN_NAME : REGISTER_NAME;
-  const visibleControl = page.getByRole('button', { name: accessibleName }).first();
+async function waitForAuthOwner(page: Page, scope: string) {
+  const requestId = `readiness-${scope}-${Date.now().toString(36)}`;
+  const overlay = page.locator(`.member-auth-overlay[data-auth-request-id="${requestId}"]`);
 
-  if (await visibleControl.isVisible().catch(() => false)) {
-    await visibleControl.click({ timeout: 5_000 }).catch(async () => {
-      await dispatchAuthRequest(page, mode, requestId);
-    });
-  } else {
-    await dispatchAuthRequest(page, mode, requestId);
+  for (let attempt = 0; attempt < 40; attempt += 1) {
+    await dispatchAuthRequest(page, 'login', requestId);
+    if (await overlay.isVisible().catch(() => false)) {
+      await closeAuth(page, 'escape');
+      await assertReleased(page);
+      return;
+    }
+    await page.waitForTimeout(50);
   }
 
-  const overlay = page.locator('.member-auth-overlay');
+  await expect(
+    overlay,
+    `Member auth owner never accepted the readiness request for ${scope}`,
+  ).toBeVisible({ timeout: 2_000 });
+}
+
+async function openAuth(page: Page, mode: 'login' | 'register', requestId: string) {
+  await dispatchAuthRequest(page, mode, requestId);
+
+  const overlay = page.locator(`.member-auth-overlay[data-auth-request-id="${requestId}"]`);
   await expect(overlay).toBeVisible({ timeout: 10_000 });
   await expect(overlay).toHaveAttribute('data-state', /opening|open/);
   await expect(overlay.locator('iframe.member-auth-overlay__frame')).toHaveCount(1);

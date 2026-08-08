@@ -91,13 +91,15 @@ test('Production migrations populate Activity, News, and an open lottery round',
   assert.match(lotteryMigration, /2026-12-31T15:00:00\+07:00/);
 });
 
-test('Public status route exists and auth dismissal removes auth and next query parameters', async () => {
+test('Public status route exists and auth dismissal removes auth request query state', async () => {
   const statusPage = await readApp('status/page.tsx');
   const chrome = await readApp('member-chrome.tsx');
 
   assert.match(statusPage, /PublicStatusPage/);
   assert.match(statusPage, /ระบบพร้อมให้บริการ/);
+  assert.match(chrome, /replaceAuthHistory\(null\)/);
   assert.match(chrome, /url\.searchParams\.delete\(['"]auth['"]\)/);
+  assert.match(chrome, /url\.searchParams\.delete\(['"]authRequest['"]\)/);
   assert.match(chrome, /url\.searchParams\.delete\(['"]next['"]\)/);
-  assert.match(chrome, /router\.replace\([\s\S]*?\{ scroll: false \}\)/);
+  assert.match(chrome, /window\.history\.replaceState\(/);
 });

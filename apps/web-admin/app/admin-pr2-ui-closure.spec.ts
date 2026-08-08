@@ -34,28 +34,72 @@ test('PR-2 UI authority loads after every earlier Admin stylesheet', async () =>
   assert.ok(runtimeImport > closureImport, 'PR-2 authority must be the final stylesheet import');
 });
 
-test('PR-2 authority closes shell, metric, table, theme, access, and focus contracts', async () => {
+test('professional authority is scoped to Admin and cannot leak into Member', async () => {
+  const css = await fs.readFile(closureCssPath, 'utf8');
+
+  assert.match(css, /body\[data-app-surface='admin'\]/);
+  assert.doesNotMatch(css, /member-/i);
+  assert.doesNotMatch(css, /data-member-/i);
+  assert.doesNotMatch(css, /#member-/i);
+});
+
+test('professional authority covers the complete Admin visual system', async () => {
   const css = await fs.readFile(closureCssPath, 'utf8');
 
   const requiredContracts = [
+    '--admin-pr2-control-height: 44px',
+    '--admin-pr2-radius-lg: 16px',
+    '--admin-pr2-card-shadow',
     '.admin-main-shell',
+    '.admin-drawer',
+    '.admin-drawer-nav',
+    '.admin-topbar',
     '.admin-topbar-actions',
+    '.admin-ui-page__head',
+    '.admin-ui-card',
+    '.admin-ui-card__head',
     '.admin-ui-metric-grid',
+    '.admin-ui-metric',
+    '.form-grid',
+    '.admin-form-actions',
+    '.admin-data-table__toolbar',
     '.admin-data-table__scroll',
+    '.admin-ui-notice',
+    '.admin-ui-empty',
     '.admin-access-denied',
+    '.admin-app-state__panel',
+    '.admin-confirm-dialog',
+    '.admin-notification-popover',
     "html[data-admin-theme='light']",
     "html[data-admin-contrast='high']",
     ':focus-visible',
-    '@media (max-width: 430px)',
-    'repeat(2, minmax(0, 1fr))',
-    '@media (max-width: 339px)',
-    'display: table !important',
     'overscroll-behavior-inline: contain',
-    'min-height: var(--admin-pr2-touch-target)',
+    'display: table !important',
+    'max-height: calc(100dvh - 24px)',
   ];
 
   for (const contract of requiredContracts) {
-    assert.ok(css.includes(contract), `missing PR-2 UI contract: ${contract}`);
+    assert.ok(css.includes(contract), `missing professional Admin contract: ${contract}`);
+  }
+});
+
+test('professional authority keeps balanced responsive behavior', async () => {
+  const css = await fs.readFile(closureCssPath, 'utf8');
+
+  const requiredResponsiveContracts = [
+    '@media (max-width: 1099px)',
+    '@media (max-width: 760px)',
+    '@media (max-width: 560px)',
+    '@media (max-width: 430px)',
+    '@media (max-width: 339px)',
+    'repeat(2, minmax(0, 1fr))',
+    'grid-template-columns: minmax(0, 1fr) !important',
+    'calc(22px + env(safe-area-inset-bottom))',
+    '@media (prefers-reduced-motion: reduce)',
+  ];
+
+  for (const contract of requiredResponsiveContracts) {
+    assert.ok(css.includes(contract), `missing responsive Admin contract: ${contract}`);
   }
 
   const twoColumnRule = css.indexOf('@media (max-width: 430px)');

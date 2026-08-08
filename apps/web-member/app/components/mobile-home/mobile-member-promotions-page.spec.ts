@@ -5,11 +5,14 @@ import test from 'node:test';
 const promotionPage = readFileSync(new URL('./mobile-member-promotions-page.tsx', import.meta.url), 'utf8');
 const promotionCss = readFileSync(new URL('./mobile-member-promotions-page.module.css', import.meta.url), 'utf8');
 const routePage = readFileSync(new URL('../../mobile/member/promotions/page.tsx', import.meta.url), 'utf8');
+const sharedSource = readFileSync(new URL('./use-mobile-member-content-sources.ts', import.meta.url), 'utf8');
 const browseRoute = readFileSync(new URL('../../browse/promotions/page.tsx', import.meta.url), 'utf8');
 
-test('mobile promotions use the public API bridge without member data', () => {
-  assert.match(routePage, /memberApiFetch\('\/public\/site-settings'/);
-  assert.match(routePage, /skipAuth: true/);
+test('mobile promotions use the shared public API bridge without member data', () => {
+  assert.match(routePage, /useMobilePromotionsSource\(\)/);
+  assert.match(sharedSource, /loadJson\('\/public\/promotions'\)/);
+  assert.match(sharedSource, /loadJson\('\/public\/site-settings'\)/);
+  assert.match(sharedSource, /skipAuth:\s*true/);
   assert.doesNotMatch(routePage, /\/member\/auth\/profile|useMemberSession/);
 });
 

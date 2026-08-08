@@ -49,21 +49,21 @@ test('embedded auth controls use the iframe Element realm and support buttons an
 });
 
 test('Login and Register switch inside one mounted iframe without replaying the popup', () => {
-  assert.match(authOverlay, /initialPathRef = useRef/);
+  assert.match(authOverlay, /const initialPath = embeddedPath\(mode, requestId\)/);
+  assert.match(authOverlay, /requestedPathRef = useRef\(initialPath\)/);
   assert.match(authOverlay, /frameRef = useRef<HTMLIFrameElement \| null>\(null\)/);
   assert.match(authOverlay, /ref=\{frameRef\}/);
-  assert.match(authOverlay, /src=\{initialPathRef\.current\}/);
+  assert.match(authOverlay, /src=\{initialPath\}/);
   assert.match(authOverlay, /contentWindow\.location\.replace\(nextPath\)/);
   assert.doesNotMatch(authOverlay, /const path = activeMode/);
   assert.doesNotMatch(authOverlay, /setFrameReady\(false\)[\s\S]*\[activeMode\]/);
 
-  const embeddedClickHandler = authOverlay.slice(
-    authOverlay.indexOf("embeddedDocument.addEventListener('click'"),
-    authOverlay.indexOf('}, true);', authOverlay.indexOf("embeddedDocument.addEventListener('click'")),
-  );
+  const clickStart = authOverlay.indexOf("embeddedDocument.addEventListener('click'");
+  const clickEnd = authOverlay.indexOf('}, { capture: true, signal: navigationAbort.signal });', clickStart);
+  const embeddedClickHandler = authOverlay.slice(clickStart, clickEnd);
+  assert.ok(clickStart >= 0 && clickEnd > clickStart);
   assert.match(embeddedClickHandler, /preventDefault\(\)/);
   assert.match(embeddedClickHandler, /stopPropagation\(\)/);
-  assert.match(embeddedClickHandler, /stopImmediatePropagation\(\)/);
   assert.match(embeddedClickHandler, /navigateEmbeddedMode\(nextMode\)/);
   assert.match(authOverlay, /memberAuthStableShell = 'true'/);
   assert.match(authPolish, /data-member-auth-stable-shell='true'[\s\S]*animation:\s*none\s*!important/);

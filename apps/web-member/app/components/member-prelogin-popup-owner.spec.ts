@@ -8,10 +8,13 @@ const mobileHomeRoot = readFileSync(new URL('./mobile-home/mobile-home-root.tsx'
 
 test('MemberChrome is the sole pre-login auth overlay owner', () => {
   assert.equal((memberChrome.match(/<MemberAuthOverlay\b/g) ?? []).length, 1);
-  assert.match(memberChrome, /const authMode = authModeOverride \?\? queryAuthMode/);
+  assert.match(memberChrome, /const \[authRequest, setAuthRequest\] = useState<MemberOpenAuthDetail \| null>\(null\)/);
+  assert.match(memberChrome, /window\.addEventListener\(MEMBER_OPEN_AUTH_EVENT, handleAuthOpen\)/);
+  assert.match(memberChrome, /replaceAuthHistory\(request\)/);
+  assert.match(memberChrome, /mode=\{authRequest\.mode\}/);
   assert.doesNotMatch(navigationController, /<MemberAuthOverlay\b/);
   assert.doesNotMatch(navigationController, /useState<AuthRequest|authRequest|useMemberSession/);
-  assert.match(navigationController, /router\.replace\(`\$\{url\.pathname\}\$\{url\.search\}\$\{url\.hash\}`, \{ scroll: false \}\)/);
+  assert.match(navigationController, /import \{ openMemberAuth \} from ['"]\.\.\/lib\/member-auth-events['"]/);
   assert.match(navigationController, /return null;/);
 });
 
@@ -63,6 +66,6 @@ test('guest member-only drawer actions open the one login overlay before popup a
 
   assert.match(navigationController, /authAction && !summary\.isLoggedIn && requiresGuestLogin\(authAction\)/);
   assert.match(navigationController, /const intended = canonicalTargetFor\(authAction\) \|\| rawHref/);
-  assert.match(navigationController, /event\.stopImmediatePropagation\(\);[\s\S]*openAuth\('login', intended\)/);
+  assert.match(navigationController, /event\.stopImmediatePropagation\(\);[\s\S]*openMemberAuth\('login', intended\)/);
   assert.match(navigationController, /requiresGuestLogin[\s\S]*GUEST_LOGIN_REQUIRED_LABELS\.has\(actionLabel\(action\)\)/);
 });

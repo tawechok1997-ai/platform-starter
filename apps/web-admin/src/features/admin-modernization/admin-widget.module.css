@@ -1,6 +1,8 @@
 .widget {
+  container-type: inline-size;
   position: relative;
   min-width: 0;
+  max-width: 100%;
   display: flex;
   flex-direction: column;
   border: 1px solid var(--color-border-subtle);
@@ -28,38 +30,52 @@
 }
 
 .header {
+  min-width: 0;
   min-height: 72px;
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 14px;
   padding: 18px 18px 14px;
   border-bottom: 1px solid var(--color-border-subtle);
 }
 
 .heading {
   min-width: 0;
+  max-width: 100%;
   display: grid;
   gap: 4px;
 }
 
 .heading h3 {
+  min-width: 0;
+  max-width: 100%;
   margin: 0;
+  color: var(--color-text-primary);
   font-size: 16px;
   line-height: 1.35;
   font-weight: 720;
   letter-spacing: -0.01em;
+  overflow-wrap: normal;
+  word-break: normal;
+  text-wrap: balance;
 }
 
 .heading p {
+  min-width: 0;
+  max-width: 64ch;
   margin: 0;
   color: var(--color-text-secondary);
   font-size: 13px;
   line-height: 1.5;
+  overflow-wrap: break-word;
+  word-break: normal;
+  text-wrap: pretty;
 }
 
 .toolbar {
-  flex: 0 0 auto;
+  min-width: 0;
+  max-width: 100%;
   display: flex;
   align-items: center;
   justify-content: flex-end;
@@ -68,13 +84,13 @@
 }
 
 .toolButton {
-  width: 34px;
-  min-width: 34px;
-  height: 34px;
-  min-height: 34px;
+  width: 34px !important;
+  min-width: 34px !important;
+  height: 34px !important;
+  min-height: 34px !important;
   display: inline-grid;
   place-items: center;
-  padding: 0;
+  padding: 0 !important;
   border: 1px solid transparent;
   border-radius: 9px;
   background: transparent;
@@ -107,11 +123,20 @@
 }
 
 .body {
+  min-width: 0;
   min-height: 220px;
   flex: 1 1 auto;
   display: grid;
-  align-items: stretch;
+  grid-auto-rows: max-content;
+  align-items: start;
+  align-content: start;
   padding: 18px;
+}
+
+.widget[data-state='empty'] .body,
+.widget[data-state='error'] .body {
+  min-height: 150px;
+  padding-block: 12px;
 }
 
 .widget[data-fullscreen='true'] .body {
@@ -126,9 +151,12 @@
   color: var(--color-text-primary);
   font-size: 12px;
   line-height: 1.5;
+  overflow-wrap: break-word;
+  word-break: normal;
 }
 
 .footer {
+  min-width: 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -163,6 +191,7 @@
 .loading span:nth-child(4) { height: 88%; }
 
 .state {
+  min-width: 0;
   min-height: 184px;
   display: flex;
   flex-direction: column;
@@ -174,16 +203,26 @@
   color: var(--color-text-secondary);
 }
 
+.widget[data-state='empty'] .state,
+.widget[data-state='error'] .state {
+  min-height: 126px;
+  padding: 18px;
+}
+
 .state svg {
   width: 30px;
   height: 30px;
+  flex: 0 0 auto;
 }
 
 .state strong {
-  max-width: 360px;
+  max-width: min(100%, 360px);
   color: var(--color-text-primary);
   font-size: 14px;
   line-height: 1.5;
+  overflow-wrap: break-word;
+  word-break: normal;
+  text-wrap: balance;
 }
 
 .state button {
@@ -207,6 +246,11 @@
   padding: 14px;
 }
 
+:root[data-admin-density='compact'] .widget[data-state='empty'] .body,
+:root[data-admin-density='compact'] .widget[data-state='error'] .body {
+  min-height: 136px;
+}
+
 :root[data-admin-density='compact'] .footer,
 :root[data-admin-density='compact'] .partial {
   padding-left: 14px;
@@ -226,6 +270,36 @@
   to { background-position: -100% 0; }
 }
 
+/* Stack tools below the title before the heading becomes unreadable. */
+@container (max-width: 520px) {
+  .header {
+    min-height: auto;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
+  }
+
+  .toolbar {
+    justify-content: flex-start;
+  }
+}
+
+@container (max-width: 360px) {
+  .header {
+    padding: 14px;
+  }
+
+  .toolButton {
+    width: 32px !important;
+    min-width: 32px !important;
+    height: 32px !important;
+    min-height: 32px !important;
+  }
+
+  .body {
+    padding: 14px;
+  }
+}
+
 @media (max-width: 640px) {
   .widget {
     border-radius: 14px;
@@ -238,8 +312,7 @@
 
   .header {
     min-height: auto;
-    align-items: stretch;
-    flex-direction: column;
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .toolbar {
@@ -249,6 +322,11 @@
   .body {
     min-height: 196px;
     padding: 14px;
+  }
+
+  .widget[data-state='empty'] .body,
+  .widget[data-state='error'] .body {
+    min-height: 138px;
   }
 
   .footer {

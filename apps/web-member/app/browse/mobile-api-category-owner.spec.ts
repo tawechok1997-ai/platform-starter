@@ -15,12 +15,13 @@ const catalog = readFileSync(
   'utf8',
 );
 
-test('every supported mobile game category is routed through the API-only owner', () => {
+test('every supported mobile game category returns to the Home API owner', () => {
   for (const slug of ['casino', 'slot', 'fishing', 'sport', 'card', 'lotto']) {
     assert.match(router, new RegExp(`MobileApiCategoryOwner slug="${slug}"`));
   }
-  assert.match(owner, /loadSourceCategoryCatalog\(slug, \[\], 'mobile'/);
-  assert.match(owner, /ระบบจะไม่แสดงรายการเกมจำลองแทนข้อมูลจริง/);
+  assert.match(owner, /import MobileHomeCategoryRedirect/);
+  assert.match(owner, /return <MobileHomeCategoryRedirect slug=\{slug\} \/>/);
+  assert.doesNotMatch(owner, /loadSourceCategoryCatalog|const rows =|config\.games/);
 });
 
 test('mobile inventory falls back to the real PC API instead of hard-coded rows', () => {

@@ -4,13 +4,16 @@ import test from 'node:test';
 
 const listRoute = readFileSync(new URL('../../mobile/member/activity/page.tsx', import.meta.url), 'utf8');
 const listPage = readFileSync(new URL('./mobile-member-activity-page.tsx', import.meta.url), 'utf8');
+const listSource = readFileSync(new URL('./use-mobile-member-content-sources.ts', import.meta.url), 'utf8');
 const detailRoute = readFileSync(new URL('../../mobile/member/activity/[activity]/page.tsx', import.meta.url), 'utf8');
 const detailPage = readFileSync(new URL('./mobile-member-activity-detail-page.tsx', import.meta.url), 'utf8');
 const styles = readFileSync(new URL('./mobile-member-activity-detail-page.module.css', import.meta.url), 'utf8');
 
-test('activity list uses the dedicated public API and API-provided child routes', () => {
-  assert.match(listRoute, /memberApiFetch\('\/public\/activities'/);
-  assert.match(listRoute, /skipAuth:\s*true/);
+test('activity list uses the shared public API owner and API-provided child routes', () => {
+  assert.match(listRoute, /useMobileActivitiesSource\(\)/);
+  assert.match(listSource, /loadJson\('\/public\/activities'\)/);
+  assert.match(listSource, /skipAuth:\s*true/);
+  assert.match(listSource, /credentials:\s*'omit'/);
   assert.doesNotMatch(listRoute, /\/public\/site-settings/);
   assert.match(listPage, /items:\s*MobileActivityContentItem\[\]/);
   assert.match(listPage, /activity\.href\.startsWith\('\/'\)/);

@@ -10,6 +10,7 @@ const promotionsPage = read('./mobile-member-promotions-live-page.tsx');
 const newsPage = read('./mobile-member-news-page.tsx');
 const activityRoute = read('../../mobile/member/activity/page.tsx');
 const activityPage = read('./mobile-member-activity-page.tsx');
+const sharedSource = read('./use-mobile-member-content-sources.ts');
 const guidePage = read('./mobile-member-guide-page.tsx');
 
 const p8Layouts = [
@@ -62,8 +63,10 @@ test('P8 mounts the closure owner on every content route', () => {
   assert.match(runtime, /'\/mobile\/member\/guide'/);
 });
 
-test('P8 promotions are API-owned with honest loading, error and empty states', () => {
-  assert.match(promotionsRoute, /memberApiFetch\('\/public\/site-settings'/);
+test('P8 promotions are shared-API-owned with honest loading error and empty states', () => {
+  assert.match(promotionsRoute, /useMobilePromotionsSource\(\)/);
+  assert.match(sharedSource, /loadJson\('\/public\/promotions'\)/);
+  assert.match(sharedSource, /loadJson\('\/public\/site-settings'\)/);
   assert.doesNotMatch(promotionsRoute, /SOURCE_PROMOTION_PAYLOAD/);
   assert.doesNotMatch(promotionsPage, /SOURCE_PROMOTIONS/);
   assert.match(promotionsPage, /data-content-source="api"/);
@@ -71,13 +74,15 @@ test('P8 promotions are API-owned with honest loading, error and empty states', 
   assert.match(promotionsPage, /aria-busy=\{loading\}/);
 });
 
-test('P8 news is CMS-owned and activity is API-owned without hardcoded rows', () => {
+test('P8 news is CMS-owned and activity is shared-API-owned without hardcoded rows', () => {
   assert.match(newsPage, /cmsContentSetting\(settings\)/);
   assert.match(newsPage, /item\.kind === 'news'/);
   assert.match(newsPage, /data-content-source="cms"/);
   assert.match(newsPage, /ไม่มีข้อความใหม่/);
 
-  assert.match(activityRoute, /memberApiFetch\('\/public\/activities'/);
+  assert.match(activityRoute, /useMobileActivitiesSource\(\)/);
+  assert.match(sharedSource, /loadJson\('\/public\/activities'\)/);
+  assert.match(sharedSource, /skipAuth:\s*true/);
   assert.match(activityPage, /data-content-source="api"/);
   assert.match(activityPage, /ยังไม่มีกิจกรรม/);
   assert.doesNotMatch(activityPage, /SOURCE_ACTIVITIES/);

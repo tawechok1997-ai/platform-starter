@@ -15,10 +15,12 @@ test('production verification parses the explicit version commit field', () => {
   assert.doesNotMatch(verification, /grep -Fqi "\$EXPECTED_SHA" artifacts\/member-production-verification\/version\.json/);
 });
 
-test('workflow-only pull requests can adopt recovery tooling without weakening Member code gates', () => {
+test('test-only Member pull requests do not weaken production code gates', () => {
   assert.match(verification, /member_code_changed/);
   assert.match(verification, /continue-on-error: \$\{\{ github\.event_name == 'pull_request' \}\}/);
-  assert.match(verification, /this PR changes only verification\/recovery tooling/);
+  assert.match(verification, /member-production-files\.txt/);
+  assert.match(verification, /No production-relevant Member files changed/);
+  assert.match(verification, /Test-only Member changes do not require a production deployment/);
   assert.match(verification, /Member Production verification is required for this event/);
 });
 

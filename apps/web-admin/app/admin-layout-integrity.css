@@ -1,0 +1,501 @@
+/*
+ * Admin layout integrity authority.
+ *
+ * This is the final Admin stylesheet. It protects every Admin route from the
+ * same failure class: columns collapsing after the permanent sidebar, Thai
+ * text breaking one character per line, headers fighting toolbars, oversized
+ * empty states, and page-level horizontal overflow. It does not change data,
+ * permissions, routes, or mutations.
+ */
+
+:root {
+  --admin-integrity-card-min: 280px;
+  --admin-integrity-metric-min: 190px;
+  --admin-integrity-summary-min: 210px;
+  --admin-integrity-gap: clamp(12px, 1.25vw, 18px);
+}
+
+body[data-app-surface='admin'] .admin-ui-page {
+  container-name: admin-page;
+  container-type: inline-size;
+}
+
+body[data-app-surface='admin'] :where(
+  .admin-ui-card,
+  .admin-ui-command-panel,
+  .admin-ui-action-strip,
+  .admin-ui-filter-bar,
+  .admin-ui-toolbar,
+  .admin-data-table,
+  .admin-confirm-dialog,
+  .admin-app-state__panel
+) {
+  container-type: inline-size;
+}
+
+body[data-app-surface='admin'] :where(
+  .admin-content-shell,
+  .admin-content-shell > main,
+  .admin-ui-page,
+  .admin-ui-page > *,
+  .admin-ui-card,
+  .admin-ui-card > *,
+  .admin-ui-stack,
+  .admin-ui-row,
+  .admin-ui-section-row,
+  .admin-ui-toolbar,
+  .admin-ui-filter-bar,
+  .admin-ui-filter-bar__controls,
+  .admin-data-table,
+  .admin-data-table > *,
+  section,
+  article,
+  header,
+  footer,
+  nav,
+  form,
+  fieldset
+) {
+  min-width: 0;
+  max-width: 100%;
+}
+
+/* Human-readable wrapping ------------------------------------------------ */
+
+body[data-app-surface='admin'] :where(
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6,
+  p,
+  label,
+  legend,
+  summary,
+  button,
+  a,
+  span,
+  strong,
+  small,
+  em,
+  li,
+  dt,
+  dd
+) {
+  writing-mode: horizontal-tb !important;
+  text-orientation: mixed !important;
+  word-break: normal !important;
+  overflow-wrap: break-word !important;
+  hyphens: none;
+}
+
+body[data-app-surface='admin'] :where(
+  .admin-ui-page__copy,
+  .admin-ui-card__copy,
+  .admin-ui-card__action,
+  .admin-confirm-dialog__copy,
+  .admin-ui-data-value,
+  .admin-ui-empty,
+  .admin-ui-notice
+) {
+  word-break: normal !important;
+  overflow-wrap: break-word !important;
+}
+
+body[data-app-surface='admin'] :where(
+  code,
+  pre,
+  .admin-ui-code,
+  .admin-ui-payload,
+  [data-mono='true']
+) {
+  word-break: break-word !important;
+  overflow-wrap: anywhere !important;
+}
+
+/* Shared page and card composition -------------------------------------- */
+
+body[data-app-surface='admin'] .admin-ui-page__head,
+body[data-app-surface='admin'] .admin-ui-card__head {
+  min-width: 0;
+  max-width: 100%;
+}
+
+body[data-app-surface='admin'] :where(
+  .admin-ui-page__actions,
+  .admin-ui-card__action,
+  .admin-ui-toolbar,
+  .admin-ui-filter-bar__controls,
+  .admin-data-table__toolbar,
+  .admin-data-table__footer,
+  .admin-data-table__footer > div
+) {
+  min-width: 0;
+  max-width: 100%;
+  flex-wrap: wrap;
+}
+
+body[data-app-surface='admin'] :where(
+  .admin-ui-page__actions,
+  .admin-ui-card__action,
+  .admin-ui-toolbar,
+  .admin-ui-filter-bar__controls,
+  .admin-data-table__toolbar
+) > * {
+  min-width: 0;
+  max-width: 100%;
+}
+
+body[data-app-surface='admin'] .admin-ui-grid {
+  grid-template-columns: repeat(auto-fit, minmax(min(var(--admin-integrity-card-min), 100%), 1fr)) !important;
+  align-items: start !important;
+  gap: var(--admin-integrity-gap) !important;
+}
+
+body[data-app-surface='admin'] .admin-ui-metric-grid {
+  grid-template-columns: repeat(auto-fit, minmax(min(var(--admin-integrity-metric-min), 100%), 1fr)) !important;
+  align-items: stretch !important;
+  gap: var(--admin-integrity-gap) !important;
+}
+
+body[data-app-surface='admin'] :where(
+  .admin-ui-grid,
+  .admin-ui-metric-grid
+) > * {
+  min-width: 0;
+  max-width: 100%;
+}
+
+body[data-app-surface='admin'] :where(
+  .admin-ui-row,
+  .admin-ui-section-row
+) > * {
+  min-width: 0;
+  max-width: 100%;
+}
+
+/* Data-heavy summary grids ---------------------------------------------- */
+
+body[data-app-surface='admin'] :where(
+  .admin-wallet-history__summary,
+  .admin-wallet-detail__stats,
+  .admin-reconciliation-center__stats,
+  .admin-wallet-statement__stats,
+  .admin-wallet-analytics__stats,
+  .admin-wallet-statement__summary,
+  .admin-wallet-analytics__health,
+  .admin-member-insights__summary,
+  .admin-directory-grid
+) {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(min(var(--admin-integrity-summary-min), 100%), 1fr)) !important;
+  align-items: stretch !important;
+  gap: var(--admin-integrity-gap) !important;
+  min-width: 0;
+  width: 100%;
+}
+
+body[data-app-surface='admin'] :where(
+  .admin-risk-operations__grid,
+  .admin-risk-operations__flow
+) {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(min(230px, 100%), 1fr)) !important;
+  align-items: stretch !important;
+  gap: var(--admin-integrity-gap) !important;
+  min-width: 0;
+}
+
+body[data-app-surface='admin'] .admin-promotion-ops__grid {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(min(360px, 100%), 1fr)) !important;
+  align-items: start !important;
+  gap: var(--admin-integrity-gap) !important;
+  min-width: 0;
+}
+
+body[data-app-surface='admin'] :where(
+  .admin-wallet-history__summary,
+  .admin-wallet-detail__stats,
+  .admin-reconciliation-center__stats,
+  .admin-wallet-statement__stats,
+  .admin-wallet-analytics__stats,
+  .admin-wallet-statement__summary,
+  .admin-wallet-analytics__health,
+  .admin-member-insights__summary,
+  .admin-directory-grid,
+  .admin-risk-operations__grid,
+  .admin-risk-operations__flow,
+  .admin-promotion-ops__grid
+) > * {
+  min-width: 0;
+  max-width: 100%;
+}
+
+/* Split layouts ---------------------------------------------------------- */
+
+body[data-app-surface='admin'] :where(
+  .admin-dashboard__sections,
+  .admin-kpi-groups,
+  .admin-wallet-analytics__hero,
+  .admin-promotion-operations__grid,
+  .admin-support-layout,
+  .admin-settings-layout,
+  .admin-security-layout,
+  .admin-reports-layout,
+  .admin-risk-layout,
+  .admin-operation-layout
+) {
+  min-width: 0;
+  max-width: 100%;
+}
+
+body[data-app-surface='admin'] :where(
+  .admin-dashboard__sections,
+  .admin-kpi-groups,
+  .admin-wallet-analytics__hero,
+  .admin-promotion-operations__grid,
+  .admin-support-layout,
+  .admin-settings-layout,
+  .admin-security-layout,
+  .admin-reports-layout,
+  .admin-risk-layout,
+  .admin-operation-layout
+) > * {
+  min-width: 0;
+  max-width: 100%;
+}
+
+/* Toolbars and forms ----------------------------------------------------- */
+
+body[data-app-surface='admin'] :where(
+  .admin-wallet-history__filters,
+  .admin-wallet-detail__toolbar,
+  .admin-reconciliation-center__toolbar,
+  .admin-wallet-statement__toolbar,
+  .admin-wallet-analytics__toolbar,
+  .admin-wallet-statement__filters,
+  .admin-directory-toolbar,
+  .admin-promotion-ops__toolbar
+) {
+  min-width: 0;
+  max-width: 100%;
+  flex-wrap: wrap !important;
+}
+
+body[data-app-surface='admin'] :where(
+  .admin-wallet-history__filters,
+  .admin-wallet-detail__toolbar,
+  .admin-reconciliation-center__toolbar,
+  .admin-wallet-statement__toolbar,
+  .admin-wallet-analytics__toolbar,
+  .admin-wallet-statement__filters,
+  .admin-directory-toolbar,
+  .admin-promotion-ops__toolbar
+) > * {
+  min-width: 0;
+  max-width: 100%;
+}
+
+body[data-app-surface='admin'] :where(
+  input,
+  select,
+  textarea,
+  button
+) {
+  max-width: 100%;
+}
+
+/* Tables own horizontal scrolling, never the page ----------------------- */
+
+body[data-app-surface='admin'] .admin-content-shell {
+  overflow-x: clip !important;
+}
+
+body[data-app-surface='admin'] :where(
+  .admin-data-table__scroll,
+  .admin-ui-table-shell,
+  .admin-wallet-history__table-shell,
+  .admin-wallet-detail__table-shell,
+  .admin-reconciliation-center__table-shell,
+  .admin-wallet-statement__table-shell,
+  .admin-wallet-analytics__table-shell,
+  .admin-wallet-statement__table-wrap,
+  .admin-wallet-analytics__table-wrap,
+  .table-wrap,
+  .table-container,
+  .admin-table-wrap,
+  .admin-ui-table-wrap
+) {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: auto !important;
+  overscroll-behavior-inline: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+body[data-app-surface='admin'] :where(
+  img,
+  svg,
+  canvas,
+  video
+) {
+  max-width: 100%;
+}
+
+/* Compact and readable states ------------------------------------------- */
+
+body[data-app-surface='admin'] :where(
+  .admin-ui-empty,
+  .admin-reports__empty,
+  .admin-promotion-ops__state
+) {
+  min-height: 140px !important;
+  height: auto !important;
+  max-height: none !important;
+  align-content: center;
+  justify-items: center;
+  text-align: center;
+}
+
+body[data-app-surface='admin'] :where(
+  .admin-ui-empty,
+  .admin-reports__empty,
+  .admin-promotion-ops__state
+) > * {
+  max-width: min(100%, 62ch);
+}
+
+/* Container-aware collapse ---------------------------------------------- */
+
+@container admin-page (max-width: 1180px) {
+  body[data-app-surface='admin'] .admin-dashboard .admin-ui-page > .admin-ui-card:has(.admin-risk-chart),
+  body[data-app-surface='admin'] .admin-dashboard .admin-ui-page > .admin-ui-card:has(.admin-finance-chart) {
+    grid-column: 1 / -1 !important;
+  }
+
+  body[data-app-surface='admin'] :where(
+    .admin-kpi-groups,
+    .admin-dashboard__sections,
+    .admin-wallet-analytics__hero,
+    .admin-promotion-operations__grid,
+    .admin-support-layout,
+    .admin-settings-layout,
+    .admin-security-layout,
+    .admin-reports-layout,
+    .admin-risk-layout,
+    .admin-operation-layout
+  ) {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+}
+
+@container admin-page (max-width: 900px) {
+  body[data-app-surface='admin'] .admin-finance-chart {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  body[data-app-surface='admin'] .admin-data-table__toolbar {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  body[data-app-surface='admin'] .admin-data-table__toolbar > :first-child {
+    grid-column: 1 / -1;
+  }
+}
+
+@container (max-width: 620px) {
+  body[data-app-surface='admin'] .admin-ui-card__head {
+    grid-template-columns: minmax(0, 1fr) !important;
+    align-items: start !important;
+  }
+
+  body[data-app-surface='admin'] .admin-ui-card__action {
+    width: 100%;
+    justify-content: flex-start !important;
+  }
+
+  body[data-app-surface='admin'] :where(
+    .admin-ui-row,
+    .admin-ui-section-row
+  ) {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    align-items: start !important;
+  }
+}
+
+@container admin-page (max-width: 620px) {
+  body[data-app-surface='admin'] :where(
+    .admin-ui-toolbar,
+    .admin-ui-filter-bar__controls,
+    .admin-data-table__toolbar,
+    .admin-wallet-history__filters,
+    .admin-wallet-detail__toolbar,
+    .admin-reconciliation-center__toolbar,
+    .admin-wallet-statement__toolbar,
+    .admin-wallet-analytics__toolbar,
+    .admin-wallet-statement__filters,
+    .admin-directory-toolbar,
+    .admin-promotion-ops__toolbar
+  ) {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    align-items: stretch !important;
+  }
+
+  body[data-app-surface='admin'] :where(
+    .admin-ui-toolbar,
+    .admin-ui-filter-bar__controls,
+    .admin-data-table__toolbar,
+    .admin-wallet-history__filters,
+    .admin-wallet-detail__toolbar,
+    .admin-reconciliation-center__toolbar,
+    .admin-wallet-statement__toolbar,
+    .admin-wallet-analytics__toolbar,
+    .admin-wallet-statement__filters,
+    .admin-directory-toolbar,
+    .admin-promotion-ops__toolbar
+  ) > * {
+    width: 100% !important;
+    min-width: 0 !important;
+    grid-column: auto !important;
+  }
+
+  body[data-app-surface='admin'] :where(
+    .admin-wallet-history__summary,
+    .admin-wallet-detail__stats,
+    .admin-reconciliation-center__stats,
+    .admin-wallet-statement__stats,
+    .admin-wallet-analytics__stats,
+    .admin-wallet-statement__summary,
+    .admin-wallet-analytics__health,
+    .admin-member-insights__summary,
+    .admin-directory-grid,
+    .admin-risk-operations__grid,
+    .admin-risk-operations__flow,
+    .admin-promotion-ops__grid
+  ) {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+}
+
+@media (max-width: 760px) {
+  body[data-app-surface='admin'] .admin-ui-page__head {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  body[data-app-surface='admin'] .admin-ui-page__actions {
+    width: 100%;
+    justify-content: flex-start !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body[data-app-surface='admin'] .admin-layout-integrity-motion-owner {
+    transition: none !important;
+    animation: none !important;
+  }
+}
