@@ -8,11 +8,13 @@ const layout = readFileSync(join(root, 'app/layout.tsx'), 'utf8');
 const runtime = readFileSync(join(root, 'app/admin-appearance-runtime.tsx'), 'utf8');
 const styles = readFileSync(join(root, 'app/admin-appearance-foundation.css'), 'utf8');
 const completeness = readFileSync(join(root, 'app/admin-theme-completeness.css'), 'utf8');
+const legacyNormalizer = readFileSync(join(root, 'app/admin-legacy-theme-normalizer.tsx'), 'utf8');
 
 test('admin root boots one shared appearance owner before hydration', () => {
   assert.match(layout, /admin_appearance_preferences_v1/);
   assert.match(layout, /admin-appearance-bootstrap/);
   assert.match(layout, /<AdminAppearanceRuntime\s*\/>/);
+  assert.match(layout, /<AdminLegacyThemeNormalizer\s*\/>/);
   assert.match(layout, /admin-appearance-foundation\.css/);
   assert.match(layout, /colorScheme:\s*'dark light'/);
 });
@@ -62,4 +64,16 @@ test('theme completeness remaps legacy palettes and shared surfaces to appearanc
   assert.match(completeness, /\.admin-data-table__scroll/);
   assert.match(completeness, /input:not\(\[type='checkbox'\]\)/);
   assert.match(completeness, /\.admin-ui-payload/);
+});
+
+test('legacy inline palette is normalized to live appearance tokens', () => {
+  assert.match(legacyNormalizer, /BACKGROUND_TOKENS/);
+  assert.match(legacyNormalizer, /TEXT_TOKENS/);
+  assert.match(legacyNormalizer, /BORDER_LITERALS/);
+  assert.match(legacyNormalizer, /MutationObserver/);
+  assert.match(legacyNormalizer, /attributeFilter:\s*\['style'\]/);
+  assert.match(legacyNormalizer, /admin:appearance-change/);
+  assert.match(legacyNormalizer, /var\(--color-surface-raised\)/);
+  assert.match(legacyNormalizer, /var\(--color-text-secondary\)/);
+  assert.match(legacyNormalizer, /var\(--color-border-subtle\)/);
 });
