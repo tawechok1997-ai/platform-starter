@@ -1,0 +1,268 @@
+name: Admin PR-3 Staging Acceptance
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/admin-pr3-staging-acceptance.yml'
+      - 'playwright.admin-pr3.config.ts'
+      - 'tests/admin-pr3-staging/**'
+      - 'prisma/seed-admin-pr3-personas.ts'
+      - 'prisma/seed-access.ts'
+      - 'prisma/migrations/**'
+      - 'apps/api/src/**'
+      - 'apps/web-admin/app/**'
+      - 'apps/web-admin/src/**'
+      - 'apps/web-admin/package.json'
+      - 'pnpm-lock.yaml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: admin-pr3-staging-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  staging-acceptance:
+    name: Persona × Route × Browser Acceptance
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: platform_pr3
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U postgres -d platform_pr3"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=20
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/platform_pr3?schema=public
+      NODE_ENV: test
+      PR3_ALLOW_DISPOSABLE_SEED: 'true'
+      PR3_PERSONA_MANIFEST: test-results/admin-pr3-personas.json
+      PR3_ADMIN_URL: http://127.0.0.1:3001
+      API_PUBLIC_URL: http://127.0.0.1:4000
+      ADMIN_WEB_URL: http://127.0.0.1:3001
+      MEMBER_WEB_URL: http://127.0.0.1:3000
+      ADMIN_2FA_ENFORCEMENT_ENABLED: 'false'
+      ADMIN_LOGIN_ANTI_BOT_ENABLED: 'false'
+      ENABLE_PROVIDER_SIMULATOR: 'false'
+      PASSWORD_RESET_DELIVERY_ENABLED: 'false'
+      STORAGE_DRIVER: local
+      STORAGE_LOCAL_ROOT: /tmp/platform-pr3-storage
+      PRIVATE_MEDIA_DIR: /tmp/platform-pr3-private-media
+      RISK_MATCH_SECRET: pr3-risk-match-disposable-environment
+      KYC_ACCESS_SECRET: pr3-kyc-access-disposable-environment
+      PHONE_OTP_SECRET: pr3-phone-otp-disposable-environment
+      GIT_COMMIT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+      APP_VERSION: admin-pr3-staging-acceptance
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.18.0
+          run_install: false
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Generate disposable credentials
+        shell: bash
+        run: |
+          set -euo pipefail
+          PERSONA_PASSWORD="$(node -e "console.log('Pr3-' + require('node:crypto').randomBytes(24).toString('base64url') + '!')")"
+          JWT_KEY="$(node -e "console.log(require('node:crypto').randomBytes(64).toString('hex'))")"
+          TFA_KEY="$(node -e "console.log(require('node:crypto').randomBytes(32).toString('hex'))")"
+          echo "::add-mask::$PERSONA_PASSWORD"
+          echo "::add-mask::$JWT_KEY"
+          echo "::add-mask::$TFA_KEY"
+          echo "PR3_PERSONA_PASSWORD=$PERSONA_PASSWORD" >> "$GITHUB_ENV"
+          echo "JWT_ACCESS_KEY=$JWT_KEY" >> "$GITHUB_ENV"
+          echo "TWO_FACTOR_ENCRYPTION_KEY=$TFA_KEY" >> "$GITHUB_ENV"
+          echo "BUILT_AT=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_ENV"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile --prefer-offline
+
+      - name: Generate Prisma client
+        run: pnpm prisma generate
+
+      - name: Bootstrap disposable staging schema
+        shell: bash
+        run: |
+          set -euo pipefail
+          pnpm prisma db push --skip-generate
+          PSQL_DATABASE_URL="${DATABASE_URL%%\?*}"
+          for migration in \
+            20260714190000_add_promotion_domain_models \
+            20260714191000_backfill_promotion_domain_models \
+            20260714213000_add_risk_watchlist_domain \
+            20260714213100_add_watchlist_risk_alert_type \
+            20260714230000_add_kyc_document_domain \
+            20260714230100_add_phone_otp_verification \
+            20260803070000_add_admin_team_access_governance \
+            20260805040000_add_admin_ui_preferences
+          do
+            psql "$PSQL_DATABASE_URL" -v ON_ERROR_STOP=1 -f "prisma/migrations/$migration/migration.sql"
+          done
+
+      - name: Seed role templates and real personas
+        run: |
+          pnpm db:seed:access
+          pnpm exec tsx prisma/seed-admin-pr3-personas.ts
+
+      - name: Build API and Admin production bundles
+        run: |
+          pnpm build:api
+          NEXT_PUBLIC_API_URL=http://127.0.0.1:4000 pnpm build:web-admin
+
+      - name: Start disposable staging stack
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/platform-pr3-storage /tmp/platform-pr3-private-media
+          (
+            cd apps/api
+            PORT=4000 API_PORT=4000 node dist/main.js > /tmp/admin-pr3-api.log 2>&1
+          ) &
+          echo $! > /tmp/admin-pr3-api.pid
+          (
+            PORT=3001 HOSTNAME=127.0.0.1 NEXT_PUBLIC_API_URL=http://127.0.0.1:4000 pnpm --filter @platform/web-admin start > /tmp/admin-pr3-web.log 2>&1
+          ) &
+          echo $! > /tmp/admin-pr3-web.pid
+
+          for attempt in $(seq 1 120); do
+            if curl --fail --silent http://127.0.0.1:4000/health >/dev/null \
+              && curl --fail --silent http://127.0.0.1:3001/login >/dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          echo 'Disposable PR-3 staging stack failed to become ready.' >&2
+          tail -n 200 /tmp/admin-pr3-api.log >&2 || true
+          tail -n 200 /tmp/admin-pr3-web.log >&2 || true
+          exit 1
+
+      - name: Verify staging health and commit identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          node <<'NODE'
+          const expected = String(process.env.GIT_COMMIT_SHA || '').trim().toLowerCase();
+          async function read(path) {
+            const response = await fetch(new URL(path, process.env.API_PUBLIC_URL), {
+              headers: { accept: 'application/json' },
+              signal: AbortSignal.timeout(10_000),
+            });
+            if (!response.ok) throw new Error(`${path} returned ${response.status}`);
+            return response.json();
+          }
+          const [health, version] = await Promise.all([read('/health'), read('/version')]);
+          if (health?.status !== 'ok') throw new Error(`Staging health reported ${health?.status ?? 'unknown'}`);
+          const deployed = String(version?.commit || '').trim().toLowerCase();
+          if (!(deployed === expected || deployed.startsWith(expected) || expected.startsWith(deployed))) {
+            throw new Error(`Staging commit ${deployed || 'missing'} does not match ${expected}`);
+          }
+          console.log(`Verified disposable staging commit ${deployed}`);
+          NODE
+
+      - name: Install browser engines
+        run: pnpm exec playwright install --with-deps chromium firefox webkit
+
+      - name: Run PR-3 authenticated staging acceptance
+        run: pnpm exec playwright test -c playwright.admin-pr3.config.ts
+
+      - name: Collect redacted runtime logs
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p test-results/admin-pr3-runtime
+          node <<'NODE'
+          const { existsSync, readFileSync, writeFileSync } = require('node:fs');
+          const sources = [
+            ['/tmp/admin-pr3-api.log', 'test-results/admin-pr3-runtime/api.log'],
+            ['/tmp/admin-pr3-web.log', 'test-results/admin-pr3-runtime/web.log'],
+          ];
+          const secrets = [
+            process.env.PR3_PERSONA_PASSWORD,
+            process.env.JWT_ACCESS_KEY,
+            process.env.TWO_FACTOR_ENCRYPTION_KEY,
+            process.env.RISK_MATCH_SECRET,
+            process.env.KYC_ACCESS_SECRET,
+            process.env.PHONE_OTP_SECRET,
+          ].map((value) => String(value || '')).filter(Boolean);
+
+          function redact(value) {
+            let output = String(value || '');
+            for (const secret of secrets) output = output.split(secret).join('[REDACTED_SECRET]');
+            output = output
+              .replace(/\bBearer\s+[A-Za-z0-9._~+/=-]+/gi, 'Bearer [REDACTED_TOKEN]')
+              .replace(/\beyJ[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\b/g, '[REDACTED_JWT]')
+              .replace(/("?(?:password|accessToken|refreshToken|token|secret)"?\s*[:=]\s*)[^\s,}\]]+/gi, '$1[REDACTED]');
+            return output;
+          }
+
+          for (const [source, destination] of sources) {
+            const raw = existsSync(source) ? readFileSync(source, 'utf8') : 'Runtime log was not created.\n';
+            writeFileSync(destination, redact(raw), { encoding: 'utf8', mode: 0o600 });
+          }
+          NODE
+
+      - name: Upload PR-3 acceptance evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: admin-pr3-staging-acceptance-${{ github.run_id }}
+          path: |
+            test-results/admin-pr3-personas.json
+            test-results/admin-pr3/**
+            test-results/admin-pr3-runtime/**
+            playwright-report/admin-pr3/**
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Publish PR-3 acceptance summary
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo '## Admin PR-3 staging acceptance'
+            echo
+            echo '- Disposable PostgreSQL and production bundles'
+            echo '- Seven real Admin persona accounts using deterministic role templates'
+            echo '- Full 225-case Tier 0 Persona × Route × Browser × Viewport matrix'
+            echo '- Explicit DENY fail-closed verification'
+            echo '- Authenticated reversible preference mutation with persistence and restoration'
+            echo '- Serious/Critical Axe accessibility gate on authenticated System Admin routes'
+            echo '- Runtime navigation and transfer-size performance budgets'
+            echo '- Health and checked-out commit identity verification'
+            echo '- Runtime log artifacts are redacted before upload'
+            echo '- Production endpoints are not mutated by this workflow'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Stop disposable staging stack
+        if: always()
+        shell: bash
+        run: |
+          for pid_file in /tmp/admin-pr3-web.pid /tmp/admin-pr3-api.pid; do
+            if [ -f "$pid_file" ]; then
+              kill "$(cat "$pid_file")" 2>/dev/null || true
+            fi
+          done

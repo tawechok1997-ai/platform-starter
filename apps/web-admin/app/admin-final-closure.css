@@ -1,0 +1,30 @@
+/* Final Admin closure fixes backed by authenticated browser acceptance. */
+
+@media (max-width: 520px) {
+  body[data-app-surface='admin'] .admin-auth-input-wrap {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    align-items: stretch !important;
+    gap: 8px !important;
+  }
+
+  body[data-app-surface='admin'] .admin-auth-input-wrap .ui-input {
+    grid-column: 1 !important;
+    grid-row: 1 !important;
+    min-width: 0 !important;
+    width: 100% !important;
+  }
+
+  body[data-app-surface='admin'] .admin-auth-input-wrap .ui-button {
+    position: static !important;
+    inset: auto !important;
+    grid-column: 2 !important;
+    grid-row: 1 !important;
+    width: auto !important;
+    min-width: 72px !important;
+    max-width: 96px !important;
+    min-height: 50px !important;
+    margin: 0 !important;
+    transform: none !important;
+  }
+}

@@ -224,7 +224,11 @@ function applyWorkspaceVisibility(
     const groupId = submenu?.id.replace(/^admin-nav-/, '') ?? '';
     const visible = Boolean(groupId && allowedGroupIds.has(groupId));
     if (section.hidden === visible) section.hidden = !visible;
-    section.setAttribute('aria-hidden', visible ? 'false' : 'true');
+    // `hidden` already removes the section from rendering and the accessibility
+    // tree. Adding aria-hidden on the same container leaves focusable descendants
+    // under an explicit aria-hidden ancestor, which violates WCAG when workspace
+    // filtering hides a group. Keep native hidden as the single visibility owner.
+    section.removeAttribute('aria-hidden');
     if (!visible) continue;
     for (const link of section.querySelectorAll<HTMLAnchorElement>('a[href]')) {
       allowedHrefs.add(normalizeHref(link.getAttribute('href')));
@@ -234,14 +238,14 @@ function applyWorkspaceVisibility(
   for (const link of document.querySelectorAll<HTMLAnchorElement>('.admin-quick-nav a[href]')) {
     const visible = allowedHrefs.has(normalizeHref(link.getAttribute('href')));
     link.hidden = !visible;
-    link.setAttribute('aria-hidden', visible ? 'false' : 'true');
+    link.removeAttribute('aria-hidden');
   }
 
   for (const result of document.querySelectorAll<HTMLElement>('.admin-command-result')) {
     const href = normalizeHref(result.querySelector('small')?.textContent ?? '');
     const visible = allowedHrefs.has(href);
     result.hidden = !visible;
-    result.setAttribute('aria-hidden', visible ? 'false' : 'true');
+    result.removeAttribute('aria-hidden');
   }
 }
 
