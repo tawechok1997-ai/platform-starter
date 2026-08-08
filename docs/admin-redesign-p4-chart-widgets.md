@@ -1,11 +1,12 @@
 # Admin Redesign P4: Chart and Widget System
 
-## Pull request
+## สถานะปัจจุบัน
 
-- Branch: `rebuild/admin-phase-4-chart-widgets-20260804`
-- Base: `main` หลัง P2 Merge (`666955e2e509d2f8a0f499153479b3d6aea676af`)
-- Supersedes: PR `#496` ซึ่งล้าหลัง `main` ประมาณ 300 commits
-- สถานะ: Draft ระหว่างปิด CI และ Browser verification
+- PR: `#552`
+- Final branch: `rebuild/admin-phase-4-chart-widgets-20260804`
+- สถานะ: **Merged**
+- Main merge commit: `d7fe012d85a772fa78d7b0bc540b7d9a01746850`
+- Supersedes PR `#496` ซึ่งล้าหลัง `main`
 
 ## Shared chart system
 
@@ -51,9 +52,10 @@ Widgets หลัก:
 
 - โหลด Admin identity และ effective permissions ก่อน data source ที่ผูกสิทธิ์
 - เรียก Finance/Risk API เฉพาะเมื่อผู้ใช้มีสิทธิ์ที่จำเป็น
-- Combined widget กรองข้อมูลซ้ำด้วย granular permission
+- Combined widget กรองข้อมูลด้วย granular permission
 - Widget set ตาม P3 workspace selection
 - ไม่สร้าง storage owner หรือ workspace switcher ซ้ำ
+- Loading, empty, error และ partial data ต้องแยกสถานะชัดเจน ห้ามสร้าง KPI หลอกเมื่อไม่มีข้อมูลจริง
 
 ## Owners
 
@@ -68,35 +70,14 @@ Widgets หลัก:
 | CSV/PNG export | `chart-export.ts` |
 | Dashboard data adoption | `dashboard-widgetized.tsx` |
 
-## Tests
+## Current data contracts
 
-- Registry, permission, workspace และ layout contracts
-- Date range และ comparison contracts
-- CSV/PNG export unit tests
-- Dashboard adoption source contracts
-- Browser Matrix สำหรับ:
-  - CSV/PNG download
-  - Fullscreen/Escape
-  - Layout persistence
-  - Hide/restore
-  - Responsive overflow
-  - RBAC
-  - P3 workspace switching
+Backend reporting on current `main` includes permission-guarded Admin dashboard finance trends and explicit date-range validation. Custom `from`/`to` ranges require both values and are capped by the report-range owner. Historical availability is a data-source concern; the UI must present `partial` or `empty` rather than manufacture a complete time series.
 
-## Known limitations
+Saved widget layouts remain per-admin browser state unless a backend preference owner is explicitly adopted. Do not invent a second storage owner inside individual widgets.
 
-- Finance summary ปัจจุบันเป็น latest snapshot ไม่ใช่ historical aggregate เต็มรูปแบบ
-- ช่วงที่ไม่ใช่วันนี้จะแสดงสถานะ Partial เมื่อ API ไม่มี time-series ครบ
-- Saved layouts ยังเป็น per-user browser storage และไม่ sync ข้ามอุปกรณ์ผ่าน Backend
+## Final verification
 
-## Merge gates
+PR #552 passed its required Build, Typecheck, Admin tests, Browser Matrix, Visual/UI and repository gates before merge. Current work must start from `main`, not the superseded P4 branch.
 
-- Build
-- Typecheck
-- Admin unit/source tests
-- Admin Verification & Bundle
-- Admin Browser Regression Matrix
-- Visual Regression
-- UI System
-- Security และ Quality gates
-- Full-System Automated Tests
+Canonical cross-domain handoff: `docs/admin-operations-handoff.md`.
