@@ -27,6 +27,12 @@ export class AdminKycController {
   }
 
   @RequirePermission('risk.view')
+  @Get('members/:memberId')
+  getMemberCase(@Param('memberId') memberId: string) {
+    return this.queries.memberCase(memberId);
+  }
+
+  @RequirePermission('risk.view')
   @Get('cases/:id')
   get(@Param('id') id: string) {
     return this.queries.adminGet(id);
