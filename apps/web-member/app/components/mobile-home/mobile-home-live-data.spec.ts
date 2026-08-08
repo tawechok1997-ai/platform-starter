@@ -5,6 +5,7 @@ import test from 'node:test';
 const sourceRuntime = readFileSync(new URL('./mobile-source-runtime.ts', import.meta.url), 'utf8');
 const sourceContent = readFileSync(new URL('./mobile-source-content.tsx', import.meta.url), 'utf8');
 const highlightContent = readFileSync(new URL('./mobile-highlight-tab-content.tsx', import.meta.url), 'utf8');
+const memberContentSources = readFileSync(new URL('./use-mobile-member-content-sources.ts', import.meta.url), 'utf8');
 const providerLauncher = readFileSync(new URL('./mobile-provider-launcher-page.tsx', import.meta.url), 'utf8');
 const providerGames = readFileSync(new URL('./mobile-provider-games-category-page.tsx', import.meta.url), 'utf8');
 const mobileRoot = readFileSync(new URL('./mobile-home-root.tsx', import.meta.url), 'utf8');
@@ -37,20 +38,28 @@ test('mobile game cards and provider cards delegate to the canonical controller 
 
 test('mobile content uses public APIs or CMS and keeps presentation records outside operational APIs', () => {
   assert.match(sourceRuntime, /memberApiFetch\('\/games\/tournaments'/);
-  assert.match(highlightContent, /memberApiFetch\('\/public\/promotions'/);
+  assert.match(memberContentSources, /loadJson\('\/public\/promotions'\)/);
+  assert.match(memberContentSources, /loadJson\('\/public\/site-settings'\)/);
+  assert.match(memberContentSources, /loadJson\('\/public\/activities'\)/);
+  assert.match(memberContentSources, /skipAuth:\s*true/);
   assert.match(sourceRuntime, /cms_content\.faqs/);
   assert.match(sourceRuntime, /live_match_items/);
   assert.doesNotMatch(sourceRuntime, /const LIVE_MATCHES/);
-  assert.doesNotMatch(highlightContent, /const PROMOTIONS|const ACTIVITIES/);
+  assert.doesNotMatch(highlightContent, /const PROMOTIONS|const ACTIVITIES|memberApiFetch/);
   assert.doesNotMatch(homeDataRuntime, /const TOURNAMENTS|const LEADERBOARD/);
 });
 
 test('highlight tabs preserve separate real promotion, activity, and news destinations', () => {
-  assert.match(highlightContent, /home\.promotions/);
-  assert.match(highlightContent, /home\.activities/);
-  assert.match(highlightContent, /home\.news/);
+  assert.match(highlightContent, /useMobilePromotionsSource\(\)/);
+  assert.match(highlightContent, /useMobileActivitiesSource\(\)/);
+  assert.match(highlightContent, /useMobileNewsSource\(\)/);
+  assert.match(highlightContent, /activeTab === 'promotions'/);
+  assert.match(highlightContent, /activeTab === 'activities'/);
+  assert.match(highlightContent, /activeTab === 'news'/);
   assert.match(highlightContent, /href=\{item\.href\}/);
-  assert.match(highlightContent, /`\/browse\/promotions\/\$\{encodeURIComponent\(item\.id\)\}`/);
+  assert.match(memberContentSources, /href:\s*'\/mobile\/member\/promotions'/);
+  assert.match(memberContentSources, /'\/mobile\/member\/activity'/);
+  assert.match(memberContentSources, /'\/mobile\/member\/news'/);
 });
 
 test('Android and iOS shortcut controls have install and manual Home Screen paths', () => {
