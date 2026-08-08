@@ -189,12 +189,15 @@ export function inferAdminWorkspaceAssignments(
   const explicit = normalizeAdminWorkspaceAssignments(
     identity.workspaceAssignments ?? identity.workspaces,
   );
+  const roles = identity.roles ?? [];
+  const permissions = identity.permissions ?? [];
+  const hasAuthoritativeAccess = explicit.length > 0 || roles.length > 0 || identity.permissions !== undefined;
   const inferred: AdminWorkspaceAssignment[] = [...explicit];
   const primaryWorkspaceId = isAdminWorkspaceId(identity.primaryWorkspaceId)
     ? identity.primaryWorkspaceId
     : null;
 
-  for (const role of identity.roles ?? []) {
+  for (const role of roles) {
     if (typeof role === 'string') {
       const workspaceId = resolveWorkspaceIdFromToken(role);
       if (workspaceId) inferred.push({ workspaceId });
@@ -221,12 +224,17 @@ export function inferAdminWorkspaceAssignments(
     }
   }
 
-  for (const token of [identity.position, identity.department]) {
-    const workspaceId = resolveWorkspaceIdFromToken(token);
-    if (workspaceId) inferred.push({ workspaceId });
+  // Position and department are profile metadata, not current RBAC authority.
+  // Keep them only for legacy identities that do not expose roles, workspace
+  // assignments, or an effective permission set. Otherwise a stale profile
+  // label can keep an old workspace/menu visible after the live role changes.
+  if (!hasAuthoritativeAccess) {
+    for (const token of [identity.position, identity.department]) {
+      const workspaceId = resolveWorkspaceIdFromToken(token);
+      if (workspaceId) inferred.push({ workspaceId });
+    }
   }
 
-  const permissions = identity.permissions ?? [];
   if (permissions.includes('*')) {
     inferred.push({ workspaceId: 'manager' }, { workspaceId: 'system' });
   } else {
@@ -238,11 +246,17 @@ export function inferAdminWorkspaceAssignments(
   }
 
   const deduplicated = deduplicateAssignments(inferred);
-  if (deduplicated.length === 0) deduplicated.push({ workspaceId: 'system' });
+  if (deduplicated.length === 0 && !hasAuthoritativeAccess) {
+    deduplicated.push({ workspaceId: 'system' });
+  }
 
-  const requestedPrimary = primaryWorkspaceId
+  const candidatePrimary = primaryWorkspaceId
     ?? deduplicated.find((assignment) => assignment.primary)?.workspaceId
     ?? null;
+  const requestedPrimary = candidatePrimary
+    && deduplicated.some((assignment) => assignment.workspaceId === candidatePrimary)
+    ? candidatePrimary
+    : null;
 
   return deduplicated.map((assignment, index) => ({
     ...assignment,
