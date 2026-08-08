@@ -11,7 +11,9 @@ const allowedRegisterCopy = new Set([
 const committedSecretCandidates = Array.from(
   source.matchAll(/\b(?:password|passwd)\s*[=:]\s*(["'`])([^"'`\r\n]{12,})\1/gi),
   (match) => match[2],
-).filter((value): value is string => Boolean(value) && !allowedRegisterCopy.has(value));
+)
+  .filter((value): value is string => typeof value === 'string' && value.length > 0)
+  .filter((value) => !allowedRegisterCopy.has(value));
 
 test('register copy does not resemble a committed production password', () => {
   assert.deepEqual(committedSecretCandidates, []);
