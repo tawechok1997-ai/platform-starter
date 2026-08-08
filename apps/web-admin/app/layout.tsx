@@ -80,6 +80,7 @@ import './admin-layout-integrity.css';
 import { AdminMobileDrawerController } from './admin-mobile-drawer-controller';
 import { AdminAppearanceRuntime } from './admin-appearance-runtime';
 import { AdminWorkspaceRuntime } from './admin-workspace-runtime';
+import { AdminShellAccessibilityRuntime } from './admin-shell-accessibility-runtime';
 
 const appearanceBootstrap = `(() => {
   const storageKey = 'admin_appearance_preferences_v1';
@@ -156,6 +157,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {children}
         <AdminAppearanceRuntime />
         <AdminWorkspaceRuntime />
+        <AdminShellAccessibilityRuntime />
         <AdminMobileDrawerController />
       </body>
     </html>
