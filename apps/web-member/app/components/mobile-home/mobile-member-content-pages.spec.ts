@@ -4,6 +4,7 @@ import test from 'node:test';
 
 const menu = readFileSync(new URL('./mobile-home-root.tsx', import.meta.url), 'utf8');
 const highlight = readFileSync(new URL('./mobile-highlight-tab-content.tsx', import.meta.url), 'utf8');
+const sharedSource = readFileSync(new URL('./use-mobile-member-content-sources.ts', import.meta.url), 'utf8');
 const tournamentEntry = readFileSync(new URL('./mobile-tournament-entry-bridge.tsx', import.meta.url), 'utf8');
 const promotions = readFileSync(new URL('./mobile-member-promotions-live-page.tsx', import.meta.url), 'utf8');
 const news = readFileSync(new URL('./mobile-member-news-page.tsx', import.meta.url), 'utf8');
@@ -18,9 +19,11 @@ test('mobile drawer keeps promotion news and activity routes', () => {
   assert.match(menu, /\['โปรโมชั่น', '\/mobile\/member\/promotions', 'promotion'\]/);
   assert.match(menu, /\['ข่าวสาร', '\/mobile\/member\/news', 'news'\]/);
   assert.match(menu, /\['กิจกรรม', '\/mobile\/member\/activity', 'activity'\]/);
-  assert.match(highlight, /MOBILE_INLINE_MEMBER_TABS/);
+  assert.match(highlight, /useMobilePromotionsSource\(\)/);
+  assert.match(highlight, /useMobileActivitiesSource\(\)/);
+  assert.match(highlight, /useMobileNewsSource\(\)/);
   assert.match(promotionRoute, /MobileMemberPromotionsLivePage/);
-  assert.match(newsRoute, /MobileMemberNewsPage/);
+  assert.match(newsRoute, /MobileMemberNewsLivePage/);
   assert.match(activityRoute, /MobileMemberActivityPage/);
 });
 
@@ -31,12 +34,14 @@ test('mobile tournament artwork preserves login continuation', () => {
   assert.match(tournamentRoute, /memberApiFetch\('\/games\/tournaments'/);
 });
 
-test('promotion page keeps source categories with API-owned content states', () => {
+test('promotion page keeps source categories with shared API-owned content states', () => {
   for (const label of ['ทั้งหมด', 'สมาชิกใหม่', 'ประจำวัน', 'สิทธิพิเศษ', 'คืนยอดเสีย']) {
     assert.match(promotions, new RegExp(label));
   }
-  assert.match(promotionRoute, /memberApiFetch\('\/public\/site-settings'/);
-  assert.match(promotionRoute, /skipAuth:\s*true/);
+  assert.match(promotionRoute, /useMobilePromotionsSource\(\)/);
+  assert.match(sharedSource, /loadJson\('\/public\/site-settings'\)/);
+  assert.match(sharedSource, /loadJson\('\/public\/promotions'\)/);
+  assert.match(sharedSource, /skipAuth:\s*true/);
   assert.doesNotMatch(promotionRoute, /SOURCE_PROMOTION_PAYLOAD/);
   assert.match(promotions, /data-content-source="api"/);
   assert.match(promotions, /aria-busy=\{loading\}/);
@@ -51,12 +56,13 @@ test('news page keeps the CMS-owned empty state', () => {
   assert.match(news, /ไม่มีข้อความใหม่/);
 });
 
-test('activity page keeps API-owned cards and the canonical public activity API', () => {
+test('activity page keeps API-owned cards and the canonical shared public activity API', () => {
   assert.match(activity, /data-content-source="api"/);
   assert.match(activity, /resolveLocalAssetOrSource\(item\.image, 'mobile'\)/);
   assert.match(activity, /detail: \{ mode: 'login', next: activity\.href \}/);
   assert.match(activity, /image\.dataset\.activityImageFallback = 'generic'/);
   assert.doesNotMatch(activity, /SOURCE_ACTIVITIES/);
-  assert.match(activityRoute, /memberApiFetch\('\/public\/activities'/);
-  assert.match(activityRoute, /skipAuth:\s*true/);
+  assert.match(activityRoute, /useMobileActivitiesSource\(\)/);
+  assert.match(sharedSource, /loadJson\('\/public\/activities'\)/);
+  assert.match(sharedSource, /skipAuth:\s*true/);
 });

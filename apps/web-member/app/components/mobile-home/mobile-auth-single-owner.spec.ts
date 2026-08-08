@@ -18,33 +18,34 @@ test('home row and hamburger drawer reuse the same mobile auth actions component
   assert.doesNotMatch(mobileRoot, /MemberAuthOverlay/);
 });
 
-test('member chrome owns exactly one query-driven authentication popup', () => {
+test('member chrome owns exactly one query and event driven authentication popup', () => {
   assert.equal((memberChrome.match(/<MemberAuthOverlay\b/g) ?? []).length, 1);
-  assert.match(memberChrome, /requestedAuthMode === 'login' \|\| requestedAuthMode === 'register'/);
-  assert.match(memberChrome, /authModeOverride \?\? queryAuthMode/);
-  assert.match(memberChrome, /authMode\s*\?\s*(?:\(|)<MemberAuthOverlay[\s\S]*?mode=\{authMode\}/);
-  assert.doesNotMatch(memberChrome, /member:auth-open/);
+  assert.match(memberChrome, /const \[authRequest, setAuthRequest\] = useState<MemberOpenAuthDetail \| null>\(null\)/);
+  assert.match(memberChrome, /requestedMode !== 'login' && requestedMode !== 'register'/);
+  assert.match(memberChrome, /window\.addEventListener\(MEMBER_OPEN_AUTH_EVENT, handleAuthOpen\)/);
+  assert.match(memberChrome, /authRequest\s*\?\s*\([\s\S]*?<MemberAuthOverlay[\s\S]*?mode=\{authRequest\.mode\}/);
+  assert.match(memberChrome, /requestId=\{authRequest\.requestId\}/);
 });
 
 test('the shared popup owns one stable iframe and switches its inner document explicitly', () => {
   assert.equal((authOverlay.match(/<iframe\b/g) ?? []).length, 1);
-  assert.match(authOverlay, /initialPathRef = useRef\(mode === 'register' \? '\/register\?embed=1' : '\/login\?embed=1'\)/);
+  assert.match(authOverlay, /const initialPath = embeddedPath\(mode, requestId\)/);
+  assert.match(authOverlay, /requestedPathRef = useRef\(initialPath\)/);
   assert.match(authOverlay, /frameRef = useRef<HTMLIFrameElement \| null>\(null\)/);
   assert.match(authOverlay, /ref=\{frameRef\}/);
-  assert.match(authOverlay, /src=\{initialPathRef\.current\}/);
+  assert.match(authOverlay, /src=\{initialPath\}/);
   assert.match(authOverlay, /contentWindow\.location\.replace\(nextPath\)/);
   assert.match(authOverlay, /navigateEmbeddedMode\(payload\.mode\)/);
   assert.doesNotMatch(authOverlay, /const path = activeMode/);
   assert.match(authOverlay, /member-auth-close/);
   assert.match(authOverlay, /member-auth-success/);
 
-  const embeddedClickHandler = authOverlay.slice(
-    authOverlay.indexOf("embeddedDocument.addEventListener('click'"),
-    authOverlay.indexOf('}, true);', authOverlay.indexOf("embeddedDocument.addEventListener('click'")),
-  );
+  const clickStart = authOverlay.indexOf("embeddedDocument.addEventListener('click'");
+  const clickEnd = authOverlay.indexOf('}, { capture: true, signal: navigationAbort.signal });', clickStart);
+  const embeddedClickHandler = authOverlay.slice(clickStart, clickEnd);
+  assert.ok(clickStart >= 0 && clickEnd > clickStart);
   assert.match(embeddedClickHandler, /preventDefault\(\)/);
   assert.match(embeddedClickHandler, /stopPropagation\(\)/);
-  assert.match(embeddedClickHandler, /stopImmediatePropagation\(\)/);
   assert.match(embeddedClickHandler, /navigateEmbeddedMode\(nextMode\)/);
 });
 

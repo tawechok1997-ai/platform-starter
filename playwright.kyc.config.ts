@@ -35,7 +35,7 @@ export default defineConfig({
   })),
   webServer: [
     {
-      command: 'pnpm --filter @platform/web-member exec next dev -p 3101',
+      command: 'pnpm --filter @platform/web-member generate:asset-basename-map && pnpm --filter @platform/web-member exec next dev -p 3101',
       url: 'http://127.0.0.1:3101/kyc',
       timeout: 120_000,
       reuseExistingServer: !process.env.CI,

@@ -34,6 +34,7 @@ const dataPageImport = "import './admin-data-page-layout.css'";
 const universalFullWidthImport = "import './admin-universal-full-width.css'";
 const contentInsetsImport = "import './admin-content-insets.css'";
 const pr2ClosureImport = "import './admin-pr2-ui-closure.css'";
+const layoutIntegrityImport = "import './admin-layout-integrity.css'";
 
 test('loads Admin presentation authorities in stable override order', () => {
   const controlsIndex = layout.indexOf(controlsImport);
@@ -50,6 +51,7 @@ test('loads Admin presentation authorities in stable override order', () => {
   const universalFullWidthIndex = layout.indexOf(universalFullWidthImport);
   const contentInsetsIndex = layout.indexOf(contentInsetsImport);
   const pr2ClosureIndex = layout.indexOf(pr2ClosureImport);
+  const layoutIntegrityIndex = layout.indexOf(layoutIntegrityImport);
 
   assert.ok(controlsIndex >= 0);
   assert.ok(shellIndex > controlsIndex);
@@ -65,7 +67,8 @@ test('loads Admin presentation authorities in stable override order', () => {
   assert.ok(universalFullWidthIndex > dataPageIndex);
   assert.ok(contentInsetsIndex > universalFullWidthIndex);
   assert.ok(pr2ClosureIndex > contentInsetsIndex);
-  assert.equal(layout.slice(pr2ClosureIndex + pr2ClosureImport.length).includes("import './admin-"), false);
+  assert.ok(layoutIntegrityIndex > pr2ClosureIndex);
+  assert.equal(layout.slice(layoutIntegrityIndex + layoutIntegrityImport.length).includes("import './admin-"), false);
 });
 
 test('standardizes professional page headers and safe text spacing', () => {

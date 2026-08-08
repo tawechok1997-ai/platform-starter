@@ -51,15 +51,18 @@ test('shared overlay system covers modal sheet and drawer accessibility', () => 
   assert.match(modalSource, /restoreFocus/);
 });
 
-test('configured navigation handles locale visibility order feature and auth contracts', () => {
+test('configured navigation handles locale visibility order feature and canonical auth contracts', () => {
   assert.match(navigationSource, /navigation_items_json/);
   assert.match(navigationSource, /labelTh/);
   assert.match(navigationSource, /labelEn/);
   assert.match(navigationSource, /requiresAuth/);
   assert.match(navigationStateSource, /isMemberNavigationActive/);
   assert.match(navigationStateSource, /aria-current/);
-  assert.match(navigationAuthSource, /url\.searchParams\.set\('auth', mode\)/);
-  assert.match(navigationAuthSource, /url\.searchParams\.set\('next', safeNext\)/);
+  assert.match(navigationAuthSource, /openMemberAuth\(authMode, nextTargetFor\(rawHref\)\)/);
+  assert.match(navigationAuthSource, /openMemberAuth\('login', intended\)/);
+  assert.match(shellSource, /url\.searchParams\.set\('auth', request\.mode\)/);
+  assert.match(shellSource, /url\.searchParams\.set\('authRequest', request\.requestId\)/);
+  assert.match(shellSource, /url\.searchParams\.set\('next', request\.next\)/);
 });
 
 test('home data has one parser and Admin-controlled presentation fallback', () => {

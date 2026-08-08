@@ -32,7 +32,7 @@ test('activity cards consume API items and keep a bounded image recovery chain',
 });
 
 test('activity page geometry follows the source screen', () => {
-  assert.match(activityCss, /max-width:\s*428px/);
+  assert.match(activityCss, /width:\s*min\(100%, 428px\)/);
   assert.match(activityCss, /height:\s*50px/);
   assert.match(activityCss, /border-radius:\s*16px/);
   assert.match(activityCss, /grid-template-columns:\s*140px minmax\(0, 1fr\)/);
