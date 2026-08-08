@@ -173,21 +173,90 @@ export class AdminMembersQueryService {
   }
 
   async getMemberDetail(id: string) {
-    const user = await this.prisma.user.findUnique({ where: { id }, include: { profile: true, wallet: true } });
+    const user = await this.prisma.user.findUnique({
+      where: { id },
+      include: {
+        profile: true,
+        wallet: true,
+        bankAccounts: {
+          orderBy: { createdAt: 'desc' },
+          take: 20,
+        },
+      },
+    });
     if (!user) throw new NotFoundException('Member not found');
-    const [topUps, withdrawals, ledgers, activity] = await Promise.all([
+
+    const [topUps, withdrawals, ledgers, activity, sessions, loginHistory, riskAlerts] = await Promise.all([
       this.prisma.topUpRequest.findMany({ where: { userId: id }, orderBy: { createdAt: 'desc' }, take: 20 }),
       this.prisma.withdrawalRequest.findMany({ where: { userId: id }, orderBy: { createdAt: 'desc' }, take: 20 }),
       this.prisma.walletLedger.findMany({ where: { userId: id }, orderBy: { createdAt: 'desc' }, take: 50, include: { createdByAdmin: { select: { id: true, username: true, email: true } } } }),
       this.prisma.adminAuditLog.findMany({ where: { targetId: id }, orderBy: { createdAt: 'desc' }, take: 20, include: { adminUser: { select: { id: true, username: true, email: true } } } }),
+      this.prisma.authSession.findMany({
+        where: { userId: id, type: 'MEMBER' },
+        orderBy: { createdAt: 'desc' },
+        take: 20,
+        select: { id: true, ipAddress: true, userAgent: true, deviceId: true, expiresAt: true, revokedAt: true, createdAt: true, updatedAt: true },
+      }),
+      this.prisma.loginHistory.findMany({
+        where: { userId: id, type: 'MEMBER' },
+        orderBy: { createdAt: 'desc' },
+        take: 30,
+        select: { id: true, success: true, ipAddress: true, userAgent: true, reason: true, createdAt: true },
+      }),
+      this.prisma.riskAlert.findMany({
+        where: { memberId: id },
+        orderBy: { createdAt: 'desc' },
+        take: 20,
+        select: { id: true, type: true, severity: true, status: true, title: true, description: true, assignedToAdminId: true, createdAt: true, updatedAt: true, resolvedAt: true },
+      }),
     ]);
+
     return {
-      user: { id: user.id, shortId: user.id.slice(0, 8), username: user.username, phone: user.phone, email: user.email, status: user.status, phoneVerifiedAt: user.phoneVerifiedAt, emailVerifiedAt: user.emailVerifiedAt, lastLoginAt: user.lastLoginAt, createdAt: user.createdAt, updatedAt: user.updatedAt, profile: user.profile },
-      wallet: user.wallet ? { id: user.wallet.id, currency: user.wallet.currency, balance: user.wallet.balance.toString(), lockedBalance: user.wallet.lockedBalance.toString(), availableBalance: user.wallet.balance.minus(user.wallet.lockedBalance).toString(), status: user.wallet.status, updatedAt: user.wallet.updatedAt } : null,
+      user: {
+        id: user.id,
+        shortId: user.id.slice(0, 8),
+        username: user.username,
+        phone: user.phone,
+        email: user.email,
+        status: user.status,
+        phoneVerifiedAt: user.phoneVerifiedAt,
+        emailVerifiedAt: user.emailVerifiedAt,
+        lastLoginAt: user.lastLoginAt,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+        profile: user.profile,
+      },
+      wallet: user.wallet ? {
+        id: user.wallet.id,
+        currency: user.wallet.currency,
+        balance: user.wallet.balance.toString(),
+        lockedBalance: user.wallet.lockedBalance.toString(),
+        availableBalance: user.wallet.balance.minus(user.wallet.lockedBalance).toString(),
+        status: user.wallet.status,
+        updatedAt: user.wallet.updatedAt,
+      } : null,
+      bankAccounts: user.bankAccounts.map((item) => ({
+        id: item.id,
+        bankName: item.bankName,
+        accountName: item.accountName,
+        accountNumberMasked: maskAccountNumber(item.accountNumber),
+        status: item.status,
+        flags: item.flags,
+        createdAt: item.createdAt,
+        updatedAt: item.updatedAt,
+      })),
       topUps: topUps.map((item) => ({ id: item.id, amount: item.amount.toString(), currency: item.currency, status: item.status, method: item.method, referenceCode: item.referenceCode, adminNote: item.adminNote, reviewedAt: item.reviewedAt, createdAt: item.createdAt })),
-      withdrawals: withdrawals.map((item) => ({ id: item.id, amount: item.amount.toString(), currency: item.currency, status: item.status, method: item.method, bankName: item.bankName, accountName: item.accountName, accountNumber: item.accountNumber, adminNote: item.adminNote, reviewedAt: item.reviewedAt, createdAt: item.createdAt })),
+      withdrawals: withdrawals.map((item) => ({ id: item.id, amount: item.amount.toString(), currency: item.currency, status: item.status, method: item.method, bankName: item.bankName, accountName: item.accountName, accountNumberMasked: maskAccountNumber(item.accountNumber), adminNote: item.adminNote, reviewedAt: item.reviewedAt, createdAt: item.createdAt })),
       ledgers: ledgers.map((item) => ({ id: item.id, type: item.type, direction: item.direction, amount: item.amount.toString(), balanceBefore: item.balanceBefore.toString(), balanceAfter: item.balanceAfter.toString(), referenceType: item.referenceType, referenceId: item.referenceId, createdAt: item.createdAt, createdByAdmin: item.createdByAdmin })),
       activity: activity.map((item) => ({ id: item.id, action: item.action, module: item.module, targetId: item.targetId, oldData: item.oldData, newData: item.newData, createdAt: item.createdAt, adminUser: item.adminUser })),
+      sessions,
+      loginHistory,
+      riskAlerts,
+      dataSources: {
+        kyc: '/admin/kyc/cases',
+        vip: null,
+        vipReason: 'No persistent VIP owner is present in the current Admin/member data model.',
+      },
       generatedAt: new Date().toISOString(),
     };
   }
@@ -195,6 +264,13 @@ export class AdminMembersQueryService {
 
 function isUuid(value: string) { return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{12}$/i.test(value); }
 function toDateKey(value: Date) { return value.toISOString().slice(0, 10); }
+
+function maskAccountNumber(value: string | null | undefined) {
+  const text = String(value ?? '').trim();
+  if (!text) return null;
+  const visible = text.slice(-4);
+  return `${'•'.repeat(Math.max(text.length - visible.length, 4))}${visible}`;
+}
 
 function mapMemberListItem(user: MemberListRecord) {
   return { id: user.id, shortId: user.id.slice(0, 8), username: user.username, phone: user.phone, email: user.email, status: user.status, displayName: user.profile?.displayName ?? null, balance: user.wallet?.balance.toString() ?? '0', lockedBalance: user.wallet?.lockedBalance.toString() ?? '0', availableBalance: user.wallet ? user.wallet.balance.minus(user.wallet.lockedBalance).toString() : '0', createdAt: user.createdAt, lastLoginAt: user.lastLoginAt };
