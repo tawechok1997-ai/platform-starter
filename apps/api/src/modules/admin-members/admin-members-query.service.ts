@@ -186,7 +186,7 @@ export class AdminMembersQueryService {
     });
     if (!user) throw new NotFoundException('Member not found');
 
-    const [topUps, withdrawals, ledgers, activity, sessions, loginHistory, riskAlerts] = await Promise.all([
+    const [topUps, withdrawals, ledgers, activity, sessions, loginHistory] = await Promise.all([
       this.prisma.topUpRequest.findMany({ where: { userId: id }, orderBy: { createdAt: 'desc' }, take: 20 }),
       this.prisma.withdrawalRequest.findMany({ where: { userId: id }, orderBy: { createdAt: 'desc' }, take: 20 }),
       this.prisma.walletLedger.findMany({ where: { userId: id }, orderBy: { createdAt: 'desc' }, take: 50, include: { createdByAdmin: { select: { id: true, username: true, email: true } } } }),
@@ -202,12 +202,6 @@ export class AdminMembersQueryService {
         orderBy: { createdAt: 'desc' },
         take: 30,
         select: { id: true, success: true, ipAddress: true, userAgent: true, reason: true, createdAt: true },
-      }),
-      this.prisma.riskAlert.findMany({
-        where: { memberId: id },
-        orderBy: { createdAt: 'desc' },
-        take: 20,
-        select: { id: true, type: true, severity: true, status: true, title: true, description: true, assignedToAdminId: true, createdAt: true, updatedAt: true, resolvedAt: true },
       }),
     ]);
 
@@ -250,9 +244,9 @@ export class AdminMembersQueryService {
       activity: activity.map((item) => ({ id: item.id, action: item.action, module: item.module, targetId: item.targetId, oldData: item.oldData, newData: item.newData, createdAt: item.createdAt, adminUser: item.adminUser })),
       sessions,
       loginHistory,
-      riskAlerts,
       dataSources: {
-        kyc: '/admin/kyc/cases',
+        kyc: '/admin/kyc/members/:memberId',
+        risk: '/admin/risk-alerts?memberId=:memberId',
         vip: null,
         vipReason: 'No persistent VIP owner is present in the current Admin/member data model.',
       },
