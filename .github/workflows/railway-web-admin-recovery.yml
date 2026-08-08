@@ -1,0 +1,181 @@
+name: Recover Railway Web Admin
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/railway-web-admin-recovery.yml'
+  workflow_dispatch:
+    inputs:
+      action:
+        description: Recovery action for the existing Web Admin service.
+        required: true
+        type: choice
+        default: inspect
+        options:
+          - inspect
+          - redeploy-latest
+          - deploy-main
+      confirm:
+        description: Confirm mutating Railway actions. Read-only inspect does not require confirmation.
+        required: true
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: railway-web-admin-recovery
+  cancel-in-progress: false
+
+jobs:
+  recover:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    container: ghcr.io/railwayapp/cli:4.65.0
+    env:
+      RAILWAY_PROJECT_ID: 9a018c35-5d56-4541-a133-2ac7e1d6731c
+      RAILWAY_ENVIRONMENT_ID: d0874330-b90d-4e5e-b265-08411afa6945
+      RAILWAY_SERVICE_ID: 72b5408e-c20c-4ae5-8512-8c499fd4461e
+      RECOVERY_ACTION: ${{ github.event_name == 'push' && 'deploy-main' || inputs.action }}
+      CONFIRM_MUTATION: ${{ github.event_name == 'push' && 'true' || inputs.confirm }}
+    steps:
+      - name: Validate recovery request
+        shell: sh
+        run: |
+          set -eu
+          case "$RECOVERY_ACTION" in
+            inspect|redeploy-latest|deploy-main) ;;
+            *)
+              echo "Unsupported recovery action: $RECOVERY_ACTION" >&2
+              exit 1
+              ;;
+          esac
+          if [ "$RECOVERY_ACTION" != "inspect" ] && [ "$CONFIRM_MUTATION" != "true" ]; then
+            echo "Mutating action '$RECOVERY_ACTION' requires confirm=true." >&2
+            exit 1
+          fi
+
+      - name: Check out main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 1
+
+      - name: Resolve checked-out main commit
+        id: source
+        shell: sh
+        run: |
+          set -eu
+          source_sha="$(git rev-parse HEAD)"
+          if ! printf '%s' "$source_sha" | grep -Eq '^[0-9a-f]{40}$'; then
+            echo "Could not resolve a full main commit SHA." >&2
+            exit 1
+          fi
+          echo "SOURCE_SHA=$source_sha" >> "$GITHUB_ENV"
+          echo "sha=$source_sha" >> "$GITHUB_OUTPUT"
+          echo "Checked-out main commit: $source_sha"
+
+      - name: Select Railway authentication token
+        shell: sh
+        env:
+          PROJECT_TOKEN: ${{ secrets.RAILWAY_PROJECT_TOKEN }}
+          API_TOKEN: ${{ secrets.RAILWAY_API_TOKEN }}
+        run: |
+          set -eu
+          if [ -n "${PROJECT_TOKEN:-}" ] && [ -n "${API_TOKEN:-}" ]; then
+            echo "Both RAILWAY_PROJECT_TOKEN and RAILWAY_API_TOKEN are configured; keep exactly one." >&2
+            exit 1
+          fi
+          if [ -n "${PROJECT_TOKEN:-}" ]; then
+            echo "RAILWAY_TOKEN=$PROJECT_TOKEN" >> "$GITHUB_ENV"
+          elif [ -n "${API_TOKEN:-}" ]; then
+            echo "RAILWAY_API_TOKEN=$API_TOKEN" >> "$GITHUB_ENV"
+          else
+            echo "Missing Railway authentication. Add exactly one Actions secret: RAILWAY_PROJECT_TOKEN or RAILWAY_API_TOKEN." >&2
+            exit 1
+          fi
+
+      - name: Link existing Railway Web Admin service
+        shell: sh
+        run: |
+          set -eu
+          railway link \
+            --project "$RAILWAY_PROJECT_ID" \
+            --environment "$RAILWAY_ENVIRONMENT_ID" \
+            --service "$RAILWAY_SERVICE_ID" \
+            --json | tee railway-admin-link.json
+
+      - name: Inspect service before recovery
+        shell: sh
+        run: |
+          set -eu
+          railway service status \
+            --project "$RAILWAY_PROJECT_ID" \
+            --environment "$RAILWAY_ENVIRONMENT_ID" \
+            --service "$RAILWAY_SERVICE_ID" \
+            --json | tee railway-admin-status-before.json
+          railway deployment list \
+            --environment "$RAILWAY_ENVIRONMENT_ID" \
+            --service "$RAILWAY_SERVICE_ID" \
+            --limit 10 \
+            --json | tee railway-admin-deployments-before.json
+
+      - name: Redeploy latest Railway deployment
+        if: ${{ env.RECOVERY_ACTION == 'redeploy-latest' }}
+        shell: sh
+        run: |
+          set -eu
+          railway redeploy \
+            --service "$RAILWAY_SERVICE_ID" \
+            --yes \
+            --json | tee railway-admin-redeploy.json
+
+      - name: Upload checked-out main to Web Admin
+        if: ${{ env.RECOVERY_ACTION == 'deploy-main' }}
+        shell: sh
+        run: |
+          set -eu
+          railway up . \
+            --project "$RAILWAY_PROJECT_ID" \
+            --environment "$RAILWAY_ENVIRONMENT_ID" \
+            --service "$RAILWAY_SERVICE_ID" \
+            --detach \
+            --message "Recover Web Admin from GitHub main ${SOURCE_SHA}" \
+            --json | tee railway-admin-up.json
+
+      - name: Inspect service after recovery
+        if: always()
+        shell: sh
+        run: |
+          set +e
+          railway service status \
+            --project "$RAILWAY_PROJECT_ID" \
+            --environment "$RAILWAY_ENVIRONMENT_ID" \
+            --service "$RAILWAY_SERVICE_ID" \
+            --json | tee railway-admin-status-after.json
+          railway deployment list \
+            --environment "$RAILWAY_ENVIRONMENT_ID" \
+            --service "$RAILWAY_SERVICE_ID" \
+            --limit 10 \
+            --json | tee railway-admin-deployments-after.json
+          {
+            echo "## Railway Web Admin recovery"
+            echo
+            echo "- Action: \`$RECOVERY_ACTION\`"
+            echo "- Project: \`$RAILWAY_PROJECT_ID\`"
+            echo "- Environment: \`$RAILWAY_ENVIRONMENT_ID\`"
+            echo "- Service: \`$RAILWAY_SERVICE_ID\`"
+            echo "- Checked-out main commit: \`${SOURCE_SHA:-unresolved}\`"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload recovery evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: railway-web-admin-recovery-${{ github.run_id }}
+          path: railway-admin-*.json
+          if-no-files-found: warn
+          retention-days: 14
