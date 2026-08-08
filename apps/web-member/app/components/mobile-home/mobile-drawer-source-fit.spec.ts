@@ -5,8 +5,8 @@ import test from 'node:test';
 const home = readFileSync(new URL('../../member-home.tsx', import.meta.url), 'utf8');
 const css = readFileSync(new URL('./mobile-drawer-source-fit.css', import.meta.url), 'utf8');
 
-test('Mobile Home loads the drawer source-fit stylesheet after the hero owner', () => {
-  assert.match(home, /import '\.\/components\/mobile-home\/mobile-hero-carousel\.css';\s*import '\.\/components\/mobile-home\/mobile-drawer-source-fit\.css';/);
+test('Mobile Home loads the drawer reference-parity stylesheet after the hero owner', () => {
+  assert.match(home, /import '\.\/components\/mobile-home\/mobile-hero-carousel\.css';\s*import '\.\/components\/mobile-home\/mobile-drawer-reference-parity\.css';/);
 });
 
 test('the member drawer is a full-height bounded surface without nested scrolling', () => {
