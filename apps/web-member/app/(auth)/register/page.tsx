@@ -10,7 +10,7 @@ import {
 } from '../../../src/features/auth';
 import { createRegisterBrandAdapterFromSettings } from '../../components/auth/register-brand-adapter';
 import { PublicSiteSettings, defaultSettings, loadPublicSiteSettings, memberFeatureFlags } from '../../site-settings';
-import { memberApiFetch } from '../../member-api';
+import { hasMemberSessionTokens, memberApiFetch } from '../../member-api';
 
 const REFERRAL_CODE_KEY = 'member_pending_referral_code';
 
@@ -31,7 +31,7 @@ const THAI_BANKS = [
 const copy = {
   th: {
     title: 'สมัครสมาชิก', subtitle: 'กรอกข้อมูลให้ครบในไม่กี่ขั้นตอน', account: 'ยืนยันเบอร์โทรศัพท์', identity: 'ตั้งค่าบัญชีและธนาคาร', review: 'ตรวจสอบข้อมูล',
-    username: 'ชื่อผู้ใช้', phone: 'เบอร์โทรศัพท์', email: 'อีเมล (ไม่บังคับ)', password: `สร้างรหัสผ่าน`, confirmPassword: `ยืนยันรหัสผ่านอีกครั้ง`, referral: 'รหัสแนะนำ (ไม่บังคับ)',
+    username: 'ชื่อผู้ใช้', phone: 'เบอร์โทรศัพท์', email: 'อีเมล (ไม่บังคับ)', password: 'สร้างรหัสผ่าน', confirmPassword: 'ยืนยันรหัสผ่านอีกครั้ง', referral: 'รหัสแนะนำ (ไม่บังคับ)',
     fullName: 'ชื่อ-นามสกุลจริง', bankName: 'ธนาคาร', bankPlaceholder: 'กรุณาเลือกธนาคาร', bankAccountNumber: 'กรุณากรอกเลขที่บัญชีของคุณ',
     gender: 'เพศ', male: 'ชาย', female: 'หญิง', next: 'ถัดไป', back: 'ย้อนกลับ', submit: 'สมัครสมาชิก', submitting: 'กำลังสมัคร...', show: 'แสดง', hide: 'ซ่อน',
     loginPrompt: 'มีบัญชีแล้ว?', login: 'เข้าสู่ระบบ', terms: 'ข้าพเจ้ามีอายุครบ 20 ปีบริบูรณ์ และได้อ่านข้อกำหนดและเงื่อนไขทั่วไปแล้ว',
@@ -40,7 +40,7 @@ const copy = {
   },
   en: {
     title: 'Create account', subtitle: 'Complete a few short steps', account: 'Verify phone number', identity: 'Account and bank details', review: 'Review',
-    username: 'Username', phone: 'Phone number', email: 'Email (optional)', password: `Create password`, confirmPassword: `Confirm password`, referral: 'Referral code (optional)',
+    username: 'Username', phone: 'Phone number', email: 'Email (optional)', password: 'Create password', confirmPassword: 'Confirm password', referral: 'Referral code (optional)',
     fullName: 'Legal full name', bankName: 'Bank', bankPlaceholder: 'Select a bank', bankAccountNumber: 'Bank account number',
     gender: 'Gender', male: 'Male', female: 'Female', next: 'Continue', back: 'Back', submit: 'Create account', submitting: 'Creating account...', show: 'Show', hide: 'Hide',
     loginPrompt: 'Already have an account?', login: 'Sign in', terms: 'I confirm that I am at least 20 years old and accept the general terms and conditions.',
@@ -79,17 +79,22 @@ export default function MemberRegisterPage() {
     const params = new URLSearchParams(window.location.search);
     const isEmbedded = params.get('embed') === '1' && window.parent !== window;
     setEmbedded(isEmbedded);
-    if (window.localStorage.getItem('member_access_token') || window.localStorage.getItem('member_refresh_token')) {
+    if (hasMemberSessionTokens()) {
       if (isEmbedded) window.parent.postMessage({ type: 'member-auth-success' }, window.location.origin);
       else window.location.replace('/');
       return;
     }
-    const savedLocale = window.localStorage.getItem('member_locale');
+    const savedLocale = safeStorageGet('member_locale');
     if (savedLocale === 'th' || savedLocale === 'en') setLocale(savedLocale);
-    const ref = params.get('ref') ?? window.localStorage.getItem(REFERRAL_CODE_KEY) ?? '';
+    const ref = params.get('ref') ?? safeStorageGet(REFERRAL_CODE_KEY) ?? '';
     const cleanRef = normalizeReferralCode(ref);
-    if (cleanRef) { setReferralCode(cleanRef); window.localStorage.setItem(REFERRAL_CODE_KEY, cleanRef); }
+    if (cleanRef) {
+      setReferralCode(cleanRef);
+      safeStorageSet(REFERRAL_CODE_KEY, cleanRef);
+    }
     loadPublicSiteSettings().then(setSettings).catch(() => setSettings(defaultSettings));
+
+    return () => releaseLocalInteractionLock();
   }, []);
 
   const t = copy[locale];
@@ -99,13 +104,28 @@ export default function MemberRegisterPage() {
   const maintenanceEnabled = Boolean(settings.maintenance?.enabled || settings.maintenance?.member_enabled || settings.website?.maintenance_mode);
   const handleCaptchaToken = useCallback((token: string) => setCaptchaToken(token), []);
   const handleCaptchaState = useCallback((required: boolean, ready: boolean) => { setCaptchaRequired(required); setCaptchaReady(ready); }, []);
-  const disabled = !flags.registration || maintenanceEnabled || loading || (captchaRequired && !captchaReady);
+  const disabled = !flags.registration || maintenanceEnabled || loading;
   const passwordProgress = useMemo(() => Math.min(secret.length / 8, 1), [secret]);
 
-  function changeLocale(next: RegisterLocale) { setLocale(next); window.localStorage.setItem('member_locale', next); }
-  function clearError(name: RegisterErrorKey) { if (errors[name]) setErrors((current) => ({ ...current, [name]: undefined })); }
-  function selectedBankLabel(value: string) { const bank = THAI_BANKS.find(([code]) => code === value); return bank ? (locale === 'th' ? bank[1] : bank[2]) : value; }
-  function closePopup() { if (embedded) window.parent.postMessage({ type: 'member-auth-close' }, window.location.origin); else window.location.assign('/'); }
+  function changeLocale(next: RegisterLocale) {
+    setLocale(next);
+    safeStorageSet('member_locale', next);
+  }
+
+  function clearError(name: RegisterErrorKey) {
+    if (errors[name]) setErrors((current) => ({ ...current, [name]: undefined }));
+  }
+
+  function selectedBankLabel(value: string) {
+    const bank = THAI_BANKS.find(([code]) => code === value);
+    return bank ? (locale === 'th' ? bank[1] : bank[2]) : value;
+  }
+
+  function closePopup() {
+    releaseLocalInteractionLock();
+    if (embedded) window.parent.postMessage({ type: 'member-auth-close' }, window.location.origin);
+    else window.location.assign('/');
+  }
 
   function changeField(field: RegisterErrorKey | 'referralCode', value: string) {
     if (field === 'phone') {
@@ -118,14 +138,18 @@ export default function MemberRegisterPage() {
     else if (field === 'bankName') setBankName(value);
     else if (field === 'bankAccountNumber') setBankAccountNumber(value.replace(/\D/g, '').slice(0, 20));
     else if (field === 'gender') setGender(value);
-    else if (field === 'referralCode') { const clean = normalizeReferralCode(value); setReferralCode(clean); if (clean) window.localStorage.setItem(REFERRAL_CODE_KEY, clean); }
+    else if (field === 'referralCode') {
+      const clean = normalizeReferralCode(value);
+      setReferralCode(clean);
+      if (clean) safeStorageSet(REFERRAL_CODE_KEY, clean);
+    }
     if (field !== 'referralCode') clearError(field);
   }
 
   function validateStep(target: RegisterStep) {
     const next: RegisterErrors = {};
-    if (target === 1) {
-      if (!/^0\d{9}$/.test(phone)) next.phone = locale === 'th' ? 'กรุณากรอกเบอร์โทรศัพท์ 10 หลัก' : 'Enter a valid 10-digit phone number';
+    if (target === 1 && !/^0\d{9}$/.test(phone)) {
+      next.phone = locale === 'th' ? 'กรุณากรอกเบอร์โทรศัพท์ 10 หลัก' : 'Enter a valid 10-digit phone number';
     }
     if (target === 2) {
       if (secret.length < 6) next.secret = locale === 'th' ? 'รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร' : 'Password must be at least 6 characters';
@@ -139,25 +163,40 @@ export default function MemberRegisterPage() {
       if (!acceptedTerms) next.terms = locale === 'th' ? 'กรุณายืนยันอายุและยอมรับเงื่อนไขก่อนสมัคร' : 'Confirm your age and accept the terms';
     }
     setErrors(next);
-    if (Object.keys(next).length) { setStatus('error'); setMessage(t.checkFields); return false; }
-    setStatus('idle'); setMessage(''); return true;
+    if (Object.keys(next).length) {
+      setStatus('error');
+      setMessage(t.checkFields);
+      return false;
+    }
+    setStatus('idle');
+    setMessage('');
+    return true;
   }
 
   function goNext() {
-    if (!validateStep(step)) return;
-    if (step === 1 && captchaRequired && (!captchaReady || !captchaToken)) {
-      setStatus('error');
-      setMessage(t.captchaRequired);
-      return;
-    }
-    setStep((step + 1) as RegisterStep);
+    if (loading || !validateStep(step)) return;
+    const nextStep = Math.min(3, step + 1) as RegisterStep;
+    setStep(nextStep);
+    window.requestAnimationFrame(() => {
+      releaseLocalInteractionLock();
+      document.querySelector<HTMLElement>('.source-register-card input:not([disabled]), .source-register-card select:not([disabled])')?.focus({ preventScroll: true });
+      if (embedded) window.parent.postMessage({ type: 'member-auth-step-ready', step: nextStep }, window.location.origin);
+    });
   }
 
-  function goBack() { setStatus('idle'); setMessage(''); setStep((step - 1) as RegisterStep); }
+  function goBack() {
+    setStatus('idle');
+    setMessage('');
+    setStep((Math.max(1, step - 1)) as RegisterStep);
+    window.requestAnimationFrame(releaseLocalInteractionLock);
+  }
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (step < 3) { goNext(); return; }
+    if (step < 3) {
+      goNext();
+      return;
+    }
     if (maintenanceEnabled) { setStatus('error'); setMessage(t.maintenance); return; }
     if (!flags.registration) { setStatus('error'); setMessage(t.registrationDisabled); return; }
     if (!validateStep(3)) return;
@@ -165,49 +204,179 @@ export default function MemberRegisterPage() {
 
     const controller = new AbortController();
     const timeoutId = window.setTimeout(() => controller.abort(), 15000);
-    setLoading(true); setStatus('info'); setMessage(t.submitting);
+    setLoading(true);
+    setStatus('info');
+    setMessage(t.submitting);
     const cleanRef = normalizeReferralCode(referralCode);
     const legalName = fullName.trim();
 
     try {
       const res = await memberApiFetch('/member/auth/register', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' }, signal: controller.signal,
-        body: JSON.stringify({ username: username.trim() || phone, phone: phone.trim(), email: email.trim() || undefined, secret, fullName: legalName, bankName: selectedBankLabel(bankName), bankAccountNumber: bankAccountNumber.trim(), bankAccountName: legalName, referralCode: cleanRef || undefined, captchaToken: captchaToken || undefined, deviceId: 'web-member' }),
+        method: 'POST',
+        skipAuth: true,
+        headers: { 'Content-Type': 'application/json' },
+        signal: controller.signal,
+        body: JSON.stringify({
+          username: username.trim() || phone,
+          phone: phone.trim(),
+          email: email.trim() || undefined,
+          secret,
+          fullName: legalName,
+          bankName: selectedBankLabel(bankName),
+          bankAccountNumber: bankAccountNumber.trim(),
+          bankAccountName: legalName,
+          referralCode: cleanRef || undefined,
+          captchaToken: captchaToken || undefined,
+          deviceId: 'web-member',
+        }),
       });
-      const data = await res.json().catch(() => null);
-      if (!res.ok) { setStatus('error'); setMessage(mapRegisterError(data?.message, locale, t.failed)); setCaptchaResetKey((value) => value + 1); return; }
-      if (!data?.accessToken || !data?.refreshToken) { setStatus('error'); setMessage(t.invalidResponse); setCaptchaResetKey((value) => value + 1); return; }
-      window.localStorage.setItem('member_access_token', data.accessToken);
-      window.localStorage.setItem('member_refresh_token', data.refreshToken);
-      if (cleanRef) await linkReferralAfterRegister(cleanRef, data.accessToken);
-      setStatus('success'); setMessage(t.success);
+      const data = await res.json().catch(() => null) as { message?: unknown } | null;
+      if (!res.ok) {
+        setStatus('error');
+        setMessage(mapRegisterError(data?.message, locale, t.failed));
+        setCaptchaResetKey((value) => value + 1);
+        return;
+      }
+      if (!hasMemberSessionTokens()) {
+        setStatus('error');
+        setMessage(t.invalidResponse);
+        setCaptchaResetKey((value) => value + 1);
+        return;
+      }
+      if (cleanRef) await linkReferralAfterRegister(cleanRef);
+      setStatus('success');
+      setMessage(t.success);
+      releaseLocalInteractionLock();
       if (embedded) window.parent.postMessage({ type: 'member-auth-success' }, window.location.origin);
       else window.location.replace('/');
     } catch (error) {
       const aborted = error instanceof DOMException && error.name === 'AbortError';
-      setStatus('error'); setMessage(aborted ? t.timeout : t.failed); setCaptchaResetKey((value) => value + 1);
+      setStatus('error');
+      setMessage(aborted ? t.timeout : t.failed);
+      setCaptchaResetKey((value) => value + 1);
     } finally {
-      window.clearTimeout(timeoutId); setLoading(false);
+      window.clearTimeout(timeoutId);
+      setLoading(false);
+      releaseLocalInteractionLock();
     }
   }
 
-  return <div {...registerBrand.dataAttributes}>
-    <RegisterView
-      cssVars={cssVars} locale={locale} step={step} t={t} siteName={siteName} logoUrl={logoUrl} brandMark={brandMark}
-      banks={THAI_BANKS} username={username} phone={phone} email={email} secret={secret} confirmSecret={confirmSecret} referralCode={referralCode}
-      fullName={fullName} bankName={bankName} bankAccountNumber={bankAccountNumber} gender={gender} acceptedTerms={acceptedTerms}
-      errors={errors} message={message} status={status} loading={loading} disabled={disabled} showSecret={showSecret}
-      passwordProgress={passwordProgress} registrationEnabled={flags.registration} loginEnabled={flags.login}
-      maintenanceEnabled={maintenanceEnabled} captchaResetKey={captchaResetKey} selectedBankLabel={selectedBankLabel(bankName)}
-      embedded={embedded} onClose={closePopup}
-      onSubmit={onSubmit} onLocaleChange={changeLocale} onFieldChange={changeField}
-      onAcceptedTermsChange={(value) => { setAcceptedTerms(value); clearError('terms'); }}
-      onShowSecretToggle={() => setShowSecret((value) => !value)} onBack={goBack}
-      onCaptchaToken={handleCaptchaToken} onCaptchaState={handleCaptchaState}
-    />
-  </div>;
+  return (
+    <div {...registerBrand.dataAttributes}>
+      <RegisterView
+        cssVars={cssVars}
+        locale={locale}
+        step={step}
+        t={t}
+        siteName={siteName}
+        logoUrl={logoUrl}
+        brandMark={brandMark}
+        banks={THAI_BANKS}
+        username={username}
+        phone={phone}
+        email={email}
+        secret={secret}
+        confirmSecret={confirmSecret}
+        referralCode={referralCode}
+        fullName={fullName}
+        bankName={bankName}
+        bankAccountNumber={bankAccountNumber}
+        gender={gender}
+        acceptedTerms={acceptedTerms}
+        errors={errors}
+        message={message}
+        status={status}
+        loading={loading}
+        disabled={disabled}
+        showSecret={showSecret}
+        passwordProgress={passwordProgress}
+        registrationEnabled={flags.registration}
+        loginEnabled={flags.login}
+        maintenanceEnabled={maintenanceEnabled}
+        captchaResetKey={captchaResetKey}
+        selectedBankLabel={selectedBankLabel(bankName)}
+        embedded={embedded}
+        onClose={closePopup}
+        onSubmit={onSubmit}
+        onLocaleChange={changeLocale}
+        onFieldChange={changeField}
+        onAcceptedTermsChange={(value) => { setAcceptedTerms(value); clearError('terms'); }}
+        onShowSecretToggle={() => setShowSecret((value) => !value)}
+        onBack={goBack}
+        onCaptchaToken={handleCaptchaToken}
+        onCaptchaState={handleCaptchaState}
+      />
+    </div>
+  );
 }
 
-async function linkReferralAfterRegister(referralCode: string, token?: string) { const accessToken = token || window.localStorage.getItem('member_access_token'); if (!accessToken) return; window.localStorage.setItem('member_access_token', accessToken); const res = await memberApiFetch('/member/affiliate/link', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ referralCode }) }); if (res.ok) window.localStorage.removeItem(REFERRAL_CODE_KEY); }
-function normalizeReferralCode(value: string) { return String(value ?? '').trim().toUpperCase().replace(/[^A-Z0-9_-]+/g, '').slice(0, 24); }
-function mapRegisterError(raw: unknown, locale: RegisterLocale, fallback: string) { const messages = Array.isArray(raw) ? raw.map(String) : [String(raw ?? '')]; const joined = messages.join(' ').toLowerCase(); const th = locale === 'th'; if (joined.includes('captcha')) return th ? 'การยืนยันความปลอดภัยไม่สำเร็จ กรุณาลองใหม่' : 'Security verification failed. Please try again.'; if (joined.includes('บัญชีธนาคารนี้ถูกใช้') || joined.includes('bank') && joined.includes('already')) return th ? 'บัญชีธนาคารนี้ถูกใช้กับสมาชิกคนอื่นแล้ว' : 'This bank account is already linked to another member.'; if (joined.includes('member already exists') || joined.includes('ถูกใช้แล้ว') || joined.includes('already exists')) return th ? 'เบอร์โทรนี้ถูกใช้แล้ว' : 'This phone number is already in use.'; if (joined.includes('bankaccountnumber') || joined.includes('6 to 20 digits')) return th ? 'เลขบัญชีต้องเป็นตัวเลข 6-20 หลัก' : 'The account number must contain 6-20 digits.'; if (joined.includes('secret is required') || joined.includes('password')) return th ? 'กรุณากำหนดรหัสผ่านให้ถูกต้อง' : 'Enter a valid password.'; if (joined.includes('full name') || joined.includes('fullname')) return th ? 'กรุณากรอกชื่อ-นามสกุลจริงให้ครบถ้วน' : 'Enter your full legal name.'; return fallback; }
+async function linkReferralAfterRegister(referralCode: string) {
+  const res = await memberApiFetch('/member/affiliate/link', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ referralCode }),
+  });
+  if (res.ok) safeStorageRemove(REFERRAL_CODE_KEY);
+}
+
+function releaseLocalInteractionLock() {
+  const roots = [document.documentElement, document.body].filter(Boolean);
+  roots.forEach((element) => {
+    element.style.removeProperty('pointer-events');
+    element.style.removeProperty('overflow');
+    element.style.removeProperty('overscroll-behavior');
+    element.style.removeProperty('touch-action');
+  });
+}
+
+function safeStorageGet(key: string) {
+  try {
+    return window.localStorage.getItem(key) ?? window.sessionStorage.getItem(key);
+  } catch {
+    return null;
+  }
+}
+
+function safeStorageSet(key: string, value: string) {
+  try {
+    window.localStorage.setItem(key, value);
+    return;
+  } catch {
+    // Privacy or embedded browser settings may block localStorage.
+  }
+  try {
+    window.sessionStorage.setItem(key, value);
+  } catch {
+    // The form remains usable even when both browser storage areas are blocked.
+  }
+}
+
+function safeStorageRemove(key: string) {
+  try {
+    window.localStorage.removeItem(key);
+  } catch {
+    // Ignore unavailable localStorage during optional referral cleanup.
+  }
+  try {
+    window.sessionStorage.removeItem(key);
+  } catch {
+    // Ignore unavailable sessionStorage during optional referral cleanup.
+  }
+}
+
+function normalizeReferralCode(value: string) {
+  return String(value ?? '').trim().toUpperCase().replace(/[^A-Z0-9_-]+/g, '').slice(0, 24);
+}
+
+function mapRegisterError(raw: unknown, locale: RegisterLocale, fallback: string) {
+  const messages = Array.isArray(raw) ? raw.map(String) : [String(raw ?? '')];
+  const joined = messages.join(' ').toLowerCase();
+  const th = locale === 'th';
+  if (joined.includes('captcha')) return th ? 'การยืนยันความปลอดภัยไม่สำเร็จ กรุณาลองใหม่' : 'Security verification failed. Please try again.';
+  if (joined.includes('บัญชีธนาคารนี้ถูกใช้') || joined.includes('bank') && joined.includes('already')) return th ? 'บัญชีธนาคารนี้ถูกใช้กับสมาชิกคนอื่นแล้ว' : 'This bank account is already linked to another member.';
+  if (joined.includes('member already exists') || joined.includes('ถูกใช้แล้ว') || joined.includes('already exists')) return th ? 'เบอร์โทรนี้ถูกใช้แล้ว' : 'This phone number is already in use.';
+  if (joined.includes('bankaccountnumber') || joined.includes('6 to 20 digits')) return th ? 'เลขบัญชีต้องเป็นตัวเลข 6-20 หลัก' : 'The account number must contain 6-20 digits.';
+  if (joined.includes('secret is required') || joined.includes('password')) return th ? 'กรุณากำหนดรหัสผ่านให้ถูกต้อง' : 'Enter a valid password.';
+  if (joined.includes('full name') || joined.includes('fullname')) return th ? 'กรุณากรอกชื่อ-นามสกุลจริงให้ครบถ้วน' : 'Enter your full legal name.';
+  return fallback;
+}

@@ -1,8 +1,4 @@
-/* Source parity for the Mobile member drawer.
- * The drawer is a single-screen menu, not a second scroll container. Keep its
- * sections compact enough for short phones and leave page scrolling locked
- * while it is open.
- */
+/* Final source parity for the Mobile member drawer. */
 @media (max-width: 900px) {
   [data-mobile-section-owner='header'] button:has(> img[src*='/images/flags/']) {
     box-sizing: border-box !important;
@@ -31,70 +27,113 @@
   #mobile-home-drawer {
     display: flex !important;
     box-sizing: border-box !important;
+    width: min(80vw, 280px) !important;
+    min-width: min(224px, 80vw) !important;
+    max-width: 280px !important;
     height: 100dvh !important;
     max-height: 100dvh !important;
-    padding: clamp(8px, 1.6dvh, 14px) 10px max(8px, env(safe-area-inset-bottom)) !important;
+    padding: max(8px, env(safe-area-inset-top)) 10px max(10px, env(safe-area-inset-bottom)) !important;
     flex-direction: column !important;
     overflow: hidden !important;
     overscroll-behavior: none !important;
     scrollbar-width: none !important;
     touch-action: manipulation !important;
+    background:
+      radial-gradient(circle at 40% 0%, rgb(116 21 154 / 24%), transparent 38%),
+      linear-gradient(180deg, #17101f 0%, #100c17 100%) !important;
+    box-shadow: 12px 0 30px rgb(0 0 0 / 42%) !important;
   }
 
   #mobile-home-drawer::-webkit-scrollbar {
     display: none !important;
   }
 
-  /* The source drawer starts directly with its menu groups. The header already
-   * remains visible underneath the backdrop, so a second logo row only wastes
-   * vertical space and was the main reason the drawer needed to scroll. */
   #mobile-home-drawer > div:nth-child(2) {
-    display: none !important;
+    display: flex !important;
+    box-sizing: border-box !important;
+    min-height: 38px !important;
+    padding: 0 2px 8px !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    flex: 0 0 auto !important;
+  }
+
+  #mobile-home-drawer > div:nth-child(2) > img {
+    display: block !important;
+    width: 86px !important;
+    max-width: 42% !important;
+    height: 24px !important;
+    object-fit: contain !important;
+    object-position: left center !important;
+  }
+
+  #mobile-home-drawer > div:nth-child(2) > button {
+    display: grid !important;
+    width: 32px !important;
+    min-width: 32px !important;
+    height: 32px !important;
+    min-height: 32px !important;
+    padding: 0 !important;
+    place-items: center !important;
+    border: 0 !important;
+    color: #fff !important;
+    background: transparent !important;
+    font-size: 20px !important;
+    line-height: 1 !important;
   }
 
   #mobile-home-drawer > nav:first-of-type {
     display: grid !important;
     box-sizing: border-box !important;
-    padding: 5px 7px !important;
-    gap: clamp(1px, 0.45dvh, 4px) !important;
+    padding: clamp(4px, 0.9dvh, 7px) 7px !important;
+    gap: clamp(0px, 0.25dvh, 2px) !important;
     flex: 0 0 auto !important;
+    border-radius: 8px !important;
+    background: linear-gradient(180deg, rgb(57 24 74 / 96%), rgb(42 20 55 / 96%)) !important;
   }
 
   #mobile-home-drawer > nav:first-of-type > a {
-    min-height: clamp(26px, 4.8dvh, 34px) !important;
-    grid-template-columns: 26px minmax(0, 1fr) 18px !important;
-    gap: 6px !important;
+    min-height: clamp(27px, 4.7dvh, 34px) !important;
+    padding-inline: 2px !important;
+    grid-template-columns: 24px minmax(0, 1fr) 18px !important;
+    gap: 7px !important;
   }
 
   #mobile-home-drawer > nav:first-of-type > a > span:first-child {
-    width: 24px !important;
-    height: 24px !important;
-    border-radius: 6px !important;
+    width: 22px !important;
+    height: 22px !important;
+    border-radius: 5px !important;
   }
 
   #mobile-home-drawer > nav:first-of-type strong {
-    font-size: clamp(10px, 2.65vw, 12px) !important;
+    min-width: 0 !important;
+    overflow: hidden !important;
+    font-size: clamp(10px, 2.65vw, 11px) !important;
     line-height: 1.2 !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
   }
 
   #mobile-home-drawer > nav:first-of-type > a > span:last-child {
-    width: 18px !important;
-    height: 18px !important;
+    width: 16px !important;
+    height: 16px !important;
   }
 
   #mobile-home-drawer > nav:nth-of-type(2) {
     display: grid !important;
     box-sizing: border-box !important;
-    margin-top: clamp(5px, 1dvh, 9px) !important;
-    padding: 6px 4px !important;
+    margin-top: clamp(5px, 1.2dvh, 9px) !important;
+    padding: clamp(5px, 1.2dvh, 9px) 7px clamp(5px, 1dvh, 8px) !important;
     grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
-    gap: clamp(3px, 0.8dvh, 7px) 6px !important;
+    gap: clamp(3px, 0.8dvh, 8px) 5px !important;
     flex: 0 0 auto !important;
+    border-radius: 8px !important;
+    background: linear-gradient(180deg, rgb(48 23 61 / 98%), rgb(39 19 50 / 98%)) !important;
   }
 
   #mobile-home-drawer > nav:nth-of-type(2) > a,
   #mobile-home-drawer > nav:nth-of-type(2) > button {
-    min-height: clamp(34px, 6.5dvh, 46px) !important;
+    min-height: clamp(32px, 5.4dvh, 39px) !important;
     padding: 0 !important;
     justify-content: center !important;
     gap: 3px !important;
@@ -102,70 +141,92 @@
 
   #mobile-home-drawer > nav:nth-of-type(2) > a > span:first-child,
   #mobile-home-drawer > nav:nth-of-type(2) > button > img {
-    width: 24px !important;
-    min-width: 24px !important;
-    max-width: 24px !important;
-    height: 24px !important;
-    min-height: 24px !important;
-    max-height: 24px !important;
-    border-radius: 6px !important;
+    width: 21px !important;
+    min-width: 21px !important;
+    max-width: 21px !important;
+    height: 21px !important;
+    min-height: 21px !important;
+    max-height: 21px !important;
+    border-radius: 5px !important;
   }
 
   #mobile-home-drawer > nav:nth-of-type(2) strong {
     max-width: 100% !important;
-    font-size: clamp(8px, 2.3vw, 10px) !important;
+    overflow: hidden !important;
+    font-size: clamp(8px, 2.2vw, 9px) !important;
     line-height: 1.15 !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
   }
 
   #mobile-home-drawer > div:last-child {
     display: grid !important;
     box-sizing: border-box !important;
-    margin-top: clamp(5px, 1dvh, 9px) !important;
+    margin-top: clamp(5px, 1.25dvh, 10px) !important;
     padding: 5px !important;
-    gap: 5px !important;
+    gap: clamp(4px, 0.8dvh, 6px) !important;
     flex: 0 0 auto !important;
+    border-radius: 7px !important;
+    background: rgb(37 18 47 / 92%) !important;
   }
 
   #mobile-home-drawer > div:last-child > a {
-    min-height: clamp(30px, 5.6dvh, 36px) !important;
-    border-radius: 7px !important;
-    font-size: clamp(11px, 2.8vw, 13px) !important;
+    min-height: clamp(28px, 4.4dvh, 32px) !important;
+    border-radius: 6px !important;
+    font-size: 11px !important;
+    line-height: 15px !important;
   }
 }
 
-@media (max-width: 900px) and (max-height: 520px) {
+@media (max-width: 900px) and (max-height: 540px) {
   #mobile-home-drawer {
-    padding-top: 6px !important;
-    padding-bottom: 6px !important;
+    padding-top: 4px !important;
+    padding-bottom: 4px !important;
   }
 
-  #mobile-home-drawer > nav:first-of-type {
-    padding-block: 3px !important;
-    gap: 0 !important;
+  #mobile-home-drawer > div:nth-child(2) {
+    min-height: 30px !important;
+    padding-bottom: 2px !important;
+  }
+
+  #mobile-home-drawer > div:nth-child(2) > img {
+    height: 20px !important;
   }
 
   #mobile-home-drawer > nav:first-of-type > a {
     min-height: 25px !important;
   }
 
+  #mobile-home-drawer > nav:first-of-type > a > span:first-child {
+    width: 20px !important;
+    height: 20px !important;
+  }
+
   #mobile-home-drawer > nav:nth-of-type(2) {
-    margin-top: 4px !important;
-    padding-block: 4px !important;
+    margin-top: 3px !important;
+    padding-block: 3px !important;
     gap: 2px 5px !important;
   }
 
   #mobile-home-drawer > nav:nth-of-type(2) > a,
   #mobile-home-drawer > nav:nth-of-type(2) > button {
-    min-height: 32px !important;
+    min-height: 29px !important;
   }
 
   #mobile-home-drawer > div:last-child {
-    margin-top: 4px !important;
-    padding: 4px !important;
-    gap: 4px !important;
+    margin-top: 3px !important;
+    padding: 3px !important;
+    gap: 3px !important;
   }
 
   #mobile-home-drawer > div:last-child > a {
-    min-height: 28px !important;
+    min-height: 26px !important;
+  }
+}
+
+@media (max-width: 319px) {
+  #mobile-home-drawer {
+    width: calc(100vw - 12px) !important;
+    min-width: 0 !important;
   }
 }

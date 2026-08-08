@@ -13,7 +13,6 @@ import { CmsPopup } from './components/member-home-sections';
 import { DesktopHomeScaffold } from './components/member-home/desktop-home-scaffold';
 import { DesktopGameFeedProvider } from './components/member-home/member-source-feed-sections';
 import HomeSidebarScrollController from './components/member-home/home-sidebar-scroll-controller';
-import MobileActivityStandaloneNavigation from './components/mobile-home/mobile-activity-standalone-navigation';
 import MobileAuthenticatedAvatarRuntime from './components/mobile-home/mobile-authenticated-avatar-runtime';
 import MobileAuthenticatedHomeRuntime from './components/mobile-home/mobile-authenticated-home-runtime';
 import MobileCanonicalGameLaunchCapture from './components/mobile-home/mobile-canonical-game-launch-capture';
@@ -24,10 +23,9 @@ import MobileHomeImageRecoveryRuntime from './components/mobile-home/mobile-home
 import MobileHomeMotionRuntime from './components/mobile-home/mobile-home-motion-runtime';
 import MobileHomeRoot from './components/mobile-home/mobile-home-root';
 import MobileMemberMenuSourceBridge from './components/mobile-home/mobile-member-menu-source-bridge';
-import MobileNewsStandaloneNavigation from './components/mobile-home/mobile-news-standalone-navigation';
+import MobileMemberStandaloneNavigation from './components/mobile-home/mobile-member-standalone-navigation';
 import MobileP4P6ClosureRuntime from './components/mobile-home/mobile-p4-p6-closure-runtime';
 import MobileP7P9ClosureRuntime from './components/mobile-home/mobile-p7-p9-closure-runtime';
-import MobilePromotionStandaloneNavigation from './components/mobile-home/mobile-promotion-standalone-navigation';
 import MobileScrollComfortGuard from './components/mobile-home/mobile-scroll-comfort-guard';
 import { openMemberSharedPopup } from './components/member-shared-popup-runtime';
 import { useMemberHomeData } from './hooks/use-member-home-data';
@@ -85,9 +83,7 @@ export default function MemberHome(props: MemberHomeProps) {
     return (
       <>
         <MobileHomeRoot content={props.cmsContent} showPromotion={props.showPromotion} />
-        <MobilePromotionStandaloneNavigation />
-        <MobileNewsStandaloneNavigation />
-        <MobileActivityStandaloneNavigation />
+        <MobileMemberStandaloneNavigation />
         <MobileCategoryQueryBridge />
         <MobileCanonicalGameLaunchCapture />
         <MobileP4P6ClosureRuntime />
