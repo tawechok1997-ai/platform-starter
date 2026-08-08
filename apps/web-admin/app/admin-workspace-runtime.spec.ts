@@ -24,6 +24,15 @@ test('workspace owner filters sidebar favorites recent and command palette from 
   assert.match(runtime, /admin:workspace-change/);
 });
 
+test('workspace owner refreshes identity after role changes and stale-session boundaries', () => {
+  assert.match(runtime, /ADMIN_IDENTITY_INVALIDATED_EVENT/);
+  assert.match(runtime, /addEventListener\(ADMIN_IDENTITY_INVALIDATED_EVENT, refreshIdentity\)/);
+  assert.match(runtime, /addEventListener\('focus', refreshIdentity\)/);
+  assert.match(runtime, /addEventListener\('visibilitychange', refreshVisibleIdentity\)/);
+  assert.match(runtime, /setInterval\(refreshIdentity, IDENTITY_REFRESH_INTERVAL_MS\)/);
+  assert.match(runtime, /\}, \[pathname\]\);/);
+});
+
 test('workspace owner provides responsive switcher dashboard resolver and profile roles', () => {
   assert.match(runtime, /admin-workspace-switcher-slot/);
   assert.match(runtime, /admin-workspace-dashboard-slot/);
