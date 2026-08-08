@@ -1,6 +1,11 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { adminMutationSignature, createAdminIdempotencyKey } from './admin-api';
+import {
+  ADMIN_IDENTITY_INVALIDATED_EVENT,
+  adminMutationSignature,
+  createAdminIdempotencyKey,
+  isAdminIdentityMutation,
+} from './admin-api';
 
 test('mutation signature is stable for the same method, path, and body', () => {
   const first = adminMutationSignature('/admin/topups/item/confirm-credit', { method: 'POST', body: JSON.stringify({ adminNote: 'checked' }) });
@@ -24,4 +29,14 @@ test('mutation signature does not expose the raw request body', () => {
 test('idempotency keys use the admin namespace', () => {
   const key = createAdminIdempotencyKey();
   assert.match(key, /^admin-[a-z0-9-]+$/i);
+});
+
+test('access governance mutations invalidate the active admin identity', () => {
+  assert.equal(ADMIN_IDENTITY_INVALIDATED_EVENT, 'admin:identity-invalidated');
+  assert.equal(isAdminIdentityMutation('/admin/access/admin-users/admin-1/roles'), true);
+  assert.equal(isAdminIdentityMutation('/admin/access/admin-users/admin-1/roles/role-1'), true);
+  assert.equal(isAdminIdentityMutation('/admin/access/delegations'), true);
+  assert.equal(isAdminIdentityMutation('/admin/access/delegations/delegation-1/revoke'), true);
+  assert.equal(isAdminIdentityMutation('/admin/topups/item/confirm-credit'), false);
+  assert.equal(isAdminIdentityMutation('/admin/settings/site'), false);
 });
