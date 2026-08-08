@@ -151,16 +151,9 @@ body[data-app-surface='admin'] .admin-data-table :where(td) {
   color: var(--color-text-primary);
 }
 
-/* Module CSS frequently uses generic panel/metric class fragments. Only fix
- * palette ownership here, never geometry, visibility, or interaction. */
+/* Module CSS frequently uses generic panel/metric class fragments. Align only
+ * border/text ownership here; their semantic backgrounds remain route-owned. */
 body[data-app-surface='admin'] :where([class*='panel'], [class*='metric']) {
   border-color: var(--color-border-subtle);
   color: var(--color-text-primary);
-}
-
-html[data-admin-theme='light'] body[data-app-surface='admin'] :where(
-  [class*='panel'],
-  [class*='metric']
-) {
-  background-color: var(--color-surface-raised);
 }
