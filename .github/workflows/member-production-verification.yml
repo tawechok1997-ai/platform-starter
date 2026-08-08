@@ -258,7 +258,7 @@ jobs:
 
           home_code="$(jq -r '.homeCode // ""' "$result_file")"
           version_code="$(jq -r '.versionCode // ""' "$result_file")"
-          railway_fallback="$(jq -r '.railwayFallback // true' "$result_file")"
+          railway_fallback="$(jq -r 'if has("railwayFallback") then .railwayFallback else true end' "$result_file")"
 
           if [[ ! "$home_code" =~ ^2[0-9][0-9]$ \
             || ! "$version_code" =~ ^2[0-9][0-9]$ \
