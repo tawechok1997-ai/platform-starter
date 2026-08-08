@@ -30,6 +30,16 @@ type AdminProfile = {
   permissions: string[];
 };
 
+type AccessibilityViolation = {
+  id: string;
+  impact: string | null;
+  nodes: Array<{
+    target: string[];
+    html: string;
+    failureSummary: string | null;
+  }>;
+};
+
 type RouteEvidence = {
   route: string;
   persona: P8PersonaId;
@@ -41,7 +51,7 @@ type RouteEvidence = {
   brokenImages: string[];
   pageErrors: string[];
   serverErrors: Array<{ url: string; status: number }>;
-  accessibilityViolations?: Array<{ id: string; impact: string | null; nodes: number }>;
+  accessibilityViolations?: AccessibilityViolation[];
   performance?: {
     domContentLoadedMs: number;
     loadMs: number;
@@ -79,18 +89,24 @@ function usernameFor(persona: P8PersonaId) {
 
 async function login(page: Page, persona: P8PersonaId) {
   if (!personaPassword) throw new Error('PR3_PERSONA_PASSWORD is required');
+  const username = usernameFor(persona);
   await page.addInitScript(() => {
     window.localStorage.setItem('admin_locale', 'th');
   });
   await page.goto(new URL('/login', baseUrl).toString(), { waitUntil: 'domcontentloaded' });
-  const identity = page.locator('input:not([type="password"]):not([type="hidden"]):not([type="checkbox"]):not([type="submit"])').first();
-  const password = page.locator('input[type="password"]').first();
+  const identity = page.locator('input[autocomplete="username"]');
+  const password = page.locator('input[autocomplete="current-password"]');
   await expect(identity).toBeVisible();
   await expect(password).toBeVisible();
-  await identity.fill(usernameFor(persona));
+  await identity.fill(username);
+  await expect(identity).toHaveValue(username);
   await password.fill(personaPassword);
-  await page.locator('button[type="submit"], input[type="submit"]').first().click();
-  await page.waitForURL((url) => !/\/login(?:[/?#]|$)/.test(url.pathname), { timeout: 30_000 });
+  await expect(password).toHaveValue(personaPassword);
+  const submit = page.locator('button[type="submit"], input[type="submit"]').first();
+  await Promise.all([
+    page.waitForURL((url) => !/\/login(?:[/?#]|$)/.test(url.pathname), { timeout: 30_000 }),
+    submit.click(),
+  ]);
   await expect(page.locator('.admin-content-shell')).toBeVisible({ timeout: 15_000 });
   const token = await page.evaluate(() => window.sessionStorage.getItem('admin_access_token'));
   if (!token) throw new Error(`Admin access token was not stored for ${persona}`);
@@ -176,9 +192,16 @@ async function auditRoute(
       evidence.accessibilityViolations = serious.map((violation) => ({
         id: violation.id,
         impact: violation.impact,
-        nodes: violation.nodes.length,
+        nodes: violation.nodes.map((node) => ({
+          target: node.target.map(String),
+          html: node.html,
+          failureSummary: node.failureSummary ?? null,
+        })),
       }));
-      expect(evidence.accessibilityViolations, `${matrixCase.route} must have no serious accessibility violations`).toEqual([]);
+      expect(
+        evidence.accessibilityViolations,
+        `${matrixCase.route} must have no serious accessibility violations: ${JSON.stringify(evidence.accessibilityViolations)}`,
+      ).toEqual([]);
 
       const performance = await page.evaluate(() => {
         const navigation = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming | undefined;
