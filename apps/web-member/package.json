@@ -13,7 +13,7 @@
     "prelint": "pnpm generate:asset-basename-map",
     "lint": "eslint app src --ext .ts,.tsx",
     "pretest": "pnpm generate:asset-basename-map",
-    "test": "node tools/run-member-tests.mjs",
+    "test": "node --import tsx --test \"src/**/*.spec.ts\" \"app/**/*.spec.ts\"",
     "pretypecheck": "pnpm generate:asset-basename-map",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "audit:reference-assets": "node tools/audit-reference-assets.mjs",
