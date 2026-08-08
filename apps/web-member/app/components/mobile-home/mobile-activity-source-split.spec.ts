@@ -48,7 +48,7 @@ test('the shared Activity source keeps live API data and unavailable states', ()
 test('disabled activity cards avoid unsupported ARIA on the article role', () => {
   assert.match(activityPage, /data-activity-disabled=\{activity\.disabled \? 'true' : undefined\}/);
   assert.doesNotMatch(activityPage, /<article[\s\S]{0,220}aria-disabled=/);
-  assert.match(activityPage, /<button[\s\S]{0,220}disabled=\{activity\.disabled === true \|\| !activity\.href\}/);
+  assert.match(activityPage, /<button[\s\S]{0,260}disabled=\{activity\.disabled \|\| !activity\.href\}/);
 });
 
 test('legacy activity items without disabled remain enabled by default', () => {
