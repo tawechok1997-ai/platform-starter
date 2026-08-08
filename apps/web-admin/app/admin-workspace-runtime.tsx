@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { usePathname } from 'next/navigation';
-import { adminApiFetch } from './admin-api';
+import { ADMIN_IDENTITY_INVALIDATED_EVENT, adminApiFetch } from './admin-api';
 import { useAdminLocale } from './(admin)/admin-locale';
 import { resolveAdminDashboardModel } from './(admin)/admin-dashboard-resolver';
 import {
@@ -18,6 +18,7 @@ import {
 
 const WORKSPACE_STORAGE_KEY = 'admin_workspace_selection_v1';
 const WORKSPACE_CHANGE_EVENT = 'admin:workspace-change';
+const IDENTITY_REFRESH_INTERVAL_MS = 30_000;
 
 type RuntimeTargets = {
   topbar: HTMLElement | null;
@@ -67,9 +68,25 @@ export function AdminWorkspaceRuntime() {
       }
     }
 
-    void loadIdentity();
-    return () => { cancelled = true; };
-  }, []);
+    const refreshIdentity = () => { void loadIdentity(); };
+    const refreshVisibleIdentity = () => {
+      if (document.visibilityState === 'visible') refreshIdentity();
+    };
+
+    refreshIdentity();
+    window.addEventListener(ADMIN_IDENTITY_INVALIDATED_EVENT, refreshIdentity);
+    window.addEventListener('focus', refreshIdentity);
+    document.addEventListener('visibilitychange', refreshVisibleIdentity);
+    const refreshTimer = window.setInterval(refreshIdentity, IDENTITY_REFRESH_INTERVAL_MS);
+
+    return () => {
+      cancelled = true;
+      window.removeEventListener(ADMIN_IDENTITY_INVALIDATED_EVENT, refreshIdentity);
+      window.removeEventListener('focus', refreshIdentity);
+      document.removeEventListener('visibilitychange', refreshVisibleIdentity);
+      window.clearInterval(refreshTimer);
+    };
+  }, [pathname]);
 
   useEffect(() => {
     if (!loaded) return;
