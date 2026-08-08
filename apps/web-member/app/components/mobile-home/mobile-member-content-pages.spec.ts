@@ -23,7 +23,7 @@ test('mobile drawer keeps promotion news and activity routes', () => {
   assert.match(highlight, /useMobileActivitiesSource\(\)/);
   assert.match(highlight, /useMobileNewsSource\(\)/);
   assert.match(promotionRoute, /MobileMemberPromotionsLivePage/);
-  assert.match(newsRoute, /MobileMemberNewsPage/);
+  assert.match(newsRoute, /MobileMemberNewsLivePage/);
   assert.match(activityRoute, /MobileMemberActivityPage/);
 });
 
