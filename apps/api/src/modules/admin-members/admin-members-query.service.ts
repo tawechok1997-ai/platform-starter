@@ -241,7 +241,6 @@ export class AdminMembersQueryService {
         accountName: item.accountName,
         accountNumberMasked: maskAccountNumber(item.accountNumber),
         status: item.status,
-        flags: item.flags,
         createdAt: item.createdAt,
         updatedAt: item.updatedAt,
       })),
