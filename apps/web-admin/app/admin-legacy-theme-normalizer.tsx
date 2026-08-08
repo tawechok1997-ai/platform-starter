@@ -83,7 +83,7 @@ export function AdminLegacyThemeNormalizer() {
 
     const normalizeTree = (root: ParentNode) => {
       if (root instanceof HTMLElement && root.hasAttribute('style')) normalizeElement(root);
-      root.querySelectorAll?.<HTMLElement>('[style]').forEach(normalizeElement);
+      root.querySelectorAll<HTMLElement>('[style]').forEach(normalizeElement);
     };
 
     normalizeTree(body);
@@ -141,7 +141,10 @@ function normalizeElement(element: HTMLElement) {
   if (BORDER_LITERALS.has(outline)) style.outlineColor = 'var(--color-border-strong)';
 }
 
-function remapBorderColor(style: CSSStyleDeclaration, property: 'borderTopColor' | 'borderRightColor' | 'borderBottomColor' | 'borderLeftColor') {
+function remapBorderColor(
+  style: CSSStyleDeclaration,
+  property: 'borderTopColor' | 'borderRightColor' | 'borderBottomColor' | 'borderLeftColor',
+) {
   const literal = normalizeLiteral(style[property]);
   if (BORDER_LITERALS.has(literal)) style[property] = 'var(--color-border-subtle)';
 }
