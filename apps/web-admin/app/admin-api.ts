@@ -8,6 +8,7 @@ let inMemoryAccessToken = '';
 const ADMIN_SESSION_HINT = 'admin_session_hint';
 const ADMIN_ACCESS_TOKEN = 'admin_access_token';
 const ADMIN_LOCALE_STORAGE_KEY = 'admin_locale';
+export const ADMIN_IDENTITY_INVALIDATED_EVENT = 'admin:identity-invalidated';
 const SENSITIVE_ERROR_KEYS = new Set(['stack', 'trace', 'traceback', 'debug', 'exception', 'cause', 'query', 'sql']);
 const MUTATING_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
 const BODYLESS_RESPONSE_STATUSES = new Set([204, 205, 304]);
@@ -44,10 +45,25 @@ async function guardedAdminMutationFetch(path: string, options: ApiOptions) {
   const request = adminApiFetchOnce(path, { ...options, headers }).then(toReplayableResponse);
   inFlightAdminMutations.set(signature, request);
   try {
-    return replayAdminResponse(await request);
+    const response = await request;
+    notifyAdminIdentityInvalidated(path, response.status);
+    return replayAdminResponse(response);
   } finally {
     if (inFlightAdminMutations.get(signature) === request) inFlightAdminMutations.delete(signature);
   }
+}
+
+export function isAdminIdentityMutation(path: string) {
+  return path === '/admin/access' || path.startsWith('/admin/access/');
+}
+
+function notifyAdminIdentityInvalidated(path: string, status: number) {
+  if (typeof window === 'undefined') return;
+  if (status < 200 || status >= 300) return;
+  if (!isAdminIdentityMutation(path)) return;
+  window.dispatchEvent(new CustomEvent(ADMIN_IDENTITY_INVALIDATED_EVENT, {
+    detail: { path },
+  }));
 }
 
 async function adminApiFetchOnce(path: string, options: ApiOptions = {}) {
