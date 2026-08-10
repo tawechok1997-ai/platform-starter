@@ -19,7 +19,9 @@ function walk(dir: string, files: string[] = []) {
 
 test('every Admin Theme & layout field has a Member runtime owner', () => {
   const adminSource = readFileSync(adminThemePage, 'utf8');
-  const keys = [...adminSource.matchAll(/\{\s*key:\s*'([^']+)'/g)].map((match) => match[1]);
+  const keys = [...adminSource.matchAll(/\{\s*key:\s*'([^']+)'/g)]
+    .map((match) => match[1])
+    .filter((key): key is string => typeof key === 'string' && key.length > 0);
   assert.ok(keys.length >= 20, `Expected the Theme page field inventory, found only ${keys.length}`);
 
   const memberSource = walk(memberAppDir)
