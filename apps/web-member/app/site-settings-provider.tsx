@@ -1,6 +1,7 @@
 'use client';
 
 import { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { memberApiFetch } from './member-api';
 import { defaultSettings, PublicSiteSettings } from './site-settings';
 import type { TypedPublicSiteSettings } from './site-settings-types';
 import { normalizeTypedSiteSettings } from './typed-site-settings';
@@ -35,10 +36,12 @@ export function SiteSettingsProvider({
 
     const task = (async () => {
       try {
-        const response = await fetch(LIVE_SETTINGS_ENDPOINT, {
+        const response = await memberApiFetch(`${window.location.origin}${LIVE_SETTINGS_ENDPOINT}`, {
           method: 'GET',
           cache: 'no-store',
           headers: { accept: 'application/json' },
+          skipAuth: true,
+          suppressSessionExpiryRedirect: true,
         });
         if (!response.ok) throw new Error(`Site settings refresh failed with ${response.status}`);
         const nextSettings = await response.json() as PublicSiteSettings;
