@@ -4,6 +4,7 @@ import {
   computeMemberJackpotValue,
   MEMBER_JACKPOT_BASE_VALUE,
   MEMBER_JACKPOT_EPOCH_MS,
+  MEMBER_JACKPOT_RENDER_MS,
   MEMBER_JACKPOT_TICK_MS,
   resolveMemberJackpotLabel,
 } from './member-jackpot-runtime';
@@ -12,6 +13,13 @@ test('shared jackpot uses one deterministic value for every viewport', () => {
   assert.equal(computeMemberJackpotValue(MEMBER_JACKPOT_EPOCH_MS), MEMBER_JACKPOT_BASE_VALUE);
   assert.equal(computeMemberJackpotValue(MEMBER_JACKPOT_EPOCH_MS + MEMBER_JACKPOT_TICK_MS), MEMBER_JACKPOT_BASE_VALUE + 4);
   assert.equal(computeMemberJackpotValue(MEMBER_JACKPOT_EPOCH_MS + (7 * MEMBER_JACKPOT_TICK_MS)), MEMBER_JACKPOT_BASE_VALUE + 28);
+});
+
+test('shared jackpot interpolates between source ticks instead of visibly jumping', () => {
+  const halfway = computeMemberJackpotValue(MEMBER_JACKPOT_EPOCH_MS + (MEMBER_JACKPOT_TICK_MS / 2));
+  assert.ok(halfway > MEMBER_JACKPOT_BASE_VALUE);
+  assert.ok(halfway < MEMBER_JACKPOT_BASE_VALUE + 4);
+  assert.ok(MEMBER_JACKPOT_RENDER_MS < MEMBER_JACKPOT_TICK_MS);
 });
 
 test('shared jackpot keeps running across time gaps instead of resetting on mount', () => {
