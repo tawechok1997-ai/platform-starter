@@ -5,6 +5,7 @@ const BASE_URL = process.env.MEMBER_HOME_URL ?? 'http://127.0.0.1:3000/';
 test('Theme & layout settings change live Member tokens and desktop ownership', async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== '1440x900', 'Theme propagation runs once at the reference desktop viewport');
 
+  let settingsRequests = 0;
   let settings = settingsFixture({
     background: '#08111f',
     card: '#14233a',
@@ -15,13 +16,21 @@ test('Theme & layout settings change live Member tokens and desktop ownership', 
     gameGridColumns: 5,
   });
 
-  await page.route('**/public/site-settings**', async (route) => fulfillJson(route, settings));
+  await page.route('**/public/site-settings**', async (route) => {
+    settingsRequests += 1;
+    await fulfillJson(route, settings);
+  });
+
+  // The first render is seeded by the Next.js server, so Playwright cannot
+  // intercept that request. Exercise the same client lifecycle Production uses
+  // after an operator changes settings in another tab: focus -> reload settings.
   await page.goto(BASE_URL, { waitUntil: 'domcontentloaded', timeout: 45_000 });
   await expect(page.locator('html')).toHaveAttribute('data-member-theme-authority', 'true');
-  await page.waitForTimeout(200);
+  await refreshSettingsOnFocus(page);
+  await expect.poll(() => settingsRequests, { timeout: 10_000 }).toBeGreaterThanOrEqual(1);
+  await expect.poll(async () => (await readThemeState(page)).runtimeBackground, { timeout: 10_000 }).toBe('#08111f');
 
   const first = await readThemeState(page);
-  expect(first.runtimeBackground).toBe('#08111f');
   expect(first.aliasCanvas).toBe('rgb(8, 17, 31)');
   expect(first.runtimeColumns).toBe('5');
   expect(first.desktopSidebar).toBe('true');
@@ -37,12 +46,14 @@ test('Theme & layout settings change live Member tokens and desktop ownership', 
     gameGridColumns: 4,
   });
 
-  await page.reload({ waitUntil: 'domcontentloaded', timeout: 45_000 });
-  await expect(page.locator('html')).toHaveAttribute('data-member-theme-authority', 'true');
-  await page.waitForTimeout(200);
+  // SiteSettingsProvider intentionally throttles active-tab reloads to 1.5s.
+  // Respect that policy and prove the live page updates without a navigation.
+  await page.waitForTimeout(1_600);
+  await refreshSettingsOnFocus(page);
+  await expect.poll(() => settingsRequests, { timeout: 10_000 }).toBeGreaterThanOrEqual(2);
+  await expect.poll(async () => (await readThemeState(page)).runtimeBackground, { timeout: 10_000 }).toBe('#f2f6fb');
 
   const second = await readThemeState(page);
-  expect(second.runtimeBackground).toBe('#f2f6fb');
   expect(second.aliasCanvas).toBe('rgb(242, 246, 251)');
   expect(second.runtimeColumns).toBe('4');
   expect(second.desktopSidebar).toBe('false');
@@ -52,6 +63,10 @@ test('Theme & layout settings change live Member tokens and desktop ownership', 
   const sidebar = page.locator('.desktop-reference-home .reference-sidebar').first();
   if (await sidebar.count()) await expect(sidebar).toBeHidden();
 });
+
+async function refreshSettingsOnFocus(page: Page) {
+  await page.evaluate(() => window.dispatchEvent(new Event('focus')));
+}
 
 async function readThemeState(page: Page) {
   return page.evaluate(() => {
