@@ -14,6 +14,7 @@ import '../components/auth/auth-popup-source-set1-final.css';
 import '../components/auth/auth-popup-original-mobile-final.css';
 import '../components/auth/auth-field-ux-final.css';
 import '../components/auth/auth-popup-reference-desktop-final.css';
+import '../components/auth/auth-popup-shared-shell-final.css';
 
 export default function MemberAuthLayout({ children }: { children: ReactNode }) {
   return (
