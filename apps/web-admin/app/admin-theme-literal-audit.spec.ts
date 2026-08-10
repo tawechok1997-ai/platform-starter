@@ -18,7 +18,7 @@ const neutralLiterals = [
   '#dfe6ef', '#e2e8f0', '#f3f6fb', '#f7f9fc', '#fff', '#ffffff',
 ];
 
-const literalPattern = new RegExp(neutralLiterals.map((value) => value.replace('#', '#')).join('|'), 'i');
+const literalPattern = new RegExp(neutralLiterals.join('|'), 'i');
 const declarationPattern = /\b(background(?:-color)?|color|border(?:-(?:top|right|bottom|left))?(?:-color)?)\s*:\s*([^;]+)/i;
 
 function walk(dir: string, out: string[] = []) {
@@ -43,7 +43,7 @@ test('Admin theme has no unowned neutral color literals outside appearance autho
       if (file.endsWith('.css')) {
         const declaration = line.match(declarationPattern);
         if (!declaration || !literalPattern.test(declaration[2] ?? '')) continue;
-      } else if (!/(background(?:Color)?|color|border(?:Color)?)[\s:'\"]/.test(line)) {
+      } else if (!/(background(?:Color)?|color|border(?:Color)?)[\s:'"]/.test(line)) {
         continue;
       }
       offenders.push(`${path.relative(process.cwd(), file)}:${index + 1}: ${line.trim()}`);
