@@ -3,6 +3,7 @@
 import { Suspense, useLayoutEffect } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { isMemberNavigationActive } from '../member-navigation-active';
+import { MemberLegacyThemeNormalizer } from '../member-legacy-theme-normalizer';
 import { MemberThemeSettingsRuntime } from '../member-theme-settings-runtime';
 
 const NAVIGATION_LINK_SELECTOR = [
@@ -15,6 +16,7 @@ export default function MemberNavigationStateController() {
   return (
     <>
       <MemberThemeSettingsRuntime />
+      <MemberLegacyThemeNormalizer />
       <Suspense fallback={null}>
         <MemberNavigationStateInner />
       </Suspense>
