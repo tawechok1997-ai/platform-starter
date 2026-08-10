@@ -66,13 +66,15 @@ test('theme completeness remaps legacy palettes and shared surfaces to appearanc
   assert.match(completeness, /\.admin-ui-payload/);
 });
 
-test('legacy inline palette is normalized to live appearance tokens', () => {
+test('legacy stylesheet and inline neutral palettes are normalized to live appearance tokens', () => {
   assert.match(legacyNormalizer, /BACKGROUND_TOKENS/);
   assert.match(legacyNormalizer, /TEXT_TOKENS/);
-  assert.match(legacyNormalizer, /BORDER_LITERALS/);
+  assert.match(legacyNormalizer, /BORDER_TOKENS/);
+  assert.match(legacyNormalizer, /window\.getComputedStyle\(element\)/);
   assert.match(legacyNormalizer, /MutationObserver/);
-  assert.match(legacyNormalizer, /attributeFilter:\s*\['style'\]/);
+  assert.match(legacyNormalizer, /attributeFilter:\s*\['class'\]/);
   assert.match(legacyNormalizer, /admin:appearance-change/);
+  assert.match(legacyNormalizer, /\[data-preview-viewport\]/);
   assert.match(legacyNormalizer, /var\(--color-surface-raised\)/);
   assert.match(legacyNormalizer, /var\(--color-text-secondary\)/);
   assert.match(legacyNormalizer, /var\(--color-border-subtle\)/);
