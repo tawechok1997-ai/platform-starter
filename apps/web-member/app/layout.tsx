@@ -119,6 +119,7 @@ import './member-source-fonts.css';
 import './member-motion-contract.css';
 import './member-game-interaction-final.css';
 import './member-desktop-motion-final.css';
+import './member-desktop-announcement-marquee.css';
 import MemberChrome from './member-chrome';
 import MemberActivityPredictionRuntime from './components/member-activity-prediction-runtime';
 import MemberClientNavigationController from './components/member-client-navigation-controller';
