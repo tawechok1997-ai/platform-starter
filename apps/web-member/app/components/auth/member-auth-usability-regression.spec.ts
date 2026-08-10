@@ -8,50 +8,43 @@ const register = readFileSync(new URL('../../(auth)/register/page.tsx', import.m
 const registerView = readFileSync(new URL('../../../src/features/auth/register-view.tsx', import.meta.url), 'utf8');
 const antiBot = readFileSync(new URL('../../(auth)/anti-bot-widget.tsx', import.meta.url), 'utf8');
 const runtime = readFileSync(new URL('./auth-field-runtime.tsx', import.meta.url), 'utf8');
-const css = readFileSync(new URL('./auth-field-ux-final.css', import.meta.url), 'utf8');
-const mobileFinalCss = readFileSync(new URL('./auth-popup-original-mobile-final.css', import.meta.url), 'utf8');
+const sourceSetOne = readFileSync(new URL('./auth-popup-source-set1-final.css', import.meta.url), 'utf8');
 const desktopCss = readFileSync(new URL('./auth-popup-reference-desktop-final.css', import.meta.url), 'utf8');
 const sharedShellCss = readFileSync(new URL('./auth-popup-shared-shell-final.css', import.meta.url), 'utf8');
 const lock = readFileSync(new URL('../../lib/member-document-overlay-lock.ts', import.meta.url), 'utf8');
 const home = readFileSync(new URL('../../member-home.tsx', import.meta.url), 'utf8');
 
-test('auth layout loads the shared Login/Register shell owner last', () => {
-  const sourceParityIndex = layout.indexOf('auth-popup-original-mobile-final.css');
-  const usabilityIndex = layout.indexOf('auth-field-ux-final.css');
-  const desktopSourceIndex = layout.indexOf('auth-popup-reference-desktop-final.css');
-  const sharedShellIndex = layout.indexOf('auth-popup-shared-shell-final.css');
-  assert.ok(sourceParityIndex >= 0);
-  assert.ok(usabilityIndex > sourceParityIndex);
-  assert.ok(desktopSourceIndex > usabilityIndex);
-  assert.ok(sharedShellIndex > desktopSourceIndex);
+test('auth layout restores accepted Mobile Source Set 1 as the final stylesheet owner', () => {
+  const imports = [...layout.matchAll(/import ['"]([^'"]+\.css)['"]/g)].map((match) => match[1]);
+  const sharedShellIndex = imports.indexOf('../components/auth/auth-popup-shared-shell-final.css');
+  const sourceSetOneIndex = imports.indexOf('../components/auth/auth-popup-source-set1-final.css');
+  assert.ok(sharedShellIndex >= 0);
+  assert.ok(sourceSetOneIndex > sharedShellIndex);
+  assert.equal(imports.at(-1), '../components/auth/auth-popup-source-set1-final.css');
   assert.match(layout, /<AuthFieldRuntime \/>/);
 });
 
-test('legacy Mobile Auth keeps the supplied compact angled-tab styling', () => {
-  assert.match(mobileFinalCss, /width:\s*55%\s*!important/);
-  assert.match(mobileFinalCss, /clip-path:\s*polygon\(0 0,\s*88% 0,\s*100% 100%,\s*0 100%\)/);
-  assert.match(mobileFinalCss, /clip-path:\s*polygon\(12% 0,\s*100% 0,\s*100% 100%,\s*0 100%\)/);
-  assert.match(mobileFinalCss, /background:\s*linear-gradient\(180deg,\s*#e81bd8 0%,\s*#9200df 100%\)/);
-  assert.match(mobileFinalCss, /background:\s*#fff\s*!important/);
-  assert.doesNotMatch(mobileFinalCss, /clip-path:\s*none\s*!important/);
+test('final Mobile Auth uses the accepted rectangular Source Set 1 tabs', () => {
+  assert.match(sourceSetOne, /grid-template-columns:\s*repeat\(2, minmax\(0, 1fr\)\)\s*!important/);
+  assert.match(sourceSetOne, /height:\s*48px\s*!important/);
+  assert.match(sourceSetOne, /clip-path:\s*none\s*!important/);
+  assert.match(sourceSetOne, /a\[aria-current='page'\][\s\S]*background:\s*#3e3a49\s*!important/);
 });
 
-test('final Mobile Auth uses the source-width shared shell for both modes', () => {
-  assert.match(sharedShellCss, /@media \(max-width:\s*900px\)/);
-  assert.match(sharedShellCss, /width:\s*min\(360px,\s*calc\(100vw - 24px\)\)\s*!important/);
-  assert.match(sharedShellCss, /source-login-tabs,[\s\S]*source-register-tabs/);
-  assert.match(sharedShellCss, /height:\s*46px\s*!important/);
-  assert.match(sharedShellCss, /padding:\s*16px 18px 14px\s*!important/);
-  assert.match(sharedShellCss, /source-register-progress[\s\S]*display:\s*none\s*!important/);
+test('final Mobile Auth uses the accepted Source Set 1 shell and field geometry', () => {
+  assert.match(sourceSetOne, /@media \(max-width:\s*900px\)/);
+  assert.match(sourceSetOne, /width:\s*min\(360px,\s*calc\(100vw - 48px\)\)\s*!important/);
+  assert.match(sourceSetOne, /source-login-card,[\s\S]*source-register-card[\s\S]*padding:\s*24px\s*!important/);
+  assert.match(sourceSetOne, /source-login-field \.public-auth-input,[\s\S]*height:\s*56px\s*!important/);
+  assert.match(sourceSetOne, /source-register-progress[\s\S]*display:\s*none\s*!important/);
 });
 
-test('login and registration fields keep visible labels and usable password controls', () => {
-  assert.match(css, /public-auth-field-label/);
-  assert.match(css, /position:\s*static\s*!important/);
-  assert.match(css, /opacity:\s*1\s*!important/);
-  assert.match(css, /auth-runtime-password-eye/);
+test('login and registration fields keep source labels plus runtime placeholders and password controls', () => {
+  assert.match(sourceSetOne, /public-auth-field-label/);
+  assert.match(sourceSetOne, /position:\s*absolute\s*!important/);
   assert.match(runtime, /control\.placeholder = label/);
   assert.match(runtime, /control\.type = reveal \? 'text' : 'password'/);
+  assert.match(runtime, /\.auth-runtime-password-eye/);
   assert.match(runtime, /MutationObserver/);
 });
 
