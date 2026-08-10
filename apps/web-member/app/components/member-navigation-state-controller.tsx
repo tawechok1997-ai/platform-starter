@@ -3,6 +3,7 @@
 import { Suspense, useLayoutEffect } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { isMemberNavigationActive } from '../member-navigation-active';
+import { MemberThemeSettingsRuntime } from '../member-theme-settings-runtime';
 
 const NAVIGATION_LINK_SELECTOR = [
   '.member-desktop-nav a[href]',
@@ -12,9 +13,12 @@ const NAVIGATION_LINK_SELECTOR = [
 
 export default function MemberNavigationStateController() {
   return (
-    <Suspense fallback={null}>
-      <MemberNavigationStateInner />
-    </Suspense>
+    <>
+      <MemberThemeSettingsRuntime />
+      <Suspense fallback={null}>
+        <MemberNavigationStateInner />
+      </Suspense>
+    </>
   );
 }
 
