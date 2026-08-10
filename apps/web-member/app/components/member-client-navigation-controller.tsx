@@ -151,7 +151,11 @@ export default function MemberClientNavigationController() {
     };
   }, [router]);
 
-  return null;
+  return (
+    <div className="member-route-progress" aria-hidden="true" data-member-route-progress="true">
+      <span />
+    </div>
+  );
 }
 
 function shouldAnimateRouteLink(link: HTMLAnchorElement, destination: InternalDestination) {
