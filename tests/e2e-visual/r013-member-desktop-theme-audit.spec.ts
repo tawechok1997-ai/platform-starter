@@ -16,20 +16,16 @@ test('Theme & layout settings change live Member tokens and desktop ownership', 
     gameGridColumns: 5,
   });
 
-  await page.route('**/public/site-settings**', async (route) => {
+  await page.route('**/api/site-settings**', async (route) => {
     settingsRequests += 1;
     await fulfillJson(route, settings);
   });
 
-  // The first render is seeded by the Next.js server, so Playwright cannot
-  // intercept that request. Wait until hydration/passive effects have settled,
-  // then exercise the same focus lifecycle Production uses after an operator
-  // changes settings in another tab.
+  // Server rendering owns the first settings snapshot. After hydration the
+  // provider must revalidate through the Member same-origin proxy, which is
+  // the exact browser path used in Production and avoids cross-origin API drift.
   await page.goto(BASE_URL, { waitUntil: 'domcontentloaded', timeout: 45_000 });
   await expect(page.locator('html')).toHaveAttribute('data-member-theme-authority', 'true');
-  await page.waitForLoadState('networkidle', { timeout: 10_000 }).catch(() => undefined);
-  await page.waitForTimeout(250);
-  await refreshSettingsOnFocus(page);
   await expect.poll(() => settingsRequests, { timeout: 10_000 }).toBeGreaterThanOrEqual(1);
   await expect.poll(async () => (await readThemeState(page)).runtimeBackground, { timeout: 10_000 }).toBe('#08111f');
 
@@ -49,8 +45,8 @@ test('Theme & layout settings change live Member tokens and desktop ownership', 
     gameGridColumns: 4,
   });
 
-  // SiteSettingsProvider intentionally throttles active-tab reloads to 1.5s.
-  // Respect that policy and prove the live page updates without a navigation.
+  // Focus/visibility remain the long-lived synchronization path after the
+  // initial hydration revalidation. Respect the provider's 1.5s throttle.
   await page.waitForTimeout(1_600);
   await refreshSettingsOnFocus(page);
   await expect.poll(() => settingsRequests, { timeout: 10_000 }).toBeGreaterThanOrEqual(2);
