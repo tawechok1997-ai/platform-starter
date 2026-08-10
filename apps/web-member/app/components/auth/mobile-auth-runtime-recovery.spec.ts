@@ -5,7 +5,8 @@ import test from 'node:test';
 const runtime = readFileSync(new URL('./auth-field-runtime.tsx', import.meta.url), 'utf8');
 const overlay = readFileSync(new URL('./member-auth-overlay.tsx', import.meta.url), 'utf8');
 const layout = readFileSync(new URL('../../(auth)/layout.tsx', import.meta.url), 'utf8');
-const sourceSetOne = readFileSync(new URL('./auth-popup-source-set1-final.css', import.meta.url), 'utf8');
+const originalMobile = readFileSync(new URL('./auth-popup-original-mobile-final.css', import.meta.url), 'utf8');
+const antiBot = readFileSync(new URL('../../(auth)/anti-bot-widget.tsx', import.meta.url), 'utf8');
 const home = readFileSync(new URL('../../member-home.tsx', import.meta.url), 'utf8');
 const drawer = readFileSync(new URL('../mobile-home/mobile-drawer-reference-parity.css', import.meta.url), 'utf8');
 const drawerModule = readFileSync(new URL('../mobile-home/mobile-home-root.module.css', import.meta.url), 'utf8');
@@ -28,14 +29,22 @@ test('Login and Register stay inside one mounted overlay without route reloads',
   assert.doesNotMatch(overlay, /setFrameReady\(false\)/);
 });
 
-test('accepted Mobile Source Set 1 is again the final auth stylesheet owner', () => {
+test('supplied compact Mobile auth stylesheet is the final visual owner', () => {
   const imports = [...layout.matchAll(/import ['"]([^'"]+\.css)['"]/g)].map((match) => match[1]);
-  assert.equal(imports.at(-1), '../components/auth/auth-popup-source-set1-final.css');
-  assert.match(sourceSetOne, /grid-template-columns:\s*repeat\(2, minmax\(0, 1fr\)\)\s*!important/);
-  assert.match(sourceSetOne, /clip-path:\s*none\s*!important/);
-  assert.match(sourceSetOne, /a\[aria-current='page'\][\s\S]*background:\s*#3e3a49\s*!important/);
-  assert.match(sourceSetOne, /height:\s*56px\s*!important/);
-  assert.match(sourceSetOne, /source-login-close[\s\S]*background:\s*#fff\s*!important/);
+  assert.equal(imports.at(-1), '../components/auth/auth-popup-original-mobile-final.css');
+  assert.doesNotMatch(layout, /auth-popup-source-set1-final\.css/);
+  assert.match(originalMobile, /height:\s*42px\s*!important/);
+  assert.match(originalMobile, /clip-path:\s*polygon\(0 0, 88% 0, 100% 100%, 0 100%\)\s*!important/);
+  assert.match(originalMobile, /background:\s*linear-gradient\(180deg, #e81bd8 0%, #9200df 100%\)\s*!important/);
+  assert.match(originalMobile, /source-login-field \.public-auth-input,[\s\S]*height:\s*42px\s*!important/);
+  assert.match(originalMobile, /source-login-submit,[\s\S]*height:\s*38px\s*!important/);
+});
+
+test('adaptive anti-bot config uses the same public API boundary as auth submission and refreshes after failures', () => {
+  assert.match(antiBot, /import \{ API_URL \} from '\.\.\/member-api'/);
+  assert.match(antiBot, /fetch\(`\$\{base\}\/public\/anti-bot\/\$\{endpoint\}`/);
+  assert.match(antiBot, /\[endpoint, locale, onRequiredChange, resetKey\]/);
+  assert.doesNotMatch(antiBot, /\/api\/anti-bot\/\$\{endpoint\}/);
 });
 
 test('Mobile Home restores the source drawer chain and removes screenshot-guessed visual owners', () => {
