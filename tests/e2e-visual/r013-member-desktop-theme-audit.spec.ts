@@ -1,0 +1,132 @@
+import { expect, test, type Page, type Route } from '@playwright/test';
+
+const BASE_URL = process.env.MEMBER_HOME_URL ?? 'http://127.0.0.1:3000/';
+
+test('Theme & layout settings change live Member tokens and desktop ownership', async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== '1440x900', 'Theme propagation runs once at the reference desktop viewport');
+
+  let settings = settingsFixture({
+    background: '#08111f',
+    card: '#14233a',
+    text: '#f7fbff',
+    primary: '#29d3c2',
+    desktopSidebarEnabled: true,
+    bottomNavigationEnabled: true,
+    gameGridColumns: 5,
+  });
+
+  await page.route('**/public/site-settings**', async (route) => fulfillJson(route, settings));
+  await page.goto(BASE_URL, { waitUntil: 'domcontentloaded', timeout: 45_000 });
+  await expect(page.locator('html')).toHaveAttribute('data-member-theme-authority', 'true');
+  await page.waitForTimeout(200);
+
+  const first = await readThemeState(page);
+  expect(first.runtimeBackground).toBe('#08111f');
+  expect(first.aliasCanvas).toBe('rgb(8, 17, 31)');
+  expect(first.runtimeColumns).toBe('5');
+  expect(first.desktopSidebar).toBe('true');
+  expect(first.bottomNavigation).toBe('true');
+
+  settings = settingsFixture({
+    background: '#f2f6fb',
+    card: '#ffffff',
+    text: '#102036',
+    primary: '#7257ff',
+    desktopSidebarEnabled: false,
+    bottomNavigationEnabled: false,
+    gameGridColumns: 4,
+  });
+
+  await page.reload({ waitUntil: 'domcontentloaded', timeout: 45_000 });
+  await expect(page.locator('html')).toHaveAttribute('data-member-theme-authority', 'true');
+  await page.waitForTimeout(200);
+
+  const second = await readThemeState(page);
+  expect(second.runtimeBackground).toBe('#f2f6fb');
+  expect(second.aliasCanvas).toBe('rgb(242, 246, 251)');
+  expect(second.runtimeColumns).toBe('4');
+  expect(second.desktopSidebar).toBe('false');
+  expect(second.bottomNavigation).toBe('false');
+  expect(second.bodyBackground).not.toBe(first.bodyBackground);
+
+  const sidebar = page.locator('.desktop-reference-home .reference-sidebar').first();
+  if (await sidebar.count()) await expect(sidebar).toBeHidden();
+});
+
+async function readThemeState(page: Page) {
+  return page.evaluate(() => {
+    const root = document.documentElement;
+    const style = getComputedStyle(root);
+    return {
+      runtimeBackground: root.style.getPropertyValue('--member-runtime-background').trim(),
+      runtimeColumns: root.style.getPropertyValue('--member-runtime-game-grid-columns').trim(),
+      aliasCanvas: style.getPropertyValue('--member-canvas').trim(),
+      bodyBackground: getComputedStyle(document.body).backgroundColor,
+      desktopSidebar: root.dataset.memberDesktopSidebar ?? '',
+      bottomNavigation: root.dataset.memberBottomNavigation ?? '',
+      heroBanner: root.dataset.memberHeroBanner ?? '',
+      providerMenu: root.dataset.memberProviderMenu ?? '',
+    };
+  });
+}
+
+function settingsFixture(options: {
+  background: string;
+  card: string;
+  text: string;
+  primary: string;
+  desktopSidebarEnabled: boolean;
+  bottomNavigationEnabled: boolean;
+  gameGridColumns: number;
+}) {
+  return {
+    branding: {
+      primary_color: options.primary,
+      secondary_color: '#7c3aed',
+      accent_color: options.primary,
+      background_color: options.background,
+      card_color: options.card,
+      text_color: options.text,
+      muted_text_color: '#64748b',
+      border_color: '#c9d3e0',
+      success_color: '#22c55e',
+      warning_color: '#f59e0b',
+      danger_color: '#ef4444',
+      info_color: '#3b82f6',
+    },
+    theme: {
+      animation_level: 'subtle',
+      card_radius: 18,
+      control_radius: 12,
+      modal_radius: 22,
+      section_gap_desktop: 24,
+      section_gap_mobile: 16,
+      card_gap_desktop: 14,
+      card_gap_mobile: 10,
+      game_grid_columns: options.gameGridColumns,
+      hero_banner_enabled: true,
+      provider_menu_enabled: true,
+      show_promotion_banner: true,
+      show_game_categories: true,
+      show_popular_providers: true,
+      show_recommended_games: true,
+      bottom_navigation_enabled: options.bottomNavigationEnabled,
+      desktop_sidebar_enabled: options.desktopSidebarEnabled,
+      sticky_wallet_enabled: true,
+      floating_deposit_button_enabled: true,
+      show_balance_header: true,
+      show_deposit_withdraw_buttons: true,
+      show_provider_name: true,
+      show_hot_badge: true,
+      show_new_badge: true,
+    },
+  };
+}
+
+async function fulfillJson(route: Route, body: unknown) {
+  await route.fulfill({
+    status: 200,
+    contentType: 'application/json; charset=utf-8',
+    body: JSON.stringify(body),
+  });
+}
