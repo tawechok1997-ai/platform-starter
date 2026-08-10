@@ -1,0 +1,46 @@
+/* Final Desktop announcement motion owner.
+ * The source notice is a continuously scrolling marquee. Keep this import last
+ * so older Desktop acceptance layers cannot freeze the announcement track.
+ */
+@media (min-width: 901px) {
+  .desktop-reference-home .reference-announcement-viewport {
+    position: relative !important;
+    display: block !important;
+    min-width: 0 !important;
+    flex: 1 1 auto !important;
+    overflow: hidden !important;
+  }
+
+  .desktop-reference-home .reference-announcement-track {
+    display: block !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    overflow: visible !important;
+    transform: none !important;
+  }
+
+  .desktop-reference-home .reference-announcement-track > span {
+    display: inline-block !important;
+    width: max-content !important;
+    min-width: max-content !important;
+    padding-left: 100% !important;
+    white-space: nowrap !important;
+    animation: desktop-reference-announcement-marquee 18s linear infinite !important;
+    will-change: transform;
+  }
+
+  .desktop-reference-home .reference-announcement:hover .reference-announcement-track > span,
+  .desktop-reference-home .reference-announcement:focus-within .reference-announcement-track > span {
+    animation-play-state: running !important;
+  }
+}
+
+@keyframes desktop-reference-announcement-marquee {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+
+  to {
+    transform: translate3d(-100%, 0, 0);
+  }
+}
