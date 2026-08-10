@@ -101,11 +101,19 @@ export class AuthService {
     const rawSecret = dto.secret ?? dto.password;
     if (!rawSecret) throw new BadRequestException('secret is required');
 
+    const identifier = String(dto.identifier ?? '').trim();
+    if (!identifier) throw new BadRequestException('identifier is required');
+
     const user = await this.prisma.user.findFirst({
-      where: { OR: [{ username: dto.identifier }, { phone: dto.identifier }, { email: dto.identifier }] },
+      where: { OR: this.memberIdentifierFilters(identifier) as any },
     });
-    if (!user || user.status !== 'ACTIVE') {
-      await this.safeWriteLoginHistory('MEMBER', null, false, meta, 'MEMBER_NOT_FOUND_OR_INACTIVE');
+    if (!user) {
+      await this.safeWriteLoginHistory('MEMBER', null, false, meta, 'MEMBER_NOT_FOUND');
+      throw new UnauthorizedException('Invalid credentials');
+    }
+
+    if (!(await this.ensureMemberCanSignIn(user))) {
+      await this.safeWriteLoginHistory('MEMBER', user.id, false, meta, `MEMBER_${user.status}`);
       throw new UnauthorizedException('Invalid credentials');
     }
 
@@ -160,7 +168,7 @@ export class AuthService {
     const identifier = String(identifierInput ?? '').trim();
     const user = identifier
       ? await this.prisma.user.findFirst({
-          where: { OR: [{ username: identifier }, { email: identifier.toLowerCase() }, { phone: identifier }] },
+          where: { OR: this.memberIdentifierFilters(identifier) as any },
           select: { id: true },
         })
       : null;
@@ -378,6 +386,40 @@ export class AuthService {
     };
   }
 
+  private async ensureMemberCanSignIn(user: { id: string; status: string; updatedAt: Date }) {
+    if (user.status === 'ACTIVE') return true;
+    if (user.status !== 'LOCKED') return false;
+
+    const threshold = this.readPositiveInt('MEMBER_LOCKOUT_FAILURES', 8);
+    const windowMinutes = this.readPositiveInt('MEMBER_LOCKOUT_WINDOW_MINUTES', 15);
+    const invalidSecretFailures = await this.prisma.loginHistory.findMany({
+      where: {
+        userId: user.id,
+        type: 'MEMBER',
+        success: false,
+        reason: 'INVALID_SECRET',
+      },
+      orderBy: { createdAt: 'desc' },
+      take: threshold,
+      select: { createdAt: true },
+    });
+    if (invalidSecretFailures.length < threshold) return false;
+
+    const lockedAt = user.updatedAt.getTime();
+    const latestFailureAt = invalidSecretFailures[0]?.createdAt.getTime() ?? Number.NaN;
+    const automaticLockCorrelationMs = 30_000;
+    if (!Number.isFinite(latestFailureAt) || Math.abs(lockedAt - latestFailureAt) > automaticLockCorrelationMs) {
+      return false;
+    }
+    if (Date.now() - lockedAt < windowMinutes * 60_000) return false;
+
+    const recovered = await this.prisma.user.updateMany({
+      where: { id: user.id, status: 'LOCKED', updatedAt: user.updatedAt },
+      data: { status: 'ACTIVE' },
+    });
+    return recovered.count === 1;
+  }
+
   private async maybeLockMemberAfterFailures(userId: string) {
     const threshold = this.readPositiveInt('MEMBER_LOCKOUT_FAILURES', 8);
     const windowMinutes = this.readPositiveInt('MEMBER_LOCKOUT_WINDOW_MINUTES', 15);
@@ -397,6 +439,34 @@ export class AuthService {
       where: { id: userId, status: 'ACTIVE' },
       data: { status: 'LOCKED' },
     });
+  }
+
+  private memberIdentifierFilters(identifierInput: string) {
+    const identifier = identifierInput.trim();
+    const filters: Array<Record<string, string>> = [
+      { username: identifier },
+      { email: identifier.toLowerCase() },
+    ];
+    for (const phone of this.memberPhoneCandidates(identifier)) filters.push({ phone });
+    return filters;
+  }
+
+  private memberPhoneCandidates(value: string) {
+    const input = value.trim();
+    if (!input || !/^[+\d\s().-]+$/.test(input)) return [];
+
+    const digits = input.replace(/\D/g, '');
+    const candidates = new Set<string>([input]);
+    if (/^0\d{9}$/.test(digits)) {
+      candidates.add(digits);
+      candidates.add(`66${digits.slice(1)}`);
+      candidates.add(`+66${digits.slice(1)}`);
+    } else if (/^66\d{9}$/.test(digits)) {
+      candidates.add(digits);
+      candidates.add(`+${digits}`);
+      candidates.add(`0${digits.slice(2)}`);
+    }
+    return [...candidates];
   }
 
   private async createMemberSession(userId: string, meta: RequestMeta = {}) {
