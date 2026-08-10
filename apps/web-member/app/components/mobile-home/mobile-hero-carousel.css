@@ -4,10 +4,19 @@
  * a pill or make a neighbouring indicator appear to disappear.
  */
 @media (max-width: 900px) {
+  [data-mobile-home-root='true'] [data-mobile-section-owner='hero'] {
+    position: relative !important;
+  }
+
   [data-mobile-home-root='true'] [data-mobile-section-owner='hero'] > div[aria-label] {
+    position: absolute !important;
+    right: 12px !important;
+    bottom: 7px !important;
+    left: 12px !important;
+    z-index: 4 !important;
     display: flex !important;
     box-sizing: border-box !important;
-    width: 100% !important;
+    width: auto !important;
     min-height: 18px !important;
     margin: 0 !important;
     padding: 0 !important;
@@ -17,6 +26,7 @@
     overflow: visible !important;
     opacity: 1 !important;
     visibility: visible !important;
+    pointer-events: none !important;
   }
 
   [data-mobile-home-root='true'] [data-mobile-section-owner='hero'] > div[aria-label] > button {
