@@ -9,6 +9,7 @@ const registerView = readFileSync(new URL('../../../src/features/auth/register-v
 const antiBot = readFileSync(new URL('../../(auth)/anti-bot-widget.tsx', import.meta.url), 'utf8');
 const runtime = readFileSync(new URL('./auth-field-runtime.tsx', import.meta.url), 'utf8');
 const css = readFileSync(new URL('./auth-field-ux-final.css', import.meta.url), 'utf8');
+const mobileFinalCss = readFileSync(new URL('./auth-popup-original-mobile-final.css', import.meta.url), 'utf8');
 const desktopCss = readFileSync(new URL('./auth-popup-reference-desktop-final.css', import.meta.url), 'utf8');
 const lock = readFileSync(new URL('../../lib/member-document-overlay-lock.ts', import.meta.url), 'utf8');
 const home = readFileSync(new URL('../../member-home.tsx', import.meta.url), 'utf8');
@@ -21,6 +22,19 @@ test('auth layout loads usability and final desktop source owners in order', () 
   assert.ok(usabilityIndex > sourceParityIndex);
   assert.ok(desktopSourceIndex > usabilityIndex);
   assert.match(layout, /<AuthFieldRuntime \/>/);
+});
+
+test('final Mobile Auth matches the supplied compact angled-tab reference', () => {
+  assert.match(mobileFinalCss, /width:\s*min\(360px,\s*calc\(100vw - 48px\)\)/);
+  assert.match(mobileFinalCss, /height:\s*42px\s*!important/);
+  assert.match(mobileFinalCss, /width:\s*55%\s*!important/);
+  assert.match(mobileFinalCss, /clip-path:\s*polygon\(0 0,\s*88% 0,\s*100% 100%,\s*0 100%\)/);
+  assert.match(mobileFinalCss, /clip-path:\s*polygon\(12% 0,\s*100% 0,\s*100% 100%,\s*0 100%\)/);
+  assert.match(mobileFinalCss, /background:\s*linear-gradient\(180deg,\s*#e81bd8 0%,\s*#9200df 100%\)/);
+  assert.match(mobileFinalCss, /padding:\s*14px 14px 12px\s*!important/);
+  assert.match(mobileFinalCss, /height:\s*38px\s*!important/);
+  assert.match(mobileFinalCss, /background:\s*#fff\s*!important/);
+  assert.doesNotMatch(mobileFinalCss, /clip-path:\s*none\s*!important/);
 });
 
 test('login and registration fields keep visible labels and usable password controls', () => {
