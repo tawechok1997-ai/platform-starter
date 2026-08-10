@@ -8,6 +8,7 @@ const layout = readFileSync(new URL('../../(auth)/layout.tsx', import.meta.url),
 const sourceSetOne = readFileSync(new URL('./auth-popup-source-set1-final.css', import.meta.url), 'utf8');
 const home = readFileSync(new URL('../../member-home.tsx', import.meta.url), 'utf8');
 const drawer = readFileSync(new URL('../mobile-home/mobile-drawer-reference-parity.css', import.meta.url), 'utf8');
+const drawerModule = readFileSync(new URL('../mobile-home/mobile-home-root.module.css', import.meta.url), 'utf8');
 const hero = readFileSync(new URL('../mobile-home/mobile-hero-carousel.css', import.meta.url), 'utf8');
 
 test('password field enhancement reuses its own runtime toggle instead of creating an observer loop', () => {
@@ -44,10 +45,12 @@ test('Mobile Home restores the source drawer chain and removes screenshot-guesse
   assert.doesNotMatch(home, /mobile-auth-drawer-runtime-correction\.css/);
 });
 
-test('Mobile drawer keeps the supplied source geometry, surfaces, and guest actions', () => {
+test('Mobile drawer keeps source geometry and exactly one 445px glow owner', () => {
   assert.match(drawer, /width:\s*min\(340px, 100vw\)\s*!important/);
   assert.match(drawer, /padding:\s*20px 23px\s*!important/);
-  assert.match(drawer, /radial-gradient\(circle 222\.5px at 50% 0%, rgb\(187 91 234 \/ 40%\)/);
+  assert.match(drawer, /background:\s*rgb\(17 14 22\)\s*!important/);
+  assert.doesNotMatch(drawer, /radial-gradient\(circle 222\.5px at 50% 0%/);
+  assert.match(drawerModule, /\.drawerGlow\s*\{[\s\S]*width:\s*445px;[\s\S]*height:\s*445px;[\s\S]*opacity:\s*0\.4;/);
   assert.match(drawer, /background:\s*rgb\(187 91 234 \/ 10%\)\s*!important/);
   assert.match(drawer, /linear-gradient\(rgb\(129 104 157\), rgb\(206 156 186\)\)\s*!important/);
   assert.match(drawer, /linear-gradient\(rgb\(114 4 85\), rgb\(145 10 103\)\)\s*!important/);
