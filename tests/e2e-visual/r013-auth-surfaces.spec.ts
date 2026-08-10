@@ -29,7 +29,10 @@ for (const surface of [
       if (record) record.status = response.status();
     });
 
-    await page.goto(surface.url, { waitUntil: 'networkidle' });
+    // These pages intentionally own live settings/session revalidation. A quiet
+    // network is therefore not a stable readiness contract. The rendered auth
+    // owner is the user-visible condition the visual baseline actually needs.
+    await page.goto(surface.url, { waitUntil: 'domcontentloaded' });
     await page.locator(surface.ready).waitFor({ state: 'visible' });
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await page.addStyleTag({ content: '*,*::before,*::after{caret-color:transparent!important}' });
