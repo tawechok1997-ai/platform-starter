@@ -34,6 +34,7 @@ import './components/mobile-home/mobile-hero-carousel.css';
 import './components/mobile-home/mobile-drawer-reference-parity.css';
 import './components/mobile-home/mobile-leaderboard-fit.css';
 import './components/mobile-home/mobile-reference-fidelity-final.css';
+import './components/mobile-home/mobile-auth-drawer-runtime-correction.css';
 
 type MemberHomeProps = {
   siteName: string;
