@@ -56,6 +56,22 @@
     display: none !important;
   }
 
+  /* Exact source glow child: 445x445, centered half above the drawer, 40% opacity. */
+  #mobile-home-drawer > div:first-child {
+    position: absolute !important;
+    top: -222.5px !important;
+    left: 50% !important;
+    width: 445px !important;
+    min-width: 445px !important;
+    height: 445px !important;
+    min-height: 445px !important;
+    border-radius: 999px !important;
+    opacity: .4 !important;
+    background: radial-gradient(50% 50%, rgb(187 91 234) 0%, rgb(38 33 52 / 0%) 100%) !important;
+    transform: translateX(-50%) !important;
+    pointer-events: none !important;
+  }
+
   /* Source header: 140px logo, capped at 32vw/30px high, then a 24px visual gap. */
   #mobile-home-drawer > div:nth-child(2) {
     position: relative !important;
