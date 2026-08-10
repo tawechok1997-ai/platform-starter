@@ -97,7 +97,7 @@
     object-position: left center !important;
   }
 
-  /* Keep the source 12px close glyph while retaining a 44px touch target. */
+  /* Source uses the 12px /images/close.svg glyph; the larger box is only the touch target. */
   #mobile-home-drawer > div:nth-child(2) > button {
     position: absolute !important;
     top: -16px !important;
@@ -113,11 +113,15 @@
     place-items: center !important;
     border: 0 !important;
     border-radius: 0 !important;
-    color: #fff !important;
-    background: transparent !important;
+    color: transparent !important;
+    background-color: transparent !important;
+    background-image: url('/images/close.svg') !important;
+    background-position: center !important;
+    background-repeat: no-repeat !important;
+    background-size: 12px 12px !important;
     box-shadow: none !important;
-    font-size: 12px !important;
-    line-height: 1 !important;
+    font-size: 0 !important;
+    line-height: 0 !important;
   }
 
   #mobile-home-drawer > div:nth-child(2) > button :is(svg, img) {
@@ -160,6 +164,9 @@
     height: 32px !important;
     min-height: 32px !important;
     border-radius: 0 !important;
+    color: inherit !important;
+    background: transparent !important;
+    box-shadow: none !important;
     transform: scale(.85) !important;
     transform-origin: center !important;
   }
@@ -221,6 +228,8 @@
     min-height: 32px !important;
     max-height: 32px !important;
     border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
     object-fit: contain !important;
   }
 
