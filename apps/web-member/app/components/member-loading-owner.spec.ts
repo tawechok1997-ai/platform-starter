@@ -27,12 +27,17 @@ test('desktop and mobile loading surfaces are separate components', () => {
   assert.match(mobileLoading, /member-mobile-loading-screen\.module\.css/);
 });
 
-test('both loaders keep the same loading word treatment without sharing markup', () => {
+test('both loaders keep one branded loading-stage contract without sharing markup', () => {
   for (const source of [desktopLoading, mobileLoading]) {
-    assert.match(source, /<span className=\{styles\.spinner\} \/>/);
-    assert.match(source, /<span>L<\/span>/);
-    assert.match(source, /<span>ading<\/span>/);
+    assert.match(source, /className=\{styles\.stage\}/);
+    assert.match(source, /className=\{styles\.logoShell\}/);
+    assert.match(source, /className=\{styles\.loadingDots\}/);
+    assert.match(source, /className=\{styles\.progressTrack\}/);
+    assert.match(source, /className=\{styles\.skeleton\}/);
+    assert.match(source, /9ee1acbf-c1e2-44e9-bffd-3254ff56b5f7\.png/);
   }
 
+  assert.doesNotMatch(desktopLoading, /className=\{styles\.spinner\}/);
+  assert.doesNotMatch(mobileLoading, /className=\{styles\.spinner\}/);
   assert.doesNotMatch(responsiveLoading, /className=\{styles\./);
 });

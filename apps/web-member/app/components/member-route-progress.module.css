@@ -1,0 +1,91 @@
+.progress {
+  position: fixed;
+  top: 0;
+  right: 0;
+  left: 0;
+  z-index: 2147482000;
+  height: 2px;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-2px);
+  transition:
+    opacity 100ms ease,
+    transform 140ms cubic-bezier(.2, 0, 0, 1);
+}
+
+.progress::before {
+  position: absolute;
+  inset: 0;
+  background: rgb(255 255 255 / 3%);
+  content: '';
+}
+
+.progress span {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 36%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, transparent 0%, #8a15b8 28%, #c453ed 62%, #f0c9ff 84%, transparent 100%);
+  box-shadow:
+    0 0 10px rgb(196 83 237 / 74%),
+    0 0 20px rgb(138 21 184 / 28%);
+  transform: translateX(-120%);
+}
+
+:global(html[data-member-route-motion='leaving']) .progress {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+:global(html[data-member-route-motion='leaving']) .progress span {
+  animation: memberRouteProgressTravel 900ms cubic-bezier(.22, 1, .36, 1) infinite;
+}
+
+:global(html[data-member-route-motion='entering']) .progress {
+  opacity: 1;
+  transform: translateY(0);
+  animation: memberRouteProgressFinish 240ms cubic-bezier(.22, 1, .36, 1) both;
+}
+
+:global(html[data-member-route-motion='entering']) .progress span {
+  width: 100%;
+  transform: translateX(0);
+  background: linear-gradient(90deg, #7910a5 0%, #c453ed 52%, #f0c9ff 100%);
+}
+
+@keyframes memberRouteProgressTravel {
+  0% { transform: translateX(-120%) scaleX(.72); }
+  48% { transform: translateX(110%) scaleX(1); }
+  100% { transform: translateX(320%) scaleX(.82); }
+}
+
+@keyframes memberRouteProgressFinish {
+  0% { opacity: .92; }
+  68% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+@media (max-width: 900px) {
+  .progress {
+    height: 2px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .progress,
+  .progress span {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  :global(html[data-member-route-motion='leaving']) .progress {
+    opacity: .65;
+  }
+
+  :global(html[data-member-route-motion='leaving']) .progress span,
+  :global(html[data-member-route-motion='entering']) .progress span {
+    width: 100%;
+    transform: translateX(0);
+  }
+}

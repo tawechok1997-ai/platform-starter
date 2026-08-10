@@ -18,20 +18,49 @@ export default function MemberMobileLoadingScreen() {
           <i />
         </span>
 
-        <img className={styles.logo} src={LOGO_URL} alt="" />
+        <img className={styles.headerLogo} src={LOGO_URL} alt="" />
 
         <span className={styles.flag}>
           <img src="/images/flags/th.svg" alt="" />
         </span>
       </header>
 
-      <div className={styles.loadingWord} aria-hidden="true">
-        <span>L</span>
-        <span className={styles.spinner} />
-        <span>ading</span>
+      <div className={styles.skeleton} aria-hidden="true">
+        <span className={styles.skeletonHero} />
+        <span className={styles.skeletonAction} />
+        <span className={styles.skeletonAction} />
+        <span className={styles.skeletonTicker} />
+        <div className={styles.skeletonContent}>
+          <span className={styles.skeletonRail} />
+          <div className={styles.skeletonCards}>
+            <span />
+            <span />
+            <span />
+            <span />
+          </div>
+        </div>
       </div>
 
-      <span className={styles.srOnly}>กำลังโหลด</span>
+      <div className={styles.stage} aria-hidden="true">
+        <span className={styles.aura} />
+        <span className={styles.orbit}>
+          <i />
+          <i />
+        </span>
+        <span className={styles.logoShell}>
+          <img src={LOGO_URL} alt="" />
+        </span>
+        <span className={styles.loadingDots}>
+          <i />
+          <i />
+          <i />
+        </span>
+        <span className={styles.progressTrack}>
+          <i />
+        </span>
+      </div>
+
+      <span className={styles.srOnly}>กำลังโหลดข้อมูลสมาชิก</span>
     </main>
   );
 }

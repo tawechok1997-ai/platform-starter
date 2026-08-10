@@ -2,6 +2,7 @@
 
 import { startTransition, useEffect, useRef } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
+import styles from './member-route-progress.module.css';
 
 const OPT_OUT_SELECTOR = [
   '[download]',
@@ -151,7 +152,11 @@ export default function MemberClientNavigationController() {
     };
   }, [router]);
 
-  return null;
+  return (
+    <div className={styles.progress} aria-hidden="true" data-member-route-progress="true">
+      <span />
+    </div>
+  );
 }
 
 function shouldAnimateRouteLink(link: HTMLAnchorElement, destination: InternalDestination) {
