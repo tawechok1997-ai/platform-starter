@@ -35,7 +35,7 @@ export default function AuthFieldRuntime() {
         if (!(control instanceof HTMLInputElement) || control.type !== 'password') return;
         control.dataset.authPasswordEnhanced = 'true';
 
-        const existingToggle = field.querySelector<HTMLButtonElement>('.public-auth-eye, .source-login-eye');
+        const existingToggle = field.querySelector<HTMLButtonElement>('.public-auth-eye, .source-login-eye, .auth-runtime-password-eye');
         if (existingToggle) {
           existingToggle.dataset.authPasswordToggle = 'true';
           return;
