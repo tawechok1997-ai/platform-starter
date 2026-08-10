@@ -33,7 +33,6 @@ import { useMemberHomeData } from './hooks/use-member-home-data';
 import './components/mobile-home/mobile-hero-carousel.css';
 import './components/mobile-home/mobile-drawer-reference-parity.css';
 import './components/mobile-home/mobile-leaderboard-fit.css';
-import './components/mobile-home/mobile-reference-fidelity-final.css';
 
 type MemberHomeProps = {
   siteName: string;
