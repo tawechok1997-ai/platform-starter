@@ -19,11 +19,13 @@ test('password field enhancement reuses its own runtime toggle instead of creati
   assert.match(runtime, /if \(existingToggle\) \{[\s\S]*return;/);
 });
 
-test('Login and Register keep one mounted popup shell while switching modes', () => {
-  const modeSwitch = overlay.match(/const navigateEmbeddedMode = useCallback\([\s\S]*?\n  \}, \[requestId, switchMode\]\);/)?.[0] ?? '';
-  assert.match(modeSwitch, /requestedPathRef\.current = nextPath;\s*switchMode\(nextMode\);/);
-  assert.doesNotMatch(modeSwitch, /setFrameReady\(false\)/);
-  assert.match(overlay, /<iframe[\s\S]*src=\{initialPath\}/);
+test('Login and Register stay inside one mounted overlay without route reloads', () => {
+  assert.match(overlay, /const AUTH_MODES: readonly MemberAuthMode\[\] = \['register', 'login'\]/);
+  assert.match(overlay, /\{AUTH_MODES\.map\(\(frameMode\) => \([\s\S]*data-auth-frame-active=/);
+  assert.match(overlay, /const switchMode = useCallback\([\s\S]*setActiveMode\(nextMode\)/);
+  assert.doesNotMatch(overlay, /location\.replace\(nextPath\)/);
+  assert.doesNotMatch(overlay, /frame\.src\s*=\s*nextPath/);
+  assert.doesNotMatch(overlay, /setFrameReady\(false\)/);
 });
 
 test('accepted Mobile Source Set 1 is again the final auth stylesheet owner', () => {
