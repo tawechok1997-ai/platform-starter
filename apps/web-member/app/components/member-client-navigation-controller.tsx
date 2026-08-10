@@ -2,6 +2,7 @@
 
 import { startTransition, useEffect, useRef } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
+import styles from './member-route-progress.module.css';
 
 const OPT_OUT_SELECTOR = [
   '[download]',
@@ -152,7 +153,7 @@ export default function MemberClientNavigationController() {
   }, [router]);
 
   return (
-    <div className="member-route-progress" aria-hidden="true" data-member-route-progress="true">
+    <div className={styles.progress} aria-hidden="true" data-member-route-progress="true">
       <span />
     </div>
   );
