@@ -18,12 +18,7 @@ export async function GET() {
       signal: AbortSignal.timeout(10_000),
     });
 
-    if (!response.ok) {
-      return NextResponse.json(
-        { message: `Upstream site settings returned ${response.status}` },
-        { status: 502, headers: noStoreHeaders() },
-      );
-    }
+    if (!response.ok) return staleSnapshotResponse();
 
     const data = await response.json() as PublicSiteSettings;
     const settings: PublicSiteSettings = {
@@ -35,11 +30,18 @@ export async function GET() {
 
     return NextResponse.json(settings, { headers: noStoreHeaders() });
   } catch {
-    return NextResponse.json(
-      { message: 'Upstream site settings are unavailable' },
-      { status: 503, headers: noStoreHeaders() },
-    );
+    return staleSnapshotResponse();
   }
+}
+
+function staleSnapshotResponse() {
+  return new NextResponse(null, {
+    status: 204,
+    headers: {
+      ...noStoreHeaders(),
+      'x-site-settings-state': 'stale',
+    },
+  });
 }
 
 function noStoreHeaders() {
