@@ -51,15 +51,25 @@ jobs:
         shell: bash
         env:
           EVENT_NAME: ${{ github.event_name }}
-          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
           PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
           set -euo pipefail
           member_code_changed=false
           version_marker_changed=false
+          current_pr_base_sha=''
 
           if [[ "$EVENT_NAME" == "pull_request" ]]; then
-            git diff --name-only "$PR_BASE_SHA" "$PR_HEAD_SHA" > changed-files.txt
+            # actions/checkout checks out refs/pull/<n>/merge for pull_request
+            # events. HEAD^1 is therefore the exact current base commit that
+            # GitHub used to build this PR run, unlike pull_request.base.sha
+            # which can lag when main advances after the PR was opened.
+            current_pr_base_sha="$(git rev-parse HEAD^1)"
+            if [[ ! "$current_pr_base_sha" =~ ^[0-9a-f]{40}$ ]]; then
+              echo "Unable to resolve the current PR base commit from the checked-out merge ref." >&2
+              exit 1
+            fi
+
+            git diff --name-only "$current_pr_base_sha" "$PR_HEAD_SHA" > changed-files.txt
             cat changed-files.txt
 
             # Production verification should be required only when deployable
@@ -86,6 +96,7 @@ jobs:
 
           echo "member_code_changed=$member_code_changed" >> "$GITHUB_OUTPUT"
           echo "version_marker_changed=$version_marker_changed" >> "$GITHUB_OUTPUT"
+          echo "current_pr_base_sha=$current_pr_base_sha" >> "$GITHUB_OUTPUT"
 
       - name: Resolve verification target
         id: target
@@ -94,7 +105,7 @@ jobs:
           MANUAL_EXPECTED_SHA: ${{ inputs.expected_sha }}
           MANUAL_PRODUCTION_URL: ${{ inputs.production_url }}
           REPOSITORY_PRODUCTION_URL: ${{ vars.MEMBER_PRODUCTION_URL }}
-          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          CURRENT_PR_BASE_SHA: ${{ steps.changes.outputs.current_pr_base_sha }}
           EVENT_NAME: ${{ github.event_name }}
           WORKFLOW_SHA: ${{ github.sha }}
         run: |
@@ -103,7 +114,7 @@ jobs:
           if [[ -n "${MANUAL_EXPECTED_SHA:-}" ]]; then
             expected_sha="$MANUAL_EXPECTED_SHA"
           elif [[ "$EVENT_NAME" == "pull_request" ]]; then
-            expected_sha="$PR_BASE_SHA"
+            expected_sha="$CURRENT_PR_BASE_SHA"
           else
             expected_sha="$WORKFLOW_SHA"
           fi
