@@ -1,0 +1,49 @@
+/* Final Mobile correction for the user-verified production mismatches.
+ * The source screenshot uses #110e16 for the drawer and #22152b for its panels.
+ * Keep this after mobile-reference-fidelity-final.css so guessed colors from the
+ * previous pass cannot win the cascade again.
+ */
+@media (max-width: 900px) {
+  /* Keep the page visible behind Login/Register instead of blacking it out. */
+  html body .member-auth-overlay[data-state='open'] {
+    background-color: rgb(0 0 0 / 48%) !important;
+    backdrop-filter: none !important;
+  }
+
+  [data-mobile-home-root='true'] #mobile-home-drawer {
+    background:
+      radial-gradient(circle 250px at 48% -4%, rgb(187 91 234 / 40%) 0%, rgb(46 32 58 / 10%) 48%, rgb(17 14 22 / 0%) 76%),
+      #110e16 !important;
+  }
+
+  [data-mobile-home-root='true'] #mobile-home-drawer > nav:first-of-type,
+  [data-mobile-home-root='true'] #mobile-home-drawer > nav:nth-of-type(2),
+  [data-mobile-home-root='true'] #mobile-home-drawer > div:last-child {
+    background: #22152b !important;
+  }
+
+  /* The source icons sit directly on the purple panel. There is no extra
+   square tile behind each glyph and no filled circle behind the chevron. */
+  [data-mobile-home-root='true'] #mobile-home-drawer > nav:first-of-type > a > span:first-child,
+  [data-mobile-home-root='true'] #mobile-home-drawer > nav:nth-of-type(2) > a > span:first-child {
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  [data-mobile-home-root='true'] #mobile-home-drawer > nav:first-of-type > a > span:last-child {
+    color: #8f00c8 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  /* Restore the source button bases. The existing source texture remains on
+   top, producing the same lavender and magenta treatment seen in the target. */
+  [data-mobile-home-root='true'] #mobile-home-drawer > div:last-child > a:first-child {
+    background: linear-gradient(rgb(129 104 157), rgb(206 156 186)) !important;
+  }
+
+  [data-mobile-home-root='true'] #mobile-home-drawer > div:last-child > a:last-child {
+    background: linear-gradient(rgb(114 4 85), rgb(145 10 103)) !important;
+  }
+}
