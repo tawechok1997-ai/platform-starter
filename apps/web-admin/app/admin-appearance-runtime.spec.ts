@@ -31,6 +31,12 @@ test('appearance runtime owns theme density contrast and motion preferences', ()
   assert.match(runtime, /admin:appearance-change/);
 });
 
+test('appearance dialog is portaled outside the sticky topbar on every viewport', () => {
+  assert.match(runtime, /const panelRef = useRef<HTMLElement>\(null\)/);
+  assert.match(runtime, /rootRef\.current\?\.contains\(target\) \|\| panelRef\.current\?\.contains\(target\)/);
+  assert.match(runtime, /createPortal\(<div className="admin-appearance-floating">\{panel\}<\/div>, document\.body\)/);
+});
+
 test('appearance foundation covers light dark compact high contrast and reduced motion', () => {
   assert.match(styles, /:root\[data-admin-theme='dark'\]/);
   assert.match(styles, /:root\[data-admin-theme='light'\]/);
