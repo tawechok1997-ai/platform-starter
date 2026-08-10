@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 import test from 'node:test';
 
 const runtime = readFileSync(new URL('./auth-field-runtime.tsx', import.meta.url), 'utf8');
+const overlay = readFileSync(new URL('./member-auth-overlay.tsx', import.meta.url), 'utf8');
 const layout = readFileSync(new URL('../../(auth)/layout.tsx', import.meta.url), 'utf8');
 const sourceSetOne = readFileSync(new URL('./auth-popup-source-set1-final.css', import.meta.url), 'utf8');
 const home = readFileSync(new URL('../../member-home.tsx', import.meta.url), 'utf8');
@@ -15,6 +16,13 @@ test('password field enhancement reuses its own runtime toggle instead of creati
     /querySelector<HTMLButtonElement>\('\.public-auth-eye, \.source-login-eye, \.auth-runtime-password-eye'\)/,
   );
   assert.match(runtime, /if \(existingToggle\) \{[\s\S]*return;/);
+});
+
+test('Login and Register keep one mounted popup shell while switching modes', () => {
+  const modeSwitch = overlay.match(/const navigateEmbeddedMode = useCallback\([\s\S]*?\n  \}, \[requestId, switchMode\]\);/)?.[0] ?? '';
+  assert.match(modeSwitch, /requestedPathRef\.current = nextPath;\s*switchMode\(nextMode\);/);
+  assert.doesNotMatch(modeSwitch, /setFrameReady\(false\)/);
+  assert.match(overlay, /<iframe[\s\S]*src=\{initialPath\}/);
 });
 
 test('accepted Mobile Source Set 1 is again the final auth stylesheet owner', () => {
