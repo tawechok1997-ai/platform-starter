@@ -27,7 +27,10 @@ test('changing an Admin role invalidates the live sidebar permission state', asy
   roleCode = 'marketing';
   permissions = ['promotion.view', 'settings.features.view', 'settings.features.update', 'reports.view'];
 
-  const navigation = page.waitForEvent('framenavigated', { timeout: 12_000 }).catch(() => null);
+  const navigation = page.waitForEvent('framenavigated', {
+    predicate: (frame) => frame === page.mainFrame(),
+    timeout: 12_000,
+  });
   await page.evaluate(() => window.dispatchEvent(new Event('admin:identity-invalidated')));
   await expect.poll(() => authMeReads, { timeout: 8_000 }).toBeGreaterThan(readsBeforeInvalidation);
   await navigation;
@@ -48,11 +51,34 @@ function fixtureFor(path: string, roleCode: string, permissions: readonly string
       permissions,
     };
   }
+  if (path === '/admin/finance/summary') {
+    return {
+      totals: {
+        walletCount: 0,
+        totalBalance: '0',
+        totalLockedBalance: '0',
+        totalAvailableBalance: '0',
+        pendingTopUps: 0,
+        pendingWithdrawals: 0,
+      },
+      today: {
+        date: '2026-08-10',
+        topUpAmount: '0',
+        topUpCount: 0,
+        withdrawalAmount: '0',
+        withdrawalCount: 0,
+        netFlow: '0',
+      },
+      queues: { topUps: [], withdrawals: [] },
+      recentLedgers: [],
+      generatedAt: '2026-08-10T00:00:00.000Z',
+    };
+  }
   if (path.startsWith('/admin/queues/summary')) return { topUps: { count: 0 }, withdrawals: { count: 0 } };
-  if (path.startsWith('/admin/reports/queue-aging')) return { summary: {}, oldest: [], generatedAt: new Date().toISOString() };
+  if (path.startsWith('/admin/reports/queue-aging')) return { summary: {}, oldest: [], generatedAt: '2026-08-10T00:00:00.000Z' };
   if (path.startsWith('/admin/notifications')) return { items: [], unreadCount: 0 };
   if (path.startsWith('/admin/access/profile')) return { permissions };
-  if (path.startsWith('/admin/risk-alerts')) return { items: [], total: 0, summary: { openCount: 0 } };
+  if (path.startsWith('/admin/risk-alerts')) return { items: [], total: 0, summary: { openCount: 0, criticalCount: 0 } };
   return {};
 }
 
