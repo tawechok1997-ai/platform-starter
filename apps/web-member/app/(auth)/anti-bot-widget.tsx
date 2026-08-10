@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { API_URL } from '../member-api';
+import { memberApiFetch } from '../member-api';
 
 type Provider = 'TURNSTILE' | 'RECAPTCHA' | 'HCAPTCHA';
 type Endpoint = 'member-login' | 'member-register' | 'member-password-reset';
@@ -36,17 +36,17 @@ export function AntiBotWidget({ endpoint, locale, resetKey, onToken, onRequiredC
     setError('');
     setNonBlockingWarning(false);
 
-    // Ask the public API directly so adaptive CAPTCHA sees the same client IP
-    // that the subsequent login/register POST will see. The old same-origin
-    // Next proxy could make the config request look like it came from Railway,
-    // while the auth POST came from the real browser IP, producing a false
-    // "CAPTCHA not required" result followed by CAPTCHA_REQUIRED on submit.
-    const base = API_URL.replace(/\/+$/, '');
-    fetch(`${base}/public/anti-bot/${endpoint}`, {
+    // Use the documented Member transport bridge. memberApiFetch resolves this
+    // path against NEXT_PUBLIC_API_URL in the browser, so adaptive CAPTCHA sees
+    // the same public client boundary as the subsequent login/register POST
+    // without introducing a second direct-fetch owner in application code.
+    memberApiFetch(`/public/anti-bot/${endpoint}`, {
       method: 'GET',
       cache: 'no-store',
       headers: { accept: 'application/json' },
       signal: controller.signal,
+      skipAuth: true,
+      suppressSessionExpiryRedirect: true,
     })
       .then(async (response) => {
         if (!response.ok) throw new Error(`anti-bot config ${response.status}`);
