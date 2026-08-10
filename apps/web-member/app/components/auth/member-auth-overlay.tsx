@@ -171,9 +171,11 @@ export default function MemberAuthOverlay({
     const expectedPathname = nextMode === 'register' ? '/register' : '/login';
     const frame = frameRef.current;
 
+    // Keep the already-visible iframe mounted while its embedded route changes.
+    // Resetting frameReady here used to fade the whole dialog out and replay the
+    // entrance, which made Login/Register look like two separate popups.
     requestedPathRef.current = nextPath;
     switchMode(nextMode);
-    setFrameReady(false);
     if (!frame) return;
 
     try {
