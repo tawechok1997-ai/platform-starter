@@ -10,11 +10,11 @@ import '../components/auth/auth-source-popup-exact.css';
 import '../components/auth/auth-popup-mobile-source-final.css';
 import '../components/auth/auth-popup-polish.css';
 import '../components/auth/auth-register-desktop-field-fix.css';
-import '../components/auth/auth-popup-source-set1-final.css';
 import '../components/auth/auth-popup-original-mobile-final.css';
 import '../components/auth/auth-field-ux-final.css';
 import '../components/auth/auth-popup-reference-desktop-final.css';
 import '../components/auth/auth-popup-shared-shell-final.css';
+import '../components/auth/auth-popup-source-set1-final.css';
 
 export default function MemberAuthLayout({ children }: { children: ReactNode }) {
   return (
