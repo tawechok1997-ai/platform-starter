@@ -18,10 +18,11 @@ test('Mobile category rail begins below top content and sticks within its own se
   assert.doesNotMatch(foundationCss, /data-mobile-section-owner='category-menu'[\s\S]*position:\s*fixed\s*!important/);
 });
 
-test('Desktop page zoom cannot switch the home owner to Mobile', () => {
-  assert.match(home, /const MOBILE_INPUT_QUERY = '\(hover: none\), \(pointer: coarse\)'/);
-  assert.match(home, /isMobileHomeViewport\(narrow, mobileInput\)/);
-  assert.match(home, /Math\.min\(window\.screen\.width, window\.screen\.height\) <= 900/);
+test('narrow viewports keep the Mobile owner so category routes preserve top chrome', () => {
+  assert.match(home, /const NARROW_HOME_QUERY = '\(max-width: 900px\)'/);
+  assert.match(home, /setViewportMode\(narrow\.matches \? 'mobile' : 'desktop'\)/);
+  assert.doesNotMatch(home, /MOBILE_INPUT_QUERY/);
+  assert.doesNotMatch(home, /window\.screen\.width/);
 });
 
 test('Authenticated Mobile Home cannot show guest login and register actions', () => {

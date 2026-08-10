@@ -55,23 +55,19 @@ type HomePopupKind = 'promotion' | 'activity' | 'news';
 
 const POPUP_CLOSED_VERSION_KEY = 'member_cms_popup_closed_version';
 const NARROW_HOME_QUERY = '(max-width: 900px)';
-const MOBILE_INPUT_QUERY = '(hover: none), (pointer: coarse)';
 
 export default function MemberHome(props: MemberHomeProps) {
   const [viewportMode, setViewportMode] = useState<ViewportMode | null>(null);
 
   useLayoutEffect(() => {
     const narrow = window.matchMedia(NARROW_HOME_QUERY);
-    const mobileInput = window.matchMedia(MOBILE_INPUT_QUERY);
-    const syncViewport = () => setViewportMode(isMobileHomeViewport(narrow, mobileInput) ? 'mobile' : 'desktop');
+    const syncViewport = () => setViewportMode(narrow.matches ? 'mobile' : 'desktop');
 
     syncViewport();
     narrow.addEventListener?.('change', syncViewport);
-    mobileInput.addEventListener?.('change', syncViewport);
     window.addEventListener('orientationchange', syncViewport);
     return () => {
       narrow.removeEventListener?.('change', syncViewport);
-      mobileInput.removeEventListener?.('change', syncViewport);
       window.removeEventListener('orientationchange', syncViewport);
     };
   }, []);
@@ -86,11 +82,11 @@ export default function MemberHome(props: MemberHomeProps) {
         <MobileHomeRoot content={props.cmsContent} showPromotion={props.showPromotion} />
         <MobileMemberStandaloneNavigation />
         <MobileCategoryQueryBridge />
-        <MobileCategoryChromeGuard />
         <MobileCanonicalGameLaunchCapture />
         <MobileP4P6ClosureRuntime />
         <MobileP7P9ClosureRuntime phase="p7" route="/" />
         <MobileAuthenticatedHomeRuntime />
+        <MobileCategoryChromeGuard />
         <MobileCouponPopupBridge />
         <MobileMemberMenuSourceBridge />
         <MobileAuthenticatedAvatarRuntime />
@@ -152,12 +148,6 @@ function DesktopMemberHome(props: MemberHomeProps) {
       ) : null}
     </>
   );
-}
-
-function isMobileHomeViewport(narrow: MediaQueryList, mobileInput: MediaQueryList) {
-  if (!narrow.matches) return false;
-  if (mobileInput.matches) return true;
-  return Math.min(window.screen.width, window.screen.height) <= 900;
 }
 
 function mobileHomeMotionVersion(content: CmsContent) {

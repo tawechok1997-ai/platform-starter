@@ -145,7 +145,8 @@ async function openRoute(page: Page, pathname: string) {
     timeout: 45_000,
   });
   expect(response?.status() ?? 200).toBeLessThan(400);
-  await expect(page.locator('body')).toBeVisible({ timeout: 20_000 });
+  await expect(page.locator('body')).toBeAttached({ timeout: 20_000 });
+  await expect(page.locator('main:visible, [role="dialog"]:visible').first()).toBeVisible({ timeout: 20_000 });
 }
 
 async function unnamedVisibleControls(page: Page, scope = 'body') {

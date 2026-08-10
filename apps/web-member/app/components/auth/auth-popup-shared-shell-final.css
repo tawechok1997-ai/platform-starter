@@ -1,0 +1,281 @@
+/* Final Login/Register geometry owner.
+ * This file MUST load after every legacy Auth source stylesheet. Login and
+ * Register keep the same shell, the same tab strip and the same viewport
+ * geometry; MemberAuthOverlay owns the horizontal mode-switch motion.
+ */
+
+@media (min-width: 901px) {
+  .auth-reference-scope .public-auth-page[data-embedded='true'] {
+    box-sizing: border-box !important;
+    width: 100% !important;
+    min-height: 100dvh !important;
+    padding: 16px 20px !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    background: transparent !important;
+  }
+
+  .auth-reference-scope .public-auth-page[data-embedded='true'] :is(
+    .public-auth-shell.source-login-modal,
+    .public-auth-shell.source-register-modal
+  ) {
+    position: relative !important;
+    display: grid !important;
+    box-sizing: border-box !important;
+    width: min(980px, calc(100vw - 40px)) !important;
+    height: min(620px, calc(100dvh - 32px)) !important;
+    min-height: min(560px, calc(100dvh - 32px)) !important;
+    margin: 0 auto !important;
+    padding: 16px 18px 16px 20px !important;
+    grid-template-columns: minmax(0, 543px) minmax(0, 380px) !important;
+    gap: 18px !important;
+    overflow: visible !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: #1d1a2a !important;
+    box-shadow: none !important;
+  }
+
+  .auth-reference-scope .public-auth-page[data-embedded='true'] .source-login-visual {
+    box-sizing: border-box !important;
+    width: 100% !important;
+    height: 100% !important;
+    min-height: 0 !important;
+    padding: 14px !important;
+    overflow: hidden !important;
+    border-radius: 10px !important;
+    background: #2f2b3d !important;
+  }
+
+  .auth-reference-scope .public-auth-page[data-embedded='true'] .source-login-visual img {
+    display: block !important;
+    width: 100% !important;
+    height: 100% !important;
+    min-height: 0 !important;
+    border-radius: 0 !important;
+    object-fit: cover !important;
+    object-position: center !important;
+    user-select: none !important;
+    -webkit-user-drag: none !important;
+  }
+
+  .auth-reference-scope .public-auth-page[data-embedded='true'] .source-login-form-shell {
+    position: relative !important;
+    display: flex !important;
+    box-sizing: border-box !important;
+    width: 380px !important;
+    min-width: 0 !important;
+    max-width: 380px !important;
+    min-height: 0 !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+    border-radius: 10px !important;
+    background: #302c3e !important;
+  }
+
+  .auth-reference-scope .public-auth-page[data-embedded='true'] :is(
+    .source-login-tabs,
+    .source-register-tabs,
+    .public-auth-tabs
+  ) {
+    position: relative !important;
+    display: grid !important;
+    box-sizing: border-box !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    height: 48px !important;
+    min-height: 48px !important;
+    flex: 0 0 48px !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 0 !important;
+    overflow: hidden !important;
+    border: 0 !important;
+    border-radius: 10px 10px 0 0 !important;
+    background: #17141f !important;
+  }
+
+  .auth-reference-scope .public-auth-page[data-embedded='true'] :is(
+    .source-login-tabs,
+    .source-register-tabs,
+    .public-auth-tabs
+  ) > a {
+    position: relative !important;
+    inset: auto !important;
+    display: grid !important;
+    box-sizing: border-box !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    height: 48px !important;
+    min-height: 48px !important;
+    margin: 0 !important;
+    padding: 0 18px !important;
+    place-items: center !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 100%, 14px 100%) !important;
+    color: #fff !important;
+    background: #17141f !important;
+    font-size: 15px !important;
+    font-weight: 700 !important;
+    line-height: 20px !important;
+    text-align: center !important;
+    text-decoration: none !important;
+    pointer-events: auto !important;
+    transition: background-color 180ms ease, filter 180ms ease !important;
+  }
+
+  .auth-reference-scope .public-auth-page[data-embedded='true'] :is(
+    .source-login-tabs,
+    .source-register-tabs,
+    .public-auth-tabs
+  ) > a[aria-current='page'] {
+    background: #403b4e !important;
+  }
+
+  .auth-reference-scope .public-auth-page[data-embedded='true'] :is(
+    .source-login-card,
+    .source-register-card
+  ) {
+    box-sizing: border-box !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    padding: 26px 22px 20px !important;
+    flex: 1 1 auto !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    overscroll-behavior: contain !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: #302c3e !important;
+    box-shadow: none !important;
+  }
+
+  /* The supplied Register first step only shows the current phone field. */
+  .auth-reference-scope .public-auth-page[data-embedded='true'] .source-register-progress {
+    display: none !important;
+  }
+
+  .auth-reference-scope .public-auth-page[data-embedded='true'] .public-auth-input {
+    box-sizing: border-box !important;
+    width: 100% !important;
+    height: 52px !important;
+    min-height: 52px !important;
+    border: 1px solid #817b8d !important;
+    border-radius: 6px !important;
+    color: #fff !important;
+    background: #17141d !important;
+  }
+}
+
+@media (max-width: 900px) {
+  .auth-reference-scope .public-auth-page[data-embedded='true'] {
+    box-sizing: border-box !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    height: 100dvh !important;
+    min-height: 100dvh !important;
+    padding: max(12px, env(safe-area-inset-top)) 12px max(12px, env(safe-area-inset-bottom)) !important;
+    align-items: center !important;
+    justify-content: center !important;
+    overflow: hidden !important;
+  }
+
+  .auth-reference-scope .public-auth-page[data-embedded='true'] :is(
+    .source-login-modal,
+    .source-register-modal
+  )[data-auth-mode] {
+    position: relative !important;
+    display: block !important;
+    box-sizing: border-box !important;
+    width: min(360px, calc(100vw - 24px)) !important;
+    min-width: 0 !important;
+    max-width: 360px !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: calc(100dvh - 24px) !important;
+    margin: 0 auto !important;
+    padding: 0 !important;
+    overflow: visible !important;
+    border-radius: 8px !important;
+  }
+
+  .auth-reference-scope .public-auth-page[data-embedded='true'] .source-login-form-shell {
+    width: 100% !important;
+    max-width: none !important;
+    min-width: 0 !important;
+  }
+
+  .auth-reference-scope .public-auth-page[data-embedded='true'] :is(
+    .source-login-tabs,
+    .source-register-tabs,
+    .public-auth-tabs
+  ) {
+    width: 100% !important;
+    height: 46px !important;
+    min-height: 46px !important;
+  }
+
+  .auth-reference-scope .public-auth-page[data-embedded='true'] :is(
+    .source-login-tabs,
+    .source-register-tabs,
+    .public-auth-tabs
+  ) > a {
+    height: 46px !important;
+    min-height: 46px !important;
+  }
+
+  .auth-reference-scope .public-auth-page[data-embedded='true'] :is(
+    .source-login-card,
+    .source-register-card
+  ) {
+    width: 100% !important;
+    min-width: 0 !important;
+    padding: 16px 18px 14px !important;
+    gap: 12px !important;
+  }
+
+  .auth-reference-scope .public-auth-page[data-embedded='true'] :is(
+    .source-login-field,
+    .source-register-card .source-login-field
+  ) {
+    min-height: 46px !important;
+  }
+
+  .auth-reference-scope .public-auth-page[data-embedded='true'] :is(
+    .source-login-field,
+    .source-register-card .source-login-field
+  ) .public-auth-input {
+    height: 46px !important;
+    min-height: 46px !important;
+  }
+
+  .auth-reference-scope .public-auth-page[data-embedded='true'] .source-register-progress {
+    display: none !important;
+  }
+}
+
+@media (min-width: 901px) and (max-height: 620px) {
+  .auth-reference-scope .public-auth-page[data-embedded='true'] {
+    padding-block: 8px !important;
+  }
+
+  .auth-reference-scope .public-auth-page[data-embedded='true'] :is(
+    .public-auth-shell.source-login-modal,
+    .public-auth-shell.source-register-modal
+  ) {
+    width: min(940px, calc(100vw - 32px)) !important;
+    height: calc(100dvh - 16px) !important;
+    min-height: 0 !important;
+    padding: 10px 12px !important;
+    grid-template-columns: minmax(0, 55%) minmax(340px, 45%) !important;
+    gap: 12px !important;
+  }
+
+  .auth-reference-scope .public-auth-page[data-embedded='true'] .source-login-form-shell {
+    width: 100% !important;
+    max-width: none !important;
+  }
+}
