@@ -78,6 +78,7 @@ import './admin-content-insets.css';
 import './admin-pr2-ui-closure.css';
 import './admin-layout-integrity.css';
 import './admin-theme-completeness.css';
+import { AdminAccessRefreshRuntime } from './admin-access-refresh-runtime';
 import { AdminMobileDrawerController } from './admin-mobile-drawer-controller';
 import { AdminAppearanceRuntime } from './admin-appearance-runtime';
 import { AdminLegacyThemeNormalizer } from './admin-legacy-theme-normalizer';
@@ -159,6 +160,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {children}
         <AdminAppearanceRuntime />
         <AdminLegacyThemeNormalizer />
+        <AdminAccessRefreshRuntime />
         <AdminWorkspaceRuntime />
         <AdminShellAccessibilityRuntime />
         <AdminMobileDrawerController />
