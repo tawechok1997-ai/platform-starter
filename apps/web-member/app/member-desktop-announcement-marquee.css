@@ -1,7 +1,9 @@
-/* Final Desktop announcement motion owner.
- * The source notice is a continuously scrolling marquee. Keep this import last
- * so older Desktop acceptance layers cannot freeze the announcement track.
+/* Final cross-viewport motion owner.
+ * Loaded after legacy motion layers so announcements, Hero drag, Auth mode
+ * switches and the live Jackpot counter have one predictable final contract.
  */
+
+/* Desktop announcement ------------------------------------------------- */
 @media (min-width: 901px) {
   .desktop-reference-home .reference-announcement-viewport {
     position: relative !important;
@@ -26,7 +28,7 @@
     padding-left: 100% !important;
     white-space: nowrap !important;
     animation: desktop-reference-announcement-marquee 18s linear infinite !important;
-    will-change: transform;
+    will-change: transform !important;
   }
 
   .desktop-reference-home .reference-announcement:hover .reference-announcement-track > span,
@@ -36,11 +38,254 @@
 }
 
 @keyframes desktop-reference-announcement-marquee {
-  from {
-    transform: translate3d(0, 0, 0);
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(-100%, 0, 0); }
+}
+
+/* Mobile announcement. Two identical sets already exist in the Mobile Home
+ * markup. Animate the shared track by exactly half its width for a seamless
+ * loop. !important intentionally beats the older inline RAF ticker. */
+@media (max-width: 900px) {
+  [data-mobile-home-root='true'] [data-mobile-announcement-viewport='true'] {
+    min-width: 0 !important;
+    overflow-x: hidden !important;
+    overflow-y: hidden !important;
+    text-overflow: clip !important;
   }
 
-  to {
-    transform: translate3d(-100%, 0, 0);
+  [data-mobile-home-root='true'] [data-mobile-announcement-track='true'] {
+    display: flex !important;
+    width: max-content !important;
+    min-width: max-content !important;
+    align-items: center !important;
+    transform: translate3d(0, 0, 0);
+    animation: member-mobile-announcement-marquee 18s linear infinite !important;
+    will-change: transform !important;
+  }
+
+  [data-mobile-home-root='true'] [data-mobile-announcement-set='true'] {
+    display: inline-flex !important;
+    width: max-content !important;
+    min-width: max-content !important;
+    flex: 0 0 auto !important;
+    align-items: center !important;
+    gap: 28px !important;
+    padding-right: 48px !important;
+    white-space: nowrap !important;
+  }
+
+  [data-mobile-home-root='true'] [data-mobile-announcement-item='true'] {
+    display: inline-block !important;
+    flex: 0 0 auto !important;
+    white-space: nowrap !important;
+  }
+}
+
+@keyframes member-mobile-announcement-marquee {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(-50%, 0, 0); }
+}
+
+/* Hero/banner drag ----------------------------------------------------- */
+.reference-hero-carousel,
+[data-mobile-home-root='true'] [data-mobile-section-owner='hero'] > div:first-child {
+  touch-action: pan-y !important;
+  user-select: none !important;
+  -webkit-user-select: none !important;
+  cursor: grab !important;
+}
+
+.reference-hero-carousel:active,
+[data-mobile-home-root='true'] [data-mobile-section-owner='hero'] > div:first-child:active {
+  cursor: grabbing !important;
+}
+
+.reference-hero-carousel img,
+[data-mobile-home-root='true'] [data-mobile-section-owner='hero'] img {
+  -webkit-user-drag: none !important;
+  user-select: none !important;
+  -webkit-user-select: none !important;
+}
+
+[data-mobile-home-root='true'] [data-mobile-section-owner='hero'] > div:first-child > div {
+  will-change: transform !important;
+  transition: transform 300ms cubic-bezier(.22, 1, .36, 1) !important;
+}
+
+/* One Auth shell, sliding between Register and Login ------------------ */
+html body .member-auth-overlay__frame {
+  will-change: opacity, transform !important;
+  transition:
+    opacity 170ms ease-out,
+    transform 230ms cubic-bezier(.22, 1, .36, 1),
+    visibility 0s linear 230ms !important;
+}
+
+html body .member-auth-overlay[data-frame-ready='false'] .member-auth-overlay__frame[title='สมัครสมาชิก'] {
+  opacity: 0 !important;
+  transform: translate3d(-28px, 0, 0) scale(.996) !important;
+  pointer-events: none !important;
+}
+
+html body .member-auth-overlay[data-frame-ready='false'] .member-auth-overlay__frame[title='เข้าสู่ระบบ'] {
+  opacity: 0 !important;
+  transform: translate3d(28px, 0, 0) scale(.996) !important;
+  pointer-events: none !important;
+}
+
+html body .member-auth-overlay[data-state='open'][data-frame-ready='true'] .member-auth-overlay__frame {
+  opacity: 1 !important;
+  visibility: visible !important;
+  transform: translate3d(0, 0, 0) scale(1) !important;
+  transition-delay: 0s !important;
+}
+
+/* Desktop Auth source geometry. Keep Login and Register on the exact same
+ * right-hand shell so switching mode cannot change the modal dimensions. */
+@media (min-width: 901px) {
+  .public-auth-page[data-embedded='true'] .public-auth-shell.source-login-modal,
+  .public-auth-page[data-embedded='true'] .public-auth-shell.source-register-modal {
+    width: min(980px, calc(100vw - 40px)) !important;
+    height: min(620px, calc(100dvh - 32px)) !important;
+    min-height: min(560px, calc(100dvh - 32px)) !important;
+    padding: 16px 18px 16px 20px !important;
+    grid-template-columns: minmax(0, 543px) minmax(0, 380px) !important;
+    gap: 18px !important;
+  }
+
+  .public-auth-page[data-embedded='true'] :is(.source-login-tabs, .source-register-tabs) {
+    display: grid !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    height: 48px !important;
+    min-height: 48px !important;
+    flex: 0 0 48px !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 0 !important;
+    overflow: hidden !important;
+    border-radius: 10px 10px 0 0 !important;
+    background: #17141f !important;
+  }
+
+  .public-auth-page[data-embedded='true'] :is(.source-login-tabs, .source-register-tabs) > a {
+    position: relative !important;
+    inset: auto !important;
+    display: grid !important;
+    width: 100% !important;
+    max-width: none !important;
+    height: 48px !important;
+    min-height: 48px !important;
+    padding: 0 18px !important;
+    place-items: center !important;
+    clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 100%, 14px 100%) !important;
+    color: #fff !important;
+    background: #17141f !important;
+    font-size: 15px !important;
+    font-weight: 700 !important;
+    line-height: 20px !important;
+    transition: background-color 180ms ease, filter 180ms ease !important;
+  }
+
+  .public-auth-page[data-embedded='true'] :is(.source-login-tabs, .source-register-tabs) > a[aria-current='page'] {
+    background: #403b4e !important;
+  }
+
+  .public-auth-page[data-embedded='true'] .source-login-form-shell {
+    width: 380px !important;
+    max-width: 380px !important;
+    min-width: 0 !important;
+    border-radius: 10px !important;
+    overflow: hidden !important;
+  }
+
+  .public-auth-page[data-embedded='true'] :is(.source-login-card, .source-register-card) {
+    width: 100% !important;
+    min-width: 0 !important;
+    padding: 26px 22px 20px !important;
+    background: #302c3e !important;
+  }
+
+  .public-auth-page[data-embedded='true'] .source-register-progress {
+    display: none !important;
+  }
+
+  .public-auth-page[data-embedded='true'] .public-auth-input {
+    height: 52px !important;
+    min-height: 52px !important;
+    border: 1px solid #817b8d !important;
+    border-radius: 6px !important;
+    color: #fff !important;
+    background: #17141d !important;
+  }
+}
+
+/* Mobile Auth keeps the same strip and body dimensions in both modes. */
+@media (max-width: 900px) {
+  .auth-reference-scope .public-auth-page[data-embedded='true'] {
+    padding: max(12px, env(safe-area-inset-top)) 12px max(12px, env(safe-area-inset-bottom)) !important;
+  }
+
+  .auth-reference-scope :is(.source-login-modal, .source-register-modal)[data-auth-mode] {
+    width: min(360px, calc(100vw - 24px)) !important;
+    max-width: 360px !important;
+    border-radius: 8px !important;
+  }
+
+  .auth-reference-scope :is(.source-login-tabs, .source-register-tabs, .public-auth-tabs) {
+    height: 46px !important;
+    min-height: 46px !important;
+  }
+
+  .auth-reference-scope :is(.source-login-tabs, .source-register-tabs, .public-auth-tabs) > a {
+    height: 46px !important;
+    min-height: 46px !important;
+  }
+
+  .auth-reference-scope :is(.source-login-card, .source-register-card) {
+    padding: 16px 18px 14px !important;
+    gap: 12px !important;
+  }
+
+  .auth-reference-scope :is(.source-login-field, .source-register-card .source-login-field) {
+    min-height: 46px !important;
+  }
+
+  .auth-reference-scope :is(.source-login-field, .source-register-card .source-login-field) .public-auth-input {
+    height: 46px !important;
+    min-height: 46px !important;
+  }
+}
+
+/* Jackpot counter ------------------------------------------------------ */
+.home-jackpot__value,
+[class*='jackpotBanner'] > strong,
+.v47-mobile-jackpot strong {
+  display: inline-block !important;
+  min-width: 8ch !important;
+  font-variant-numeric: tabular-nums !important;
+  font-feature-settings: 'tnum' 1 !important;
+  text-align: center !important;
+  transform: translateZ(0) !important;
+  backface-visibility: hidden !important;
+  transition: filter 120ms linear, text-shadow 160ms ease !important;
+  will-change: contents !important;
+}
+
+.home-jackpot__value-wrap,
+[class*='jackpotBanner'] {
+  transform: translateZ(0) !important;
+  backface-visibility: hidden !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-mobile-home-root='true'] [data-mobile-announcement-track='true'],
+  .desktop-reference-home .reference-announcement-track > span {
+    animation-duration: 32s !important;
+  }
+
+  html body .member-auth-overlay__frame {
+    transition-duration: 1ms !important;
+    transform: none !important;
   }
 }
