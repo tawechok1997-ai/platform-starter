@@ -47,6 +47,5 @@ test('shortcut grid and guest actions use the source spacing and dimensions', ()
   assert.match(css, /button > img\[src\*='\/images\/flags\/'\][\s\S]*width:\s*24px\s*!important/);
   assert.match(css, /div:last-child[\s\S]*padding:\s*8px\s*!important/);
   assert.match(css, /div:last-child[\s\S]*gap:\s*12px\s*!important/);
-  assert.match(css, /div:last-child > a[\s\S]*min-height:\s*38px\s*!important/);
-  assert.match(css, /border-radius:\s*10px\s*!important/);
+  assert.match(css, /div:last-child > a[\s\S]*min-height:\s*38px\s*!important[\s\S]*border-radius:\s*10px\s*!important/);
 });
