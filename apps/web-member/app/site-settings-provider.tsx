@@ -23,7 +23,7 @@ const SiteSettingsContext = createContext<SiteSettingsContextValue | null>(null)
 export function SiteSettingsProvider({
   children,
   initialSettings = defaultSettings,
-  revalidateOnMount = false,
+  revalidateOnMount = true,
 }: SiteSettingsProviderProps) {
   const [settings, setSettings] = useState<PublicSiteSettings>(initialSettings);
   const [ready, setReady] = useState(true);
