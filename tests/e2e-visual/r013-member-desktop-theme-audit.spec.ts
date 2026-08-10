@@ -22,10 +22,13 @@ test('Theme & layout settings change live Member tokens and desktop ownership', 
   });
 
   // The first render is seeded by the Next.js server, so Playwright cannot
-  // intercept that request. Exercise the same client lifecycle Production uses
-  // after an operator changes settings in another tab: focus -> reload settings.
+  // intercept that request. Wait until hydration/passive effects have settled,
+  // then exercise the same focus lifecycle Production uses after an operator
+  // changes settings in another tab.
   await page.goto(BASE_URL, { waitUntil: 'domcontentloaded', timeout: 45_000 });
   await expect(page.locator('html')).toHaveAttribute('data-member-theme-authority', 'true');
+  await page.waitForLoadState('networkidle', { timeout: 10_000 }).catch(() => undefined);
+  await page.waitForTimeout(250);
   await refreshSettingsOnFocus(page);
   await expect.poll(() => settingsRequests, { timeout: 10_000 }).toBeGreaterThanOrEqual(1);
   await expect.poll(async () => (await readThemeState(page)).runtimeBackground, { timeout: 10_000 }).toBe('#08111f');
