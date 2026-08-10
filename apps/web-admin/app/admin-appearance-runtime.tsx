@@ -1,7 +1,7 @@
 'use client';
 
 import { createPortal } from 'react-dom';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
 import { useAdminLocale } from './(admin)/admin-locale';
 
 type AdminThemePreference = 'light' | 'dark' | 'system';
@@ -72,6 +72,7 @@ export function AdminAppearanceRuntime() {
   const [open, setOpen] = useState(false);
   const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null);
   const rootRef = useRef<HTMLDivElement>(null);
+  const panelRef = useRef<HTMLElement>(null);
   const text = copy[locale];
 
   useEffect(() => {
@@ -120,7 +121,10 @@ export function AdminAppearanceRuntime() {
     if (!open) return;
     const close = (event: MouseEvent | KeyboardEvent) => {
       if (event instanceof KeyboardEvent && event.key !== 'Escape') return;
-      if (event instanceof MouseEvent && rootRef.current?.contains(event.target as Node)) return;
+      if (event instanceof MouseEvent) {
+        const target = event.target as Node;
+        if (rootRef.current?.contains(target) || panelRef.current?.contains(target)) return;
+      }
       setOpen(false);
     };
     document.addEventListener('mousedown', close);
@@ -154,44 +158,56 @@ export function AdminAppearanceRuntime() {
         <ThemeIcon theme={resolvedTheme} />
         <span className="admin-appearance-trigger__label">{resolvedTheme === 'dark' ? text.dark : text.light}</span>
       </button>
-
-      {open && (
-        <section id="admin-appearance-panel" className="admin-appearance-panel" role="dialog" aria-label={text.title}>
-          <header>
-            <div>
-              <strong>{text.title}</strong>
-              <span>{text.description}</span>
-            </div>
-            <button type="button" onClick={() => setOpen(false)} aria-label={text.close}>×</button>
-          </header>
-
-          <PreferenceGroup label={text.theme}>
-            <Choice active={preferences.theme === 'light'} onClick={() => setPreferences((current) => ({ ...current, theme: 'light' }))}>{text.light}</Choice>
-            <Choice active={preferences.theme === 'dark'} onClick={() => setPreferences((current) => ({ ...current, theme: 'dark' }))}>{text.dark}</Choice>
-            <Choice active={preferences.theme === 'system'} onClick={() => setPreferences((current) => ({ ...current, theme: 'system' }))}>{text.system}</Choice>
-          </PreferenceGroup>
-
-          <PreferenceGroup label={text.density}>
-            <Choice active={preferences.density === 'comfortable'} onClick={() => setPreferences((current) => ({ ...current, density: 'comfortable' }))}>{text.comfortable}</Choice>
-            <Choice active={preferences.density === 'compact'} onClick={() => setPreferences((current) => ({ ...current, density: 'compact' }))}>{text.compact}</Choice>
-          </PreferenceGroup>
-
-          <PreferenceGroup label={text.contrast}>
-            <Choice active={preferences.contrast === 'normal'} onClick={() => setPreferences((current) => ({ ...current, contrast: 'normal' }))}>{text.normal}</Choice>
-            <Choice active={preferences.contrast === 'high'} onClick={() => setPreferences((current) => ({ ...current, contrast: 'high' }))}>{text.high}</Choice>
-          </PreferenceGroup>
-
-          <PreferenceGroup label={text.motion}>
-            <Choice active={preferences.motion === 'system'} onClick={() => setPreferences((current) => ({ ...current, motion: 'system' }))}>{text.motionSystem}</Choice>
-            <Choice active={preferences.motion === 'reduced'} onClick={() => setPreferences((current) => ({ ...current, motion: 'reduced' }))}>{text.reduced}</Choice>
-          </PreferenceGroup>
-        </section>
-      )}
     </div>
   );
 
-  if (portalTarget) return createPortal(control, portalTarget);
-  return createPortal(<div className="admin-appearance-floating">{control}</div>, document.body);
+  const panel = open ? (
+    <section
+      ref={panelRef}
+      id="admin-appearance-panel"
+      className="admin-appearance-panel"
+      role="dialog"
+      aria-label={text.title}
+    >
+      <header>
+        <div>
+          <strong>{text.title}</strong>
+          <span>{text.description}</span>
+        </div>
+        <button type="button" onClick={() => setOpen(false)} aria-label={text.close}>×</button>
+      </header>
+
+      <PreferenceGroup label={text.theme}>
+        <Choice active={preferences.theme === 'light'} onClick={() => setPreferences((current) => ({ ...current, theme: 'light' }))}>{text.light}</Choice>
+        <Choice active={preferences.theme === 'dark'} onClick={() => setPreferences((current) => ({ ...current, theme: 'dark' }))}>{text.dark}</Choice>
+        <Choice active={preferences.theme === 'system'} onClick={() => setPreferences((current) => ({ ...current, theme: 'system' }))}>{text.system}</Choice>
+      </PreferenceGroup>
+
+      <PreferenceGroup label={text.density}>
+        <Choice active={preferences.density === 'comfortable'} onClick={() => setPreferences((current) => ({ ...current, density: 'comfortable' }))}>{text.comfortable}</Choice>
+        <Choice active={preferences.density === 'compact'} onClick={() => setPreferences((current) => ({ ...current, density: 'compact' }))}>{text.compact}</Choice>
+      </PreferenceGroup>
+
+      <PreferenceGroup label={text.contrast}>
+        <Choice active={preferences.contrast === 'normal'} onClick={() => setPreferences((current) => ({ ...current, contrast: 'normal' }))}>{text.normal}</Choice>
+        <Choice active={preferences.contrast === 'high'} onClick={() => setPreferences((current) => ({ ...current, contrast: 'high' }))}>{text.high}</Choice>
+      </PreferenceGroup>
+
+      <PreferenceGroup label={text.motion}>
+        <Choice active={preferences.motion === 'system'} onClick={() => setPreferences((current) => ({ ...current, motion: 'system' }))}>{text.motionSystem}</Choice>
+        <Choice active={preferences.motion === 'reduced'} onClick={() => setPreferences((current) => ({ ...current, motion: 'reduced' }))}>{text.reduced}</Choice>
+      </PreferenceGroup>
+    </section>
+  ) : null;
+
+  const controlPortal = portalTarget
+    ? createPortal(control, portalTarget)
+    : createPortal(<div className="admin-appearance-floating">{control}</div>, document.body);
+  const panelPortal = panel
+    ? createPortal(<div className="admin-appearance-floating">{panel}</div>, document.body)
+    : null;
+
+  return <Fragment>{controlPortal}{panelPortal}</Fragment>;
 }
 
 function PreferenceGroup({ label, children }: { label: string; children: React.ReactNode }) {

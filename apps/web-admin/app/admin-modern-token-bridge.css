@@ -34,12 +34,16 @@
   --danger: var(--admin-modern-danger);
 }
 
+/*
+ * Do not redefine canonical appearance tokens such as --color-surface on body.
+ * The modern aliases are remapped back to those canonical tokens by the final
+ * theme authority; pointing the canonical tokens back to modern aliases creates
+ * a CSS custom-property cycle and leaves descendants with invalid theme values.
+ */
 body[data-app-surface='admin'] {
-  --color-bg: var(--admin-modern-bg);
-  --color-surface: var(--admin-modern-surface);
-  --color-surface-raised: var(--admin-modern-surface-raised);
-  --color-border: var(--admin-modern-border);
-  --color-text: var(--admin-modern-text);
-  --color-text-muted: var(--admin-modern-muted);
-  --color-brand: var(--admin-modern-brand);
+  --color-bg: var(--color-canvas);
+  --color-border: var(--color-border-subtle);
+  --color-text: var(--color-text-primary);
+  --color-text-muted: var(--color-text-secondary);
+  --color-brand: var(--color-brand-primary);
 }

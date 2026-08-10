@@ -31,6 +31,12 @@ test('appearance runtime owns theme density contrast and motion preferences', ()
   assert.match(runtime, /admin:appearance-change/);
 });
 
+test('appearance dialog is portaled outside the sticky topbar on every viewport', () => {
+  assert.match(runtime, /const panelRef = useRef<HTMLElement>\(null\)/);
+  assert.match(runtime, /rootRef\.current\?\.contains\(target\) \|\| panelRef\.current\?\.contains\(target\)/);
+  assert.match(runtime, /createPortal\(<div className="admin-appearance-floating">\{panel\}<\/div>, document\.body\)/);
+});
+
 test('appearance foundation covers light dark compact high contrast and reduced motion', () => {
   assert.match(styles, /:root\[data-admin-theme='dark'\]/);
   assert.match(styles, /:root\[data-admin-theme='light'\]/);
@@ -66,13 +72,15 @@ test('theme completeness remaps legacy palettes and shared surfaces to appearanc
   assert.match(completeness, /\.admin-ui-payload/);
 });
 
-test('legacy inline palette is normalized to live appearance tokens', () => {
+test('legacy stylesheet and inline neutral palettes are normalized to live appearance tokens', () => {
   assert.match(legacyNormalizer, /BACKGROUND_TOKENS/);
   assert.match(legacyNormalizer, /TEXT_TOKENS/);
-  assert.match(legacyNormalizer, /BORDER_LITERALS/);
+  assert.match(legacyNormalizer, /BORDER_TOKENS/);
+  assert.match(legacyNormalizer, /window\.getComputedStyle\(element\)/);
   assert.match(legacyNormalizer, /MutationObserver/);
-  assert.match(legacyNormalizer, /attributeFilter:\s*\['style'\]/);
+  assert.match(legacyNormalizer, /attributeFilter:\s*\['class'\]/);
   assert.match(legacyNormalizer, /admin:appearance-change/);
+  assert.match(legacyNormalizer, /\[data-preview-viewport\]/);
   assert.match(legacyNormalizer, /var\(--color-surface-raised\)/);
   assert.match(legacyNormalizer, /var\(--color-text-secondary\)/);
   assert.match(legacyNormalizer, /var\(--color-border-subtle\)/);

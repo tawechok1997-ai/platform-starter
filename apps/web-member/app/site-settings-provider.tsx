@@ -1,7 +1,8 @@
 'use client';
 
 import { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
-import { defaultSettings, loadPublicSiteSettings, PublicSiteSettings } from './site-settings';
+import { memberApiFetch } from './member-api';
+import { defaultSettings, PublicSiteSettings } from './site-settings';
 import type { TypedPublicSiteSettings } from './site-settings-types';
 import { normalizeTypedSiteSettings } from './typed-site-settings';
 
@@ -19,11 +20,12 @@ type SiteSettingsProviderProps = {
 };
 
 const SiteSettingsContext = createContext<SiteSettingsContextValue | null>(null);
+const LIVE_SETTINGS_ENDPOINT = '/api/site-settings';
 
 export function SiteSettingsProvider({
   children,
   initialSettings = defaultSettings,
-  revalidateOnMount = false,
+  revalidateOnMount = true,
 }: SiteSettingsProviderProps) {
   const [settings, setSettings] = useState<PublicSiteSettings>(initialSettings);
   const [ready, setReady] = useState(true);
@@ -34,8 +36,21 @@ export function SiteSettingsProvider({
 
     const task = (async () => {
       try {
-        setSettings(await loadPublicSiteSettings());
+        const response = await memberApiFetch(`${window.location.origin}${LIVE_SETTINGS_ENDPOINT}`, {
+          method: 'GET',
+          cache: 'no-store',
+          headers: { accept: 'application/json' },
+          skipAuth: true,
+          suppressSessionExpiryRedirect: true,
+        });
+        if (response.status === 204) return;
+        if (!response.ok) throw new Error(`Site settings refresh failed with ${response.status}`);
+        const nextSettings = await response.json() as PublicSiteSettings;
+        setSettings(nextSettings);
       } catch {
+        // Preserve the last known-good snapshot. Falling all the way back to
+        // defaults after a transient network failure would visibly undo an
+        // operator's theme while the page is open.
         setSettings((current) => current ?? defaultSettings);
       } finally {
         setReady(true);

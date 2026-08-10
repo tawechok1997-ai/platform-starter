@@ -48,6 +48,7 @@ jobs:
         run: >-
           pnpm exec playwright test
           tests/e2e-visual/r013-member-desktop-full-audit.spec.ts
+          tests/e2e-visual/r013-member-desktop-theme-audit.spec.ts
           -c playwright.member-desktop-audit.config.ts
           --retries=0
       - name: Upload Member server log

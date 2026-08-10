@@ -5,6 +5,8 @@ import path from 'node:path';
 const MEMBER_HOME_URL = process.env.MEMBER_HOME_URL
   ?? 'https://platformweb-member-production.up.railway.app/';
 const LOCAL_SMOKE = isLoopbackUrl(MEMBER_HOME_URL);
+const HOME_READY_TIMEOUT_MS = LOCAL_SMOKE ? 60_000 : 30_000;
+const LOCAL_TEST_TIMEOUT_MS = 90_000;
 
 type AncestorMetric = {
   node: string;
@@ -39,6 +41,8 @@ test.describe('production Mobile Home smoke', () => {
   test.skip(({ viewport }) => !viewport || viewport.width > 430, 'Mobile viewport only');
 
   test('home fits viewport, sticky chrome works, and category selection renders', async ({ page }, testInfo) => {
+    if (LOCAL_SMOKE) test.setTimeout(LOCAL_TEST_TIMEOUT_MS);
+
     const consoleRecords: Array<{ type: string; text: string }> = [];
     const pageErrors: string[] = [];
     const failedRequests: Array<{ method: string; resourceType: string; url: string; failure: string }> = [];
@@ -56,7 +60,7 @@ test.describe('production Mobile Home smoke', () => {
     await page.goto(MEMBER_HOME_URL, { waitUntil: 'domcontentloaded', timeout: 45_000 });
 
     const root = page.locator('[data-mobile-home-root="true"]');
-    await expect(root).toBeVisible({ timeout: 30_000 });
+    await expect(root).toBeVisible({ timeout: HOME_READY_TIMEOUT_MS });
     await expect(page.locator('[data-mobile-section-owner="header"]')).toBeVisible();
     await expect(page.locator('[data-mobile-section-owner="category-menu"]')).toBeVisible();
     await page.waitForTimeout(1_500);
@@ -122,6 +126,7 @@ test.describe('production Mobile Home smoke', () => {
 
   test('P4-P6 home owner, canonical launch and drawer work without guest member bottom navigation', async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== '390x844', 'Run the complete interaction contract once');
+    if (LOCAL_SMOKE) test.setTimeout(LOCAL_TEST_TIMEOUT_MS);
 
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await page.goto(MEMBER_HOME_URL, { waitUntil: 'domcontentloaded', timeout: 45_000 });
@@ -132,7 +137,7 @@ test.describe('production Mobile Home smoke', () => {
     const drawer = page.locator('#mobile-home-drawer');
     const bottomNavigation = page.locator('[data-mobile-member-bottom-navigation="true"]');
 
-    await expect(root).toBeVisible({ timeout: 30_000 });
+    await expect(root).toBeVisible({ timeout: HOME_READY_TIMEOUT_MS });
     await expect(root).toHaveAttribute('data-mobile-p4-p6-ready', 'true', { timeout: 15_000 });
     await expect(bottomNavigation).toHaveCount(0);
 
