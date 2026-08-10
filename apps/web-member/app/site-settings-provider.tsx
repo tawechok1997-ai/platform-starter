@@ -43,6 +43,7 @@ export function SiteSettingsProvider({
           skipAuth: true,
           suppressSessionExpiryRedirect: true,
         });
+        if (response.status === 204) return;
         if (!response.ok) throw new Error(`Site settings refresh failed with ${response.status}`);
         const nextSettings = await response.json() as PublicSiteSettings;
         setSettings(nextSettings);
