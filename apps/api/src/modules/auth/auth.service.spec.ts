@@ -160,6 +160,82 @@ describe('AuthService member profile update', () => {
   });
 });
 
+describe('AuthService member sign-in recovery', () => {
+  it('matches a local Thai phone number against legacy +66 member rows', async () => {
+    const prisma = createPrismaMock();
+    prisma.user.findFirst.mockResolvedValueOnce({
+      id: 'member-1',
+      status: 'ACTIVE',
+      passwordHash: 'stored-hash',
+      updatedAt: new Date(),
+    } as any);
+    const service = createService(prisma);
+
+    await expect(
+      service.signIn({ identifier: '0618888761', secret: 'secret123' } as any, { deviceId: 'web-member' }),
+    ).resolves.toEqual(expect.objectContaining({ accessToken: 'access-token' }));
+
+    expect(prisma.user.findFirst).toHaveBeenCalledWith({
+      where: {
+        OR: expect.arrayContaining([
+          { username: '0618888761' },
+          { phone: '0618888761' },
+          { phone: '66618888761' },
+          { phone: '+66618888761' },
+        ]),
+      },
+    });
+  });
+
+  it('recovers an expired automatic lock before verifying the password', async () => {
+    const prisma = createPrismaMock();
+    const lockedAt = new Date(Date.now() - 16 * 60_000);
+    prisma.user.findFirst.mockResolvedValueOnce({
+      id: 'member-1',
+      status: 'LOCKED',
+      passwordHash: 'stored-hash',
+      updatedAt: lockedAt,
+    } as any);
+    prisma.loginHistory.findMany.mockResolvedValueOnce(
+      Array.from({ length: 8 }, (_, index) => ({ createdAt: new Date(lockedAt.getTime() - index * 1_000) })) as any,
+    );
+    const service = createService(prisma);
+
+    await expect(
+      service.signIn({ identifier: '0618888761', secret: 'secret123' } as any, { deviceId: 'web-member' }),
+    ).resolves.toEqual(expect.objectContaining({ accessToken: 'access-token' }));
+
+    expect(prisma.user.updateMany).toHaveBeenCalledWith({
+      where: { id: 'member-1', status: 'LOCKED', updatedAt: lockedAt },
+      data: { status: 'ACTIVE' },
+    });
+  });
+
+  it('does not auto-recover a manual lock that is unrelated to failed-password history', async () => {
+    const prisma = createPrismaMock();
+    const lockedAt = new Date(Date.now() - 16 * 60_000);
+    prisma.user.findFirst.mockResolvedValueOnce({
+      id: 'member-1',
+      status: 'LOCKED',
+      passwordHash: 'stored-hash',
+      updatedAt: lockedAt,
+    } as any);
+    prisma.loginHistory.findMany.mockResolvedValueOnce(
+      Array.from({ length: 8 }, (_, index) => ({
+        createdAt: new Date(lockedAt.getTime() - 5 * 60_000 - index * 1_000),
+      })) as any,
+    );
+    const service = createService(prisma);
+
+    await expect(
+      service.signIn({ identifier: '0618888761', secret: 'secret123' } as any, { deviceId: 'web-member' }),
+    ).rejects.toBeInstanceOf(UnauthorizedException);
+
+    expect(prisma.user.updateMany).not.toHaveBeenCalled();
+    expect(prisma.authSession.create).not.toHaveBeenCalled();
+  });
+});
+
 describe('AuthService progressive lockout', () => {
   it('locks a member after consecutive failed sign-ins', async () => {
     const prisma = createPrismaMock();
