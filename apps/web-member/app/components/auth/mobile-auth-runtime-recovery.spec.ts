@@ -22,12 +22,13 @@ test('Mobile Home loads runtime correction after the previous fidelity owner', (
 });
 
 test('mobile auth keeps the underlying page visible and drawer colors match the supplied source screenshot', () => {
-  assert.match(correction, /background-color:\s*rgb\(0 0 0 \/ 48%\)\s*!important/);
-  assert.match(correction, /#110e16\s*!important/);
-  assert.match(correction, /background:\s*#22152b\s*!important/);
-  assert.match(correction, /rgb\(187 91 234 \/ 40%\)/);
+  assert.match(correction, /background-color:\s*rgb\(0 0 0 \/ 38%\)\s*!important/);
+  assert.match(correction, /#0a0a0a\s*!important/);
+  assert.match(correction, /#2a2518/);
+  assert.match(correction, /#272215/);
+  assert.match(correction, /rgb\(107 23 126 \/ 18%\)/);
   assert.match(correction, /span:first-child[\s\S]*background:\s*transparent\s*!important/);
   assert.match(correction, /span:last-child[\s\S]*background:\s*transparent\s*!important/);
-  assert.match(correction, /linear-gradient\(rgb\(129 104 157\), rgb\(206 156 186\)\)/);
-  assert.match(correction, /linear-gradient\(rgb\(114 4 85\), rgb\(145 10 103\)\)/);
+  assert.match(correction, /linear-gradient\(180deg, #9f87b1 0%, #d0a1c1 100%\)/);
+  assert.match(correction, /linear-gradient\(180deg, #8e2371 0%, #850d65 44%, #a80d7e 100%\)/);
 });
