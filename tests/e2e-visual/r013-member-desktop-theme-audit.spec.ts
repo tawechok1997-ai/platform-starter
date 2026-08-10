@@ -30,7 +30,7 @@ test('Theme & layout settings change live Member tokens and desktop ownership', 
   await expect.poll(async () => (await readThemeState(page)).runtimeBackground, { timeout: 10_000 }).toBe('#08111f');
 
   const first = await readThemeState(page);
-  expect(first.aliasCanvas).toBe('rgb(8, 17, 31)');
+  expect(first.aliasCanvas).toBe('#08111f');
   expect(first.runtimeColumns).toBe('5');
   expect(first.desktopSidebar).toBe('true');
   expect(first.bottomNavigation).toBe('true');
@@ -53,7 +53,7 @@ test('Theme & layout settings change live Member tokens and desktop ownership', 
   await expect.poll(async () => (await readThemeState(page)).runtimeBackground, { timeout: 10_000 }).toBe('#f2f6fb');
 
   const second = await readThemeState(page);
-  expect(second.aliasCanvas).toBe('rgb(242, 246, 251)');
+  expect(second.aliasCanvas).toBe('#f2f6fb');
   expect(second.runtimeColumns).toBe('4');
   expect(second.desktopSidebar).toBe('false');
   expect(second.bottomNavigation).toBe('false');
