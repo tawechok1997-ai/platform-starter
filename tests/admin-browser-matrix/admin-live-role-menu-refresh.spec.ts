@@ -1,8 +1,8 @@
 import { expect, test, type Page, type Route } from '@playwright/test';
 
 test('changing an Admin role invalidates the live sidebar permission state', async ({ page }) => {
-  let roleCode = 'finance';
-  let permissions = ['topups.view', 'deposit.view', 'withdraw.view', 'wallet.view', 'reports.view'];
+  let roleCode = 'owner';
+  let permissions = ['*'];
   let authMeReads = 0;
 
   await page.addInitScript(() => {
@@ -19,20 +19,19 @@ test('changing an Admin role invalidates the live sidebar permission state', asy
   });
 
   await page.goto('/dashboard', { waitUntil: 'domcontentloaded' });
-  await page.waitForLoadState('networkidle', { timeout: 10_000 }).catch(() => undefined);
+  await expect.poll(() => authMeReads, { timeout: 12_000 }).toBeGreaterThanOrEqual(2);
   await expect(page.locator('.admin-shell')).toBeVisible();
   await expect(page.locator('#admin-sidebar a[href="/topups"]')).toHaveCount(1);
 
-  await expect.poll(() => authMeReads, { timeout: 5_000 }).toBeGreaterThanOrEqual(2);
-
+  const readsBeforeInvalidation = authMeReads;
   roleCode = 'marketing';
   permissions = ['promotion.view', 'settings.features.view', 'settings.features.update', 'reports.view'];
 
-  const navigation = page.waitForEvent('framenavigated', { timeout: 8_000 }).catch(() => null);
+  const navigation = page.waitForEvent('framenavigated', { timeout: 12_000 }).catch(() => null);
   await page.evaluate(() => window.dispatchEvent(new Event('admin:identity-invalidated')));
+  await expect.poll(() => authMeReads, { timeout: 8_000 }).toBeGreaterThan(readsBeforeInvalidation);
   await navigation;
   await page.waitForLoadState('domcontentloaded');
-  await page.waitForLoadState('networkidle', { timeout: 10_000 }).catch(() => undefined);
 
   await expect(page.locator('.admin-shell')).toBeVisible();
   await expect(page.locator('#admin-sidebar a[href="/topups"]')).toHaveCount(0);
