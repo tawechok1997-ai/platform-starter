@@ -4,6 +4,7 @@ import test from 'node:test';
 
 const runtime = readFileSync(new URL('./auth-field-runtime.tsx', import.meta.url), 'utf8');
 const overlay = readFileSync(new URL('./member-auth-overlay.tsx', import.meta.url), 'utf8');
+const overlayMotion = readFileSync(new URL('../../member-auth-overlay-motion.css', import.meta.url), 'utf8');
 const layout = readFileSync(new URL('../../(auth)/layout.tsx', import.meta.url), 'utf8');
 const originalMobile = readFileSync(new URL('./auth-popup-original-mobile-final.css', import.meta.url), 'utf8');
 const antiBot = readFileSync(new URL('../../(auth)/anti-bot-widget.tsx', import.meta.url), 'utf8');
@@ -26,6 +27,13 @@ test('Login and Register stay inside one mounted overlay without route reloads',
   assert.doesNotMatch(overlay, /location\.replace\(nextPath\)/);
   assert.doesNotMatch(overlay, /frame\.src\s*=\s*nextPath/);
   assert.doesNotMatch(overlay, /setFrameReady\(false\)/);
+});
+
+test('Mobile auth keeps one source backdrop owner and hides the preloaded sibling frame', () => {
+  assert.match(overlayMotion, /div\.member-auth-overlay,[\s\S]*background-color:\s*transparent\s*!important/);
+  assert.match(overlayMotion, /@media \(max-width:\s*900px\)[\s\S]*member-auth-overlay__backdrop[\s\S]*background:\s*rgb\(0 0 0 \/ 72%\)/);
+  assert.match(overlayMotion, /member-auth-overlay__frame\[data-auth-frame-active='false'\][\s\S]*visibility:\s*hidden\s*!important/);
+  assert.match(overlayMotion, /member-auth-overlay__frame\[data-auth-frame-active='false'\][\s\S]*pointer-events:\s*none\s*!important/);
 });
 
 test('supplied compact Mobile auth stylesheet is the final visual owner', () => {
