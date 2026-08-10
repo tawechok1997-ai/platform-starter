@@ -192,9 +192,7 @@ function normalizeElement(element: HTMLElement) {
   const computed = getComputedStyle(element);
 
   const gradient = resolveGradient(computed.backgroundImage);
-  if (gradient) {
-    element.style.setProperty('background-image', gradient, 'important');
-  }
+  if (gradient) element.style.setProperty('background-image', gradient, 'important');
 
   const background = classifyBackground(computed.backgroundColor);
   if (background) element.style.setProperty('background-color', background, 'important');
@@ -214,38 +212,49 @@ function normalizeElement(element: HTMLElement) {
 }
 
 function classifyBackground(value: string) {
-  const normalized = normalizeRgb(value);
   if (isTransparent(value)) return null;
+  const parsed = parseRgba(value);
+  const normalized = normalizeRgb(value);
+  if (BRAND_COLORS.has(normalized)) {
+    if (parsed && parsed.alpha < 1) return mixWithTransparent('--member-runtime-primary', parsed.alpha, 4);
+    return 'var(--member-runtime-primary)';
+  }
+
   const neutral = BACKGROUNDS.get(normalized);
-  if (neutral) return neutral;
-  if (BRAND_COLORS.has(normalized)) return 'var(--member-runtime-primary)';
-  const alpha = parseRgba(value);
-  if (!alpha) return null;
-  const rgb = `rgb(${alpha.red},${alpha.green},${alpha.blue})`;
-  if ((rgb === 'rgb(2,6,23)' || rgb === 'rgb(8,8,8)' || rgb === 'rgb(15,23,42)') && alpha.alpha < 1) {
-    return `color-mix(in srgb, var(--member-runtime-card) ${Math.max(18, Math.round(alpha.alpha * 100))}%, transparent)`;
+  if (neutral && (!parsed || parsed.alpha >= 0.98)) return neutral;
+  if (!parsed) return neutral ?? null;
+
+  const rgb = `rgb(${parsed.red},${parsed.green},${parsed.blue})`;
+  if ((BACKGROUNDS.has(rgb) || rgb === 'rgb(0,0,0)') && parsed.alpha < 1) {
+    return mixWithTransparent('--member-runtime-card', parsed.alpha, 8);
   }
-  if ((rgb === 'rgb(255,255,255)' || rgb === 'rgb(148,163,184)') && alpha.alpha < 0.35) {
-    return `color-mix(in srgb, var(--member-runtime-text) ${Math.max(4, Math.round(alpha.alpha * 100))}%, transparent)`;
+  if ((rgb === 'rgb(255,255,255)' || rgb === 'rgb(148,163,184)') && parsed.alpha < 0.35) {
+    return mixWithTransparent('--member-runtime-text', parsed.alpha, 4);
   }
-  return null;
+  return neutral ?? null;
 }
 
 function normalizeBorder(element: HTMLElement, property: string, value: string) {
+  const parsed = parseRgba(value);
   const normalized = normalizeRgb(value);
   if (BRAND_COLORS.has(normalized)) {
-    element.style.setProperty(property, 'var(--member-runtime-primary)', 'important');
+    const token = parsed && parsed.alpha < 1
+      ? mixWithTransparent('--member-runtime-primary', parsed.alpha, 8)
+      : 'var(--member-runtime-primary)';
+    element.style.setProperty(property, token, 'important');
     return;
   }
   if (BORDER_NEUTRAL.has(normalized)) {
-    element.style.setProperty(property, 'var(--member-runtime-border)', 'important');
+    const token = parsed && parsed.alpha < 1
+      ? mixWithTransparent('--member-runtime-border', parsed.alpha, 10)
+      : 'var(--member-runtime-border)';
+    element.style.setProperty(property, token, 'important');
     return;
   }
-  const rgba = parseRgba(value);
-  if (!rgba || rgba.alpha >= 0.5) return;
-  const rgb = `rgb(${rgba.red},${rgba.green},${rgba.blue})`;
+  if (!parsed || parsed.alpha >= 0.5) return;
+  const rgb = `rgb(${parsed.red},${parsed.green},${parsed.blue})`;
   if (rgb === 'rgb(255,255,255)' || rgb === 'rgb(148,163,184)') {
-    element.style.setProperty(property, 'color-mix(in srgb, var(--member-runtime-border) 72%, transparent)', 'important');
+    element.style.setProperty(property, mixWithTransparent('--member-runtime-border', parsed.alpha, 10), 'important');
   }
 }
 
@@ -271,6 +280,11 @@ function resolveGradient(value: string) {
   return hasBrand
     ? 'linear-gradient(180deg, color-mix(in srgb, var(--member-runtime-card) 82%, var(--member-runtime-primary) 18%), var(--member-runtime-background))'
     : 'linear-gradient(180deg, var(--member-runtime-card), var(--member-runtime-background))';
+}
+
+function mixWithTransparent(variable: string, alpha: number, minimumPercent: number) {
+  const percent = Math.max(minimumPercent, Math.min(100, Math.round(alpha * 100)));
+  return `color-mix(in srgb, var(${variable}) ${percent}%, transparent)`;
 }
 
 function isBrand(value: string) {
