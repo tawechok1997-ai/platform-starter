@@ -1,6 +1,7 @@
 /* Final accepted Mobile auth owner.
- * Matches the supplied original rectangular Login/Register tabs and keeps every
- * interactive control above decorative layers. Keep this as the final auth CSS import.
+ * Matches the supplied compact NOAH345 Login/Register reference: angled tabs,
+ * dense form spacing, dark glass body, purple active state and white close chip.
+ * Keep this after the older mobile auth styles so there is only one final owner.
  */
 @media (max-width: 900px) {
   .auth-reference-scope .public-auth-page[data-embedded='true'] {
@@ -33,28 +34,39 @@
     margin: 0 auto !important;
     padding: 0 !important;
     overflow: visible !important;
-    border: 1px solid rgb(255 255 255 / 18%) !important;
-    border-radius: 10px !important;
+    border: 1px solid rgb(255 255 255 / 16%) !important;
+    border-radius: 8px !important;
     background: transparent !important;
     box-shadow: 0 16px 44px rgb(0 0 0 / 52%) !important;
     transform: none !important;
     pointer-events: auto !important;
   }
 
-  .auth-reference-scope .source-login-form-shell {
-    position: relative !important;
-    z-index: 2 !important;
-    pointer-events: auto !important;
-  }
-
+  .auth-reference-scope .source-login-modal[data-auth-mode]::before,
+  .auth-reference-scope .source-register-modal[data-auth-mode]::before,
   .auth-reference-scope .source-login-visual,
   .auth-reference-scope .public-auth-ambient,
   .auth-reference-scope .public-auth-backdrop,
   .auth-reference-scope .public-auth-tabs::before,
-  .auth-reference-scope .public-auth-tabs::after,
-  .auth-reference-scope .source-login-modal[data-auth-mode]::before,
-  .auth-reference-scope .source-register-modal[data-auth-mode]::before {
+  .auth-reference-scope .public-auth-tabs::after {
+    display: none !important;
     pointer-events: none !important;
+  }
+
+  .auth-reference-scope .source-login-form-shell {
+    position: relative !important;
+    z-index: 2 !important;
+    display: flex !important;
+    box-sizing: border-box !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    height: auto !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    flex-direction: column !important;
+    overflow: visible !important;
+    pointer-events: auto !important;
   }
 
   .auth-reference-scope .source-login-tabs,
@@ -62,37 +74,36 @@
   .auth-reference-scope .public-auth-tabs {
     position: relative !important;
     z-index: 20 !important;
-    display: grid !important;
+    display: block !important;
     box-sizing: border-box !important;
     width: 100% !important;
     min-width: 0 !important;
     max-width: none !important;
-    height: 48px !important;
-    min-height: 48px !important;
+    height: 42px !important;
+    min-height: 42px !important;
     margin: 0 !important;
     padding: 0 !important;
-    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-    gap: 0 !important;
     overflow: hidden !important;
     border: 0 !important;
-    border-radius: 10px 10px 0 0 !important;
-    background: #15131a !important;
+    border-radius: 8px 8px 0 0 !important;
+    background: #17141f !important;
     pointer-events: auto !important;
   }
 
   .auth-reference-scope .source-login-tabs > a,
   .auth-reference-scope .source-register-tabs > a,
   .auth-reference-scope .public-auth-tabs > a {
-    position: relative !important;
-    inset: auto !important;
+    position: absolute !important;
+    top: 0 !important;
+    bottom: auto !important;
     z-index: 1 !important;
     display: flex !important;
     box-sizing: border-box !important;
-    width: 100% !important;
+    width: 55% !important;
     min-width: 0 !important;
-    max-width: none !important;
-    height: 48px !important;
-    min-height: 48px !important;
+    max-width: 55% !important;
+    height: 42px !important;
+    min-height: 42px !important;
     margin: 0 !important;
     padding: 0 10px !important;
     align-items: center !important;
@@ -100,11 +111,10 @@
     border: 0 !important;
     border-radius: 0 !important;
     color: #fff !important;
-    background: #15131a !important;
-    clip-path: none !important;
-    font-size: 15px !important;
+    background: #17141f !important;
+    font-size: 13px !important;
     font-weight: 700 !important;
-    line-height: 24px !important;
+    line-height: 18px !important;
     text-align: center !important;
     text-decoration: none !important;
     cursor: pointer !important;
@@ -114,31 +124,274 @@
     -webkit-tap-highlight-color: transparent !important;
   }
 
+  .auth-reference-scope .source-login-tabs > a:first-child,
+  .auth-reference-scope .source-register-tabs > a:first-child,
+  .auth-reference-scope .public-auth-tabs > a:first-child {
+    left: 0 !important;
+    right: auto !important;
+    padding-right: 22px !important;
+    clip-path: polygon(0 0, 88% 0, 100% 100%, 0 100%) !important;
+  }
+
+  .auth-reference-scope .source-login-tabs > a:last-child,
+  .auth-reference-scope .source-register-tabs > a:last-child,
+  .auth-reference-scope .public-auth-tabs > a:last-child {
+    right: 0 !important;
+    left: auto !important;
+    padding-left: 22px !important;
+    clip-path: polygon(12% 0, 100% 0, 100% 100%, 0 100%) !important;
+  }
+
   .auth-reference-scope .source-login-tabs > a[aria-current='page'],
   .auth-reference-scope .source-register-tabs > a[aria-current='page'],
   .auth-reference-scope .public-auth-tabs > a[aria-current='page'] {
-    z-index: 2 !important;
+    z-index: 3 !important;
     color: #fff !important;
-    background: #3e3a49 !important;
+    background: linear-gradient(180deg, #e81bd8 0%, #9200df 100%) !important;
   }
 
   .auth-reference-scope .source-login-card,
   .auth-reference-scope .source-register-card {
     position: relative !important;
     z-index: 3 !important;
+    display: flex !important;
+    box-sizing: border-box !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: calc(100dvh - 90px) !important;
+    margin: 0 !important;
+    padding: 14px 14px 12px !important;
+    flex: 0 1 auto !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 10px !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    border: 0 !important;
+    border-radius: 0 0 8px 8px !important;
+    color: #fff !important;
+    background: linear-gradient(0deg, #1b1824 -5.86%, #3f3b4b 104.05%) !important;
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 5%) !important;
+    backdrop-filter: blur(40px) !important;
+    overscroll-behavior: contain !important;
+    scrollbar-width: thin !important;
     pointer-events: auto !important;
   }
 
-  .auth-reference-scope .source-login-card :is(a, button, input, select, textarea),
-  .auth-reference-scope .source-register-card :is(a, button, input, select, textarea) {
+  .auth-reference-scope .source-login-heading,
+  .auth-reference-scope .source-register-heading,
+  .auth-reference-scope .source-register-progress {
+    display: none !important;
+  }
+
+  .auth-reference-scope .source-login-field,
+  .auth-reference-scope .source-register-card .source-login-field {
     position: relative !important;
+    display: block !important;
+    box-sizing: border-box !important;
+    width: 100% !important;
+    min-height: 42px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  .auth-reference-scope .source-login-field .public-auth-input-wrap,
+  .auth-reference-scope .source-register-card .source-login-field .public-auth-input-wrap {
+    position: relative !important;
+    display: block !important;
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .auth-reference-scope .source-login-field .public-auth-input,
+  .auth-reference-scope .source-register-card .source-login-field .public-auth-input {
+    display: block !important;
+    box-sizing: border-box !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    height: 42px !important;
+    min-height: 42px !important;
+    margin: 0 !important;
+    padding: 0 12px !important;
+    border: 1px solid #6b6175 !important;
+    border-radius: 5px !important;
+    outline: 0 !important;
+    color: #fff !important;
+    background: #15131a !important;
+    font-size: 13px !important;
+    line-height: 18px !important;
+    box-shadow: inset 0 1px 2px rgb(0 0 0 / 32%) !important;
+  }
+
+  .auth-reference-scope .source-login-field .public-auth-input-wrap .public-auth-input {
+    padding-right: 42px !important;
+  }
+
+  .auth-reference-scope .source-login-field .public-auth-input:focus,
+  .auth-reference-scope .source-register-card .source-login-field .public-auth-input:focus {
+    border-color: #a52bd4 !important;
+    box-shadow: 0 0 0 1px rgb(165 43 212 / 20%) !important;
+  }
+
+  .auth-reference-scope .source-login-field .public-auth-field-label,
+  .auth-reference-scope .source-register-card .source-login-field .public-auth-field-label {
+    opacity: 0 !important;
+    pointer-events: none !important;
+  }
+
+  .auth-reference-scope .public-auth-input::placeholder {
+    color: #8f8b94 !important;
+    opacity: 1 !important;
+  }
+
+  .auth-reference-scope .source-login-eye {
+    position: absolute !important;
+    top: 50% !important;
+    right: 5px !important;
+    z-index: 4 !important;
+    display: grid !important;
+    box-sizing: border-box !important;
+    width: 32px !important;
+    min-width: 32px !important;
+    height: 32px !important;
+    min-height: 32px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    place-items: center !important;
+    border: 0 !important;
+    color: #8f8b94 !important;
+    background: transparent !important;
+    transform: translateY(-50%) !important;
+    cursor: pointer !important;
+  }
+
+  .auth-reference-scope .source-login-card .public-auth-forgot {
+    display: inline-flex !important;
+    width: auto !important;
+    margin: -2px 0 0 auto !important;
+    padding: 0 !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    color: #b52bd4 !important;
+    background: transparent !important;
+    font-size: 10px !important;
+    font-weight: 600 !important;
+    line-height: 15px !important;
+    text-decoration: none !important;
+  }
+
+  .auth-reference-scope .source-login-submit,
+  .auth-reference-scope .source-register-submit,
+  .auth-reference-scope .source-register-back {
+    display: flex !important;
+    box-sizing: border-box !important;
+    width: 100% !important;
+    height: 38px !important;
+    min-height: 38px !important;
+    margin: 0 !important;
+    padding: 0 10px !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border-radius: 4px !important;
+    font-size: 13px !important;
+    font-weight: 700 !important;
+    line-height: 18px !important;
+  }
+
+  .auth-reference-scope .source-login-submit,
+  .auth-reference-scope .source-register-submit {
+    border: 0 !important;
+    color: #fff !important;
+    background: linear-gradient(180deg, #b221e6 0%, #8700d2 100%) !important;
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 18%) !important;
+  }
+
+  .auth-reference-scope .source-register-back {
+    border: 1px solid #6b6175 !important;
+    color: #fff !important;
+    background: #15131a !important;
+  }
+
+  .auth-reference-scope .source-register-actions {
+    display: flex !important;
+    width: 100% !important;
+    gap: 8px !important;
+  }
+
+  .auth-reference-scope .source-login-divider,
+  .auth-reference-scope .source-login-card .public-auth-legal,
+  .auth-reference-scope .source-register-card .public-auth-legal {
+    display: none !important;
+  }
+
+  .auth-reference-scope .source-login-support {
+    display: flex !important;
+    width: 100% !important;
+    margin: 2px 0 0 !important;
+    padding: 0 !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 3px !important;
+    color: #8d8297 !important;
+    font-size: 10px !important;
+    line-height: 15px !important;
+    text-align: center !important;
+  }
+
+  .auth-reference-scope .source-login-support a,
+  .auth-reference-scope .source-login-support button {
+    color: #bb27d8 !important;
+    font-size: 10px !important;
+    font-weight: 700 !important;
+    line-height: 15px !important;
+  }
+
+  .auth-reference-scope .source-login-close {
+    position: absolute !important;
+    top: -12px !important;
+    right: -10px !important;
+    z-index: 60 !important;
+    display: grid !important;
+    box-sizing: border-box !important;
+    width: 26px !important;
+    min-width: 26px !important;
+    height: 26px !important;
+    min-height: 26px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    place-items: center !important;
+    overflow: hidden !important;
+    border: 0 !important;
+    border-radius: 999px !important;
+    color: #17131d !important;
+    background: #fff !important;
+    box-shadow: 0 2px 9px rgb(0 0 0 / 42%) !important;
+    cursor: pointer !important;
     pointer-events: auto !important;
     touch-action: manipulation !important;
     -webkit-tap-highlight-color: transparent !important;
   }
 
-  .auth-reference-scope .source-login-close {
-    z-index: 60 !important;
+  .auth-reference-scope .source-login-close > span {
+    display: none !important;
+  }
+
+  .auth-reference-scope .source-login-close > svg {
+    display: block !important;
+    width: 15px !important;
+    height: 15px !important;
+    flex: none !important;
+  }
+
+  .auth-reference-scope .source-login-card :is(a, button, input, select, textarea),
+  .auth-reference-scope .source-register-card :is(a, button, input, select, textarea) {
+    position: relative !important;
     pointer-events: auto !important;
     touch-action: manipulation !important;
     -webkit-tap-highlight-color: transparent !important;
@@ -153,5 +406,10 @@
   .auth-reference-scope .source-login-modal[data-auth-mode],
   .auth-reference-scope .source-register-modal[data-auth-mode] {
     width: calc(100vw - 28px) !important;
+  }
+
+  .auth-reference-scope .source-login-card,
+  .auth-reference-scope .source-register-card {
+    padding-inline: 12px !important;
   }
 }
