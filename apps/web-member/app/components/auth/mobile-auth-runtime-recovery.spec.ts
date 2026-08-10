@@ -27,10 +27,10 @@ test('accepted Mobile Source Set 1 is again the final auth stylesheet owner', ()
   assert.match(sourceSetOne, /source-login-close[\s\S]*background:\s*#fff\s*!important/);
 });
 
-test('Mobile Home restores the source drawer owner and removes screenshot-guessed visual owners', () => {
+test('Mobile Home restores the source drawer chain and removes screenshot-guessed visual owners', () => {
   assert.match(
     home,
-    /mobile-hero-carousel\.css';\s*import '\.\/components\/mobile-home\/mobile-leaderboard-fit\.css';\s*import '\.\/components\/mobile-home\/mobile-drawer-reference-parity\.css';/,
+    /mobile-hero-carousel\.css';\s*import '\.\/components\/mobile-home\/mobile-drawer-reference-parity\.css';\s*import '\.\/components\/mobile-home\/mobile-leaderboard-fit\.css';/,
   );
   assert.doesNotMatch(home, /mobile-reference-fidelity-final\.css/);
   assert.doesNotMatch(home, /mobile-auth-drawer-runtime-correction\.css/);
