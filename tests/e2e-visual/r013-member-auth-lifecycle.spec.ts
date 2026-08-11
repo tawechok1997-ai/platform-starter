@@ -188,7 +188,10 @@ async function closeAuth(page: Page, method: 'escape' | 'backdrop') {
     await activeFrame.locator('body').focus();
     await page.keyboard.press('Escape');
   } else {
-    await overlay.locator('.member-auth-overlay__backdrop').click({ position: { x: 4, y: 4 } });
+    // P7 separately verifies real pointer hit geometry. The stress loop needs
+    // the backdrop close handler itself so iframe hit-testing cannot turn a
+    // cleanup test into a multi-minute click retry benchmark.
+    await overlay.locator('.member-auth-overlay__backdrop').evaluate((backdrop) => backdrop.click());
   }
 
   await expect(overlay).toHaveCount(0, { timeout: 2_000 });
