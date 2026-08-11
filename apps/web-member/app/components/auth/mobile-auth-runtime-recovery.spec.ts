@@ -29,6 +29,12 @@ test('Login and Register stay inside one mounted overlay without route reloads',
   assert.doesNotMatch(overlay, /setFrameReady\(false\)/);
 });
 
+test('embedded auth Escape reaches the parent overlay while the iframe owns focus', () => {
+  assert.match(runtime, /document\.addEventListener\('keydown', forwardEmbeddedEscape, true\)/);
+  assert.match(runtime, /event\.key !== 'Escape' \|\| window\.parent === window/);
+  assert.match(runtime, /window\.parent\.postMessage\(\{ type: 'member-auth-close' \}, window\.location\.origin\)/);
+});
+
 test('Mobile auth keeps one source backdrop owner and hides the preloaded sibling frame', () => {
   assert.match(overlayMotion, /div\.member-auth-overlay,[\s\S]*background-color:\s*transparent\s*!important/);
   assert.match(overlayMotion, /@media \(max-width:\s*900px\)[\s\S]*member-auth-overlay__backdrop[\s\S]*background:\s*rgb\(0 0 0 \/ 72%\)/);
@@ -47,11 +53,14 @@ test('supplied compact Mobile auth stylesheet is the final visual owner', () => 
   assert.match(originalMobile, /source-login-submit,[\s\S]*height:\s*38px\s*!important/);
 });
 
-test('adaptive anti-bot config uses the same public API boundary as auth submission and refreshes after failures', () => {
-  assert.match(antiBot, /import \{ API_URL \} from '\.\.\/member-api'/);
-  assert.match(antiBot, /fetch\(`\$\{base\}\/public\/anti-bot\/\$\{endpoint\}`/);
+test('adaptive anti-bot config uses the approved Member public API bridge and refreshes after failures', () => {
+  assert.match(antiBot, /import \{ memberApiFetch \} from '\.\.\/member-api'/);
+  assert.match(antiBot, /memberApiFetch\(`\/public\/anti-bot\/\$\{endpoint\}`/);
+  assert.match(antiBot, /skipAuth:\s*true/);
+  assert.match(antiBot, /suppressSessionExpiryRedirect:\s*true/);
   assert.match(antiBot, /\[endpoint, locale, onRequiredChange, resetKey\]/);
   assert.doesNotMatch(antiBot, /\/api\/anti-bot\/\$\{endpoint\}/);
+  assert.doesNotMatch(antiBot, /\bfetch\s*\(/);
 });
 
 test('Mobile Home restores the source drawer chain and removes screenshot-guessed visual owners', () => {
