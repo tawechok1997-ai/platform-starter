@@ -21,7 +21,7 @@ test.describe('Member auth lifecycle regression', () => {
     const blankExposureCount = await page.evaluate(() => (
       (window as Window & { __memberAuthBlankExposureCount?: number }).__memberAuthBlankExposureCount ?? 0
     ));
-    expect(blankExposureCount, 'The full-screen iframe must remain hidden until its real dialog exists').toBe(0);
+    expect(blankExposureCount, 'No exposed auth iframe may be visible before its real dialog exists').toBe(0);
 
     await closeAuth(page, 'escape');
     await assertReleased(page);
@@ -82,8 +82,8 @@ async function installBlankFrameProbe(page: Page) {
 
     const sample = () => {
       const overlay = document.querySelector<HTMLElement>('.member-auth-overlay');
-      const frame = overlay?.querySelector<HTMLIFrameElement>('iframe.member-auth-overlay__frame');
-      if (frame) {
+      const frames = overlay?.querySelectorAll<HTMLIFrameElement>('iframe.member-auth-overlay__frame') ?? [];
+      for (const frame of frames) {
         const style = getComputedStyle(frame);
         const exposed = style.visibility !== 'hidden'
           && style.display !== 'none'
@@ -91,7 +91,9 @@ async function installBlankFrameProbe(page: Page) {
         const dialog = frame.contentDocument?.querySelector(
           '[data-embedded="true"] [role="dialog"], [data-embedded="true"] .source-login-modal, [data-embedded="true"] .source-register-modal',
         );
-        if (exposed && !dialog) root.__memberAuthBlankExposureCount = (root.__memberAuthBlankExposureCount ?? 0) + 1;
+        if (exposed && !dialog) {
+          root.__memberAuthBlankExposureCount = (root.__memberAuthBlankExposureCount ?? 0) + 1;
+        }
       }
       window.requestAnimationFrame(sample);
     };
@@ -104,8 +106,11 @@ async function assertRenderedAuthFrame(page: Page) {
   const overlay = page.locator('.member-auth-overlay');
   await expect(overlay).toBeVisible({ timeout: 15_000 });
   await expect(overlay).toHaveAttribute('data-frame-ready', 'true', { timeout: 15_000 });
+  await assertPreloadedFrameOwnership(overlay);
 
-  const frame = page.frameLocator('iframe.member-auth-overlay__frame');
+  const frame = page.frameLocator(
+    'iframe.member-auth-overlay__frame[data-auth-frame-active="true"]',
+  );
   await expect(frame.locator(
     '[data-embedded="true"] [role="dialog"], [data-embedded="true"] .source-login-modal, [data-embedded="true"] .source-register-modal',
   ).first()).toBeVisible({ timeout: 15_000 });
@@ -137,7 +142,25 @@ async function openAuth(page: Page, mode: 'login' | 'register', requestId: strin
   const overlay = page.locator(`.member-auth-overlay[data-auth-request-id="${requestId}"]`);
   await expect(overlay).toBeVisible({ timeout: 10_000 });
   await expect(overlay).toHaveAttribute('data-state', /opening|open/);
-  await expect(overlay.locator('iframe.member-auth-overlay__frame')).toHaveCount(1);
+  await assertPreloadedFrameOwnership(overlay, mode);
+}
+
+async function assertPreloadedFrameOwnership(
+  overlay: ReturnType<Page['locator']>,
+  expectedMode?: 'login' | 'register',
+) {
+  const frames = overlay.locator('iframe.member-auth-overlay__frame');
+  const activeFrame = frames.filter({ has: undefined }).locator('xpath=self::*[@data-auth-frame-active="true"]');
+  const inactiveFrame = frames.filter({ has: undefined }).locator('xpath=self::*[@data-auth-frame-active="false"]');
+
+  await expect(frames).toHaveCount(2);
+  await expect(activeFrame).toHaveCount(1);
+  await expect(inactiveFrame).toHaveCount(1);
+  await expect(activeFrame).toBeVisible();
+  await expect(inactiveFrame).toBeHidden();
+  await expect(inactiveFrame).toHaveAttribute('aria-hidden', 'true');
+  await expect(inactiveFrame).toHaveCSS('pointer-events', 'none');
+  if (expectedMode) await expect(activeFrame).toHaveAttribute('data-auth-frame-mode', expectedMode);
 }
 
 async function dispatchAuthRequest(page: Page, mode: 'login' | 'register', requestId: string) {
@@ -152,12 +175,16 @@ async function closeAuth(page: Page, method: 'escape' | 'message') {
   const overlay = page.locator('.member-auth-overlay');
   await expect(overlay).toBeVisible();
 
+  const activeFrame = page.frameLocator(
+    'iframe.member-auth-overlay__frame[data-auth-frame-active="true"]',
+  );
+  await activeFrame.locator('body').waitFor({ state: 'attached', timeout: 10_000 });
+
   if (method === 'escape') {
+    await activeFrame.locator('body').focus();
     await page.keyboard.press('Escape');
   } else {
-    const frame = page.frameLocator('iframe.member-auth-overlay__frame');
-    await frame.locator('body').waitFor({ state: 'attached', timeout: 10_000 });
-    await frame.locator('body').evaluate(() => {
+    await activeFrame.locator('body').evaluate(() => {
       window.parent.postMessage({ type: 'member-auth-close' }, window.location.origin);
     });
   }
