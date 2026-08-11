@@ -49,6 +49,12 @@ test('login and registration fields keep runtime placeholders and password contr
   assert.match(runtime, /MutationObserver/);
 });
 
+test('embedded auth forwards Escape to the owning popup instead of trapping focus in the iframe', () => {
+  assert.match(runtime, /const forwardEmbeddedEscape = \(event: KeyboardEvent\)/);
+  assert.match(runtime, /event\.key !== 'Escape' \|\| window\.parent === window/);
+  assert.match(runtime, /window\.parent\.postMessage\(\{ type: 'member-auth-close' \}, window\.location\.origin\)/);
+});
+
 test('final Desktop Auth keeps Login and Register on the same source geometry', () => {
   assert.match(sharedShellCss, /@media \(min-width:\s*901px\)/);
   assert.match(sharedShellCss, /width:\s*min\(980px,\s*calc\(100vw - 40px\)\)\s*!important/);
@@ -84,11 +90,15 @@ test('registration phone step does not mount CAPTCHA or block the next button', 
 });
 
 test('CAPTCHA provider failures warn without freezing Login or Register and config refresh follows submit failures', () => {
+  assert.match(antiBot, /import \{ memberApiFetch \} from '\.\.\/member-api'/);
+  assert.match(antiBot, /memberApiFetch\(`\/public\/anti-bot\/\$\{endpoint\}`/);
+  assert.match(antiBot, /skipAuth:\s*true/);
   assert.match(antiBot, /warnWithoutFreezing/);
   assert.match(antiBot, /onRequiredChange\(false, true\)/);
-  assert.match(antiBot, /The auth API remains authoritative/);
+  assert.match(antiBot, /API remains authoritative/);
   assert.match(antiBot, /\[endpoint, locale, onRequiredChange, resetKey\]/);
   assert.doesNotMatch(antiBot, /const block =/);
+  assert.doesNotMatch(antiBot, /\bfetch\s*\(/);
 });
 
 test('registration transitions and request completion release local blockers', () => {
