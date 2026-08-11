@@ -52,7 +52,10 @@ test.describe('Member auth lifecycle regression', () => {
 
   test('Desktop repeats the same lifecycle at every required audit width', async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== '1024x768', 'One project drives all required desktop widths');
-    test.setTimeout(180_000);
+    // This one test deliberately exercises 80 auth lifecycles across four page
+    // reloads. Keep the per-width twenty-cycle stress intact and budget the
+    // aggregate matrix rather than making the timeout an accidental assertion.
+    test.setTimeout(360_000);
 
     for (const viewport of [
       { width: 1024, height: 768 },
@@ -60,17 +63,19 @@ test.describe('Member auth lifecycle regression', () => {
       { width: 1440, height: 900 },
       { width: 1920, height: 1080 },
     ]) {
-      await page.setViewportSize(viewport);
-      await page.goto(BASE_URL, { waitUntil: 'domcontentloaded', timeout: 45_000 });
-      await page.locator('body').waitFor({ state: 'visible' });
-      await waitForAuthOwner(page, `desktop-${viewport.width}`);
+      await test.step(`desktop ${viewport.width}px handles twenty auth cycles`, async () => {
+        await page.setViewportSize(viewport);
+        await page.goto(BASE_URL, { waitUntil: 'domcontentloaded', timeout: 45_000 });
+        await page.locator('body').waitFor({ state: 'visible' });
+        await waitForAuthOwner(page, `desktop-${viewport.width}`);
 
-      for (let index = 0; index < 20; index += 1) {
-        const mode = index % 2 === 0 ? 'login' : 'register';
-        await openAuth(page, mode, `desktop-${viewport.width}-${index}`);
-        await closeAuth(page, 'backdrop');
-        await assertReleased(page);
-      }
+        for (let index = 0; index < 20; index += 1) {
+          const mode = index % 2 === 0 ? 'login' : 'register';
+          await openAuth(page, mode, `desktop-${viewport.width}-${index}`);
+          await closeAuth(page, 'backdrop');
+          await assertReleased(page);
+        }
+      });
     }
   });
 });
