@@ -1,5 +1,6 @@
 /* Exact source geometry for the Mobile member drawer.
  * Source authority: w-[340px] px-[23px] py-[20px], #110e16, scrollable full-height surface.
+ * The component owns the single 445px source glow child; do not duplicate it on the drawer background.
  * Keep this file as the final Mobile drawer visual owner.
  */
 @media (max-width: 900px) {
@@ -47,14 +48,28 @@
     -webkit-overflow-scrolling: touch !important;
     touch-action: pan-y !important;
     border-radius: 0 !important;
-    background:
-      radial-gradient(circle 222.5px at 50% 0%, rgb(187 91 234 / 40%) 0%, rgb(38 33 52 / 0%) 100%),
-      rgb(17 14 22) !important;
+    background: rgb(17 14 22) !important;
     box-shadow: none !important;
   }
 
   #mobile-home-drawer::-webkit-scrollbar {
     display: none !important;
+  }
+
+  /* Exact source glow child: 445x445, centered half above the drawer, 40% opacity. */
+  #mobile-home-drawer > div:first-child {
+    position: absolute !important;
+    top: -222.5px !important;
+    left: 50% !important;
+    width: 445px !important;
+    min-width: 445px !important;
+    height: 445px !important;
+    min-height: 445px !important;
+    border-radius: 999px !important;
+    opacity: .4 !important;
+    background: radial-gradient(50% 50%, rgb(187 91 234) 0%, rgb(38 33 52 / 0%) 100%) !important;
+    transform: translateX(-50%) !important;
+    pointer-events: none !important;
   }
 
   /* Source header: 140px logo, capped at 32vw/30px high, then a 24px visual gap. */
@@ -82,7 +97,7 @@
     object-position: left center !important;
   }
 
-  /* Keep the source 12px close glyph while retaining a 44px touch target. */
+  /* Source uses the 12px /images/close.svg glyph; the larger box is only the touch target. */
   #mobile-home-drawer > div:nth-child(2) > button {
     position: absolute !important;
     top: -16px !important;
@@ -98,11 +113,15 @@
     place-items: center !important;
     border: 0 !important;
     border-radius: 0 !important;
-    color: #fff !important;
-    background: transparent !important;
+    color: transparent !important;
+    background-color: transparent !important;
+    background-image: url('/images/close.svg') !important;
+    background-position: center !important;
+    background-repeat: no-repeat !important;
+    background-size: 12px 12px !important;
     box-shadow: none !important;
-    font-size: 12px !important;
-    line-height: 1 !important;
+    font-size: 0 !important;
+    line-height: 0 !important;
   }
 
   #mobile-home-drawer > div:nth-child(2) > button :is(svg, img) {
@@ -145,6 +164,9 @@
     height: 32px !important;
     min-height: 32px !important;
     border-radius: 0 !important;
+    color: inherit !important;
+    background: transparent !important;
+    box-shadow: none !important;
     transform: scale(.85) !important;
     transform-origin: center !important;
   }
@@ -206,6 +228,8 @@
     min-height: 32px !important;
     max-height: 32px !important;
     border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
     object-fit: contain !important;
   }
 

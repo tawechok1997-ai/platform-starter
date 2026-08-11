@@ -3,8 +3,11 @@ import { readFileSync } from 'node:fs';
 import test from 'node:test';
 
 const runtime = readFileSync(new URL('./auth-field-runtime.tsx', import.meta.url), 'utf8');
+const overlay = readFileSync(new URL('./member-auth-overlay.tsx', import.meta.url), 'utf8');
+const overlayMotion = readFileSync(new URL('../../member-auth-overlay-motion.css', import.meta.url), 'utf8');
 const layout = readFileSync(new URL('../../(auth)/layout.tsx', import.meta.url), 'utf8');
-const sourceSetOne = readFileSync(new URL('./auth-popup-source-set1-final.css', import.meta.url), 'utf8');
+const originalMobile = readFileSync(new URL('./auth-popup-original-mobile-final.css', import.meta.url), 'utf8');
+const antiBot = readFileSync(new URL('../../(auth)/anti-bot-widget.tsx', import.meta.url), 'utf8');
 const home = readFileSync(new URL('../../member-home.tsx', import.meta.url), 'utf8');
 const drawer = readFileSync(new URL('../mobile-home/mobile-drawer-reference-parity.css', import.meta.url), 'utf8');
 const hero = readFileSync(new URL('../mobile-home/mobile-hero-carousel.css', import.meta.url), 'utf8');
@@ -17,14 +20,47 @@ test('password field enhancement reuses its own runtime toggle instead of creati
   assert.match(runtime, /if \(existingToggle\) \{[\s\S]*return;/);
 });
 
-test('accepted Mobile Source Set 1 is again the final auth stylesheet owner', () => {
+test('Login and Register stay inside one mounted overlay without route reloads', () => {
+  assert.match(overlay, /const AUTH_MODES: readonly MemberAuthMode\[\] = \['register', 'login'\]/);
+  assert.match(overlay, /\{AUTH_MODES\.map\(\(frameMode\) => \([\s\S]*data-auth-frame-active=/);
+  assert.match(overlay, /const switchMode = useCallback\([\s\S]*setActiveMode\(nextMode\)/);
+  assert.doesNotMatch(overlay, /location\.replace\(nextPath\)/);
+  assert.doesNotMatch(overlay, /frame\.src\s*=\s*nextPath/);
+  assert.doesNotMatch(overlay, /setFrameReady\(false\)/);
+});
+
+test('embedded auth Escape reaches the parent overlay while the iframe owns focus', () => {
+  assert.match(runtime, /document\.addEventListener\('keydown', forwardEmbeddedEscape, true\)/);
+  assert.match(runtime, /event\.key !== 'Escape' \|\| window\.parent === window/);
+  assert.match(runtime, /window\.parent\.postMessage\(\{ type: 'member-auth-close' \}, window\.location\.origin\)/);
+});
+
+test('Mobile auth keeps one source backdrop owner and hides the preloaded sibling frame', () => {
+  assert.match(overlayMotion, /div\.member-auth-overlay,[\s\S]*background-color:\s*transparent\s*!important/);
+  assert.match(overlayMotion, /@media \(max-width:\s*900px\)[\s\S]*member-auth-overlay__backdrop[\s\S]*background:\s*rgb\(0 0 0 \/ 72%\)/);
+  assert.match(overlayMotion, /member-auth-overlay__frame\[data-auth-frame-active='false'\][\s\S]*visibility:\s*hidden\s*!important/);
+  assert.match(overlayMotion, /member-auth-overlay__frame\[data-auth-frame-active='false'\][\s\S]*pointer-events:\s*none\s*!important/);
+});
+
+test('supplied compact Mobile auth stylesheet is the final visual owner', () => {
   const imports = [...layout.matchAll(/import ['"]([^'"]+\.css)['"]/g)].map((match) => match[1]);
-  assert.equal(imports.at(-1), '../components/auth/auth-popup-source-set1-final.css');
-  assert.match(sourceSetOne, /grid-template-columns:\s*repeat\(2, minmax\(0, 1fr\)\)\s*!important/);
-  assert.match(sourceSetOne, /clip-path:\s*none\s*!important/);
-  assert.match(sourceSetOne, /a\[aria-current='page'\][\s\S]*background:\s*#3e3a49\s*!important/);
-  assert.match(sourceSetOne, /height:\s*56px\s*!important/);
-  assert.match(sourceSetOne, /source-login-close[\s\S]*background:\s*#fff\s*!important/);
+  assert.equal(imports.at(-1), '../components/auth/auth-popup-original-mobile-final.css');
+  assert.doesNotMatch(layout, /auth-popup-source-set1-final\.css/);
+  assert.match(originalMobile, /height:\s*42px\s*!important/);
+  assert.match(originalMobile, /clip-path:\s*polygon\(0 0, 88% 0, 100% 100%, 0 100%\)\s*!important/);
+  assert.match(originalMobile, /background:\s*linear-gradient\(180deg, #e81bd8 0%, #9200df 100%\)\s*!important/);
+  assert.match(originalMobile, /source-login-field \.public-auth-input,[\s\S]*height:\s*42px\s*!important/);
+  assert.match(originalMobile, /source-login-submit,[\s\S]*height:\s*38px\s*!important/);
+});
+
+test('adaptive anti-bot config uses the approved Member public API bridge and refreshes after failures', () => {
+  assert.match(antiBot, /import \{ memberApiFetch \} from '\.\.\/member-api'/);
+  assert.match(antiBot, /memberApiFetch\(`\/public\/anti-bot\/\$\{endpoint\}`/);
+  assert.match(antiBot, /skipAuth:\s*true/);
+  assert.match(antiBot, /suppressSessionExpiryRedirect:\s*true/);
+  assert.match(antiBot, /\[endpoint, locale, onRequiredChange, resetKey\]/);
+  assert.doesNotMatch(antiBot, /\/api\/anti-bot\/\$\{endpoint\}/);
+  assert.doesNotMatch(antiBot, /\bfetch\s*\(/);
 });
 
 test('Mobile Home restores the source drawer chain and removes screenshot-guessed visual owners', () => {
@@ -36,10 +72,14 @@ test('Mobile Home restores the source drawer chain and removes screenshot-guesse
   assert.doesNotMatch(home, /mobile-auth-drawer-runtime-correction\.css/);
 });
 
-test('Mobile drawer keeps the supplied source geometry, surfaces, and guest actions', () => {
+test('Mobile drawer keeps exact supplied geometry, one source glow, close asset, and source surfaces', () => {
   assert.match(drawer, /width:\s*min\(340px, 100vw\)\s*!important/);
   assert.match(drawer, /padding:\s*20px 23px\s*!important/);
-  assert.match(drawer, /radial-gradient\(circle 222\.5px at 50% 0%, rgb\(187 91 234 \/ 40%\)/);
+  assert.match(drawer, /background:\s*rgb\(17 14 22\)\s*!important/);
+  assert.match(drawer, /width:\s*445px\s*!important;[\s\S]*height:\s*445px\s*!important;[\s\S]*opacity:\s*\.4\s*!important/);
+  assert.match(drawer, /radial-gradient\(50% 50%, rgb\(187 91 234\) 0%, rgb\(38 33 52 \/ 0%\) 100%\)\s*!important/);
+  assert.match(drawer, /background-image:\s*url\('\/images\/close\.svg'\)\s*!important/);
+  assert.match(drawer, /span:first-child[\s\S]*background:\s*transparent\s*!important/);
   assert.match(drawer, /background:\s*rgb\(187 91 234 \/ 10%\)\s*!important/);
   assert.match(drawer, /linear-gradient\(rgb\(129 104 157\), rgb\(206 156 186\)\)\s*!important/);
   assert.match(drawer, /linear-gradient\(rgb\(114 4 85\), rgb\(145 10 103\)\)\s*!important/);

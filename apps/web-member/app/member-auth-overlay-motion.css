@@ -3,10 +3,10 @@
   to { opacity: 1; }
 }
 
-/* This file is imported by member-auth-overlay.css. The explicit div selector
-   intentionally gives the static motion layer higher specificity than the
-   older base overlay rules that follow the import. */
+/* The overlay shell itself stays transparent. The backdrop child is the only
+   dimming owner so embedded Login/Register never stacks an opaque page over Home. */
 html body div.member-auth-overlay,
+html body div.member-auth-overlay[data-state='opening'],
 html body div.member-auth-overlay[data-state='open'],
 html body div.member-auth-overlay[data-state='closing'] {
   background-color: transparent !important;
@@ -45,6 +45,16 @@ html body div.member-auth-overlay[data-state='closing'] .member-auth-overlay__ba
 
 html body div.member-auth-overlay .member-auth-overlay__frame {
   z-index: 1 !important;
+  background: transparent !important;
+}
+
+/* Both auth documents stay mounted, but only the active one may ever paint or
+   receive input. This prevents the preloaded sibling frame from flashing a
+   blank/black document during Login/Register switches. */
+html body div.member-auth-overlay .member-auth-overlay__frame[data-auth-frame-active='false'] {
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
 }
 
 html body div.member-auth-overlay[data-state='closing'] .member-auth-overlay__frame {
@@ -56,6 +66,7 @@ html body div.member-auth-overlay[data-state='closing'] .member-auth-overlay__fr
 
 @media (max-width: 900px) {
   html body div.member-auth-overlay .member-auth-overlay__backdrop {
+    /* Supplied Mobile source overlay: rgba(0,0,0,.72). */
     background: rgb(0 0 0 / 72%);
   }
 }

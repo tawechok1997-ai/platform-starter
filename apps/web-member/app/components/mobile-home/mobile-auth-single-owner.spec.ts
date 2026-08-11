@@ -27,16 +27,14 @@ test('member chrome owns exactly one query and event driven authentication popup
   assert.match(memberChrome, /requestId=\{authRequest\.requestId\}/);
 });
 
-test('the shared popup owns one stable iframe and switches its inner document explicitly', () => {
-  assert.equal((authOverlay.match(/<iframe\b/g) ?? []).length, 1);
-  assert.match(authOverlay, /const initialPath = embeddedPath\(mode, requestId\)/);
-  assert.match(authOverlay, /requestedPathRef = useRef\(initialPath\)/);
-  assert.match(authOverlay, /frameRef = useRef<HTMLIFrameElement \| null>\(null\)/);
-  assert.match(authOverlay, /ref=\{frameRef\}/);
-  assert.match(authOverlay, /src=\{initialPath\}/);
-  assert.match(authOverlay, /contentWindow\.location\.replace\(nextPath\)/);
-  assert.match(authOverlay, /navigateEmbeddedMode\(payload\.mode\)/);
-  assert.doesNotMatch(authOverlay, /const path = activeMode/);
+test('the shared popup keeps one overlay lifecycle and preloads both auth views without route reloads', () => {
+  assert.match(authOverlay, /const AUTH_MODES: readonly MemberAuthMode\[\] = \['register', 'login'\]/);
+  assert.match(authOverlay, /frameRefs = useRef<FrameByMode>\(\{ login: null, register: null \}\)/);
+  assert.match(authOverlay, /\{AUTH_MODES\.map\(\(frameMode\) => \([\s\S]*src=\{embeddedPath\(frameMode, requestId\)\}/);
+  assert.match(authOverlay, /data-auth-frame-active=\{activeMode === frameMode \? 'true' : 'false'\}/);
+  assert.match(authOverlay, /const switchMode = useCallback\([\s\S]*setActiveMode\(nextMode\)/);
+  assert.doesNotMatch(authOverlay, /contentWindow\.location\.replace/);
+  assert.doesNotMatch(authOverlay, /frame\.src\s*=/);
   assert.match(authOverlay, /member-auth-close/);
   assert.match(authOverlay, /member-auth-success/);
 
@@ -46,10 +44,10 @@ test('the shared popup owns one stable iframe and switches its inner document ex
   assert.ok(clickStart >= 0 && clickEnd > clickStart);
   assert.match(embeddedClickHandler, /preventDefault\(\)/);
   assert.match(embeddedClickHandler, /stopPropagation\(\)/);
-  assert.match(embeddedClickHandler, /navigateEmbeddedMode\(nextMode\)/);
+  assert.match(embeddedClickHandler, /switchMode\(nextMode\)/);
 });
 
-test('register and login tabs navigate between real embedded auth pages', () => {
+test('register and login tabs retain real embedded auth destinations as progressive fallbacks', () => {
   assert.match(loginPage, /registerHref = embedded \? '\/register\?embed=1' : '\/register'/);
   assert.match(loginPage, /loginHref = embedded \? '\/login\?embed=1' : '\/login'/);
   assert.match(loginPage, /<nav className="public-auth-tabs source-login-tabs"/);

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { createApiClient } from '@platform/api-client';
+import { memberApiFetch } from '../member-api';
 
 type Provider = 'TURNSTILE' | 'RECAPTCHA' | 'HCAPTCHA';
 type Endpoint = 'member-login' | 'member-register' | 'member-password-reset';
@@ -15,7 +15,6 @@ type Props = {
   onRequiredChange: (required: boolean, ready: boolean) => void;
 };
 
-const client = createApiClient({ baseUrl: '', timeoutMs: 10000, retry: 1 });
 const scripts: Record<Provider, string> = {
   TURNSTILE: 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit',
   RECAPTCHA: 'https://www.google.com/recaptcha/api.js?render=explicit',
@@ -32,9 +31,27 @@ export function AntiBotWidget({ endpoint, locale, resetKey, onToken, onRequiredC
 
   useEffect(() => {
     let cancelled = false;
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => controller.abort(), 10000);
     setError('');
     setNonBlockingWarning(false);
-    client.request<PublicConfig>(`/api/anti-bot/${endpoint}`, { auth: false, cache: 'no-store' })
+
+    // Use the documented Member transport bridge. memberApiFetch resolves this
+    // path against NEXT_PUBLIC_API_URL in the browser, so adaptive CAPTCHA sees
+    // the same public client boundary as the subsequent login/register POST
+    // without introducing a second direct-fetch owner in application code.
+    memberApiFetch(`/public/anti-bot/${endpoint}`, {
+      method: 'GET',
+      cache: 'no-store',
+      headers: { accept: 'application/json' },
+      signal: controller.signal,
+      skipAuth: true,
+      suppressSessionExpiryRedirect: true,
+    })
+      .then(async (response) => {
+        if (!response.ok) throw new Error(`anti-bot config ${response.status}`);
+        return response.json() as Promise<PublicConfig>;
+      })
       .then((payload) => {
         if (cancelled) return;
         setConfig(payload);
@@ -50,18 +67,25 @@ export function AntiBotWidget({ endpoint, locale, resetKey, onToken, onRequiredC
       })
       .catch(() => {
         if (cancelled) return;
-        // Do not freeze the form because the public configuration proxy had a
-        // transient failure. The API remains the final CAPTCHA authority and
-        // will reject the request when a token is genuinely required.
+        // Do not freeze the form on a transient config/CORS failure. The auth
+        // API remains authoritative and a failed submit increments resetKey,
+        // which rechecks this config immediately instead of leaving a stale
+        // "not required" decision mounted for the lifetime of the form.
         setConfig({ enabled: false, provider: null, siteKey: '' });
         setNonBlockingWarning(true);
         setError(locale === 'th'
           ? 'ตรวจสอบสถานะระบบยืนยันความปลอดภัยไม่ได้ ระบบจะตรวจอีกครั้งตอนส่งข้อมูล'
           : 'Security verification status is unavailable. It will be checked again on submit.');
         onRequiredChange(false, true);
-      });
-    return () => { cancelled = true; };
-  }, [endpoint, locale, onRequiredChange]);
+      })
+      .finally(() => window.clearTimeout(timeout));
+
+    return () => {
+      cancelled = true;
+      controller.abort();
+      window.clearTimeout(timeout);
+    };
+  }, [endpoint, locale, onRequiredChange, resetKey]);
 
   useEffect(() => {
     if (!config?.enabled || !config.provider || !config.siteKey || !hostRef.current) return;
