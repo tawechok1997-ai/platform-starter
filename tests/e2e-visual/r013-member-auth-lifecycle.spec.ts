@@ -1,4 +1,4 @@
-import { expect, test, type Page } from '@playwright/test';
+import { expect, test, type Locator, type Page } from '@playwright/test';
 
 const BASE_URL = process.env.MEMBER_HOME_URL ?? 'http://127.0.0.1:3101/';
 
@@ -142,16 +142,21 @@ async function openAuth(page: Page, mode: 'login' | 'register', requestId: strin
   const overlay = page.locator(`.member-auth-overlay[data-auth-request-id="${requestId}"]`);
   await expect(overlay).toBeVisible({ timeout: 10_000 });
   await expect(overlay).toHaveAttribute('data-state', /opening|open/);
+  await expect(overlay).toHaveAttribute('data-frame-ready', 'true', { timeout: 15_000 });
   await assertPreloadedFrameOwnership(overlay, mode);
 }
 
 async function assertPreloadedFrameOwnership(
-  overlay: ReturnType<Page['locator']>,
+  overlay: Locator,
   expectedMode?: 'login' | 'register',
 ) {
   const frames = overlay.locator('iframe.member-auth-overlay__frame');
-  const activeFrame = frames.filter({ has: undefined }).locator('xpath=self::*[@data-auth-frame-active="true"]');
-  const inactiveFrame = frames.filter({ has: undefined }).locator('xpath=self::*[@data-auth-frame-active="false"]');
+  const activeFrame = overlay.locator(
+    'iframe.member-auth-overlay__frame[data-auth-frame-active="true"]',
+  );
+  const inactiveFrame = overlay.locator(
+    'iframe.member-auth-overlay__frame[data-auth-frame-active="false"]',
+  );
 
   await expect(frames).toHaveCount(2);
   await expect(activeFrame).toHaveCount(1);
