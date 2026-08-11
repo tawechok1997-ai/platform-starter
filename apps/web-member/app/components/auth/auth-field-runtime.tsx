@@ -20,6 +20,14 @@ export default function AuthFieldRuntime() {
     if (!root) return;
 
     const runtimeButtons = new Set<HTMLButtonElement>();
+    const forwardEmbeddedEscape = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape' || window.parent === window) return;
+      event.preventDefault();
+      event.stopPropagation();
+      window.parent.postMessage({ type: 'member-auth-close' }, window.location.origin);
+    };
+
+    document.addEventListener('keydown', forwardEmbeddedEscape, true);
 
     const enhanceFields = () => {
       root.querySelectorAll<HTMLLabelElement>('label.public-auth-field').forEach((field) => {
@@ -72,6 +80,7 @@ export default function AuthFieldRuntime() {
     observer.observe(root, { childList: true, subtree: true });
 
     return () => {
+      document.removeEventListener('keydown', forwardEmbeddedEscape, true);
       observer.disconnect();
       runtimeButtons.forEach((button) => button.remove());
       runtimeButtons.clear();
