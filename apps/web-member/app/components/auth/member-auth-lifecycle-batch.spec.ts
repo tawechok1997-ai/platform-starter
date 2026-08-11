@@ -6,6 +6,7 @@ const events = readFileSync(new URL('../../lib/member-auth-events.ts', import.me
 const chrome = readFileSync(new URL('../../member-chrome.tsx', import.meta.url), 'utf8');
 const controller = readFileSync(new URL('../member-navigation-auth-controller.tsx', import.meta.url), 'utf8');
 const overlay = readFileSync(new URL('./member-auth-overlay.tsx', import.meta.url), 'utf8');
+const runtime = readFileSync(new URL('./auth-field-runtime.tsx', import.meta.url), 'utf8');
 
 test('auth open requests use one canonical event and a fresh request id', () => {
   assert.match(events, /MEMBER_OPEN_AUTH_EVENT = 'member:auth-open'/);
@@ -42,21 +43,31 @@ test('closing auth removes every click owner in the same event turn', () => {
   assert.match(overlay, /if \(dismissed\) return null/);
 });
 
-test('iframe is revealed only after the embedded auth dialog exists', () => {
+test('preloaded auth frames are revealed only after each embedded dialog exists', () => {
   assert.match(overlay, /function embeddedAuthShellReady\(document: Document \| null\)/);
   assert.match(overlay, /\[data-embedded="true"\]/);
   assert.match(overlay, /\[role="dialog"\], \.source-login-modal, \.source-register-modal/);
-  assert.match(overlay, /payload\.type === 'member-auth-ready'[\s\S]*revealFrameOnlyWhenRendered\(frame\)/);
-  assert.match(overlay, /if \(revealFrameOnlyWhenRendered\(frame\)\) return/);
-  assert.doesNotMatch(overlay, /payload\.type === 'member-auth-ready'\) setFrameReady\(true\)/);
+  assert.match(overlay, /payload\.type === 'member-auth-ready'[\s\S]*revealFrameOnlyWhenRendered\(frame, sourceMode\)/);
+  assert.match(overlay, /if \(revealFrameOnlyWhenRendered\(frame, frameMode\)\) return/);
+  assert.match(overlay, /setReadyByMode\(\(current\)[\s\S]*\[frameMode\]: true/);
+  assert.doesNotMatch(overlay, /setFrameReady\(false\)/);
 });
 
-test('iframe messages and listeners are bounded to the current request', () => {
-  assert.match(overlay, /event\.source !== frameWindow/);
+test('iframe messages and listeners are bounded to a known preloaded frame and request', () => {
+  assert.match(overlay, /modeForFrameWindow\(event\.source, frameRefs\.current\)/);
+  assert.match(overlay, /if \(!sourceMode\) return/);
+  assert.match(overlay, /if \(sourceMode !== activeModeRef\.current\) return/);
   assert.match(overlay, /new AbortController\(\)/);
   assert.match(overlay, /signal: navigationAbort\.signal/);
   assert.match(overlay, /cancelFrameWork\(\)/);
-  assert.match(overlay, /requestedPathRef\.current/);
   assert.match(overlay, /data-auth-request-id=\{requestId\}/);
+  assert.match(overlay, /frames\[mode\]\?\.contentWindow === source/);
   assert.doesNotMatch(overlay, /stopImmediatePropagation\(\)/);
+});
+
+test('embedded Escape forwards close to the parent overlay even while iframe owns focus', () => {
+  assert.match(runtime, /document\.addEventListener\('keydown', forwardEmbeddedEscape, true\)/);
+  assert.match(runtime, /event\.key !== 'Escape' \|\| window\.parent === window/);
+  assert.match(runtime, /window\.parent\.postMessage\(\{ type: 'member-auth-close' \}, window\.location\.origin\)/);
+  assert.match(runtime, /document\.removeEventListener\('keydown', forwardEmbeddedEscape, true\)/);
 });
